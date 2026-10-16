@@ -2,6 +2,8 @@
 
 Instrucciones para cualquier agente de IA que trabaje en este repositorio (Copilot, Claude Code, Codex…). Se aplican a **todas** las peticiones; en cada tarea solo hace falta indicar las excepciones.
 
+> Generado con asistencia de IA (Claude) – revisado por Kai Oliveros.
+
 Rentit es un "Airbnb de objetos" de barrio: alquiler entre vecinos con entrega, pago con fianza y valoraciones. Antes de hacer cambios, lee:
 - [docs/arquitectura.md](docs/arquitectura.md): capas, flujo de autenticación y estructura de carpetas.
 - [docs/adr/0001-stack.md](docs/adr/0001-stack.md): stack elegido y por qué.
