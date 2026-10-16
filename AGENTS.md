@@ -12,7 +12,7 @@ Rentit es un "Airbnb de objetos" de barrio: alquiler entre vecinos con entrega, 
 
 ## Lenguaje y estilo
 - **TypeScript en modo estricto** en `frontend/` y `backend/`. No uses `any`; si un tipo es desconocido, usa `unknown` y valídalo.
-- Frontend: **React 18 + Vite + React Router**, componentes funcionales con hooks.
+- Frontend: **React 19 + Vite + React Router**, componentes funcionales con hooks.
 - Backend: **Node.js 22 + Express**, API REST en JSON bajo `/api`.
 - Base de datos: **PostgreSQL con Prisma**.
 - Formato con **Prettier** y lint con **ESLint** según la configuración del repo. No modifiques `.prettierrc` ni la configuración de ESLint.
