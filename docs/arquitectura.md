@@ -2,6 +2,8 @@
 
 Decisiones de diseño del Sprint 0 (tarea #129, parte de TR-02 · #83). Este documento se enseña en la demo del Sprint 0 y se actualiza cuando cambie la arquitectura.
 
+> Generado con asistencia de IA (Claude) – revisado por Kai Oliveros.
+
 - Stack y alternativas descartadas: [ADR 0001 · Stack tecnológico](adr/0001-stack.md)
 - Modelo de datos (tablas `usuario` y `sesion`): [modelo-datos.md](modelo-datos.md)
 - Flujo de trabajo con Git: [CONTRIBUTING.md](../CONTRIBUTING.md)
