@@ -1,7 +1,7 @@
 # ADR 0001 · Stack tecnológico de Rentit
 
 - **Estado:** Propuesto (pendiente de validar por el equipo antes del merge)
-- **Fecha:** 16/10/2026
+- **Fecha:** 16/10/2026 · actualizado con la revisión de Alex en el PR #130
 - **Responsable:** Kai (DevOps) · tarea #95, parte de TR-02 (#83)
 - **Relacionado:** `docs/modelo-datos.md` (#98), `CONTRIBUTING.md` (#20), `docs/arquitectura.md` (#129)
 
@@ -23,18 +23,71 @@ Rentit es una aplicación web (un "Airbnb de objetos" de barrio) que tiene que e
 | Capa | Elección | Por qué |
 |---|---|---|
 | Lenguaje | **TypeScript** en front y back | Un solo lenguaje para todo el equipo; los tipos evitan errores entre la API y el cliente. |
-| Frontend | **React 18 + Vite + React Router** | El framework más usado y documentado; Vite arranca y compila rápido. |
+| Frontend | **React 19 + Vite + React Router** | El framework más usado y documentado; Vite arranca y compila rápido. React 19 es la versión que instala la plantilla `react-ts` de Vite, así el esqueleto (#31) y este ADR coinciden. |
 | Backend | **Node.js 22 LTS + Express** en capas (`routes → controllers → services → repositories`) | API REST sencilla y conocida; las capas separan HTTP, lógica de negocio y acceso a datos. |
 | Base de datos | **PostgreSQL** (local con Docker Compose) | Relacional, encaja con el diagrama ER. |
-| Proveedor de PostgreSQL en producción | **Supabase** (plan gratuito) | Postgres gestionado gratis y sin fecha de caducidad; panel para consultar los datos en las demos; en la misma cuenta tiene Storage, candidato para las fotos (SP-03). Solo se usa como base de datos: el backend se conecta con Prisma, no con la API de Supabase. |
+| Proveedor de PostgreSQL en producción | **Supabase** (plan gratuito) | Postgres gestionado gratis y sin fecha de caducidad; panel para consultar los datos en las demos; en la misma cuenta tiene Storage, candidato para las fotos (SP-03). Solo se usa como base de datos: el backend se conecta con Prisma, no con la API de Supabase, y a través del *pooler* (ver [Configuración](#configuración-que-hay-que-respetar)). |
 | Acceso a datos | **Prisma ORM** | Migraciones versionadas y `seed` de desarrollo (#98, #97) con un esquema tipado. |
 | Autenticación | **Token de sesión opaco** (aleatorio) en la cabecera `Authorization: Bearer`, guardado como hash en la tabla `sesion`; contraseñas con **bcrypt** | El logout revoca la sesión en la BD (`revocada_en`), cosa que un JWT sin estado no permite. Al ser cabecera y no cookie, funciona aunque front y back estén en dominios distintos. |
 | Tests | **Vitest** (unitarios FE y BE), **Supertest** (API), **Playwright** (e2e, #99) | Vitest comparte configuración con Vite; Playwright corre en CI sin configuración extra. |
 | Calidad | **ESLint + Prettier** | Lint en cada PR (TR-03). |
 | Hosting FE | **Vercel** | Despliegue automático en cada merge a `main` y **preview por PR** (criterio de TR-04). |
 | Hosting BE | **Render** (Web Service gratuito) | Despliegue automático desde GitHub para Node; variables de entorno y secretos en su panel. |
-| CI/CD | **GitHub Actions** | Integrado con el repo; es lo que se ve en teoría (tema 6). |
+| CI/CD | **GitHub Actions**, con un servicio PostgreSQL para los tests | Integrado con el repo; es lo que se ve en teoría (tema 6). |
 | Repositorio | **Mono-repo** con `frontend/` y `backend/` | Un solo sitio para issues, PRs, CI y documentación; somos un solo equipo y un solo producto. |
+
+## Configuración que hay que respetar
+
+Detalles que salieron en la revisión del ADR y que afectan a los esqueletos (#17, #31), al CI (#19), al despliegue (#96) y a los secretos (#100).
+
+### 1. Conexión Render → Supabase a través del pooler
+
+La conexión directa de Supabase solo funciona por **IPv6**, y Render no puede conectarse por IPv6. Por eso el backend se conecta al **pooler de Supabase (Supavisor)**, que sí acepta IPv4. Prisma usa dos URLs:
+
+```prisma
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL") // transaction pooler: puerto 6543, con ?pgbouncer=true
+  directUrl = env("DIRECT_URL")   // session pooler: puerto 5432, lo usa prisma migrate deploy
+}
+```
+
+- `DATABASE_URL`: la usa la aplicación en cada consulta.
+- `DIRECT_URL`: solo para las migraciones, que no funcionan con el modo *transaction*.
+- Las dos van a `.env.example` (sin valores reales) y a los secretos de Render (#100). En local, las dos apuntan al PostgreSQL de Docker.
+
+### 2. PostgreSQL en el CI
+
+Los tests de API (Supertest) y los e2e (Playwright) necesitan una base de datos real. El workflow de CI (#19) levanta PostgreSQL como servicio y aplica las migraciones antes de los tests:
+
+```yaml
+services:
+  postgres:
+    image: postgres:16
+    env:
+      POSTGRES_PASSWORD: postgres
+    ports: ["5432:5432"]
+    options: --health-cmd pg_isready --health-interval 5s --health-retries 10
+# ...y antes de los tests:
+#   - run: npx prisma migrate deploy
+```
+
+Es una base de datos temporal que se borra al acabar el job; la contraseña `postgres` solo vale dentro del CI y no es un secreto.
+
+### 3. CORS para la URL de producción y las previews de Vercel
+
+El backend acepta peticiones de:
+- la **URL de producción** de Vercel, y
+- las **URLs de preview de nuestro proyecto** (`https://<proyecto>-<hash>-<equipo>.vercel.app` y `https://<proyecto>-git-<rama>-<equipo>.vercel.app`), comprobadas con una expresión regular que incluya el nombre del proyecto y del equipo.
+
+**No se acepta cualquier `*.vercel.app`**: cualquiera puede desplegar en ese dominio, así que abrirlo entero sería lo mismo que no tener CORS. Las URLs permitidas se leen de una variable de entorno (`CORS_ORIGINS`), no se escriben en el código.
+
+### 4. Las previews usan el backend y la base de datos de producción
+
+Solo tenemos un backend (Render) y una base de datos (Supabase), así que **lo que se haga en una preview queda guardado en la base de datos real**. Lo aceptamos para no duplicar infraestructura, con estas normas:
+- En las previews se prueba con **cuentas de prueba**, nunca con datos de la demo.
+- Los tests e2e del CI van contra la base de datos temporal del punto 2, **nunca contra producción**.
+- Si una migración puede romper datos, no se prueba en una preview: primero en local.
 
 ## Alternativas descartadas
 
@@ -63,7 +116,9 @@ Rentit es una aplicación web (un "Airbnb de objetos" de barrio) que tiene que e
 **Negativas / riesgos**
 - **Render gratuito se "duerme"** tras 15 min sin tráfico (el primer acceso tarda unos 50 s). En las demos hay que abrir la URL un minuto antes.
 - **Supabase gratuito pausa el proyecto** tras una semana sin actividad; hay que reactivarlo desde el panel si pasa.
-- Front y back en dominios distintos: el backend tiene que configurar **CORS** con la URL de Vercel (y la de las previews).
+- Front y back en dominios distintos: el backend tiene que configurar **CORS** con la URL de Vercel y la de las previews (punto 3 de [Configuración](#configuración-que-hay-que-respetar)).
+- Las **previews de Vercel escriben en la base de datos de producción** (punto 4).
+- La conexión a Supabase depende del **pooler**; si alguien usa la conexión directa, funcionará en local pero fallará en Render (punto 1).
 - El token se guarda en el cliente (`localStorage`), por lo que hay que evitar XSS (React escapa por defecto; no usar `dangerouslySetInnerHTML`).
 
 ## Cómo validar esta propuesta
