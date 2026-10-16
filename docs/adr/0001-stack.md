@@ -5,6 +5,8 @@
 - **Responsable:** Kai (DevOps) · tarea #95, parte de TR-02 (#83)
 - **Relacionado:** `docs/modelo-datos.md` (#98), `CONTRIBUTING.md` (#20), `docs/arquitectura.md` (#129)
 
+> Generado con asistencia de IA (Claude) – revisado por Kai Oliveros.
+
 ## Contexto
 
 Rentit es una aplicación web (un "Airbnb de objetos" de barrio) que tiene que estar **desplegada con URL pública a partir de la demo del Sprint 1** y crecer sprint a sprint hasta el 15/12. Lo que condiciona la elección:
