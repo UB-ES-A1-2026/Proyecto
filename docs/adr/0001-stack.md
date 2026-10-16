@@ -23,7 +23,8 @@ Rentit es una aplicación web (un "Airbnb de objetos" de barrio) que tiene que e
 | Lenguaje | **TypeScript** en front y back | Un solo lenguaje para todo el equipo; los tipos evitan errores entre la API y el cliente. |
 | Frontend | **React 18 + Vite + React Router** | El framework más usado y documentado; Vite arranca y compila rápido. |
 | Backend | **Node.js 22 LTS + Express** en capas (`routes → controllers → services → repositories`) | API REST sencilla y conocida; las capas separan HTTP, lógica de negocio y acceso a datos. |
-| Base de datos | **PostgreSQL** (local con Docker Compose, producción en **Supabase**, plan gratuito) | Relacional, encaja con el diagrama ER; Supabase da Postgres gestionado gratis y además Storage (candidato de SP-03). |
+| Base de datos | **PostgreSQL** (local con Docker Compose) | Relacional, encaja con el diagrama ER. |
+| Proveedor de PostgreSQL en producción | **Supabase** (plan gratuito) | Postgres gestionado gratis y sin fecha de caducidad; panel para consultar los datos en las demos; en la misma cuenta tiene Storage, candidato para las fotos (SP-03). Solo se usa como base de datos: el backend se conecta con Prisma, no con la API de Supabase. |
 | Acceso a datos | **Prisma ORM** | Migraciones versionadas y `seed` de desarrollo (#98, #97) con un esquema tipado. |
 | Autenticación | **Token de sesión opaco** (aleatorio) en la cabecera `Authorization: Bearer`, guardado como hash en la tabla `sesion`; contraseñas con **bcrypt** | El logout revoca la sesión en la BD (`revocada_en`), cosa que un JWT sin estado no permite. Al ser cabecera y no cookie, funciona aunque front y back estén en dominios distintos. |
 | Tests | **Vitest** (unitarios FE y BE), **Supertest** (API), **Playwright** (e2e, #99) | Vitest comparte configuración con Vite; Playwright corre en CI sin configuración extra. |
@@ -42,6 +43,8 @@ Rentit es una aplicación web (un "Airbnb de objetos" de barrio) que tiene que e
 | Django / FastAPI / Spring Boot | Obligan a usar un segundo lenguaje además de TypeScript en el front. |
 | Firebase o Supabase como BaaS completo (sin backend propio) | Dejaría sin trabajo real al rol de backend y esconde la lógica de negocio (reservas, fianza, incidencias). |
 | MongoDB | El dominio es muy relacional (reservas ↔ objetos ↔ usuarios ↔ pagos). |
+| Neon (Postgres gestionado) | También gratuito, pero solo da la base de datos; Supabase además ofrece Storage y panel de datos en la misma cuenta. |
+| PostgreSQL de Render | La base de datos gratuita caduca a los 30 días, y el proyecto dura hasta diciembre. |
 | JWT sin estado | No se puede invalidar en el logout sin una lista de revocación, que es justo lo que ya es la tabla `sesion`. |
 | Netlify (FE) | Equivalente a Vercel; elegimos Vercel por las previews de PR y la integración directa con Vite. |
 | Railway / Heroku (BE) | Ya no tienen plan gratuito. |
