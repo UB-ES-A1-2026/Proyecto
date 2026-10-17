@@ -1,0 +1,41 @@
+{
+  "name": "rentit-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file=.env --watch --import tsx src/server.ts",
+    "build": "prisma generate && tsc",
+    "start": "node --env-file-if-exists=.env dist/server.js",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"*.ts\" \"*.json\"",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:reset": "prisma migrate reset",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.0.0",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "express": "^5.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "@types/supertest": "^6.0.2",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.0.0",
+    "prisma": "^6.0.0",
+    "supertest": "^7.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^2.0.0"
+  }
+}
