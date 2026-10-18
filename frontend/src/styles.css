@@ -52,6 +52,8 @@ body {
 
 .app-header {
   display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-md);
   align-items: center;
   justify-content: space-between;
   padding: var(--space-md) var(--space-lg);
@@ -217,4 +219,27 @@ body {
 .home-actions > * {
   width: auto;
   min-width: 10rem;
+}
+
+.app-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-md);
+  align-items: center;
+}
+
+.nav-link {
+  padding: var(--space-xs) var(--space-sm);
+  color: var(--color-primary);
+  text-decoration: none;
+  border-radius: var(--radius);
+}
+
+.nav-link:hover {
+  text-decoration: underline;
+}
+
+.nav-link[aria-current='page'] {
+  font-weight: var(--font-weight-medium);
+  background-color: var(--color-primary-soft);
 }
