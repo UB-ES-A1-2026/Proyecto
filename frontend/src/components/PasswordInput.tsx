@@ -15,7 +15,6 @@ export function PasswordInput(props: PasswordInputProps) {
         className="password-toggle"
         onClick={() => setVisible((current) => !current)}
         aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-        aria-pressed={visible}
       >
         {visible ? 'Ocultar' : 'Mostrar'}
       </button>
