@@ -1,27 +1,32 @@
-import { useEffect, useState } from 'react';
-import { getHealth } from '../services/healthService';
+import { Link } from 'react-router';
+import { useAuth } from '../context/useAuth';
 
-type ApiStatus = 'cargando' | 'ok' | 'error';
-
-// Página provisional: la home de verdad es la tarea #7.
+// Home del Sprint 0: la página a la que vuelve el usuario tras iniciar sesión (US-01.2).
+// El buscador y los objetos cercanos llegan en el Sprint 1 (EP-03).
 export function HomePage() {
-  const [apiStatus, setApiStatus] = useState<ApiStatus>('cargando');
+  const { session } = useAuth();
 
-  useEffect(() => {
-    getHealth()
-      .then(() => setApiStatus('ok'))
-      .catch(() => setApiStatus('error'));
-  }, []);
+  if (session) {
+    return (
+      <section className="home">
+        <h1>Hola, {session.user.username}</h1>
+        <p className="home-tagline">Alquila objetos a tus vecinos.</p>
+      </section>
+    );
+  }
 
   return (
-    <section>
+    <section className="home">
       <h1>Rentit</h1>
-      <p>Alquila objetos a tus vecinos.</p>
-      <p role="status">
-        {apiStatus === 'cargando' && 'Comprobando la conexión con la API…'}
-        {apiStatus === 'ok' && 'API conectada'}
-        {apiStatus === 'error' && 'No se puede conectar con la API'}
-      </p>
+      <p className="home-tagline">Alquila objetos a tus vecinos.</p>
+      <div className="home-actions">
+        <Link to="/login" className="button-primary">
+          Iniciar sesión
+        </Link>
+        <Link to="/registro" className="button-secondary">
+          Crear cuenta
+        </Link>
+      </div>
     </section>
   );
 }
