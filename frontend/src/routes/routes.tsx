@@ -4,8 +4,9 @@ import { AuthProvider } from '../context/AuthContext';
 import { HomePage } from '../pages/HomePage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
+import { ProfilePage } from '../pages/ProfilePage';
+import { RegisterPage } from '../pages/RegisterPage';
 
-// Las pantallas de registro y perfil se añaden aquí en #21 y #29.
 export const routes: RouteObject[] = [
   {
     path: '/',
@@ -17,6 +18,8 @@ export const routes: RouteObject[] = [
     children: [
       { index: true, element: <HomePage /> },
       { path: 'login', element: <LoginPage /> },
+      { path: 'registro', element: <RegisterPage /> },
+      { path: 'perfil', element: <ProfilePage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
