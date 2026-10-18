@@ -13,7 +13,7 @@ npm install
 npm run dev            # http://localhost:5173
 ```
 
-Con el backend arrancado (`backend/`, `npm run dev`), la home muestra «API conectada».
+Con el backend arrancado (`backend/`, `npm run dev`) y el seed cargado, puedes iniciar sesión en `/login` con `ana@rentit.test` / `Rentit2026`.
 
 ## Scripts
 
