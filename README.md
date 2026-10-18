@@ -12,7 +12,10 @@ Requisitos: Node.js 22 y Docker con Docker Compose.
    npm install
    npm run db:migrate
    ```
-4. Arranca el servidor con `npm run dev`. La API de salud está en
+4. Carga los usuarios de prueba con `npm run db:seed` (también se cargan solos
+   tras `npm run db:reset`): `ana@rentit.test`, `bruno@rentit.test` y
+   `admin@rentit.test` (administrador), todos con la contraseña `Rentit2026`.
+5. Arranca el servidor con `npm run dev`. La API de salud está en
    `http://localhost:3000/api/health`.
-5. Ejecuta `npm test` desde `backend/`; Vitest usa `backend/.env.test` y prepara
+6. Ejecuta `npm test` desde `backend/`; Vitest usa `backend/.env.test` y prepara
    la base de datos `rentit_test` antes de los tests.
