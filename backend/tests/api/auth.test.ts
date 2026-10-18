@@ -18,6 +18,13 @@ beforeEach(async () => {
   await resetDb();
 });
 
+async function loginAs(email = 'ana@rentit.test'): Promise<string> {
+  const response = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password: TEST_PASSWORD });
+  return response.body.token as string;
+}
+
 describe('POST /api/auth/login', () => {
   it('returns a token and the public user data with correct credentials', async () => {
     const user = await createTestUser();
@@ -104,5 +111,53 @@ describe('POST /api/auth/login', () => {
 
     expect(response.status).toBe(403);
     expect(await prisma.session.count()).toBe(0);
+  });
+});
+
+describe('POST /api/auth/logout', () => {
+  it('revokes the session and the token stops working', async () => {
+    await createTestUser();
+    const token = await loginAs();
+
+    const logout = await request(app)
+      .post('/api/auth/logout')
+      .set('Authorization', `Bearer ${token}`);
+    const reuse = await request(app)
+      .post('/api/auth/logout')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(logout.status).toBe(204);
+    expect(reuse.status).toBe(401);
+    const session = await prisma.session.findFirstOrThrow();
+    expect(session.revokedAt).not.toBeNull();
+  });
+
+  it('only closes the session of that device', async () => {
+    await createTestUser();
+    const laptop = await loginAs();
+    const phone = await loginAs();
+
+    await request(app)
+      .post('/api/auth/logout')
+      .set('Authorization', `Bearer ${laptop}`);
+    const phoneLogout = await request(app)
+      .post('/api/auth/logout')
+      .set('Authorization', `Bearer ${phone}`);
+
+    expect(phoneLogout.status).toBe(204);
+  });
+
+  it.each([
+    ['without the Authorization header', undefined],
+    ['with another scheme', 'Basic abc'],
+    ['with an unknown token', 'Bearer token-inventado'],
+  ])('returns 401 %s', async (_case, header) => {
+    const call = request(app).post('/api/auth/logout');
+    const response = await (header ? call.set('Authorization', header) : call);
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({
+      error: 'Sesión no válida o caducada. Inicia sesión de nuevo.',
+    });
   });
 });

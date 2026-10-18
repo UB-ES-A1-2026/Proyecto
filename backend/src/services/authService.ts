@@ -2,7 +2,7 @@
 import bcrypt from 'bcrypt';
 import { AppError } from '../errors/appError.js';
 import { findUserByEmail } from '../repositories/userRepository.js';
-import { createSession } from './sessionService.js';
+import { createSession, revokeSession } from './sessionService.js';
 
 // Mensajes del criterio de aceptación de US-01.2: «El campo "X" no es correcto, revísalo».
 export const INVALID_EMAIL_MESSAGE =
@@ -49,4 +49,8 @@ export async function login(
       role: user.role,
     },
   };
+}
+
+export async function logout(sessionId: string): Promise<void> {
+  await revokeSession(sessionId);
 }

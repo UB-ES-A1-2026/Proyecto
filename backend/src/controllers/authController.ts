@@ -24,3 +24,10 @@ export const login: RequestHandler = async (request, response) => {
 
   response.status(200).json(result);
 };
+
+export const logout: RequestHandler = async (request, response) => {
+  // requireAuth garantiza que request.auth existe.
+  await authService.logout(request.auth!.sessionId);
+
+  response.status(204).end();
+};
