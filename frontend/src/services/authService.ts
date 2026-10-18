@@ -20,3 +20,8 @@ export function login(email: string, password: string): Promise<Session> {
     body: { email: email.trim(), password },
   });
 }
+
+// Invalida la sesión en el backend (rellena revocada_en). Responde 204.
+export function logout(token: string): Promise<void> {
+  return apiRequest<void>('/auth/logout', { method: 'POST', token });
+}
