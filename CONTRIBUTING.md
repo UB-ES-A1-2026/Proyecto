@@ -1,98 +1,127 @@
-# Cómo trabajamos con Git (estrategia de ramas)
+# Cómo trabajamos con Git (GitFlow)
 
-Usamos **GitHub Flow**: una única rama principal (`main`) que siempre funciona, y una rama corta por cada tarea que se integra en `main` mediante un Pull Request revisado por otra persona del equipo.
+Usamos **GitFlow**, con dos ramas permanentes:
 
-Lo elegimos frente a GitFlow porque somos 6, los sprints son de 2-3 semanas y desplegamos desde `main`: GitFlow (`develop`, `release/*`, `hotfix/*`) añade ramas y merges que no necesitamos.
+- **`main`**: solo contiene versiones entregadas, es decir, lo que se enseña en cada demo. Cada versión lleva una etiqueta (`sprint-0`, `sprint-1`…).
+- **`develop`**: la rama de integración. Aquí se juntan todas las tareas terminadas durante el sprint.
+
+Cada tarea se hace en una rama corta que sale de `develop` y vuelve a `develop` mediante un Pull Request revisado por otra persona del equipo. Al final del sprint, `develop` pasa a `main` a través de una rama de release.
+
+> Cambio respecto a la primera versión (GitHub Flow): pasamos a GitFlow en el Sprint 0 (#20) para separar la integración diaria (`develop`) de la versión que se entrega en cada demo (`main`). Así, `main` solo cambia cuando el equipo decide que una versión está lista.
 
 ## Diagrama
 
 ```mermaid
 gitGraph
   commit id: "Initial commit"
-  branch feat/17-esqueleto-backend
-  checkout feat/17-esqueleto-backend
+  branch develop
+  checkout develop
+  commit id: "docs: GitFlow"
+  branch feature/17-esqueleto-backend
+  checkout feature/17-esqueleto-backend
   commit id: "chore(api): proyecto base"
   commit id: "feat(api): GET /health"
-  checkout main
-  merge feat/17-esqueleto-backend id: "PR: squash & merge"
-  branch feat/23-endpoint-registro
-  checkout feat/23-endpoint-registro
+  checkout develop
+  merge feature/17-esqueleto-backend id: "PR #17 (squash)"
+  branch feature/23-endpoint-registro
+  checkout feature/23-endpoint-registro
   commit id: "feat(auth): registro"
+  checkout develop
+  merge feature/23-endpoint-registro id: "PR #23 (squash)"
+  branch release/sprint-0
+  checkout release/sprint-0
+  commit id: "fix: ajuste demo"
   checkout main
-  branch feat/22-formulario-registro
-  checkout feat/22-formulario-registro
-  commit id: "feat(web): formulario"
-  checkout feat/23-endpoint-registro
-  commit id: "test(auth): tests registro"
+  merge release/sprint-0 tag: "sprint-0"
+  checkout develop
+  merge release/sprint-0 id: "volver a develop"
   checkout main
-  merge feat/23-endpoint-registro id: "PR revisado + CI"
-  checkout feat/22-formulario-registro
-  merge main id: "actualizar con main"
-  commit id: "feat(web): conectar API"
+  branch hotfix/140-error-login
+  checkout hotfix/140-error-login
+  commit id: "fix(auth): login"
   checkout main
-  merge feat/22-formulario-registro id: "PR revisado" tag: "sprint-0"
-  branch fix/101-error-login
-  checkout fix/101-error-login
-  commit id: "fix(auth): error login"
-  checkout main
-  merge fix/101-error-login id: "PR fix"
+  merge hotfix/140-error-login tag: "sprint-0.1"
+  checkout develop
+  merge hotfix/140-error-login id: "hotfix a develop"
 ```
+
+## Tipos de rama
+
+| Rama | Para qué | Sale de | Vuelve a (por PR) | Ejemplo |
+|---|---|---|---|---|
+| `main` | Versión entregada en cada demo | — | — | — |
+| `develop` | Integración del sprint | `main` (una sola vez) | — | — |
+| `feature/<nº>-<desc>` | Cualquier tarea: funcionalidad, docs, tests, configuración, spikes | `develop` | `develop` | `feature/23-endpoint-registro` |
+| `bugfix/<nº>-<desc>` | Bug encontrado en `develop` (aún no entregado) | `develop` | `develop` | `bugfix/120-validacion-email` |
+| `release/sprint-<N>` | Preparar la demo: solo arreglos pequeños, nada nuevo | `develop` | `main` **y** `develop` | `release/sprint-0` |
+| `hotfix/<nº>-<desc>` | Bug urgente en lo que ya está en `main` | `main` | `main` **y** `develop` | `hotfix/140-error-login` |
+
+Nombres en minúsculas y con guiones. El `<nº>` es el del issue de GitHub.
 
 ## Reglas
 
-### 1. `main` siempre funciona
-- Nadie hace `push` directo a `main`: todo entra por Pull Request.
-- `main` es lo que se despliega y lo que se enseña en la demo.
-- GitHub no permite proteger ramas en repos privados de organizaciones gratuitas, así que esta regla es un **acuerdo del equipo**. Si el repo pasa a ser público, se activará la protección (PR obligatorio + 1 aprobación + CI en verde).
+### 1. Nadie hace push directo a `main` ni a `develop`
+- Todo entra por Pull Request con al menos **1 aprobación de otra persona** (nunca el autor).
+- GitHub no permite proteger ramas en repos privados de organizaciones gratuitas, así que es un **acuerdo del equipo**. Si el repo es público, se activa la protección de `main` y `develop` (PR obligatorio + 1 aprobación + CI en verde).
+- `develop` es la rama por defecto del repositorio, para que los PRs se abran contra ella.
 
-### 2. Una rama por tarea (issue)
-Formato: `tipo/<nº issue>-<descripcion-corta>` en minúsculas y con guiones.
-
-| Tipo | Para qué | Ejemplo |
-|---|---|---|
-| `feat` | Funcionalidad nueva | `feat/23-endpoint-registro` |
-| `fix` | Corregir un bug | `fix/101-error-login` |
-| `docs` | Documentación | `docs/98-diagrama-er` |
-| `test` | Tests (e2e, unitarios) | `test/21-e2e-registro` |
-| `refactor` | Mejorar código sin cambiar comportamiento | `refactor/40-servicio-auth` |
-| `chore` | Configuración, dependencias, CI | `chore/19-ci-github-actions` |
-| `spike` | Investigación / prototipo | `spike/92-almacenamiento-imagenes` |
-
-- Las ramas duran **poco (1-3 días)**. Si una tarea es más larga, se integra por partes.
-- Mantén tu rama al día con `main` a menudo para evitar conflictos grandes.
+### 2. Una rama `feature/` por tarea
+- Sale siempre de `develop` actualizado y dura **poco (1-3 días)**. Si una tarea es más larga, se integra por partes.
+- Mantén la rama al día con `develop` a menudo (`git merge origin/develop`) para evitar conflictos grandes.
+- Si tu tarea necesita algo de otra tarea que aún no está en `develop`, espera a que se mergee o habla con su responsable. No crees ramas a partir de ramas de otras personas.
 
 ### 3. Commits
 Formato [Conventional Commits](https://www.conventionalcommits.org/es/): `tipo(ámbito): descripción en presente (#issue)`
 
+| Tipo | Para qué |
+|---|---|
+| `feat` | Funcionalidad nueva |
+| `fix` | Corregir un bug |
+| `docs` | Documentación |
+| `test` | Tests |
+| `refactor` | Mejorar código sin cambiar comportamiento |
+| `chore` | Configuración, dependencias, CI, Docker |
+
 ```
-feat(auth): añade endpoint de registro con email único (#23)
-fix(web): muestra el error cuando el email ya existe (#24)
-test(auth): e2e de inicio de sesión (#102)
+chore(api): crea el proyecto base del backend (#17)
+feat(api): añade el endpoint GET /api/health (#17)
+feat(auth): añade el endpoint de registro con email único (#23)
+docs(repo): cambia la estrategia de ramas a GitFlow (#20)
 ```
 
 - Commits pequeños y frecuentes, cada uno con un cambio coherente.
 - **Cada persona hace commits con su propia cuenta**: el email de `git config user.email` debe ser el de tu cuenta de GitHub; si no, el commit no aparece como tuyo.
 
 ### 4. Pull Requests
-1. Título con el mismo formato que los commits.
-2. En la descripción, `Closes #<nº>` para que el issue se cierre al hacer merge.
-3. Rellena la plantilla (criterios de aceptación, tests, capturas si hay UI).
-4. **Revisa otra persona del equipo** (nunca el autor). Como mínimo 1 aprobación.
-5. El CI tiene que estar en verde (cuando exista el CI).
-6. Se integra con **Squash and merge** y se borra la rama.
+1. **Base del PR:** `develop` para `feature/` y `bugfix/`; `main` para `release/` y `hotfix/`.
+2. Título con el mismo formato que los commits.
+3. En la descripción, `Closes #<nº>`. Ojo: GitHub solo cierra el issue automáticamente al llegar a la rama por defecto (`develop`).
+4. Rellena la plantilla (criterios de aceptación, tests, capturas si hay UI, casilla de IA).
+5. **Revisa otra persona del equipo** (nunca el autor). Como mínimo 1 aprobación.
+6. El CI tiene que estar en verde (cuando exista el CI).
+7. Forma de integrar:
+   - `feature/` y `bugfix/` → **Squash and merge** y se borra la rama.
+   - `release/` y `hotfix/` → **Create a merge commit** (sin squash), para que `main` y `develop` compartan historia. Después se abre un segundo PR de la misma rama hacia `develop`.
 
-### 5. Tablero (GitHub Project)
+### 5. Final de cada sprint (release)
+1. Cuando todo lo del sprint está en `develop`, una persona crea `release/sprint-<N>` desde `develop`.
+2. En esa rama solo se arreglan errores de la demo; nada de funcionalidades nuevas.
+3. PR de `release/sprint-<N>` a `main`. Tras el merge, se etiqueta en `main`: `git tag sprint-<N>` y `git push origin sprint-<N>`.
+4. PR de `release/sprint-<N>` a `develop`, para que los arreglos no se pierdan.
+5. Lo que no esté en `main` al final del sprint no está entregado: vuelve al backlog.
+
+### 6. Despliegue
+- Vercel y Render despliegan **desde `main`**: la URL pública se actualiza en cada release o hotfix, no con cada tarea.
+- Las previews de Vercel se generan en cada PR y sirven para revisar antes del merge a `develop`.
+
+### 7. Tablero (GitHub Project)
 | Momento | Columna |
 |---|---|
 | Creas la rama y empiezas | In progress |
 | Abres el PR | Test |
-| PR aprobado y mergeado | Done |
+| PR aprobado y mergeado en `develop` | Done |
 
-### 6. Final de cada sprint
-- Se etiqueta en `main` el commit que se enseña en la demo: `sprint-0`, `sprint-1`, `sprint-2`, `sprint-3`.
-- Lo que no esté mergeado en `main` no está hecho: vuelve al backlog.
-
-### 7. Código generado con IA
+### 8. Código generado con IA
 Si una parte del código la ha generado una IA, indícalo en el PR (casilla de la plantilla) y, si es un bloque grande, con un comentario en el código, por ejemplo:
 
 ```
@@ -106,28 +135,35 @@ Una tarea está terminada cuando:
 - [ ] Cumple los criterios de aceptación de su historia.
 - [ ] Tiene tests (unitarios y/o e2e) y pasan.
 - [ ] Está revisada y aprobada por otra persona en un PR.
-- [ ] Está mergeada en `main` y funciona en el entorno desplegado (a partir del Sprint 1).
+- [ ] Está mergeada en `develop` (y, al final del sprint, entregada en `main`).
+- [ ] Funciona en el entorno desplegado (a partir del Sprint 1).
 - [ ] La página de ayuda está actualizada si cambia algo visible para el usuario.
 
 ## Chuleta de comandos
 
 ```bash
-# 1. Partir de main actualizado
-git switch main
+# 1. Partir de develop actualizado
+git switch develop
 git pull
 
 # 2. Crear la rama de la tarea
-git switch -c feat/23-endpoint-registro
+git switch -c feature/23-endpoint-registro
 
 # 3. Trabajar y hacer commits
 git add .
 git commit -m "feat(auth): añade endpoint de registro (#23)"
 
-# 4. Traer los últimos cambios de main a tu rama
+# 4. Traer los últimos cambios de develop a tu rama
 git fetch origin
-git merge origin/main
+git merge origin/develop
 
-# 5. Subir la rama y abrir el PR
-git push -u origin feat/23-endpoint-registro
-gh pr create --fill
+# 5. Subir la rama y abrir el PR contra develop
+git push -u origin feature/23-endpoint-registro
+gh pr create --base develop --fill
+
+# Release al final del sprint (una persona)
+git switch develop && git pull
+git switch -c release/sprint-0
+git push -u origin release/sprint-0
+gh pr create --base main --title "release: sprint 0"
 ```
