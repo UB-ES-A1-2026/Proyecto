@@ -132,7 +132,7 @@ Endpoints del Sprint 0:
 | Método y ruta | Auth | Respuestas | Tarea |
 |---|---|---|---|
 | `GET /api/health` | no | 200 `{ "status": "ok" }` | #17 |
-| `POST /api/auth/register` | no | 201 · 400 datos inválidos · 409 email/usuario repetido | #23 |
+| `POST /api/auth/register` | no | 201 `{ "token", "expiresAt", "user": { "id", "username", "email", "role" } }` · 400 datos inválidos · 409 email/usuario repetido | #23 |
 | `POST /api/auth/login` | no | 200 · 400 · 401 credenciales incorrectas | #26 |
 | `GET /api/usuarios/me` | sí | 200 · 401 | #28 |
 | `POST /api/auth/logout` | sí | 204 · 401 | #103 |
