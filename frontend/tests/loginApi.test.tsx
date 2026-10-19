@@ -97,7 +97,8 @@ describe('login conectado con la API (US-01.2, #27)', () => {
   });
 
   it('muestra un aviso general si no hay conexión con el servidor', async () => {
-    mockFetch(Promise.reject(new TypeError('Failed to fetch')));
+    // El rechazo se crea al llamar a fetch; creado antes, Node lo trata como no gestionado.
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Failed to fetch'));
     renderRoute('/login');
 
     await submitLogin();
