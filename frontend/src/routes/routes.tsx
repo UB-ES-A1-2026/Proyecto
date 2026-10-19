@@ -1,5 +1,6 @@
 import type { RouteObject } from 'react-router';
 import { Layout } from '../components/Layout';
+import { PrivateRoute } from '../components/PrivateRoute';
 import { AuthProvider } from '../context/AuthContext';
 import { HomePage } from '../pages/HomePage';
 import { LoginPage } from '../pages/LoginPage';
@@ -19,7 +20,7 @@ export const routes: RouteObject[] = [
       { index: true, element: <HomePage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'registro', element: <RegisterPage /> },
-      { path: 'perfil', element: <ProfilePage /> },
+      { element: <PrivateRoute />, children: [{ path: 'perfil', element: <ProfilePage /> }] },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

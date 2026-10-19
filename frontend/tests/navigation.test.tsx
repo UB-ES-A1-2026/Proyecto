@@ -1,6 +1,6 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderRoute } from './renderRoute';
 
 const SESSION = {
@@ -57,6 +57,8 @@ describe('layout y navegación (#21)', () => {
 
   it('navega al perfil con sesión', async () => {
     localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    // El perfil pide /usuarios/me (#29); aquí solo interesa la navegación.
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() => new Promise<Response>(() => {}));
     const { router } = renderRoute('/');
 
     await userEvent.setup().click(mainNav().getByRole('link', { name: 'Mi perfil' }));
