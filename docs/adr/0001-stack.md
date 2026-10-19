@@ -1,7 +1,7 @@
 # ADR 0001 · Stack tecnológico de Rentit
 
-- **Estado:** Propuesto (pendiente de validar por el equipo antes del merge)
-- **Fecha:** 16/10/2026 · actualizado con la revisión de Alex en el PR #130
+- **Estado:** Aceptado (16/10/2026). Los esqueletos del backend (#134) y del frontend (#138) se han creado con este stack.
+- **Fecha:** 16/10/2026 · actualizado con las revisiones de Alex en los PRs #130 y #137
 - **Responsable:** Kai (DevOps) · tarea #95, parte de TR-02 (#83)
 - **Relacionado:** `docs/modelo-datos.md` (#98), `CONTRIBUTING.md` (#20), `docs/arquitectura.md` (#129)
 
@@ -65,22 +65,33 @@ services:
   postgres:
     image: postgres:16
     env:
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: rentit
+      POSTGRES_PASSWORD: rentit
+      POSTGRES_DB: rentit_test
     ports: ["5432:5432"]
-    options: --health-cmd pg_isready --health-interval 5s --health-retries 10
-# ...y antes de los tests:
+    options: >-
+      --health-cmd "pg_isready -U rentit -d rentit_test"
+      --health-interval 5s --health-retries 10
+# ...y en backend/, antes de los tests:
 #   - run: npx prisma migrate deploy
 ```
 
-Es una base de datos temporal que se borra al acabar el job; la contraseña `postgres` solo vale dentro del CI y no es un secreto.
+El usuario, la contraseña y la base de datos son **los mismos que en `backend/.env.test`** (`postgresql://rentit:rentit@localhost:5432/rentit_test`), así los tests se conectan igual en local que en el CI. En el job, `DATABASE_URL` y `DIRECT_URL` apuntan a esa misma URL para que `prisma migrate deploy` cree las tablas en `rentit_test`.
+
+Es una base de datos temporal que se borra al acabar el job; la contraseña `rentit` solo vale para la BD local y la del CI, y no es un secreto.
 
 ### 3. CORS para la URL de producción y las previews de Vercel
 
-El backend acepta peticiones de:
-- la **URL de producción** de Vercel, y
-- las **URLs de preview de nuestro proyecto** (`https://<proyecto>-<hash>-<equipo>.vercel.app` y `https://<proyecto>-git-<rama>-<equipo>.vercel.app`), comprobadas con una expresión regular que incluya el nombre del proyecto y del equipo.
+El backend acepta peticiones de dos tipos de origen, configurados en **dos variables de entorno distintas**:
 
-**No se acepta cualquier `*.vercel.app`**: cualquiera puede desplegar en ese dominio, así que abrirlo entero sería lo mismo que no tener CORS. Las URLs permitidas se leen de una variable de entorno (`CORS_ORIGINS`), no se escriben en el código.
+| Variable | Contiene | Ejemplo |
+|---|---|---|
+| `CORS_ORIGINS` | Orígenes **exactos**, separados por comas: la URL de producción de Vercel (y `http://localhost:5173` en local). Es lo que ya valida `backend/src/config/env.ts`, que rechaza cualquier `*`. | `https://rentit.vercel.app` |
+| `CORS_PREVIEW_PATTERN` | Una **expresión regular** para las URLs de preview de nuestro proyecto (`https://<proyecto>-<hash>-<equipo>.vercel.app` y `https://<proyecto>-git-<rama>-<equipo>.vercel.app`), anclada con `^…$` e incluyendo el nombre del proyecto y del equipo. Opcional: si no está definida, no se acepta ninguna preview. | `^https://rentit-[a-z0-9-]+-<equipo>\.vercel\.app$` |
+
+- **No se mete nunca una expresión regular ni un `*` en `CORS_ORIGINS`**: `env.ts` la rechaza y el backend no arranca.
+- **No se acepta cualquier `*.vercel.app`**: cualquiera puede desplegar en ese dominio, así que abrirlo entero sería lo mismo que no tener CORS.
+- Leer `CORS_PREVIEW_PATTERN` en `env.ts` y comprobarla en `corsMiddleware` se hace en la tarea de despliegue continuo (**#96**), cuando existan las previews. Hasta entonces el backend solo acepta `CORS_ORIGINS`.
 
 ### 4. Las previews usan el backend y la base de datos de producción
 
@@ -121,6 +132,6 @@ Solo tenemos un backend (Render) y una base de datos (Supabase), así que **lo q
 - La conexión a Supabase depende del **pooler**; si alguien usa la conexión directa, funcionará en local pero fallará en Render (punto 1).
 - El token se guarda en el cliente (`localStorage`), por lo que hay que evitar XSS (React escapa por defecto; no usar `dangerouslySetInnerHTML`).
 
-## Cómo validar esta propuesta
+## Cómo se mantiene este ADR
 
-Antes de hacer merge, el equipo (en especial FE #31 y BE #17) confirma que los esqueletos se crean con este stack. Si se cambia algo, se edita este ADR en el mismo PR. Las decisiones que salgan de los spikes (SP-01…SP-05) se registran como ADR nuevos (`0002-…`, `0003-…`) en esta carpeta.
+El equipo validó el stack en la revisión del PR #130 y los esqueletos de FE (#31) y BE (#17) se crearon con él. A partir de aquí, este ADR solo se corrige para aclarar detalles. Si en el futuro cambia una decisión, se escribe un ADR nuevo que **sustituye** al anterior, y en este se cambia el estado a «Sustituido por ADR 000X». Las decisiones que salgan de los spikes (SP-01…SP-05) se registran como ADR nuevos (`0002-…`, `0003-…`) en esta carpeta.
