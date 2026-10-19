@@ -74,9 +74,20 @@ body {
   padding: var(--space-lg);
 }
 
-.auth-card {
+.auth-card,
+.profile-card {
   max-width: var(--form-max-width);
   margin: var(--space-xl) auto;
+}
+
+.profile-data dt {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.profile-data dd {
+  margin: var(--space-xs) 0 var(--space-md);
+  overflow-wrap: anywhere;
 }
 
 .form-field {

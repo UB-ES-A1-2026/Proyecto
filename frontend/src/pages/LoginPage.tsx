@@ -26,7 +26,14 @@ function isField(value: string | undefined): value is Field {
 function getRedirectPath(state: unknown): string {
   if (typeof state === 'object' && state !== null && 'from' in state) {
     const { from } = state;
-    if (typeof from === 'string' && from.startsWith('/') && !from.startsWith('/login')) {
+    // Solo rutas internas: «//dominio» o «/\dominio» llevarían a otra web.
+    if (
+      typeof from === 'string' &&
+      from.startsWith('/') &&
+      !from.startsWith('//') &&
+      !from.startsWith('/\\') &&
+      !from.startsWith('/login')
+    ) {
       return from;
     }
   }
