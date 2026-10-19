@@ -134,7 +134,7 @@ Endpoints del Sprint 0:
 | `GET /api/health` | no | 200 `{ "status": "ok" }` | #17 |
 | `POST /api/auth/register` | no | 201 `{ "token", "expiresAt", "user": { "id", "username", "email", "role" } }` · 400 datos inválidos · 409 email/usuario repetido | #23 |
 | `POST /api/auth/login` | no | 200 · 400 · 401 credenciales incorrectas | #26 |
-| `GET /api/usuarios/me` | sí | 200 · 401 | #28 |
+| `GET /api/usuarios/me` | sí | 200 `{ "id", "username", "email", "role", "createdAt" }` · 401 sesión no válida o usuario inexistente | #28 |
 | `POST /api/auth/logout` | sí | 204 · 401 | #103 |
 
 > Los nombres exactos de las rutas los fija BE al implementar; si cambian, se actualiza esta tabla en el mismo PR.
