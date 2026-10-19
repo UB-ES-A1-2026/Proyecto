@@ -7,12 +7,20 @@ export type AuthUser = {
   role: string;
 };
 
-// Respuesta de POST /api/auth/login (#136); es también la sesión que se guarda en el navegador.
+// Respuesta de POST /api/auth/login (#136) y /api/auth/register (#145); es también la sesión
+// que se guarda en el navegador.
 export type Session = {
   token: string;
   expiresAt: string;
   user: AuthUser;
 };
+
+export function register(username: string, email: string, password: string): Promise<Session> {
+  return apiRequest<Session>('/auth/register', {
+    method: 'POST',
+    body: { username: username.trim(), email: email.trim(), password },
+  });
+}
 
 export function login(email: string, password: string): Promise<Session> {
   return apiRequest<Session>('/auth/login', {
