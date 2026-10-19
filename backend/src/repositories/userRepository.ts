@@ -15,3 +15,7 @@ export function createUser(data: {
 }) {
   return prisma.user.create({ data });
 }
+
+export function findUserById(id: string) {
+  return prisma.user.findUnique({ where: { id } });
+}
