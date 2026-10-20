@@ -62,7 +62,14 @@ Nombres en minúsculas y con guiones. El `<nº>` es el del issue de GitHub.
 
 ### 1. Nadie hace push directo a `main` ni a `develop`
 - Todo entra por Pull Request con al menos **1 aprobación de otra persona** (nunca el autor).
-- GitHub no permite proteger ramas en repos privados de organizaciones gratuitas, así que es un **acuerdo del equipo**. Si el repo es público, se activa la protección de `main` y `develop` (PR obligatorio + 1 aprobación + CI en verde).
+- GitHub lo impone: `main` y `develop` están protegidas con *rulesets* (Settings → Rules). En las dos, el PR con 1 aprobación es obligatorio y no se puede borrar la rama ni hacer *force push*; nadie se lo puede saltar, tampoco los administradores.
+
+  | Rama | Ruleset | Forma de merge permitida |
+  |---|---|---|
+  | `develop` | `proteger-rama-develop` | Solo *Squash and merge* (`feature/` y `bugfix/`) |
+  | `main` | `proteger-rama-main` | Solo *Create a merge commit* (`release/` y `hotfix/`) |
+
+  Cuando exista el CI (#19), se añadirá como requisito que esté en verde.
 - `develop` es la rama por defecto del repositorio, para que los PRs se abran contra ella.
 
 ### 2. Una rama `feature/` por tarea
