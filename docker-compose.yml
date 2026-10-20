@@ -6,9 +6,14 @@ services:
       POSTGRES_PASSWORD: rentit
       POSTGRES_DB: rentit
     ports:
-      - "5432:5432"
+      # Solo accesible desde este ordenador: con "5432:5432" la BD quedaría abierta
+      # a toda la red (por ejemplo, el wifi de la universidad) con la contraseña rentit.
+      - "127.0.0.1:5432:5432"
     volumes:
       - rentit-db-data:/var/lib/postgresql/data
+      # Los scripts de docker/postgres/init (crean rentit_test) solo se ejecutan la primera
+      # vez, al crear el volumen. Si falta rentit_test: docker compose down -v && docker compose up -d
+      # (-v borra los datos locales).
       - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U rentit -d rentit"]
