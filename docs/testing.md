@@ -65,7 +65,8 @@ Los comandos completos están en el [README](../README.md#tests). Resumen:
 ### Datos de prueba
 
 - Para iniciar sesión se usan los usuarios del seed (`ana@rentit.test` / `Rentit2026`), así que antes hay que ejecutar `npm run db:seed` en `backend/`.
-- Lo que crea un test (por ejemplo, un usuario nuevo) lleva datos únicos en cada ejecución (`uniqueUser()`), para que se pueda repetir y ejecutar en paralelo.
+- Lo que crea un test (por ejemplo, un usuario nuevo) lleva datos únicos en cada ejecución (`uniqueUser()`), para que se pueda repetir sin chocar con datos de ejecuciones anteriores.
+- Los tests se ejecutan **uno a uno** (`workers: 1` en `playwright.config.ts`). Van contra los servidores de desarrollo, y con varios navegadores a la vez la API tarda demasiado en responder y los tests fallan por timeout.
 - Ningún test depende de que otro se haya ejecutado antes.
 
 ### Cuando un test falla
