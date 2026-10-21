@@ -33,7 +33,7 @@ flowchart TB
 
   subgraph supabase["Supabase"]
     db[("PostgreSQL")]
-    storage[["Storage de fotos<br/>(pendiente SP-03)"]]
+    storage[["Storage de fotos (API S3)<br/>Supabase Storage · ADR 0002"]]
   end
 
   ext["Servicios externos previstos<br/>pagos (SP-01) · mapas (SP-02)<br/>email (US-06.03)"]
@@ -132,9 +132,9 @@ Endpoints del Sprint 0:
 | Método y ruta | Auth | Respuestas | Tarea |
 |---|---|---|---|
 | `GET /api/health` | no | 200 `{ "status": "ok" }` | #17 |
-| `POST /api/auth/register` | no | 201 · 400 datos inválidos · 409 email/usuario repetido | #23 |
+| `POST /api/auth/register` | no | 201 `{ "token", "expiresAt", "user": { "id", "username", "email", "role" } }` · 400 datos inválidos · 409 email/usuario repetido | #23 |
 | `POST /api/auth/login` | no | 200 · 400 · 401 credenciales incorrectas | #26 |
-| `GET /api/usuarios/me` | sí | 200 · 401 | #28 |
+| `GET /api/usuarios/me` | sí | 200 `{ "id", "username", "email", "role", "createdAt" }` · 401 sesión no válida o usuario inexistente | #28 |
 | `POST /api/auth/logout` | sí | 204 · 401 | #103 |
 
 > Los nombres exactos de las rutas los fija BE al implementar; si cambian, se actualiza esta tabla en el mismo PR.

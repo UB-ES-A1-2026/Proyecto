@@ -1,0 +1,9 @@
+# Servidor S3 local solo para el spike SP-03 (#92). No forma parte del docker-compose del proyecto.
+# S3Mock implementa la API de S3: el mismo código funciona contra AWS S3 o el endpoint S3 de Supabase Storage.
+services:
+  s3:
+    image: adobe/s3mock:3.12.0
+    environment:
+      initialBuckets: rentit-fotos
+    ports:
+      - "9090:9090"

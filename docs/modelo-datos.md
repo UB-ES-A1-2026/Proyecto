@@ -76,7 +76,7 @@ erDiagram
   FOTO_OBJETO {
     id id PK
     id objeto_id FK
-    texto url
+    texto clave "clave del fichero en el bucket (ADR 0002)"
     entero orden
   }
   RESERVA {
@@ -125,7 +125,7 @@ erDiagram
     id reserva_id FK
     id subida_por FK
     enum fase "check_in | check_out"
-    texto url
+    texto clave "clave del fichero en el bucket (ADR 0002)"
     booleano bloqueada
     fecha_hora creada_en
   }
@@ -212,6 +212,10 @@ Permite que el **cierre de sesión invalide la sesión de verdad** (criterio de 
 | `revocada_en` | fecha y hora | null = activa | El logout la rellena; una sesión revocada o caducada da 401 |
 
 Si el stack usa JWT sin estado, esta tabla funciona como lista de tokens revocados (guardando el `jti`).
+
+## Fotos: se guarda la clave, no la URL
+
+`foto_objeto.clave` y `foto_estado.clave` guardan la **clave del fichero en el bucket** (por ejemplo, `objetos/<idObjeto>/<uuid>.jpg`), no una URL. Las URLs para ver las fotos son prefirmadas y caducan, así que el backend las genera cada vez que se piden (ver [ADR 0002](adr/0002-almacenamiento-imagenes.md)). Antes se llamaban `url`; se cambió el nombre en la revisión del spike SP-03 (#149), antes de crear las migraciones.
 
 ## Qué tablas entran en cada sprint
 
