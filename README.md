@@ -58,9 +58,9 @@ Trabajamos con **Scrumban** (Scrum + Kanban):
 | Sprint | Fechas | Objetivo |
 |---|---|---|
 | S0 | 6/10 → 20/10 | Esqueleto del proyecto (FE, BE, BD); registro, login, logout y perfil |
-| S1 | 20/10 → 11/11 | Pendiente de la planificación del sprint |
-| S2 | 11/11 → 25/11 | Pendiente |
-| S3 | 25/11 → 16/12 | Pendiente |
+| S1 | 20/10 → 10/11 | Pendiente de la planificación del sprint |
+| S2 | 10/11 → 24/11 | Pendiente |
+| S3 | 24/11 → 15/12 | Pendiente |
 
 Exposición final: 22/12.
 
@@ -129,8 +129,8 @@ La justificación está en el ADR [docs/adr/0001-stack.md](docs/adr/0001-stack.m
 
 ```bash
 # 1. Clonar el repositorio
-git clone <URL_DEL_REPO>
-cd <NOMBRE_DEL_REPO>
+git clone https://github.com/UB-ES-A1-2026/Proyecto.git
+cd Proyecto
 
 # 2. Arrancar PostgreSQL (crea las BD rentit y rentit_test)
 docker compose up -d
@@ -353,26 +353,27 @@ npm test
 
 Están en `e2e/tests/`, un archivo por user story. Antes de ejecutarlos, arranca la BD, el backend y el frontend como se explica en [Puesta en marcha en local](#puesta-en-marcha-en-local).
 
-La primera vez, instala Playwright y sus navegadores:
+La primera vez, instala Playwright y Chromium (es el único navegador que usamos):
 
 ```bash
 cd e2e
 npm install
-npx playwright install
+npx playwright install chromium
 ```
 
 Después, desde `e2e/`:
 
 ```bash
-npx playwright test                       # todos los tests en Chromium, Firefox y WebKit
-npx playwright test --project=chromium    # solo en Chromium (más rápido)
+npx playwright test                       # todos los tests (Chromium, uno a uno)
 npx playwright test login.spec.ts         # solo un archivo
 npx playwright test --headed              # abre el navegador para ver los tests
 npx playwright test --ui                  # modo interactivo, paso a paso
 npx playwright show-report                # abre el informe de la última ejecución
 ```
 
-`npm test` dentro de `e2e/` es un atajo de `npx playwright test`. `npm run test:smoke` ejecuta solo el smoke test (`smoke.spec.ts`: la API responde, la home carga y un usuario nuevo puede registrarse e iniciar sesión), en Chromium.
+Los tests se ejecutan **uno a uno** (`workers: 1` en `playwright.config.ts`): van contra los servidores de desarrollo y, con varios navegadores a la vez, la API tarda demasiado en responder y fallan por timeout.
+
+`npm test` dentro de `e2e/` es un atajo de `npx playwright test`. `npm run test:smoke` ejecuta solo el smoke test (`smoke.spec.ts`: la API responde, la home carga y un usuario nuevo puede registrarse e iniciar sesión).
 
 La estrategia de pruebas, las convenciones para escribir tests e2e y los casos de prueba de aceptación de cada user story están en [docs/testing.md](docs/testing.md).
 
