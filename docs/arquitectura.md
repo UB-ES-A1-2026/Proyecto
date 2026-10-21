@@ -33,7 +33,7 @@ flowchart TB
 
   subgraph supabase["Supabase"]
     db[("PostgreSQL")]
-    storage[["Storage de fotos<br/>(pendiente SP-03)"]]
+    storage[["Storage de fotos (API S3)<br/>Supabase Storage · ADR 0002"]]
   end
 
   ext["Servicios externos previstos<br/>pagos (SP-01) · mapas (SP-02)<br/>email (US-06.03)"]

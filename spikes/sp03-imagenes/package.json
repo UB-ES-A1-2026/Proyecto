@@ -1,0 +1,16 @@
+{
+  "name": "rentit-spike-sp03-imagenes",
+  "version": "0.0.0",
+  "private": true,
+  "description": "SP-03 (#92): prototipo de subida y visualización de fotos con la API de S3 y URLs prefirmadas. No es código de producción.",
+  "type": "module",
+  "scripts": {
+    "s3:up": "docker compose up -d",
+    "s3:down": "docker compose down",
+    "prototipo": "node --env-file-if-exists=.env prototipo.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "3.1144.0",
+    "@aws-sdk/s3-request-presigner": "3.1144.0"
+  }
+}
