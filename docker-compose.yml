@@ -8,7 +8,10 @@ services:
     ports:
       # Solo accesible desde este ordenador: con "5432:5432" la BD quedaría abierta
       # a toda la red (por ejemplo, el wifi de la universidad) con la contraseña rentit.
+      # Se publica en IPv4 y en IPv6 local porque en Windows (y con Node 17+) «localhost»
+      # se resuelve primero a ::1, y los .env usan localhost.
       - "127.0.0.1:5432:5432"
+      - "[::1]:5432:5432"
     volumes:
       - rentit-db-data:/var/lib/postgresql/data
       # Los scripts de docker/postgres/init (crean rentit_test) solo se ejecutan la primera
