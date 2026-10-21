@@ -11,6 +11,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { deflateSync } from 'node:zlib';
 import {
   CreateBucketCommand,
+  DeleteObjectCommand,
   GetObjectCommand,
   HeadBucketCommand,
   HeadObjectCommand,
@@ -101,6 +102,53 @@ function validatePhoto(contentType, sizeBytes) {
   }
 }
 
+// Tipo real según los primeros bytes («magic number»); el Content-Type lo decide el cliente y se puede falsear.
+function detectImageType(bytes) {
+  const b = Buffer.from(bytes);
+  if (b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'image/jpeg';
+  if (b.length >= 8 && b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'image/png';
+  if (b.length >= 12 && b.toString('latin1', 0, 4) === 'RIFF' && b.toString('latin1', 8, 12) === 'WEBP') return 'image/webp';
+  return null;
+}
+
+// URL de subida con el tipo y el tamaño FIRMADOS: un proveedor real rechaza un cuerpo distinto
+// (S3Mock no valida firmas, por eso además se valida al confirmar).
+function createUploadUrl(key, contentType, sizeBytes) {
+  validatePhoto(contentType, sizeBytes);
+  return getSignedUrl(
+    s3,
+    new PutObjectCommand({ Bucket: config.bucket, Key: key, ContentType: contentType, ContentLength: sizeBytes }),
+    { expiresIn: UPLOAD_URL_SECONDS, signableHeaders: new Set(['content-type', 'content-length']) },
+  );
+}
+
+// Confirmación en el backend (paso 4 del ADR): tamaño y tipo con HEAD + firma de los primeros bytes.
+// Si algo no cuadra, borra el objeto y lanza un error (en la API sería un 400).
+async function confirmUpload(key) {
+  const head = await s3.send(new HeadObjectCommand({ Bucket: config.bucket, Key: key }));
+  const first = await s3.send(new GetObjectCommand({ Bucket: config.bucket, Key: key, Range: 'bytes=0-11' }));
+  const realType = detectImageType(await first.Body.transformToByteArray());
+  const problems = [];
+  if ((head.ContentLength ?? 0) > MAX_BYTES) problems.push(`ocupa ${head.ContentLength} bytes`);
+  if (!ALLOWED_TYPES.has(head.ContentType)) problems.push(`tipo declarado ${head.ContentType}`);
+  if (realType === null) problems.push('los bytes no son de un JPG, PNG ni WebP');
+  else if (realType !== head.ContentType) problems.push(`declarado ${head.ContentType} pero es ${realType}`);
+  if (problems.length > 0) {
+    await s3.send(new DeleteObjectCommand({ Bucket: config.bucket, Key: key }));
+    throw new Error(`Foto rechazada y borrada: ${problems.join('; ')}`);
+  }
+  return head;
+}
+
+async function exists(key) {
+  try {
+    await s3.send(new HeadObjectCommand({ Bucket: config.bucket, Key: key }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function ensureBucket() {
   try {
     await s3.send(new HeadBucketCommand({ Bucket: config.bucket }));
@@ -118,14 +166,9 @@ async function main() {
   // 1. Backend: validar y generar la URL de subida. La clave la decide el backend, nunca el cliente.
   const photo = createSamplePng();
   const contentType = 'image/png';
-  validatePhoto(contentType, photo.length);
   const key = `objetos/demo-objeto/${randomUUID()}.${ALLOWED_TYPES.get(contentType)}`;
-  const uploadUrl = await getSignedUrl(
-    s3,
-    new PutObjectCommand({ Bucket: config.bucket, Key: key, ContentType: contentType }),
-    { expiresIn: UPLOAD_URL_SECONDS },
-  );
-  console.log(`1. URL de subida generada (caduca en ${UPLOAD_URL_SECONDS / 60} min)`);
+  const uploadUrl = await createUploadUrl(key, contentType, photo.length);
+  console.log(`1. URL de subida generada con tipo y tamaño firmados (caduca en ${UPLOAD_URL_SECONDS / 60} min)`);
 
   // 2. Navegador: sube la foto directamente al bucket, sin pasar por nuestro backend.
   const put = await fetch(uploadUrl, {
@@ -136,9 +179,9 @@ async function main() {
   if (!put.ok) throw new Error(`La subida ha fallado: HTTP ${put.status}`);
   console.log(`2. Foto subida: ${photo.length} bytes (HTTP ${put.status})`);
 
-  // 3. Backend: comprobar que la foto está y guardar SOLO la clave en foto_objeto.url.
-  const head = await s3.send(new HeadObjectCommand({ Bucket: config.bucket, Key: key }));
-  console.log(`3. Confirmada en el bucket: ${head.ContentLength} bytes, ${head.ContentType} → se guarda la clave «${key}»`);
+  // 3. Backend: confirmar (tamaño, tipo y firma de los bytes) y guardar SOLO la clave en foto_objeto.clave.
+  const head = await confirmUpload(key);
+  console.log(`3. Confirmada (tamaño, tipo y bytes de PNG): ${head.ContentLength} bytes, ${head.ContentType} → se guarda la clave «${key}»`);
 
   // 4. Backend: URL de lectura temporal para enseñarla en la ficha del objeto.
   const viewUrl = await getSignedUrl(
@@ -151,18 +194,34 @@ async function main() {
   const same = sha256(downloaded) === sha256(photo);
   console.log(`4. Descargada con la URL de lectura (HTTP ${get.status}): ${same ? 'idéntica a la original ✔' : 'NO coincide ✘'}`);
 
-  // Las reglas de validación también rechazan lo que no toca.
+  // 5. Validación del BACKEND al pedir la URL (no del bucket): ni SVG ni más de 5 MB.
+  let rejectedRequests = 0;
   for (const [type, bytes] of [['image/svg+xml', 1000], ['image/png', MAX_BYTES + 1]]) {
     try {
       validatePhoto(type, bytes);
       console.log(`✘ Debería haberse rechazado: ${type}, ${bytes} bytes`);
     } catch (error) {
-      console.log(`5. Rechazada como se esperaba → ${error.message}`);
+      rejectedRequests++;
+      console.log(`5. El backend no da URL → ${error.message}`);
     }
   }
 
+  // 6. El ataque de la revisión de #149: un SVG con <script> declarado como image/png.
+  const fakeSvg = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
+  const fakeKey = `objetos/demo-objeto/${randomUUID()}.png`;
+  const fakeUrl = await createUploadUrl(fakeKey, 'image/png', fakeSvg.length);
+  await fetch(fakeUrl, { method: 'PUT', headers: { 'Content-Type': 'image/png' }, body: fakeSvg });
+  let attackBlocked = false;
+  try {
+    await confirmUpload(fakeKey);
+    console.log('✘ El SVG disfrazado se ha aceptado');
+  } catch (error) {
+    attackBlocked = !(await exists(fakeKey));
+    console.log(`6. SVG disfrazado de PNG → ${error.message} · ¿sigue en el bucket? ${attackBlocked ? 'no ✔' : 'sí ✘'}`);
+  }
+
   console.log(`\nAbre esta URL en el navegador para ver la foto (válida ${VIEW_URL_SECONDS / 60} min):\n${viewUrl}`);
-  if (!same || put.status >= 300 || get.status >= 300) process.exitCode = 1;
+  if (!same || put.status >= 300 || get.status >= 300 || rejectedRequests !== 2 || !attackBlocked) process.exitCode = 1;
 }
 
 main().catch((error) => {
