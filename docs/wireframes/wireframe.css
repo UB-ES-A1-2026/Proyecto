@@ -1,0 +1,405 @@
+/*
+ * Estilos comunes de los wireframes de Rentit (norma en docs/wireframes/README.md).
+ * Baja fidelidad a propósito: grises, sin colores ni fuentes de la marca. El único color
+ * es el de las anotaciones, para que no se confunda con la interfaz.
+ * Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 22/10/2026
+ */
+
+:root {
+  --papel: #f4f3ef;
+  --pantalla: #ffffff;
+  --tinta: #2b2b2b;
+  --gris: #6f6f6f;
+  --gris-claro: #c9c9c9;
+  --relleno: #ececec;
+  --nota: #e8590c;
+  --nota-fondo: #fff4e6;
+  --radio: 6px;
+  font-family: system-ui, 'Segoe UI', Roboto, Arial, sans-serif;
+  color: var(--tinta);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 32px 40px 48px;
+  background: var(--papel);
+  /* Crece con la pantalla más ancha (escritorio + móvil + notas) para que nada se corte */
+  width: max-content;
+  min-width: 1200px;
+}
+
+/* ---------- Cabecera del documento ---------- */
+
+.wf-doc {
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--gris-claro);
+}
+
+.wf-doc h1 {
+  margin: 0 0 6px;
+  font-size: 26px;
+}
+
+.wf-doc .wf-historia {
+  margin: 0 0 6px;
+  font-size: 16px;
+  max-width: 900px;
+}
+
+.wf-doc .wf-meta {
+  margin: 0;
+  font-size: 13px;
+  color: var(--gris);
+}
+
+/* ---------- Pantalla del flujo: dispositivo(s) + notas ---------- */
+
+.wf-pantalla {
+  display: grid;
+  grid-template-columns: auto 300px;
+  gap: 28px;
+  align-items: start;
+  width: max-content;
+  padding: 20px;
+  background: var(--papel);
+}
+
+.wf-pantalla > h2 {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 18px;
+}
+
+.wf-pantalla > h2 .wf-paso {
+  display: inline-block;
+  min-width: 28px;
+  margin-right: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--tinta);
+  color: var(--pantalla);
+  text-align: center;
+  font-size: 14px;
+}
+
+.wf-pantalla > h2 code {
+  font-size: 14px;
+  font-weight: normal;
+  color: var(--gris);
+}
+
+.wf-dispositivos {
+  display: flex;
+  gap: 28px;
+  align-items: start;
+}
+
+/* Marco de navegador (escritorio) */
+.wf-escritorio {
+  width: 860px;
+  border: 2px solid var(--tinta);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--pantalla);
+}
+
+.wf-escritorio::before {
+  content: '●  ●  ●     ' attr(data-url);
+  display: block;
+  padding: 7px 12px;
+  border-bottom: 2px solid var(--tinta);
+  background: var(--relleno);
+  font-size: 12px;
+  color: var(--gris);
+  white-space: pre;
+}
+
+/* Marco de móvil */
+.wf-movil {
+  width: 300px;
+  border: 2px solid var(--tinta);
+  border-radius: 26px;
+  overflow: hidden;
+  background: var(--pantalla);
+  padding-top: 18px;
+  position: relative;
+}
+
+.wf-movil::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 60px;
+  height: 6px;
+  margin-left: -30px;
+  border-radius: 3px;
+  background: var(--gris-claro);
+}
+
+.wf-contenido {
+  padding: 24px 28px 32px;
+}
+
+.wf-movil .wf-contenido {
+  padding: 16px 16px 24px;
+}
+
+/* ---------- Notas (comportamiento, reglas, datos) ---------- */
+
+.wf-notas {
+  margin: 0;
+  padding: 14px 16px 14px 36px;
+  border-left: 4px solid var(--nota);
+  border-radius: var(--radio);
+  background: var(--nota-fondo);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.wf-notas li + li {
+  margin-top: 8px;
+}
+
+.wf-notas li::marker {
+  color: var(--nota);
+  font-weight: bold;
+}
+
+/* Número que relaciona un elemento de la pantalla con su nota */
+.wf-marca {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin: 0 4px;
+  border-radius: 50%;
+  background: var(--nota);
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  vertical-align: middle;
+  flex: none;
+}
+
+/* Transición entre pantallas: qué hace el usuario para pasar a la siguiente */
+.wf-flecha {
+  margin: 4px 0 4px 60px;
+  padding: 6px 0 6px 22px;
+  border-left: 3px dashed var(--gris);
+  font-size: 14px;
+  color: var(--gris);
+}
+
+.wf-flecha::before {
+  content: '↓ ';
+  font-weight: bold;
+  color: var(--tinta);
+}
+
+/* ---------- Piezas de interfaz ---------- */
+
+.wf-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 28px;
+  border-bottom: 1px solid var(--gris-claro);
+}
+
+.wf-movil .wf-nav {
+  padding: 10px 16px;
+}
+
+.wf-logo {
+  padding: 4px 10px;
+  border: 2px solid var(--tinta);
+  border-radius: var(--radio);
+  font-weight: bold;
+}
+
+.wf-enlaces {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+}
+
+.wf-enlace {
+  text-decoration: underline;
+}
+
+.wf-h1 {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+
+.wf-texto {
+  margin: 0 0 14px;
+  color: var(--gris);
+}
+
+/* Texto de relleno cuando el contenido real no importa */
+.wf-lineas {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 14px;
+}
+
+.wf-lineas span {
+  display: block;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--relleno);
+}
+
+.wf-lineas span:last-child {
+  width: 60%;
+}
+
+.wf-tarjeta {
+  padding: 20px;
+  border: 1.5px solid var(--gris-claro);
+  border-radius: var(--radio);
+}
+
+.wf-centrado {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.wf-fila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.wf-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 16px;
+}
+
+.wf-campo {
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.wf-campo label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.wf-input {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--gris);
+  border-radius: var(--radio);
+  color: var(--gris);
+}
+
+.wf-input.wf-con-error {
+  border: 2px solid var(--tinta);
+}
+
+.wf-ayuda {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--gris);
+}
+
+.wf-error {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  font-style: italic;
+  font-weight: 600;
+}
+
+.wf-error::before {
+  content: '⚠ ';
+  font-style: normal;
+}
+
+.wf-boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 8px 18px;
+  border: 2px solid var(--tinta);
+  border-radius: var(--radio);
+  background: var(--tinta);
+  color: var(--pantalla);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.wf-boton.wf-secundario {
+  background: var(--pantalla);
+  color: var(--tinta);
+}
+
+.wf-boton.wf-desactivado {
+  border-color: var(--gris-claro);
+  background: var(--gris-claro);
+  color: var(--pantalla);
+}
+
+.wf-boton.wf-ancho {
+  width: 100%;
+}
+
+/* Hueco para una imagen o una foto */
+.wf-imagen {
+  min-height: 120px;
+  border: 1.5px solid var(--gris-claro);
+  border-radius: var(--radio);
+  background:
+    linear-gradient(
+      to top right,
+      transparent calc(50% - 1px),
+      var(--gris-claro) 50%,
+      transparent calc(50% + 1px)
+    ),
+    linear-gradient(
+      to bottom right,
+      transparent calc(50% - 1px),
+      var(--gris-claro) 50%,
+      transparent calc(50% + 1px)
+    ),
+    var(--relleno);
+}
+
+/* Zona genérica (mapa, lista, componente que aún no se detalla) */
+.wf-caja {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  padding: 12px;
+  border: 2px dashed var(--gris-claro);
+  border-radius: var(--radio);
+  color: var(--gris);
+  font-size: 13px;
+  text-align: center;
+}
+
+.wf-aviso {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--tinta);
+  border-radius: var(--radio);
+  font-size: 13.5px;
+}
