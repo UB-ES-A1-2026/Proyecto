@@ -1,0 +1,168 @@
+<!doctype html>
+<!-- Wireframe de ejemplo de la norma (#162), hecho a partir de lo que ya se implementó en el Sprint 0. -->
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-01.1 Registro · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-01.1 Registro</h1>
+      <p class="wf-historia">
+        Como <strong>visitante</strong>, quiero <strong>crear una cuenta</strong> para
+        <strong>poder ofrecer o alquilar objetos</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #45 · Ejemplo de la norma de wireframes (#162), dibujado a partir de lo implementado en el Sprint 0 ·
+        Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 22/10/2026
+      </p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-inicio-sin-sesion">
+      <h2><span class="wf-paso">1</span>Punto de entrada: página inicial sin sesión <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Iniciar sesión</span>
+              <span class="wf-enlace">Crear cuenta</span><span class="wf-marca">1</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Rentit</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-fila">
+              <span class="wf-boton">Iniciar sesión</span>
+              <span class="wf-boton wf-secundario">Crear cuenta</span><span class="wf-marca">2</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El enlace «Crear cuenta» está en la cabecera de todas las páginas mientras no hay sesión.</li>
+        <li>Botón «Crear cuenta» de la página inicial. Los dos llevan a <code>/registro</code>.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Crear cuenta» (cabecera o página inicial)</p>
+
+    <section class="wf-pantalla" data-captura="2-formulario">
+      <h2><span class="wf-paso">2</span>Formulario de registro <code>/registro</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/registro">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <h3 class="wf-h1">Crear cuenta</h3>
+              <div class="wf-campo">
+                <label>Nombre de usuario <span class="wf-marca">1</span></label>
+                <div class="wf-input">ana.vecina</div>
+                <p class="wf-ayuda">Entre 3 y 30 caracteres: letras sin acentos, números, «.», «_» o «-».</p>
+              </div>
+              <div class="wf-campo">
+                <label>Correo electrónico</label>
+                <div class="wf-input">ana@ejemplo.com</div>
+              </div>
+              <div class="wf-campo">
+                <label>Contraseña</label>
+                <div class="wf-input">•••••••• <span class="wf-boton wf-secundario">Mostrar <span class="wf-marca">2</span></span></div>
+                <p class="wf-ayuda">Mínimo 8 caracteres. Máximo 72 (las letras con acento cuentan como 2).</p>
+              </div>
+              <span class="wf-boton wf-ancho">Crear cuenta <span class="wf-marca">3</span></span>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Crear cuenta</h3>
+            <div class="wf-campo"><label>Nombre de usuario</label><div class="wf-input">ana.vecina</div></div>
+            <div class="wf-campo"><label>Correo electrónico</label><div class="wf-input">ana@ejemplo.com</div></div>
+            <div class="wf-campo">
+              <label>Contraseña</label>
+              <div class="wf-input">•••••••• <span class="wf-boton wf-secundario">Mostrar</span></div>
+            </div>
+            <span class="wf-boton wf-ancho">Crear cuenta <span class="wf-marca">4</span></span>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Las mismas reglas que el backend: usuario de 3 a 30 caracteres, correo válido (≤ 255) y contraseña de 8 caracteres a 72 bytes. Las ayudas se ven siempre.</li>
+        <li>«Mostrar» / «Ocultar» cambia la contraseña entre visible y oculta (criterio 4).</li>
+        <li>Al pulsar se valida todo a la vez. Mientras se envía, el botón dice «Creando cuenta…» y está desactivado.</li>
+        <li>En móvil es la misma pantalla: el formulario (máximo 400 px) ocupa todo el ancho.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Algún dato no es válido o el correo ya está registrado</p>
+
+    <section class="wf-pantalla" data-captura="3-errores">
+      <h2><span class="wf-paso">3</span>Formulario con errores <code>/registro</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/registro">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <h3 class="wf-h1">Crear cuenta</h3>
+              <div class="wf-campo">
+                <label>Nombre de usuario</label>
+                <div class="wf-input">ana.vecina</div>
+              </div>
+              <div class="wf-campo">
+                <label>Correo electrónico <span class="wf-marca">1</span></label>
+                <div class="wf-input wf-con-error">ana@ejemplo.com</div>
+                <p class="wf-error">El campo "correo electrónico" no está correctamente introducido, prueba a revisarlo.</p>
+              </div>
+              <div class="wf-campo">
+                <label>Contraseña</label>
+                <div class="wf-input">•••••••• <span class="wf-boton wf-secundario">Mostrar</span></div>
+              </div>
+              <span class="wf-boton wf-ancho">Crear cuenta <span class="wf-marca">2</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El error sale debajo de su campo, con el texto exacto del criterio 3. Es el mismo si el dato es inválido y si el correo ya existe (el backend responde 409). El foco va al primer campo con error.</li>
+        <li>No se crea la cuenta y se queda en <code>/registro</code>. El error desaparece en cuanto se edita el campo.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Todos los datos son válidos → se crea la cuenta y se inicia la sesión</p>
+
+    <section class="wf-pantalla" data-captura="4-inicio-con-sesion">
+      <h2><span class="wf-paso">4</span>Destino: página inicial con la sesión iniciada <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-boton wf-secundario">Cerrar sesión</span><span class="wf-marca">1</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Hola, ana.vecina <span class="wf-marca">2</span></h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-caja">Buscador y objetos cercanos (Sprint 1, EP-03)</div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Con sesión, la cabecera cambia: «Mi perfil» y «Cerrar sesión» en lugar de «Iniciar sesión» y «Crear cuenta».</li>
+        <li>Saludo con el nombre de usuario recién creado (criterio 2). El botón «Atrás» del navegador no vuelve al formulario.</li>
+      </ol>
+    </section>
+  </body>
+</html>
