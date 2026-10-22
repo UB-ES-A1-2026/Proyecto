@@ -10,8 +10,10 @@ Closes #
 1.
 
 ## Checklist
-- [ ] La rama sigue GitFlow: `feature/<nº issue>-<descripcion>` (o `bugfix/`, `release/`, `hotfix/`)
-- [ ] La base del PR es correcta: `develop` para `feature/` y `bugfix/`; `main` para `release/` y `hotfix/`
+- [ ] La rama sigue GitFlow: `task/<nº tarea>-<descripcion>` para una tarea, `feature/<nº historia>-<descripcion>` para una historia (o `bugfix/`, `release/`, `hotfix/`)
+- [ ] La base del PR es correcta: la rama `feature/` de su historia para `task/`; `develop` para `feature/` y `bugfix/`; `main` para `release/` y `hotfix/`
+- [ ] Si es el PR de una historia a `develop`: he hecho `git rebase --rebase-merges origin/develop` y los tests pasan después del rebase
+- [ ] Se integrará con **Create a merge commit** (nunca *squash*)
 - [ ] Cumple los criterios de aceptación de la historia
 - [ ] Tiene tests y pasan en local (`npm run lint`, `npm test`, `npm run build`)
 - [ ] He actualizado la documentación / página de ayuda si hacía falta

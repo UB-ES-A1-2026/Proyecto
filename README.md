@@ -406,7 +406,7 @@ Si has tocado algo que se ve en la interfaz o cambia un flujo de usuario, ejecut
 
 ## Ramas, commits y PR
 
-Usamos **GitFlow**: cada tarea va en una rama `feature/<nº issue>-<descripcion>` que sale de `develop` y vuelve a `develop` mediante un PR revisado por otra persona. `main` solo recibe la versión de cada demo. Las reglas completas, el formato de los commits y la **Definition of Done** están en [CONTRIBUTING.md](CONTRIBUTING.md).
+Usamos **GitFlow**: cada historia de usuario va en una rama `feature/<nº historia>-<descripcion>` que sale de `develop`, y cada una de sus tareas en una rama `task/<nº tarea>-<descripcion>` que vuelve a la rama de la historia mediante un PR revisado por otra persona. Cuando la historia está completa, se hace *rebase* sobre `develop`, se pasan los tests y entra en `develop` con un *merge commit* (nunca con *squash*). Así `develop` solo tiene historias completas y siempre compila. `main` solo recibe la versión de cada demo. Las reglas completas, el formato de los commits y la **Definition of Done** están en [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
