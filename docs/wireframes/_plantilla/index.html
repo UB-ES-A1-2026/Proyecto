@@ -1,0 +1,76 @@
+<!doctype html>
+<!--
+  Plantilla de wireframe. Cópiala a docs/wireframes/US-XX.YY-<nombre>/index.html.
+  Norma completa: docs/wireframes/README.md
+  - Una <section class="wf-pantalla" data-captura="<n>-<nombre>"> por pantalla o estado del flujo.
+  - La PRIMERA pantalla es desde la que llega el usuario (punto de entrada) y la ÚLTIMA, a la que va al terminar.
+  - Entre pantallas, un <p class="wf-flecha"> con la acción del usuario que lleva a la siguiente.
+  - Textos reales de la interfaz (botones, etiquetas, errores); relleno (.wf-lineas) solo donde no importa.
+  - Cada <span class="wf-marca">n</span> se explica en la nota n de la lista .wf-notas.
+-->
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-XX.YY Nombre de la historia · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-XX.YY Nombre de la historia</h1>
+      <p class="wf-historia">Como <strong>…</strong>, quiero <strong>…</strong> para <strong>…</strong>.</p>
+      <p class="wf-meta">Issue #NN · Wireframe de baja fidelidad · Generado con asistencia de IA (Claude) – revisado por &lt;nombre&gt;, &lt;fecha&gt;</p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-entrada">
+      <h2><span class="wf-paso">1</span>Desde dónde llega el usuario <code>/ruta</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/ruta">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Enlace</span><span class="wf-marca">1</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Título de la pantalla</h3>
+            <div class="wf-lineas"><span></span><span></span></div>
+            <span class="wf-boton">Acción principal</span>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Qué hace este elemento, cuándo se ve y a dónde lleva.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Acción principal»</p>
+
+    <section class="wf-pantalla" data-captura="2-pantalla-nueva">
+      <h2><span class="wf-paso">2</span>Pantalla nueva de la historia <code>/ruta-nueva</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/ruta-nueva">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <h3 class="wf-h1">Formulario</h3>
+              <div class="wf-campo">
+                <label>Campo <span class="wf-marca">1</span></label>
+                <div class="wf-input">valor de ejemplo</div>
+                <p class="wf-ayuda">Ayuda del campo.</p>
+              </div>
+              <span class="wf-boton wf-ancho">Guardar</span>
+            </div>
+          </div>
+        </div>
+        <!-- Opcional: la misma pantalla en móvil si cambia la disposición -->
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <div class="wf-contenido">
+            <div class="wf-imagen"></div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Reglas de validación del campo y mensaje de error exacto.</li>
+      </ol>
+    </section>
+  </body>
+</html>
