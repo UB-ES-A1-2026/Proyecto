@@ -32,7 +32,6 @@ gitGraph
   commit id: "feat(web): formulario"
   checkout feature/50-publicar-objeto
   merge task/13-formulario-publicar id: "PR tarea #13"
-  commit id: "rebase sobre develop + tests"
   checkout develop
   merge feature/50-publicar-objeto id: "PR historia #50"
   branch release/sprint-1
@@ -93,7 +92,14 @@ Cuando todas las tareas de la historia están en su rama `feature/` (no queda ni
 4. **PR de `feature/` a `develop`**, con CI en verde (cuando exista), 1 aprobación y **Create a merge commit**.
 5. Se borra la rama y se cierra el issue de la historia.
 
-El rebase reescribe la rama de la historia: avisa al equipo antes de hacerlo, porque cualquier rama `task/` que siga abierta tendría que rehacerse.
+El rebase reescribe la rama de la historia: avisa al equipo antes de hacerlo, porque cualquier rama `task/` que siga abierta tendría que rehacerse. Después del rebase, quien tuviera la rama de la historia en local no debe hacer `git pull` (mezclaría la versión antigua con la nueva): la borra y la vuelve a crear desde el remoto.
+
+```bash
+git fetch origin
+git switch develop
+git branch -D feature/50-publicar-objeto   # solo la copia local; la del remoto no se toca
+git switch feature/50-publicar-objeto      # se crea de nuevo desde origin/feature/50-publicar-objeto
+```
 
 ### 5. Commits
 Formato [Conventional Commits](https://www.conventionalcommits.org/es/): `tipo(ámbito): descripción en presente (#issue)`
@@ -121,7 +127,10 @@ docs(repo): cambia la estrategia de ramas a GitFlow (#20)
 ### 6. Pull Requests
 1. **Base del PR:** la rama `feature/` de su historia para `task/`; `develop` para `feature/` y `bugfix/`; `main` para `release/` y `hotfix/`.
 2. Título con el mismo formato que los commits. El PR de una historia lleva su código: `feat(objetos): US-02.01 Publicar un objeto (#50)`.
-3. En la descripción, `Closes #<nº>`. Ojo: GitHub solo cierra el issue automáticamente al llegar a la rama por defecto (`develop`). Los PRs de tarea cierran sus issues cuando la historia entra en `develop`.
+3. Issues en la descripción. GitHub solo cierra un issue con `Closes #<nº>` cuando **ese PR** se mergea en la rama por defecto (`develop`); en un PR hacia otra rama no hace nada, ni entonces ni después.
+   - PR de tarea (`task/` → `feature/`): `Parte de #<nº historia>` y el número de la tarea en el título. Su issue se queda abierto hasta que la historia entra en `develop`.
+   - PR de historia (`feature/` → `develop`): un `Closes` por la historia **y por cada una de sus tareas**, por ejemplo `Closes #50, closes #13, closes #14`.
+   - PR de `bugfix/`: `Closes #<nº del bug>`.
 4. Rellena la plantilla (criterios de aceptación, tests, capturas si hay UI, casilla de IA).
 5. **Revisa otra persona del equipo** (nunca el autor). Como mínimo 1 aprobación.
 6. El CI tiene que estar en verde (cuando exista el CI): en los PRs de tarea y en el de la historia.
