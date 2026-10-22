@@ -19,3 +19,5 @@ Closes #
 - [ ] Parte del código está generado con IA (indicado en el código si es un bloque grande)
 
 ## Capturas (si cambia la interfaz)
+<!-- Wireframe de la historia (docs/wireframes/US-XX.YY-<nombre>/flujo.png) y, al lado, la captura de la pantalla real. -->
+<!-- Si la pantalla ha cambiado respecto al wireframe, actualízalo en este PR (`cd e2e && npm run wireframes`). -->
