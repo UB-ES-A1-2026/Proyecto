@@ -1,0 +1,63 @@
+# Despliegue del frontend en Vercel (#96) desde GitHub Actions con la CLI de Vercel.
+# No usamos la integración Git de Vercel: en el plan Hobby bloquea los despliegues de repos de una
+# organización y de commits de personas que no son la dueña de la cuenta (docs/despliegue.md).
+# - push a main → producción · PR hacia develop o main → preview (la URL sale en el resumen del job).
+# Mientras no existan los secretos VERCEL_*, el job avisa y termina en verde sin desplegar.
+# Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 25/10/2026
+name: Despliegue del frontend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [develop, main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-frontend-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+  # Producción solo desde main (CONTRIBUTING, «Despliegue»); todo lo demás es preview.
+  ENTORNO: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && 'production' || 'preview' }}
+
+jobs:
+  deploy:
+    name: Vercel
+    # Los PRs desde forks no tienen acceso a los secretos.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Comprobar que Vercel está configurado
+        id: config
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::notice::Faltan los secretos VERCEL_* (ver docs/despliegue.md): no se despliega."
+            echo "listo=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "listo=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Se ejecuta desde la raíz: el proyecto de Vercel tiene Root Directory = frontend.
+      - name: Build y despliegue (${{ env.ENTORNO }})
+        if: steps.config.outputs.listo == 'true'
+        run: |
+          PROD=""
+          if [ "$ENTORNO" = "production" ]; then PROD="--prod"; fi
+          npx --yes vercel@63.1.0 pull --yes --environment="$ENTORNO" --token="$VERCEL_TOKEN"
+          npx --yes vercel@63.1.0 build $PROD --token="$VERCEL_TOKEN"
+          URL=$(npx --yes vercel@63.1.0 deploy --prebuilt $PROD --token="$VERCEL_TOKEN")
+          echo "### Frontend desplegado ($ENTORNO)" >> "$GITHUB_STEP_SUMMARY"
+          echo "$URL" >> "$GITHUB_STEP_SUMMARY"
