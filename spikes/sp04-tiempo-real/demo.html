@@ -1,0 +1,122 @@
+<!doctype html>
+<!-- SP-04 (#93) · Demo opcional: abre dos pestañas (?usuario=rider y ?usuario=ana) y mira cómo llegan los cambios. -->
+<!-- Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 25/10/2026 -->
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SP-04 · Demo SSE</title>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; }
+      nav a { margin-right: 0.75rem; }
+      .estado { font-size: 1.5rem; font-weight: bold; }
+      #conexion { color: #666; }
+      #mensajes { border: 1px solid #ccc; padding: 0.5rem; min-height: 6rem; list-style: none; }
+      form { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+      input { flex: 1; }
+    </style>
+  </head>
+  <body>
+    <nav>
+      Entrar como: <a href="?usuario=rider">rider</a><a href="?usuario=ana">ana (arrendataria)</a
+      ><a href="?usuario=carla">carla (propietaria)</a><a href="?usuario=intruso">intruso</a>
+    </nav>
+    <h1>Hola, <span id="usuario"></span></h1>
+    <p id="conexion">Conectando…</p>
+
+    <h2>Entrega e1</h2>
+    <p>Estado: <span class="estado" id="estado">—</span></p>
+    <p id="acciones-rider" hidden>
+      <button id="avanzar">Avanzar al siguiente estado</button>
+      <input id="codigo" placeholder="Código de entrega (4821)" />
+    </p>
+
+    <h2>Chat c1 (ana ↔ carla)</h2>
+    <ul id="mensajes"></ul>
+    <form id="formulario">
+      <input id="texto" placeholder="Escribe un mensaje" autocomplete="off" />
+      <button>Enviar</button>
+    </form>
+    <p id="error" role="alert"></p>
+
+    <script type="module">
+      import { connectEvents } from './cliente-sse.mjs';
+
+      // Tokens de PRUEBA del prototipo (los mismos que en servidor.mjs). En la app real el token sale del login.
+      const TOKENS = {
+        ana: 'token-de-prueba-ana',
+        carla: 'token-de-prueba-carla',
+        rider: 'token-de-prueba-rider',
+        intruso: 'token-de-prueba-intruso',
+      };
+      const NEXT = { pendiente: 'asignada', asignada: 'recogida', recogida: 'en_camino', en_camino: 'entregada' };
+      const user = new URLSearchParams(location.search).get('usuario') ?? 'ana';
+      const token = TOKENS[user];
+      const $ = (id) => document.getElementById(id);
+      $('usuario').textContent = user;
+      $('acciones-rider').hidden = user !== 'rider';
+      let deliveryState = null;
+      let cursor = 0;
+
+      async function api(method, path, body) {
+        const res = await fetch(path, {
+          method,
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: body ? JSON.stringify(body) : undefined,
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error);
+        return json;
+      }
+
+      function showDelivery(delivery) {
+        deliveryState = delivery.estado;
+        $('estado').textContent = delivery.estado;
+      }
+      function showMessage(message) {
+        if (message.seq <= cursor) return; // evita duplicados (llegan por SSE y por la recarga)
+        cursor = message.seq;
+        const li = document.createElement('li');
+        li.textContent = `${new Date(message.enviadoEn).toLocaleTimeString('es-ES')} · ${message.autor}: ${message.contenido}`;
+        $('mensajes').append(li); // textContent: nunca HTML del usuario
+      }
+
+      // Carga inicial (y recarga tras «resync»): la fuente de verdad es la API REST.
+      async function reload() {
+        try { showDelivery(await api('GET', '/api/entregas/e1')); } catch { $('estado').textContent = 'sin acceso'; }
+        try { (await api('GET', `/api/conversaciones/c1/mensajes?despues=${cursor}`)).forEach(showMessage); } catch { /* no participa */ }
+      }
+      await reload();
+
+      connectEvents({
+        baseUrl: '',
+        token,
+        onEvent: (evt) => {
+          const data = JSON.parse(evt.data);
+          if (evt.event === 'entrega.estado') showDelivery(data);
+          else if (evt.event === 'mensaje.nuevo') showMessage(data);
+          else if (evt.event === 'resync') reload();
+        },
+        onStatus: (status) => {
+          const texts = { open: 'Conectado en tiempo real ●', 'closed-by-server': 'Reconectando…', error: 'Sin conexión, reintentando…', unauthorized: 'Sesión no válida' };
+          $('conexion').textContent = texts[status.type] ?? status.type;
+        },
+      });
+
+      $('avanzar').addEventListener('click', async () => {
+        try {
+          await api('PATCH', '/api/entregas/e1/estado', { estado: NEXT[deliveryState], codigo: $('codigo').value });
+          $('error').textContent = '';
+        } catch (error) { $('error').textContent = error.message; }
+      });
+      $('formulario').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        try {
+          await api('POST', '/api/conversaciones/c1/mensajes', { contenido: $('texto').value });
+          $('texto').value = '';
+          $('error').textContent = '';
+        } catch (error) { $('error').textContent = error.message; }
+      });
+    </script>
+  </body>
+</html>
