@@ -6,7 +6,7 @@ Aplicación web para **alquilar objetos de uso puntual** que no compensa comprar
 
 > Proyecto de la asignatura **Ingeniería del Software**.
 
-- **Demo / producción:** pendiente (se despliega a partir del Sprint 1).
+- **Demo / producción:** pendiente (se despliega a partir del Sprint 1; cómo está montado en [docs/despliegue.md](docs/despliegue.md)).
 - **Tablero kanban:** https://github.com/orgs/UB-ES-A1-2026/projects/4/views/1
 - **Backlog (épicas y user stories):** Trello del equipo (pide acceso a cualquier miembro).
 
