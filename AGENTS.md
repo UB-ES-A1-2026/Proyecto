@@ -21,7 +21,7 @@ Rentit es un "Airbnb de objetos" de barrio: alquiler entre vecinos con entrega, 
 - Variables, funciones y archivos de código en **inglés** (`camelCase` para variables y funciones, `PascalCase` para componentes y tipos).
 - Tablas y columnas de la BD **en español y `snake_case`**, exactamente como en `docs/modelo-datos.md` (`usuario`, `sesion`, `password_hash`…).
 - Comentarios, textos de la interfaz y mensajes de error para el usuario **en español**.
-- Usamos **GitFlow** (ver `CONTRIBUTING.md`): el trabajo de cada tarea va en `feature/<nº issue>-<descripcion>`, que sale de `develop` y vuelve a `develop` por PR. Commits con el formato `tipo(ámbito): descripción (#issue)`.
+- Usamos **GitFlow** (ver `CONTRIBUTING.md`): cada historia de usuario va en `feature/<nº historia>-<descripcion>`, que sale de `develop`; cada tarea va en `task/<nº tarea>-<descripcion>`, que sale de la rama de su historia y vuelve a ella por PR. La historia completa entra en `develop` tras un *rebase* y los tests. Todo se integra con *merge commit*, **nunca con squash**. Commits con el formato `tipo(ámbito): descripción (#issue)`; como no hay squash, cada commit tiene que compilar.
 - Backend en capas: `routes → middlewares → controllers → services → repositories`. Cada capa solo llama a la siguiente: los controllers no usan Prisma y los services no conocen `req` ni `res`.
 - El frontend llama a la API solo desde `frontend/src/services/`, nunca con `fetch` suelto dentro de los componentes.
 
