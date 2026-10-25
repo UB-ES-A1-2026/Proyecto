@@ -17,7 +17,9 @@ function parseDatabaseUrl(name: string): string {
       throw new Error();
     }
   } catch {
-    throw new Error(`La variable de entorno ${name} debe ser una URL de PostgreSQL`);
+    throw new Error(
+      `La variable de entorno ${name} debe ser una URL de PostgreSQL`,
+    );
   }
 
   return value;
@@ -28,7 +30,9 @@ function parsePort(): number {
   const port = Number(value);
 
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
-    throw new Error('La variable de entorno PORT debe ser un número entre 1 y 65535');
+    throw new Error(
+      'La variable de entorno PORT debe ser un número entre 1 y 65535',
+    );
   }
 
   return port;
@@ -51,19 +55,63 @@ function parseCorsOrigins(): string[] {
       try {
         parsedOrigin = new URL(origin);
       } catch {
-        throw new Error('La variable CORS_ORIGINS debe contener orígenes HTTP o HTTPS válidos');
+        throw new Error(
+          'La variable CORS_ORIGINS debe contener orígenes HTTP o HTTPS válidos',
+        );
       }
 
       if (
-        (parsedOrigin.protocol !== 'http:' && parsedOrigin.protocol !== 'https:') ||
+        (parsedOrigin.protocol !== 'http:' &&
+          parsedOrigin.protocol !== 'https:') ||
         parsedOrigin.origin !== origin ||
         origin.includes('*')
       ) {
-        throw new Error('La variable CORS_ORIGINS debe contener solo orígenes HTTP o HTTPS');
+        throw new Error(
+          'La variable CORS_ORIGINS debe contener solo orígenes HTTP o HTTPS',
+        );
       }
 
       return origin;
     });
+}
+
+// URLs de preview de Vercel (ADR 0001, «CORS para la URL de producción y las previews de Vercel», #96).
+// Opcional: sin ella no se acepta ninguna preview. Tiene que estar anclada (^https://…$) y no puede
+// aceptar cualquier *.vercel.app, porque cualquiera puede desplegar en ese dominio.
+export function parseCorsPreviewPattern(
+  value: string | undefined,
+): RegExp | null {
+  const pattern = value?.trim();
+
+  if (!pattern) {
+    return null;
+  }
+
+  if (!pattern.startsWith('^https://') || !pattern.endsWith('$')) {
+    throw new Error(
+      'La variable CORS_PREVIEW_PATTERN debe empezar por ^https:// y acabar en $',
+    );
+  }
+
+  let regex: RegExp;
+  try {
+    regex = new RegExp(pattern);
+  } catch {
+    throw new Error(
+      'La variable CORS_PREVIEW_PATTERN no es una expresión regular válida',
+    );
+  }
+
+  if (
+    regex.test('https://otro-proyecto.vercel.app') ||
+    regex.test('https://ejemplo.com')
+  ) {
+    throw new Error(
+      'La variable CORS_PREVIEW_PATTERN es demasiado amplia: debe incluir el nombre del proyecto y del equipo',
+    );
+  }
+
+  return regex;
 }
 
 function parseBcryptRounds(): number {
@@ -71,7 +119,9 @@ function parseBcryptRounds(): number {
   const rounds = Number(value);
 
   if (!Number.isInteger(rounds) || rounds < 4 || rounds > 31) {
-    throw new Error('La variable de entorno BCRYPT_ROUNDS debe ser un número entre 4 y 31');
+    throw new Error(
+      'La variable de entorno BCRYPT_ROUNDS debe ser un número entre 4 y 31',
+    );
   }
 
   return rounds;
@@ -82,5 +132,6 @@ export const env = Object.freeze({
   databaseUrl: parseDatabaseUrl('DATABASE_URL'),
   directUrl: parseDatabaseUrl('DIRECT_URL'),
   corsOrigins: parseCorsOrigins(),
+  corsPreviewPattern: parseCorsPreviewPattern(process.env.CORS_PREVIEW_PATTERN),
   bcryptRounds: parseBcryptRounds(),
 });
