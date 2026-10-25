@@ -37,7 +37,9 @@ Los comandos completos están en el [README](../README.md#tests). Resumen:
 | End-to-end | `e2e/` | `npx playwright test` | PostgreSQL con el seed, backend y frontend |
 | Smoke | `e2e/` | `npm run test:smoke` | PostgreSQL con el seed, backend y frontend |
 
-`npm run test:smoke` ejecuta solo los tests marcados con `@smoke`, en Chromium. Es el que se ejecuta en el CI.
+`npm run test:smoke` ejecuta solo los tests marcados con `@smoke`, en Chromium. Sirve para comprobar rápido que todo arranca.
+
+En el CI (#19, `.github/workflows/ci.yml`) se ejecutan **todos** los tests e2e, no solo el smoke: tardan menos de un minuto. Van contra una BD temporal del CI con el seed, el backend compilado y el build del frontend.
 
 ## 3. Tests end-to-end: convenciones
 

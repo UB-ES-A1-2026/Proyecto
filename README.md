@@ -1,5 +1,7 @@
 # Rentit
 
+[![CI](https://github.com/UB-ES-A1-2026/Proyecto/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/UB-ES-A1-2026/Proyecto/actions/workflows/ci.yml)
+
 Aplicación web para **alquilar objetos de uso puntual** que no compensa comprar para usarlos una sola vez. Los propietarios publican sus objetos y otros usuarios los solicitan por unos días, con modos de entrega, pago con fianza, valoraciones y chat.
 
 > Proyecto de la asignatura **Ingeniería del Software**.
@@ -376,6 +378,18 @@ Los tests se ejecutan **uno a uno** (`workers: 1` en `playwright.config.ts`): va
 `npm test` dentro de `e2e/` es un atajo de `npx playwright test`. `npm run test:smoke` ejecuta solo el smoke test (`smoke.spec.ts`: la API responde, la home carga y un usuario nuevo puede registrarse e iniciar sesión).
 
 La estrategia de pruebas, las convenciones para escribir tests e2e y los casos de prueba de aceptación de cada user story están en [docs/testing.md](docs/testing.md).
+
+### Tests en el CI (GitHub Actions)
+
+El workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (#19) se ejecuta en cada PR hacia `develop`, `main` y las ramas `feature/`, y en cada push a `develop` y `main`. Tiene tres jobs:
+
+| Job | Qué hace |
+|---|---|
+| **Backend** | `npm ci`, `prisma generate`, lint, tests (con un PostgreSQL temporal) y build |
+| **Frontend** | `npm ci`, lint, tests y build |
+| **E2E** | Si los dos anteriores pasan: BD temporal con migraciones y seed, backend compilado, build del frontend y todos los tests de Playwright en Chromium |
+
+Si el PR está en rojo, abre el job que falla en la pestaña *Checks* del PR. Si fallan los e2e, el informe de Playwright queda como artefacto (`informe-playwright`) en la ejecución.
 
 - Por defecto apuntan al frontend en `http://localhost:5173` y a la API en `http://localhost:3000/api`. Para otro entorno: `BASE_URL=<url del frontend> API_URL=<url de la API> npx playwright test`.
 - El test de registro con datos válidos crea un usuario nuevo en cada ejecución; para dejar la BD limpia, usa `npm run db:reset` en `backend/`.
