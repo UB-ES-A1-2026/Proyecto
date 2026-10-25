@@ -4,6 +4,8 @@ Cómo está montada la URL pública de Rentit (TR-04 · #85: tareas #96 y #97; s
 
 > Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 25/10/2026.
 
+**Estado (25/10/2026):** configurado. Frontend en https://rentit-eosin.vercel.app (proyecto `rentit` del *scope* `marcsanz-dev` en Vercel) y backend en https://rentit-api-gfkc.onrender.com (`rentit-api`, Frankfurt), con Supabase en Frankfurt. Los secretos `VERCEL_*` y `RENDER_DEPLOY_HOOK_URL` y la variable `API_URL` ya están en GitHub. Ahora mismo está desplegada la versión del Sprint 0 (`main`).
+
 ## Cómo funciona
 
 ```mermaid
@@ -77,7 +79,7 @@ Necesitas cuentas en Supabase, Render y Vercel (las tres gratis y sin tarjeta) y
 
 ### 4. CORS (otra vez en Render)
 - `CORS_ORIGINS` = la URL de producción de Vercel, sin barra final (por ejemplo, `https://rentit-xyz.vercel.app`).
-- `CORS_PREVIEW_PATTERN` = expresión de las previews con el nombre del proyecto y tu *scope* de Vercel (lo que va después del último guion en la URL de una preview). Por ejemplo, `^https://rentit-[a-z0-9-]+-<scope>\.vercel\.app$`. El backend no arranca si la expresión no está anclada o si acepta cualquier `*.vercel.app` (ADR 0001 §3).
+- `CORS_PREVIEW_PATTERN` = expresión de las previews con el nombre del proyecto y tu *scope* de Vercel (lo que va después del último guion en la URL de una preview). Por ejemplo, `^https://rentit-[a-z0-9-]+-<scope>\.vercel\.app$` (en nuestro caso, `<scope>` = `marcsanz-dev`). El backend no arranca si la expresión no está anclada o si acepta cualquier `*.vercel.app` (ADR 0001 §3).
 
 ### 5. Primer despliegue y comprobación
 1. *Actions → Despliegue del backend → Run workflow* y *Despliegue del frontend → Run workflow*. Desde `develop`, el frontend sale como preview; producción llega con la siguiente release a `main`.
