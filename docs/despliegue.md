@@ -26,6 +26,7 @@ flowchart LR
   - Instalar las apps de GitHub de Vercel o Render en la organización lo tendría que aprobar su dueño (el profesor).
   - Con la CLI de Vercel (token) y el *deploy hook* de Render no hace falta ninguna de las dos cosas.
 - Mientras falten los secretos, los dos workflows avisan y terminan **en verde sin desplegar**: no bloquean a nadie.
+- El despliegue del frontend son **dos jobs en máquinas distintas**: *Build* compila el código (también el de un PR) **sin el token de Vercel**, y *Vercel* despliega lo ya compilado con el token, sin ejecutar código del repo. Así un PR no puede leer el token (revisión de Kai en #165).
 
 ## Configuración inicial (una vez, la hace la persona de DevOps)
 
@@ -81,6 +82,8 @@ Necesitas cuentas en Supabase, Render y Vercel (las tres gratis y sin tarjeta) y
 - `CORS_ORIGINS` = la URL de producción de Vercel, sin barra final (por ejemplo, `https://rentit-xyz.vercel.app`).
 - `CORS_PREVIEW_PATTERN` = expresión de las previews con el nombre del proyecto y tu *scope* de Vercel (lo que va después del último guion en la URL de una preview). Por ejemplo, `^https://rentit-[a-z0-9-]+-<scope>\.vercel\.app$` (en nuestro caso, `<scope>` = `marcsanz-dev`). El backend no arranca si la expresión no está anclada o si acepta cualquier `*.vercel.app` (ADR 0001 §3).
 
+> **`CORS_PREVIEW_PATTERN` no es una barrera de seguridad.** En `vercel.app` cualquiera puede crear un proyecto con un nombre que encaje con el patrón. No pasa nada grave porque la sesión va en la cabecera `Authorization` y no en cookies: una web ajena con CORS permitido no puede usar la sesión de nadie. El CORS solo evita que otras webs usen nuestra API desde el navegador por accidente; la seguridad la dan `requireAuth` y los permisos de los services.
+
 ### 5. Primer despliegue y comprobación
 1. *Actions → Despliegue del backend → Run workflow* y *Despliegue del frontend → Run workflow*. Desde `develop`, el frontend sale como preview; producción llega con la siguiente release a `main`.
 2. Comprueba:
@@ -88,6 +91,16 @@ Necesitas cuentas en Supabase, Render y Vercel (las tres gratis y sin tarjeta) y
    - En la URL de Vercel: registrarse, iniciar sesión, recargar `/perfil` (sin 404 gracias a `frontend/vercel.json`) y cerrar sesión.
    - El smoke test contra producción, desde `e2e/`: `BASE_URL=<url de Vercel> API_URL=<url de Render>/api npm run test:smoke`.
 3. Pon la URL pública en el README («Demo / producción»).
+
+## Cuentas y accesos
+
+- Los proyectos de **Vercel** (*scope* `marcsanz-dev`), **Render** (`rentit-api`) y **Supabase** están en las cuentas personales de Marc, la persona de DevOps del Sprint 1. El plan Hobby de Vercel es de **una sola persona** (no se pueden invitar miembros).
+- Si un día hace falta tocar algo y Marc no está, cualquier admin del repo puede:
+  - lanzar o repetir un despliegue desde *Actions* (*Run workflow*);
+  - en una emergencia, montarlo todo de nuevo en sus propias cuentas siguiendo esta guía (~45 min) y cambiar los secretos de GitHub.
+- En Render y en Supabase, si el plan gratuito permite invitar a otra persona al *workspace* u organización, invita a la persona de DevOps del sprint siguiente.
+- `VERCEL_TOKEN` tiene **alcance limitado** (solo el *scope* `marcsanz-dev`) y **caduca a los 90 días** (finales de enero de 2027). Si caduca antes de acabar el curso, se crea otro y se sustituye el secreto.
+- Al cambiar de DevOps en cada sprint, el traspaso es esta guía más acceso a los paneles si se puede. Las claves nunca se pasan por WhatsApp.
 
 ## Datos en producción
 
