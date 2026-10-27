@@ -32,6 +32,8 @@
  *   Se queda `amountCents` de la fianza (daños) y libera el resto.
  * @property {(rentRef: string, amountCents: number, options?: CallOptions) => Promise<void>} refund
  *   Reembolsa (parte de) el alquiler + entrega cobrados.
+ * @property {(ref: string, options?: CallOptions) => Promise<void>} voidPayment
+ *   Deshace un pago a medias (revisión de Francesc en #168): anula la autorización o devuelve todo lo cobrado.
  */
 
 export class PaymentError extends Error {

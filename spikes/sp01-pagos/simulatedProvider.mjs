@@ -56,6 +56,11 @@ export class SimulatedPaymentProvider {
     });
   }
 
+  // Compensación si el pago se queda a medias: lo mismo que liberar la fianza, para cualquier referencia.
+  async voidPayment(ref, { idempotencyKey = `${ref}:anular` } = {}) {
+    return this.releaseDeposit(ref, { idempotencyKey });
+  }
+
   async executeDeposit(depositRef, amountCents, { idempotencyKey = `${depositRef}:ejecutar` } = {}) {
     return this.#once(idempotencyKey, { op: 'executeDeposit', depositRef, amountCents }, () => {
       const intent = this.#load(depositRef);

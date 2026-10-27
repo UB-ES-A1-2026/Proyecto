@@ -104,6 +104,14 @@ async function main() {
     declined.ok && pagos.get(r2.id).estado === 'rechazado' && r2.estado === 'aceptada',
     `Tarjeta rechazada → ${declined.message}; pago «${pagos.get(r2.id).estado}», la reserva sigue «${r2.estado}»`,
   );
+  // Revisión de Francesc (#168): si el frontend reutilizara la clave tras un 402, el reintento con otra tarjeta fallaría.
+  const declinedKey = randomUUID();
+  await expectError(service.pay(r2.id, { paymentMethod: 'pm_card_visa_chargeDeclined', idempotencyKey: declinedKey }), 402);
+  const sameKeyOtherCard = await expectError(service.pay(r2.id, { paymentMethod: 'pm_card_visa', idempotencyKey: declinedKey }), 409);
+  check(
+    sameKeyOtherCard.ok && pagos.get(r2.id).estado === 'rechazado' && r2.estado === 'aceptada',
+    `Reintento con otra tarjeta pero la MISMA clave → ${sameKeyOtherCard.message} (no un 500): por eso el frontend genera una clave nueva tras cada error`,
+  );
   const noFunds = await expectError(
     service.pay(r2.id, { paymentMethod: 'pm_card_visa_chargeDeclinedInsufficientFunds', idempotencyKey: randomUUID() }),
     402,
@@ -154,7 +162,7 @@ async function main() {
   const p5 = await service.pay(r5.id, { paymentMethod: 'pm_card_visa', idempotencyKey: randomUUID() });
   await service.cancel(r5.id, { riderAssigned: true });
   check(
-    p5.estado === 'reembolsado' && p5.importe_reembolsado === 800 && charged(p5.referencia_pasarela) === 350 &&
+    p5.estado === 'reembolsado_parcial' && p5.importe_reembolsado === 800 && charged(p5.referencia_pasarela) === 350 &&
       p5.estado_fianza === 'liberada' && r5.estado === 'cancelada',
     `Cancelada → pago «${p5.estado}»: se reembolsa el alquiler (${euros(p5.importe_reembolsado)}), se cobra la entrega ` +
       `(${euros(charged(p5.referencia_pasarela))}) y la fianza queda «${p5.estado_fianza}»`,
@@ -185,10 +193,58 @@ async function main() {
     `Capturar una autorización de hace 8 días → ${expired.message} (estado «canceled»)`,
   );
 
+  // ---------- Escenario 7: doble clic simultáneo (revisión de Francesc en #168) ----------
+  console.log('\nEscenario 7 · Dos peticiones de pago A LA VEZ (dos pestañas o doble clic rápido)');
+  const r7 = newReserva({ days: 3 });
+  const intentsBefore7 = gatewayStore.size;
+  const [first7, second7] = await Promise.allSettled([
+    service.pay(r7.id, { paymentMethod: 'pm_card_visa', idempotencyKey: randomUUID() }),
+    service.pay(r7.id, { paymentMethod: 'pm_card_visa', idempotencyKey: randomUUID() }),
+  ]);
+  const p7 = pagos.get(r7.id);
+  check(
+    first7.status === 'fulfilled' && second7.status === 'rejected' && second7.reason.status === 409 &&
+      gatewayStore.size === intentsBefore7 + 2 && charged(p7.referencia_pasarela) === 1550,
+    `Una paga (pago «${p7.estado}») y la otra recibe ${second7.reason?.status} «${second7.reason?.message}»; ` +
+      `una sola autorización en la pasarela y ${euros(charged(p7.referencia_pasarela))} cobrados una vez`,
+  );
+
+  // ---------- Escenario 8: la pasarela falla a mitad (revisión de Francesc en #168) ----------
+  console.log('\nEscenario 8 · La pasarela falla después de autorizar: compensación');
+  // Misma pasarela, pero el cobro del alquiler falla por la red una vez (con Stripe puede pasar).
+  let failNextCapture = true;
+  const flaky = {
+    authorize: (...args) => provider.authorize(...args),
+    captureRent: (...args) => {
+      if (failNextCapture) {
+        failNextCapture = false;
+        return Promise.reject(new Error('ECONNRESET'));
+      }
+      return provider.captureRent(...args);
+    },
+    secureDeposit: (...args) => provider.secureDeposit(...args),
+    releaseDeposit: (...args) => provider.releaseDeposit(...args),
+    executeDeposit: (...args) => provider.executeDeposit(...args),
+    refund: (...args) => provider.refund(...args),
+    voidPayment: (...args) => provider.voidPayment(...args),
+  };
+  const flakyService = new PaymentService({ provider: flaky, reservas, pagos, clock });
+  const r8 = newReserva({ days: 3 });
+  const intentsBefore8 = new Set(gatewayStore.keys());
+  const down = await expectError(flakyService.pay(r8.id, { paymentMethod: 'pm_card_visa', idempotencyKey: randomUUID() }), 502);
+  const created8 = [...gatewayStore.keys()].filter((ref) => !intentsBefore8.has(ref)).map((ref) => provider.inspect(ref));
+  check(
+    down.ok && pagos.get(r8.id).estado === 'rechazado' && r8.estado === 'aceptada' &&
+      created8.length === 2 && created8.every((i) => i.status === 'canceled' && i.captured === 0),
+    `Falla el cobro del alquiler → ${down.message}; las 2 autorizaciones se anulan (0 € retenidos) y el pago queda «${pagos.get(r8.id).estado}»`,
+  );
+  const p8 = await flakyService.pay(r8.id, { paymentMethod: 'pm_card_visa', idempotencyKey: randomUUID() });
+  check(p8.estado === 'pagado' && r8.estado === 'pagada', `Reintento con una clave nueva → pago «${p8.estado}»`);
+
   // ---------- Resumen ----------
   const total = (ref) => (ref ? charged(ref) : 0);
   const net = [...pagos.values()].reduce((sum, p) => sum + total(p.referencia_pasarela) + total(p.referencia_fianza), 0);
-  const expectedNet = 1550 + 1150 + (1550 + 3000) + 4350 + 350; // escenarios 1, 2, 3, 4 y 5
+  const expectedNet = 1550 + 1150 + (1550 + 3000) + 4350 + 350 + 1550 + 1550; // escenarios 1, 2, 3, 4, 5, 7 y 8
   check(net === expectedNet, `Cuadre final: cobrado neto a los arrendatarios ${euros(net)} (esperado ${euros(expectedNet)})`);
 
   console.log(failures === 0 ? '\nTodo cuadra.' : `\nComprobaciones fallidas: ${failures}.`);

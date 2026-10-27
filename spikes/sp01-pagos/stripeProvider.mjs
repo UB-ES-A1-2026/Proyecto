@@ -101,6 +101,11 @@ export class StripePaymentProvider {
     }
   }
 
+  // Compensación si el pago se queda a medias: anula el PaymentIntent o reembolsa lo cobrado.
+  async voidPayment(ref, { idempotencyKey = `${ref}:anular` } = {}) {
+    return this.releaseDeposit(ref, { idempotencyKey });
+  }
+
   async executeDeposit(depositRef, amountCents, { idempotencyKey = `${depositRef}:ejecutar` } = {}) {
     const intent = await this.#call(() => this.#stripe.paymentIntents.retrieve(depositRef, { expand: ['latest_charge'] }));
     if (intent.status === 'requires_capture') {
