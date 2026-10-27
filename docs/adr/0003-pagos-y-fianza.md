@@ -1,7 +1,7 @@
 # ADR 0003 · Pagos y fianza
 
 - **Estado:** Propuesto (25/10/2026), pendiente de revisión del equipo
-- **Fecha:** 25/10/2026
+- **Fecha:** 25/10/2026 · actualizado el 27/10/2026 con la revisión de Francesc en #168 (idempotencia por intento, pagos simultáneos, errores de la pasarela, compensación y reembolso parcial)
 - **Responsable:** Marc (spike SP-01, #90)
 - **Relacionado:** [ADR 0001](0001-stack.md), [`docs/modelo-datos.md`](../modelo-datos.md) (`pago`, `incidencia`), US-07.01 (#72), US-04.05 (#64), US-09.01 (#76), US-09.02 (#77), US-11.01 (#80), prototipo en [`spikes/sp01-pagos/`](../../spikes/sp01-pagos/)
 
@@ -60,8 +60,20 @@ Recomendamos **A ahora y B como mejora opcional**, con las reglas de fianza de B
    3. **Abrir una incidencia** (US-09.01): si la fianza solo estaba autorizada, se **cobra entera y queda en custodia**, para que no caduque mientras decide el admin.
    4. **Devolución sin incidencias** (US-09.02): se libera la fianza (se anula la autorización o se reembolsa) → `liberada`.
    5. **El admin resuelve** (US-11.01) con un importe de daños entre 0 y la fianza: 0 → `liberada`; más de 0 → `ejecutada` (captura parcial si estaba autorizada, o reembolso de la diferencia si estaba cobrada).
-   6. **Cancelar una reserva pagada** (US-04.05): se reembolsa el alquiler, y también la entrega si aún no hay rider; se libera la fianza → `reembolsado`.
-   7. **Idempotencia:** el frontend genera una clave al abrir la pantalla de pago y la manda en la cabecera `Idempotency-Key`. Si la reserva ya está pagada, la API responde **409** y no vuelve a cobrar (último criterio de US-07.01). Cada llamada a la pasarela lleva su propia clave.
+   6. **Cancelar una reserva pagada** (US-04.05): se reembolsa el alquiler, y también la entrega si aún no hay rider; se libera la fianza → `reembolsado` si se devuelve todo, o `reembolsado_parcial` si se cobra la entrega (rider asignado). La cantidad está en `importe_reembolsado`.
+   7. **Idempotencia, una clave por intento:** el frontend genera una clave al abrir la pantalla de pago y **otra nueva después de cada error** (402, 409 o 502), y la manda en la cabecera `Idempotency-Key`. Solo un reintento automático de la *misma* petición (p. ej., por un corte de red) repite la clave. Si se reutilizara la clave de un intento rechazado con otra tarjeta, la pasarela diría `idempotency_key_reused` y el reintento fallaría (lo detectó Francesc en #168; está en el escenario 2 del prototipo). Si la reserva ya está pagada, la API responde **409** y no vuelve a cobrar (último criterio de US-07.01). Cada llamada a la pasarela lleva su propia clave.
+   8. **Dos peticiones a la vez** (doble clic rápido o dos pestañas): antes de llamar a la pasarela, el pago pasa a `procesando` con un `UPDATE` condicional dentro de una transacción (`… SET estado = 'procesando' WHERE reserva_id = $1 AND estado IN ('pendiente', 'rechazado')`, junto con la restricción única que ya tiene `pago.reserva_id`). Si no se actualiza ninguna fila, la otra petición responde **409** «Ya hay un pago en curso para esta reserva.». Así solo hay una autorización (escenario 7).
+   9. **Si la pasarela falla a mitad** (autoriza pero falla el cobro del alquiler o de la fianza): **compensación**. Se anulan las dos operaciones (`voidPayment`: anula la autorización o reembolsa lo cobrado), el pago queda `rechazado` con el motivo, la reserva sigue `aceptada` y la API responde **502**. Si ni siquiera se puede anular, la autorización caduca sola a los 7 días (escenario 8).
+   10. **Errores de la pasarela → HTTP:** el service traduce todos los errores de la pasarela, para que nunca acaben en un 500:
+
+       | Error de la pasarela | HTTP | Mensaje |
+       |---|---|---|
+       | Tarjeta rechazada o sin fondos (`{ ok: false }`) | 402 | El de la pasarela («La tarjeta ha sido rechazada…») |
+       | `idempotency_key_reused` | 409 | «Este intento de pago ya se usó. Vuelve a pulsar «Pagar».» |
+       | `authorization_expired` | 409 | «La retención de la fianza ha caducado.» |
+       | `already_captured`, `invalid_state` | 409 | «Este pago ya se ha cobrado.» / «El pago no permite esta operación en su estado actual.» |
+       | `amount_too_large`, `invalid_amount`, `invalid_payment_method` | 400 | «El importe no es válido…» / «El método de pago no es válido.» |
+       | Cualquier otro (red, *timeout*, `not_found`…) | 502 | «La pasarela de pago no responde. Inténtalo de nuevo en unos minutos.» |
 5. **Sin webhooks ni tareas programadas.** Con tarjeta, la pasarela responde en la misma petición; todas las decisiones se toman cuando un usuario hace algo (pagar, abrir incidencia, devolver, resolver, cancelar). Render gratuito no permite tareas programadas, y por eso existen el margen de la regla 4.2 y la custodia de la regla 4.3.
 6. **Sprint 3, si da tiempo: adaptador de Stripe en modo test** (`StripePaymentProvider`, ya escrito en el prototipo), activado solo en el despliegue con `PAYMENT_PROVIDER=stripe`. **El CI y los e2e siguen siempre con la pasarela simulada.** Usa dos PaymentIntents con `capture_method: 'manual'`: alquiler + entrega (confirmado con la tarjeta del usuario, que se guarda) y fianza (autorizada con la tarjeta guardada). Antes hay que aprobar las 3 dependencias y crear la cuenta del equipo. El adaptador rechaza cualquier clave que no sea `sk_test_…`.
 7. **Fuera del alcance:** dinero real, pagar al propietario o al rider (Stripe Connect) y los recibos en PDF (US-07.02).
@@ -72,7 +84,7 @@ Recomendamos **A ahora y B como mejora opcional**, con las reglas de fianza de B
 - `backend/src/repositories/paymentGateway.ts`: la interfaz y la función que elige la implementación. `simulatedPaymentGateway.ts` guarda su estado en la BD; `stripePaymentGateway.ts`, en el Sprint 3, es el único fichero que importa `stripe`.
 - `backend/src/repositories/paymentRepository.ts`: la tabla `pago`. La BD guarda `decimal(10,2)` y aquí se convierte a céntimos (nunca con `float`).
 - `backend/src/services/paymentService.ts`: las reglas de la decisión 4 (el prototipo es la referencia: `spikes/sp01-pagos/paymentService.mjs`), con tests unitarios contra la pasarela simulada y un reloj falso.
-- Endpoints previstos: `GET /api/reservas/:id/pago` (desglose) y `POST /api/reservas/:id/pago` con `{ paymentMethod }` y la cabecera `Idempotency-Key` → 201 si va bien, 402 si se rechaza y 409 si la reserva no está aceptada o ya está pagada. Las incidencias, la devolución y la cancelación llaman al service desde sus propios endpoints. Los nombres finales los fija BE en su PR.
+- Endpoints previstos: `GET /api/reservas/:id/pago` (desglose) y `POST /api/reservas/:id/pago` con `{ paymentMethod }` y la cabecera `Idempotency-Key` → 201 si va bien, 402 si se rechaza, 409 si la reserva no está aceptada, ya está pagada o hay otro pago en curso, y 400/409/502 según la tabla de la regla 4.10. El cambio a `procesando` (regla 4.8) va en `paymentRepository` dentro de una transacción de Prisma (`$transaction` con `updateMany` condicional). Las incidencias, la devolución y la cancelación llaman al service desde sus propios endpoints. Los nombres finales los fija BE en su PR.
 - Frontend: `frontend/src/services/paymentService.ts` y la pantalla de pago con el desglose (alquiler, entrega, fianza, total y «retenida hasta…» o «se devuelve al final»).
 - e2e (`e2e/tests/pago.spec.ts`): un test por criterio de US-07.01 eligiendo las tarjetas de prueba por su etiqueta, sin red externa ni secretos en el CI.
 
@@ -100,6 +112,7 @@ Recomendamos **A ahora y B como mejora opcional**, con las reglas de fianza de B
 - `pago.importe_fianza_ejecutado` (decimal, por defecto 0) e `pago.importe_reembolsado` (decimal, por defecto 0): las ejecuciones y los reembolsos parciales.
 - `pago.motivo_rechazo` (texto, null) y `pago.actualizado_en` (fecha y hora).
 - `pago.estado_fianza` admite null mientras el pago no está completado.
+- `pago.estado` añade dos valores: `procesando` (regla 4.8) y `reembolsado_parcial` (regla 4.6). La restricción única de `pago.reserva_id`, que ya está en el modelo, se mantiene: un reintento reutiliza la misma fila.
 - Tablas técnicas de la pasarela simulada (solo con `PAYMENT_PROVIDER=simulated`): `pasarela_simulada` (`referencia` PK, `tipo` `alquiler | fianza`, `importe`, `importe_capturado`, `importe_reembolsado`, `estado` `requires_capture | succeeded | canceled`, `capturar_antes_de`, `creado_en`) y `clave_idempotencia` (`clave` PK, `huella` de los parámetros, `respuesta` JSON, `creada_en`).
 
 ## Coste de integración (estimación para el planning poker)
@@ -136,8 +149,10 @@ Unas **24 horas**. Proponemos **5 puntos** para US-07.01 (del tamaño de US-09.0
 4. Un alquiler de 10 días: la fianza se cobra al pagar y se reembolsa al devolver.
 5. La cancelación con rider asignado: se reembolsa el alquiler y se cobra la entrega.
 6. Las reglas de Stripe: captura parcial, doble captura, idempotencia y caducidad a los 8 días.
+7. Dos peticiones de pago a la vez: una paga y la otra recibe 409.
+8. La pasarela falla después de autorizar: compensación (las dos autorizaciones anuladas), 502 y reintento correcto con una clave nueva.
 
-Se ha ejecutado con la pasarela simulada (21 comprobaciones correctas; la salida está en el README). El adaptador de Stripe y su script están escritos, pero **no se han ejecutado**.
+Se ha ejecutado con la pasarela simulada (25 comprobaciones correctas; la salida está en el README. Las de la revisión de #168 fallan si se quita su arreglo). El adaptador de Stripe y su script están escritos, pero **no se han ejecutado**.
 
 ## Fuentes consultadas (25/10/2026)
 

@@ -2,7 +2,7 @@
 
 Prototipo del spike [#90](https://github.com/UB-ES-A1-2026/Proyecto/issues/90). La decisión y el porqué están en [ADR 0003](../../docs/adr/0003-pagos-y-fianza.md). **No es código de producción**: está aislado del backend y tiene su propio `package.json`.
 
-> Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 25/10/2026.
+> Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 25/10/2026; ampliado el 27/10/2026 con la revisión de Francesc en #168.
 
 ## Qué hay
 
@@ -10,7 +10,7 @@ Prototipo del spike [#90](https://github.com/UB-ES-A1-2026/Proyecto/issues/90). 
 |---|---|---|
 | `paymentProvider.mjs` | El contrato `PaymentProvider` (autorizar, cobrar el alquiler, asegurar/liberar/ejecutar la fianza, reembolsar), los errores y los métodos de pago de prueba. | `backend/src/repositories/paymentGateway.ts` (interfaz) |
 | `simulatedProvider.mjs` | Pasarela **simulada** que copia las reglas de un PaymentIntent de Stripe con captura manual: caducidad a los 7 días, una sola captura, captura parcial que libera el resto, reembolsos ≤ lo cobrado e idempotencia. | La implementación por defecto (local, CI, e2e y demo) |
-| `paymentService.mjs` | Reglas de negocio de Rentit: solo se paga una solicitud aceptada, no se paga dos veces, cuándo se autoriza o se cobra la fianza, incidencias y cancelación. Usa los nombres de columna de `pago`. | `backend/src/services/paymentService.ts` |
+| `paymentService.mjs` | Reglas de negocio de Rentit: solo se paga una solicitud aceptada, no se paga dos veces (ni con dos peticiones a la vez), cuándo se autoriza o se cobra la fianza, compensación si la pasarela falla a mitad, traducción de los errores de la pasarela a HTTP, incidencias y cancelación. Usa los nombres de columna de `pago`. | `backend/src/services/paymentService.ts` |
 | `stripeProvider.mjs` | Adaptador de **Stripe en modo test** para el mismo contrato. **Escrito pero no ejecutado** (no hay cuenta ni claves). | Opcional en el Sprint 3 |
 | `prototipo.mjs` | Recorre los escenarios con la pasarela simulada y un reloj simulado. Sin dependencias ni red. | Tests unitarios del service |
 | `prototipo-stripe.mjs` | Los escenarios básicos contra Stripe en modo test. No ejecutado. | Prueba manual del adaptador |
@@ -18,11 +18,13 @@ Prototipo del spike [#90](https://github.com/UB-ES-A1-2026/Proyecto/issues/90). 
 ## Qué demuestra
 
 1. **Camino feliz:** al pagar se cobran alquiler + entrega y la fianza queda **autorizada sin cobrar** hasta 7 días. Un segundo clic en «Pagar» da 409 y un reintento con la misma clave de idempotencia no cobra dos veces. Aunque el servidor se reinicie (Render gratuito se duerme), el estado sigue, porque no vive en memoria del proceso. Al devolver sin incidencias, la autorización se anula: 0 € de fianza cobrados.
-2. **Pago rechazado:** con las tarjetas de prueba `…0002` (rechazada) y `…9995` (sin fondos), el pago queda `rechazado`, la reserva sigue `aceptada` y se puede reintentar. No se puede pagar una solicitud `pendiente`.
+2. **Pago rechazado:** con las tarjetas de prueba `…0002` (rechazada) y `…9995` (sin fondos), el pago queda `rechazado`, la reserva sigue `aceptada` y se puede reintentar **con una clave de idempotencia nueva**: reutilizar la del intento rechazado con otra tarjeta da 409 (no un 500). No se puede pagar una solicitud `pendiente`.
 3. **Daño:** al abrir la incidencia, la fianza se **cobra entera en custodia** (para que no caduque mientras decide el admin); el admin ejecuta 30 € y se reembolsan 20 €.
 4. **Alquiler de 10 días:** la autorización no llegaría hasta el final, así que la fianza se cobra al pagar y se reembolsa al devolver.
-5. **Cancelación con rider asignado (US-04.05):** se reembolsa el alquiler, se cobra la entrega y se libera la fianza.
+5. **Cancelación con rider asignado (US-04.05):** se reembolsa el alquiler, se cobra la entrega y se libera la fianza; el pago queda `reembolsado_parcial`.
 6. **Reglas de la pasarela** (las de Stripe): captura parcial, segunda captura → error, misma clave → misma respuesta, misma clave con otros datos → error, reembolso sin cobro → error y autorización caducada a los 8 días.
+7. **Dos peticiones a la vez** (dos pestañas): una paga y la otra recibe 409; una sola autorización en la pasarela.
+8. **La pasarela falla después de autorizar** (p. ej., un corte de red al cobrar el alquiler): se anulan las dos autorizaciones (compensación), la API responde 502, el pago queda `rechazado` y el reintento con una clave nueva funciona.
 
 ## Cómo ejecutarlo
 
@@ -33,9 +35,9 @@ cd spikes/sp01-pagos
 npm run prototipo        # o: node prototipo.mjs
 ```
 
-Sale con código 1 si alguna comprobación falla (se ha comprobado cambiando a propósito un importe esperado).
+Sale con código 1 si alguna comprobación falla. Se ha comprobado cambiando a propósito un importe esperado y, para las comprobaciones de la revisión de #168, quitando cada arreglo (el bloqueo, la compensación y la traducción de errores): en los tres casos falla.
 
-## Resultado (25/10/2026, pasarela simulada, Node 24.15.0)
+## Resultado (27/10/2026, pasarela simulada, Node 24.15.0)
 
 ```
 Pasarela: simulada (reglas de Stripe) · reloj simulado desde el 16/11/2026
@@ -48,30 +50,38 @@ Escenario 1 · Camino feliz: pagar, doble clic, reinicio del servidor y devoluci
 
 Escenario 2 · Pago rechazado y reintento
 5. Tarjeta rechazada → 402 «La tarjeta ha sido rechazada. Prueba con otra tarjeta.»; pago «rechazado», la reserva sigue «aceptada» ✔
-6. Tarjeta sin fondos → 402 «La tarjeta no tiene fondos suficientes.» ✔
-7. Reintento con otra tarjeta → pago «pagado» (misma fila de `pago`) ✔
-8. Pagar una solicitud «pendiente» → 409 «Solo se puede pagar una solicitud aceptada.» ✔
+6. Reintento con otra tarjeta pero la MISMA clave → 409 «Este intento de pago ya se usó. Vuelve a pulsar «Pagar».» (no un 500): por eso el frontend genera una clave nueva tras cada error ✔
+7. Tarjeta sin fondos → 402 «La tarjeta no tiene fondos suficientes.» ✔
+8. Reintento con otra tarjeta → pago «pagado» (misma fila de `pago`) ✔
+9. Pagar una solicitud «pendiente» → 409 «Solo se puede pagar una solicitud aceptada.» ✔
 
 Escenario 3 · Daño: incidencia, la fianza se asegura y el admin ejecuta una parte
-9. Incidencia abierta el 22/11/2026 → fianza «retenida», ahora cobrada en custodia (50,00 €) para que no caduque ✔
-10. El admin resuelve el 27/11/2026 con 30,00 € de daños → fianza «ejecutada»: 30,00 € para el propietario, 20,00 € reembolsados ✔
+10. Incidencia abierta el 22/11/2026 → fianza «retenida», ahora cobrada en custodia (50,00 €) para que no caduque ✔
+11. El admin resuelve el 27/11/2026 con 30,00 € de daños → fianza «ejecutada»: 30,00 € para el propietario, 20,00 € reembolsados ✔
 
 Escenario 4 · Alquiler de 10 días (más largo que los 7 días de una autorización)
-11. La autorización caducaría antes del fin + 2 días → la fianza se cobra al pagar (50,00 €) y se devolverá al final ✔
-12. Devolución el 07/12/2026 → fianza «liberada»: se reembolsan los 50,00 € ✔
+12. La autorización caducaría antes del fin + 2 días → la fianza se cobra al pagar (50,00 €) y se devolverá al final ✔
+13. Devolución el 07/12/2026 → fianza «liberada»: se reembolsan los 50,00 € ✔
 
 Escenario 5 · Cancelación de una reserva pagada con rider asignado (US-04.05)
-13. Cancelada → pago «reembolsado»: se reembolsa el alquiler (8,00 €), se cobra la entrega (3,50 €) y la fianza queda «liberada» ✔
-14. Cancelar otra vez → 409 «La reserva no tiene un pago completado.» ✔
+14. Cancelada → pago «reembolsado_parcial»: se reembolsa el alquiler (8,00 €), se cobra la entrega (3,50 €) y la fianza queda «liberada» ✔
+15. Cancelar otra vez → 409 «La reserva no tiene un pago completado.» ✔
 
 Escenario 6 · Reglas de la pasarela: captura parcial, doble captura, idempotencia y caducidad
-15. Ejecución parcial sobre una autorización: se capturan 20,00 € de 50,00 € y el resto (30,00 €) se libera solo ✔
-16. Capturar otra vez el mismo pago (petición nueva) → already_captured «Este pago ya se capturó; solo se puede capturar una vez.» ✔
-17. Repetir la petición con la misma clave → la respuesta guardada; no se cobra dos veces ✔
-18. Misma clave con otro importe → idempotency_key_reused «La clave «ejecutar-1» ya se usó con otros parámetros.» ✔
-19. Reembolsar un pago que solo está autorizado → invalid_state «Solo se puede reembolsar un pago cobrado.» ✔
-20. Capturar una autorización de hace 8 días → authorization_expired «La autorización ha caducado: los fondos ya se han liberado.» (estado «canceled») ✔
-21. Cuadre final: cobrado neto a los arrendatarios 119,50 € (esperado 119,50 €) ✔
+16. Ejecución parcial sobre una autorización: se capturan 20,00 € de 50,00 € y el resto (30,00 €) se libera solo ✔
+17. Capturar otra vez el mismo pago (petición nueva) → already_captured «Este pago ya se capturó; solo se puede capturar una vez.» ✔
+18. Repetir la petición con la misma clave → la respuesta guardada; no se cobra dos veces ✔
+19. Misma clave con otro importe → idempotency_key_reused «La clave «ejecutar-1» ya se usó con otros parámetros.» ✔
+20. Reembolsar un pago que solo está autorizado → invalid_state «Solo se puede reembolsar un pago cobrado.» ✔
+21. Capturar una autorización de hace 8 días → authorization_expired «La autorización ha caducado: los fondos ya se han liberado.» (estado «canceled») ✔
+
+Escenario 7 · Dos peticiones de pago A LA VEZ (dos pestañas o doble clic rápido)
+22. Una paga (pago «pagado») y la otra recibe 409 «Ya hay un pago en curso para esta reserva.»; una sola autorización en la pasarela y 15,50 € cobrados una vez ✔
+
+Escenario 8 · La pasarela falla después de autorizar: compensación
+23. Falla el cobro del alquiler → 502 «La pasarela de pago no responde. Inténtalo de nuevo en unos minutos.»; las 2 autorizaciones se anulan (0 € retenidos) y el pago queda «rechazado» ✔
+24. Reintento con una clave nueva → pago «pagado» ✔
+25. Cuadre final: cobrado neto a los arrendatarios 150,50 € (esperado 150,50 €) ✔
 
 Todo cuadra.
 ```
