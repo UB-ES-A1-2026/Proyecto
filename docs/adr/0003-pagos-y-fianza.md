@@ -122,11 +122,11 @@ Recomendamos **A ahora y B como mejora opcional**, con las reglas de fianza de B
 | Tarea | Qué incluye | Estimación |
 |---|---|---|
 | (DevOps+BE · Max) Pasarela simulada | Interfaz `PaymentProvider`, pasarela simulada con su estado en la BD, `PAYMENT_PROVIDER` y tests de las reglas (portar el prototipo a TypeScript) | 6 h |
-| (BE · Francesc) Modelo de pagos y paso a «Pagado» | Migración de `pago` con los campos propuestos, `paymentService` (402/409, idempotencia, regla de la fianza), endpoints y tests con Supertest | 8 h |
+| (BE · Francesc) Modelo de pagos y paso a «Pagado» | Migración de `pago` con los campos propuestos, `paymentService` (402/409, idempotencia, regla de la fianza, bloqueo de pagos simultáneos, compensación y tabla de errores), endpoints y tests con Supertest | 9 h |
 | (FE · Kai) Pantalla de pago | Desglose, selector de tarjeta de prueba, errores, estado «Pagado» y tests | 6 h |
 | (QA · Danyal) e2e | Pago correcto, rechazado y ya pagado, y sus casos de prueba en `docs/testing.md` | 4 h |
 
-Unas **24 horas**. Proponemos **5 puntos** para US-07.01 (del tamaño de US-09.01), a confirmar en el planning poker.
+Unas **25 horas**. Proponemos **5 puntos** para US-07.01 (del tamaño de US-09.01), a confirmar en el planning poker.
 
 **Sprint 3:** no hacen falta historias nuevas; cada historia suma una llamada al service y su test:
 
