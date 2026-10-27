@@ -32,6 +32,7 @@ Los wireframes son **HTML con unos estilos comunes** que se convierten en PNG co
    npm run wireframes -- US-02.01-publicar-objeto
    ```
    Crea `flujo.png` (todo el flujo) y un PNG por pantalla. Sin argumentos regenera todas las carpetas.
+   **Antes de generar, borra todos los `.png` de esa carpeta** para que no queden capturas de pantallas que ya no existen. Por eso, en la carpeta de un wireframe no guardes nada más: las capturas de la pantalla real van en el PR, no aquí.
 4. **Revisa los PNG** (el agente los abre y comprueba que no hay nada cortado ni solapado).
 5. Commit propio al principio de la tarea: `docs(wireframe): US-02.01 Publicar un objeto (#<nº tarea>)`.
 6. **Enséñalo antes de programar**: comenta en el issue de la historia con el enlace a `flujo.png` en tu rama (el repo es público, la imagen se ve en GitHub) y avisa en el grupo. Si alguien ve un problema, se corrige ahora, que cuesta menos que cambiar los componentes.
