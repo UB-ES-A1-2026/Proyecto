@@ -1,9 +1,9 @@
 // Generado con asistencia de IA (Claude) – revisado por <nombre>, <fecha>
 import { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router';
+import { EditItemDialog } from '../components/EditItemDialog';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
-import { getMyItems, type ItemStatus, type MyItem } from '../services/itemService';
+import { getMyItems, type ItemDetail, type ItemStatus, type MyItem } from '../services/itemService';
 
 const priceFormatter = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 
@@ -13,22 +13,15 @@ const STATUS_LABELS: Record<ItemStatus, string> = {
   withdrawn: 'Retirado',
 };
 
-// Aviso que deja otra pantalla al volver aquí, por ejemplo el formulario de edición al guardar.
-function successMessage(state: unknown): string | null {
-  if (typeof state === 'object' && state !== null && 'message' in state) {
-    return typeof state.message === 'string' ? state.message : null;
-  }
-  return null;
-}
-
-// Pantalla «Mis objetos» (#109): lista los objetos del usuario con el acceso a editarlos.
+// Pantalla «Mis objetos» (#109): lista los objetos del usuario y los edita en una ventana.
 // Retirar (#111) y Pausar / Reanudar (#113) se añadirán en cada fila.
 export function MyItemsPage() {
   const { session, clearSession } = useAuth();
   const token = session?.token;
   const [items, setItems] = useState<MyItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const message = successMessage(useLocation().state);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -54,6 +47,25 @@ export function MyItemsPage() {
       ignore = true;
     };
   }, [token, clearSession]);
+
+  function openEditor(id: string) {
+    setMessage(null);
+    setEditingId(id);
+  }
+
+  // Actualiza la fila con lo guardado, sin volver a pedir toda la lista.
+  function handleSaved(saved: ItemDetail) {
+    setItems(
+      (current) =>
+        current?.map((item) =>
+          item.id === saved.id
+            ? { ...item, title: saved.title, dailyPrice: saved.dailyPrice, status: saved.status }
+            : item,
+        ) ?? null,
+    );
+    setEditingId(null);
+    setMessage('Los cambios se han guardado.');
+  }
 
   return (
     <section className="my-items">
@@ -85,17 +97,21 @@ export function MyItemsPage() {
                 </span>
               </div>
               <div className="item-actions">
-                <Link
-                  to={`/objetos/${item.id}/editar`}
+                <button
+                  type="button"
                   className="button-secondary"
                   aria-label={`Editar ${item.title}`}
+                  onClick={() => openEditor(item.id)}
                 >
                   Editar
-                </Link>
+                </button>
               </div>
             </li>
           ))}
         </ul>
+      )}
+      {editingId && (
+        <EditItemDialog id={editingId} onClose={() => setEditingId(null)} onSaved={handleSaved} />
       )}
     </section>
   );
