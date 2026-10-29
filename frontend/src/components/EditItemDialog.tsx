@@ -1,9 +1,9 @@
 // Generado con asistencia de IA (Claude) – revisado por <nombre>, <fecha>
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import { getItem, updateItem, type ItemDetail } from '../services/itemService';
+import { Modal } from './Modal';
 
 type Field = 'title' | 'description' | 'dailyPrice' | 'deposit';
 type FieldErrors = Partial<Record<Field, string>>;
@@ -61,9 +61,14 @@ function validate(values: FormValues): FieldErrors {
   return errors;
 }
 
-// Formulario de edición de un objeto (#109). Solo se muestra dentro de PrivateRoute.
-export function EditItemPage() {
-  const { id = '' } = useParams();
+type EditItemDialogProps = {
+  id: string;
+  onClose: () => void;
+  onSaved: (item: ItemDetail) => void;
+};
+
+// Formulario de edición de un objeto (#109), en una ventana sobre «Mis objetos».
+export function EditItemDialog({ id, onClose, onSaved }: EditItemDialogProps) {
   const { session, clearSession } = useAuth();
   const token = session?.token;
   const [item, setItem] = useState<ItemDetail | null>(null);
@@ -95,27 +100,33 @@ export function EditItemPage() {
   }, [token, id, clearSession]);
 
   return (
-    <section className="item-form-card">
-      <h1>Editar objeto</h1>
+    <Modal title="Editar objeto" onClose={onClose}>
       {loadError ? (
         <>
           <p role="alert" className="form-error">
             {loadError}
           </p>
-          <Link to="/mis-objetos">Volver a Mis objetos</Link>
+          <button type="button" className="button-secondary" onClick={onClose}>
+            Cerrar
+          </button>
         </>
       ) : item && token ? (
-        <EditItemForm item={item} token={token} />
+        <EditItemForm item={item} token={token} onCancel={onClose} onSaved={onSaved} />
       ) : (
         <p>Cargando el objeto…</p>
       )}
-    </section>
+    </Modal>
   );
 }
 
-type EditItemFormProps = { item: ItemDetail; token: string };
+type EditItemFormProps = {
+  item: ItemDetail;
+  token: string;
+  onCancel: () => void;
+  onSaved: (item: ItemDetail) => void;
+};
 
-function EditItemForm({ item, token }: EditItemFormProps) {
+function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
   const [values, setValues] = useState<FormValues>({
     title: item.title,
     description: item.description,
@@ -126,7 +137,6 @@ function EditItemForm({ item, token }: EditItemFormProps) {
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const { clearSession } = useAuth();
-  const navigate = useNavigate();
   const titleRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const dailyPriceRef = useRef<HTMLInputElement>(null);
@@ -163,13 +173,13 @@ function EditItemForm({ item, token }: EditItemFormProps) {
 
     setSubmitting(true);
     try {
-      await updateItem(token, item.id, {
+      const saved = await updateItem(token, item.id, {
         title: values.title.trim(),
         description: values.description.trim(),
         dailyPrice: parseAmount(values.dailyPrice) ?? 0,
         deposit: parseAmount(values.deposit) ?? 0,
       });
-      navigate('/mis-objetos', { state: { message: 'Los cambios se han guardado.' } });
+      onSaved(saved);
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         clearSession();
@@ -287,9 +297,9 @@ function EditItemForm({ item, token }: EditItemFormProps) {
           <button type="submit" className="button-primary" disabled={submitting}>
             {submitting ? 'Guardando…' : 'Guardar'}
           </button>
-          <Link to="/mis-objetos" className="button-secondary">
+          <button type="button" className="button-secondary" onClick={onCancel}>
             Cancelar
-          </Link>
+          </button>
         </div>
       </form>
     </>
