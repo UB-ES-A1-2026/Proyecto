@@ -1,6 +1,6 @@
 // Generado con asistencia de IA (Claude) – revisado por <nombre>, <fecha>
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import { getMyItems, type ItemStatus, type MyItem } from '../services/itemService';
@@ -13,6 +13,14 @@ const STATUS_LABELS: Record<ItemStatus, string> = {
   withdrawn: 'Retirado',
 };
 
+// Aviso que deja otra pantalla al volver aquí, por ejemplo el formulario de edición al guardar.
+function successMessage(state: unknown): string | null {
+  if (typeof state === 'object' && state !== null && 'message' in state) {
+    return typeof state.message === 'string' ? state.message : null;
+  }
+  return null;
+}
+
 // Pantalla «Mis objetos» (#109): lista los objetos del usuario con el acceso a editarlos.
 // Retirar (#111) y Pausar / Reanudar (#113) se añadirán en cada fila.
 export function MyItemsPage() {
@@ -20,6 +28,7 @@ export function MyItemsPage() {
   const token = session?.token;
   const [items, setItems] = useState<MyItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const message = successMessage(useLocation().state);
 
   useEffect(() => {
     if (!token) return;
@@ -49,6 +58,11 @@ export function MyItemsPage() {
   return (
     <section className="my-items">
       <h1>Mis objetos</h1>
+      {message && (
+        <p role="status" className="form-success">
+          {message}
+        </p>
+      )}
       {error ? (
         <p role="alert" className="form-error">
           {error}
