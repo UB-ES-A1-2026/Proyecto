@@ -1,6 +1,7 @@
 // Generado con asistencia de IA – revisado por Danyal, 01/11/2026
 import { apiRequest } from './apiClient';
 
+// Estados del objeto: enum ItemStatus del esquema de Prisma (#86).
 export type ItemStatus = 'published' | 'paused' | 'withdrawn';
 
 export type ItemDetail = {
@@ -31,4 +32,18 @@ export type ItemDetail = {
 
 export function getItemDetail(id: string, token?: string): Promise<ItemDetail> {
   return apiRequest<ItemDetail>(`/objetos/${encodeURIComponent(id)}`, { token });
+}
+
+// Respuesta de GET /api/usuarios/me/objetos (#109). Contrato provisional hasta que
+// exista el endpoint: dailyPrice llega como texto porque Prisma serializa Decimal así.
+export type MyItem = {
+  id: string;
+  title: string;
+  dailyPrice: string;
+  neighborhood: string;
+  status: ItemStatus;
+};
+
+export function getMyItems(token: string): Promise<MyItem[]> {
+  return apiRequest<MyItem[]>('/usuarios/me/objetos', { token });
 }
