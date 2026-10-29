@@ -15,6 +15,8 @@
   --color-divider: #e5e7eb;
   --color-error: #dc2626;
   --color-error-background: #fef2f2;
+  --color-success: #15803d;
+  --color-success-background: #f0fdf4;
 
   /* Tipografía */
   --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -323,4 +325,43 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-sm);
+}
+
+.item-form-card {
+  max-width: 560px;
+  margin: var(--space-xl) auto;
+}
+
+.form-field textarea {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  resize: vertical;
+}
+
+.form-field textarea[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.form-actions > * {
+  flex: 1;
+  min-width: 8rem;
+}
+
+.form-success {
+  margin: 0 0 var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-small);
+  color: var(--color-success);
+  background-color: var(--color-success-background);
+  border: var(--border-width) solid var(--color-success);
+  border-radius: var(--radius);
 }

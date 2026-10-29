@@ -2,6 +2,7 @@ import type { RouteObject } from 'react-router';
 import { Layout } from '../components/Layout';
 import { PrivateRoute } from '../components/PrivateRoute';
 import { AuthProvider } from '../context/AuthContext';
+import { EditItemPage } from '../pages/EditItemPage';
 import { HomePage } from '../pages/HomePage';
 import { LoginPage } from '../pages/LoginPage';
 import { MyItemsPage } from '../pages/MyItemsPage';
@@ -26,6 +27,7 @@ export const routes: RouteObject[] = [
         children: [
           { path: 'perfil', element: <ProfilePage /> },
           { path: 'mis-objetos', element: <MyItemsPage /> },
+          { path: 'objetos/:id/editar', element: <EditItemPage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },
