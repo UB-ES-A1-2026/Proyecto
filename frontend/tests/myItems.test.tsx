@@ -61,16 +61,17 @@ describe('pantalla «Mis objetos» (US-02.02, #109)', () => {
     expect(new Headers(init?.headers).get('Authorization')).toBe('Bearer token-de-prueba');
   });
 
-  it('cada objeto enlaza a su formulario de edición', async () => {
+  it('cada objeto tiene su botón «Editar»', async () => {
     localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
     mockFetch(() => Response.json(ITEMS));
 
     renderRoute('/mis-objetos');
 
-    expect(await screen.findByRole('link', { name: 'Editar Taladro percutor' })).toHaveAttribute(
-      'href',
-      '/objetos/o1/editar',
-    );
+    expect(
+      await screen.findByRole('button', { name: 'Editar Taladro percutor' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Editar Tienda de campaña' })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('avisa si el usuario aún no tiene objetos', async () => {
