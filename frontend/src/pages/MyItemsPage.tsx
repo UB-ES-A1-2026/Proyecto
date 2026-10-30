@@ -1,4 +1,3 @@
-// Generado con asistencia de IA (Claude) – revisado por <nombre>, <fecha>
 import { useEffect, useState } from 'react';
 import { EditItemDialog } from '../components/EditItemDialog';
 import { useAuth } from '../context/useAuth';
