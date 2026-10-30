@@ -1,4 +1,5 @@
 import { screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderRoute } from './renderRoute';
 
@@ -52,9 +53,13 @@ describe('pantalla «Mis objetos» (US-02.02, #109)', () => {
     const rows = await screen.findAllByRole('listitem');
     expect(rows).toHaveLength(2);
     expect(within(rows[0]).getByRole('heading', { name: 'Taladro percutor' })).toBeInTheDocument();
-    expect(within(rows[0]).getByText(/5,50\s€ \/ día · Gràcia/)).toBeInTheDocument();
+    expect(within(rows[0]).getByText(/5,50\s€/)).toBeInTheDocument();
     expect(within(rows[0]).getByText('Publicado')).toBeInTheDocument();
+    expect(within(rows[0]).getByText('Visible en las búsquedas')).toBeInTheDocument();
     expect(within(rows[1]).getByText('Pausado')).toBeInTheDocument();
+    expect(
+      within(rows[1]).getByText('No aparece en las búsquedas hasta que lo reanudes'),
+    ).toBeInTheDocument();
 
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe('http://localhost:3000/api/usuarios/me/objetos');
@@ -74,6 +79,30 @@ describe('pantalla «Mis objetos» (US-02.02, #109)', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
+  it('los filtros muestran cuántos objetos hay en cada estado y filtran la lista', async () => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
+    mockFetch(() => Response.json(ITEMS));
+    const user = userEvent.setup();
+
+    renderRoute('/mis-objetos');
+
+    const all = await screen.findByRole('button', { name: 'Todos · 2' });
+    expect(all).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Publicados · 1' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Retirados · 0' })).toBeInTheDocument();
+
+    const paused = screen.getByRole('button', { name: 'Pausados · 1' });
+    await user.click(paused);
+    expect(paused).toHaveAttribute('aria-pressed', 'true');
+    expect(all).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
+    expect(screen.getByRole('heading', { name: 'Tienda de campaña' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Retirados · 0' }));
+    expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
+    expect(screen.getByText('No tienes objetos en este estado.')).toBeInTheDocument();
+  });
+
   it('avisa si el usuario aún no tiene objetos', async () => {
     localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
     mockFetch(() => Response.json([]));
@@ -81,6 +110,15 @@ describe('pantalla «Mis objetos» (US-02.02, #109)', () => {
     renderRoute('/mis-objetos');
 
     expect(await screen.findByText('Todavía no has publicado ningún objeto.')).toBeInTheDocument();
+  });
+
+  it('muestra el botón «Publicar un objeto», desactivado hasta que exista el formulario', async () => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
+    mockFetch(() => Response.json([]));
+
+    renderRoute('/mis-objetos');
+
+    expect(await screen.findByRole('button', { name: 'Publicar un objeto' })).toBeDisabled();
   });
 
   it('si la sesión ya no es válida (401) la borra y vuelve al login', async () => {
