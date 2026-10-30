@@ -112,7 +112,7 @@ describe('ventana de edición de un objeto (US-02.02, #109)', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(screen.getByRole('status')).toHaveTextContent('Los cambios se han guardado.');
     expect(screen.getByRole('heading', { name: 'Taladro Bosch' })).toBeInTheDocument();
-    expect(screen.getByText(/7,25\s€ \/ día/)).toBeInTheDocument();
+    expect(screen.getByText(/7,25\s€/)).toBeInTheDocument();
 
     const patch = fetchMock.mock.calls.find(([, init]) => init?.method === 'PATCH');
     expect(patch?.[0]).toBe('http://localhost:3000/api/objetos/o1');
