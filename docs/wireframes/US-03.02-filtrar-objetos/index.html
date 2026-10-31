@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-03.02 Filtrar objetos · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-03.02 Filtrar objetos</h1>
+      <p class="wf-historia">
+        Como <strong>usuario</strong>, quiero <strong>filtrar los objetos disponibles</strong> para
+        <strong>encontrar los que se ajusten a mis necesidades</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #57 · Tarea #118 (panel de filtros) · API propuesta en #117 · Wireframe de baja fidelidad ·
+        Generado con asistencia de IA (Claude) – revisado por Alex Matos, 31/10/2026
+      </p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-resultados">
+      <h2><span class="wf-paso">1</span>Punto de entrada: resultados de búsqueda <code>/buscar?q=taladro</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/buscar?q=taladro">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mi perfil</span><span class="wf-boton wf-secundario">Cerrar sesión</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-fila">
+              <div class="wf-input" style="flex: 1">taladro</div>
+              <span class="wf-boton">Buscar</span>
+              <span class="wf-boton wf-secundario">Filtros <span class="wf-marca">1</span></span>
+            </div>
+            <p class="wf-texto" style="margin-top: 14px">12 objetos para «taladro» <span class="wf-marca">2</span></p>
+            <div class="wf-rejilla">
+              <div class="wf-tarjeta"><div class="wf-imagen"></div><p class="wf-texto">Taladro percutor · 5 €/día<br />Gràcia</p></div>
+              <div class="wf-tarjeta"><div class="wf-imagen"></div><p class="wf-texto">Taladro sin cable · 8 €/día<br />Sants</p></div>
+              <div class="wf-tarjeta"><div class="wf-imagen"></div><p class="wf-texto">Brocas y taladro · 12 €/día<br />Gràcia</p></div>
+              <div class="wf-tarjeta"><div class="wf-imagen"></div><p class="wf-texto">Taladro columna · 20 €/día<br />Eixample</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Botón «Filtros» junto a la barra de búsqueda (criterio 1). Abre y cierra el panel. Es lo único que añade #118 a esta pantalla.</li>
+        <li>Página de resultados de #115 (Danyal): barra, contador y tarjetas. No se cambia; el panel se coloca encima.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Filtros»</p>
+
+    <section class="wf-pantalla" data-captura="2-panel-abierto">
+      <h2><span class="wf-paso">2</span>Panel de filtros abierto <code>/buscar?q=taladro</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/buscar?q=taladro">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-enlaces"><span class="wf-enlace">Mi perfil</span></span></nav>
+          <div class="wf-contenido">
+            <div class="wf-fila">
+              <div class="wf-input" style="flex: 1">taladro</div>
+              <span class="wf-boton">Buscar</span>
+              <span class="wf-boton">Filtros</span>
+            </div>
+            <div class="wf-tarjeta" style="margin-top: 14px">
+              <div class="wf-fila" style="align-items: start">
+                <div class="wf-campo" style="flex: 1">
+                  <label>Categoría <span class="wf-marca">1</span></label>
+                  <div class="wf-input">Herramientas y bricolaje ▾</div>
+                </div>
+                <div class="wf-campo" style="flex: 1">
+                  <label>Precio máximo (€/día) <span class="wf-marca">2</span></label>
+                  <div class="wf-input">10</div>
+                </div>
+                <div class="wf-campo" style="flex: 1">
+                  <label>Barrio <span class="wf-marca">3</span></label>
+                  <div class="wf-input">Ej.: Gràcia</div>
+                </div>
+              </div>
+              <div class="wf-fila">
+                <span class="wf-boton">Aplicar filtros <span class="wf-marca">4</span></span>
+                <span class="wf-boton wf-secundario">Limpiar filtros</span>
+              </div>
+            </div>
+            <div class="wf-caja" style="margin-top: 14px">Resultados (sin cambios hasta que se aplica)</div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <div class="wf-contenido">
+            <div class="wf-campo"><label>Categoría</label><div class="wf-input">Todas ▾</div></div>
+            <div class="wf-campo"><label>Precio máximo (€/día)</label><div class="wf-input">10</div></div>
+            <div class="wf-campo"><label>Barrio</label><div class="wf-input">Ej.: Gràcia</div></div>
+            <span class="wf-boton wf-ancho">Aplicar filtros</span>
+            <p></p>
+            <span class="wf-boton wf-secundario wf-ancho">Limpiar filtros <span class="wf-marca">5</span></span>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Desplegable con «Todas» y las 8 categorías de la migración (#169), que vienen de <code>GET /api/categorias</code>.</li>
+        <li>Número mayor que 0, con decimales. Vacío = sin límite.</li>
+        <li>«Ubicación» del criterio 2 = barrio del objeto (<code>objeto.barrio</code>). Texto libre (vacío por defecto); busca los barrios que lo contienen.</li>
+        <li>Aplica todos los filtros rellenados a la vez (criterios 3 y 4): los pone en la URL (<code>&amp;categoryId=…&amp;maxPrice=10&amp;neighborhood=gràcia</code>) y vuelve a pedir <code>GET /api/objetos</code>.</li>
+        <li>En móvil, el panel ocupa toda la pantalla y los campos van uno debajo de otro.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Elige «Herramientas y bricolaje», precio máximo 10 y pulsa «Aplicar filtros»</p>
+
+    <section class="wf-pantalla" data-captura="3-resultados-filtrados">
+      <h2><span class="wf-paso">3</span>Resultados filtrados <code>/buscar?q=taladro&amp;categoryId=…&amp;maxPrice=10</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/buscar?q=taladro&categoryId=…&maxPrice=10">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-enlaces"><span class="wf-enlace">Mi perfil</span></span></nav>
+          <div class="wf-contenido">
+            <div class="wf-fila">
+              <div class="wf-input" style="flex: 1">taladro</div>
+              <span class="wf-boton">Buscar</span>
+              <span class="wf-boton wf-secundario">Filtros (2) <span class="wf-marca">1</span></span>
+            </div>
+            <div class="wf-fila" style="margin-top: 14px">
+              <span class="wf-boton wf-secundario">Herramientas y bricolaje ✕</span>
+              <span class="wf-boton wf-secundario">Hasta 10 €/día ✕</span>
+              <span class="wf-enlace">Limpiar filtros</span><span class="wf-marca">2</span>
+            </div>
+            <p class="wf-texto" style="margin-top: 14px">2 objetos para «taladro»</p>
+            <div class="wf-rejilla">
+              <div class="wf-tarjeta"><div class="wf-imagen"></div><p class="wf-texto">Taladro percutor · 5 €/día<br />Gràcia</p></div>
+              <div class="wf-tarjeta"><div class="wf-imagen"></div><p class="wf-texto">Taladro sin cable · 8 €/día<br />Sants</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El panel se cierra al aplicar. El botón indica cuántos filtros hay activos.</li>
+        <li>Un chip por filtro activo; la ✕ quita solo ese filtro. «Limpiar filtros» los quita todos (criterio 5).</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Precio máximo no válido (0, negativo o texto) y «Aplicar filtros»</p>
+
+    <section class="wf-pantalla" data-captura="4-error-precio">
+      <h2><span class="wf-paso">4</span>Error en un filtro <code>/buscar?q=taladro</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/buscar?q=taladro">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <div class="wf-contenido">
+            <div class="wf-tarjeta">
+              <div class="wf-fila" style="align-items: start">
+                <div class="wf-campo" style="flex: 1"><label>Categoría</label><div class="wf-input">Todas ▾</div></div>
+                <div class="wf-campo" style="flex: 1">
+                  <label>Precio máximo (€/día) <span class="wf-marca">1</span></label>
+                  <div class="wf-input wf-con-error">-5</div>
+                  <p class="wf-error">El campo "precio máximo" no es correcto, revísalo.</p>
+                </div>
+                <div class="wf-campo" style="flex: 1"><label>Barrio</label><div class="wf-input"></div></div>
+              </div>
+              <div class="wf-fila"><span class="wf-boton">Aplicar filtros</span><span class="wf-boton wf-secundario">Limpiar filtros</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Mismo formato de error que el resto de la app («El campo "X" no es correcto, revísalo.»). No se hace la petición y los resultados no cambian.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Los filtros no dejan ningún resultado</p>
+
+    <section class="wf-pantalla" data-captura="5-sin-resultados">
+      <h2><span class="wf-paso">5</span>Sin resultados con filtros</h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/buscar?q=taladro&categoryId=…&maxPrice=2">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <div class="wf-contenido">
+            <div class="wf-fila">
+              <span class="wf-boton wf-secundario">Deporte ✕</span>
+              <span class="wf-boton wf-secundario">Hasta 2 €/día ✕</span>
+            </div>
+            <div class="wf-aviso" style="margin-top: 14px">
+              No hay objetos que cumplan estos filtros. <span class="wf-enlace">Limpiar filtros</span> <span class="wf-marca">1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Distinto del mensaje de «sin resultados» de la búsqueda (#115): aquí la causa son los filtros, así que se ofrece quitarlos.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Limpiar filtros»</p>
+
+    <section class="wf-pantalla" data-captura="6-filtros-limpios">
+      <h2><span class="wf-paso">6</span>Destino: vuelve a la búsqueda sin filtros <code>/buscar?q=taladro</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/buscar?q=taladro">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <div class="wf-contenido">
+            <div class="wf-fila">
+              <div class="wf-input" style="flex: 1">taladro</div>
+              <span class="wf-boton">Buscar</span>
+              <span class="wf-boton wf-secundario">Filtros</span>
+            </div>
+            <p class="wf-texto" style="margin-top: 14px">12 objetos para «taladro» <span class="wf-marca">1</span></p>
+            <div class="wf-caja">Las 12 tarjetas de la pantalla 1</div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Se quitan los filtros de la URL y se mantiene el texto buscado: vuelven todos los objetos disponibles de la búsqueda (criterio 5).</li>
+      </ol>
+    </section>
+  </body>
+</html>
