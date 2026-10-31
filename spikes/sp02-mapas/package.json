@@ -1,0 +1,11 @@
+{
+  "name": "rentit-spike-sp02-mapas",
+  "version": "0.0.0",
+  "private": true,
+  "description": "SP-02 (#91): prototipo de mapa con pines, geocodificación y cálculo de distancias con Leaflet y OpenStreetMap. No es código de producción.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test"
+  }
+}
