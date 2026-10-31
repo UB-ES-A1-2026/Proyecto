@@ -34,6 +34,17 @@ Rentit es un "Airbnb de objetos" de barrio: alquiler entre vecinos con entrega, 
 - **Contraseñas:** `bcrypt`, con el coste definido en `src/config/` (`BCRYPT_ROUNDS`).
 - **Tests con BD:** siempre contra `rentit_test` (`backend/.env.test`), nunca contra `rentit`. Llama a `resetDb()` de `tests/helpers/db.ts` antes de cada test.
 
+## Frontend: wireframe antes de programar (#162)
+Norma del profesor desde el Sprint 1. Detalle, plantilla y piezas en [docs/wireframes/README.md](docs/wireframes/README.md).
+- **Antes de crear o cambiar una pantalla** de una historia, comprueba si existe `docs/wireframes/US-XX.YY-<nombre>/`. Si no existe, **lo primero que haces es el wireframe**, no los componentes: copia `docs/wireframes/_plantilla/`, rellénalo con los textos reales de los criterios de aceptación y genera los PNG con `cd e2e && npm run wireframes -- US-XX.YY-<nombre>`.
+- El flujo empieza en la pantalla **desde la que llega el usuario** y acaba en **a dónde va al terminar**, con los estados de error, vacío y carga que pidan los criterios.
+- **Abre los PNG y revísalos** (nada cortado ni solapado). Después **para y enseña `flujo.png` a la persona** para que lo valide antes de programar. Si la historia no tiene criterios suficientes para dibujar el flujo (por ejemplo, no dice desde dónde se llega), pregunta en lugar de inventarlo.
+- Usa solo las clases de `docs/wireframes/wireframe.css`. Nada de estilos de la marca ni librerías nuevas.
+- Si la implementación cambia la pantalla, actualiza el wireframe y vuelve a generar los PNG en el mismo PR.
+
+## Historias de usuario
+Cuando redactes o revises una historia (issue o Trello), usa la plantilla `.github/ISSUE_TEMPLATE/historia-de-usuario.md`. Además del «Como… quiero… para…», tiene que decir **desde qué pantalla y con qué acción llega el usuario**, el flujo paso a paso, a dónde va al terminar y criterios de aceptación comprobables, incluidos los errores.
+
 ## Restricciones permanentes
 - **No añadas dependencias nuevas** a ningún `package.json` sin que la tarea lo diga explícitamente.
 - **Nunca escribas secretos** (claves, contraseñas, URLs de BD con credenciales reales) en el código ni en archivos commiteados. Las variables nuevas se añaden a `.env.example` con un valor de ejemplo, nunca con el real. Excepción: `backend/.env.test`, que solo contiene la URL de la BD local de tests.
