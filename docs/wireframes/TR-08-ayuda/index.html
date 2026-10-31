@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>TR-08 Página de ayuda · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>TR-08 Página de ayuda</h1>
+      <p class="wf-historia">
+        Como <strong>usuario</strong>, quiero <strong>una página de ayuda</strong> para <strong>saber cómo se usa cada
+        parte de Rentit</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #89 · Wireframe de baja fidelidad · Generado con asistencia de IA (Claude) – revisado por Alex Matos,
+        31/10/2026
+      </p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-entrada">
+      <h2><span class="wf-paso">1</span>Punto de entrada: cualquier página <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Ayuda</span><span class="wf-marca">1</span>
+              <span class="wf-enlace">Iniciar sesión</span>
+              <span class="wf-enlace">Crear cuenta</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Rentit</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Enlace «Ayuda» en la cabecera de todas las páginas, con y sin sesión (a la izquierda de «Mi perfil» o de «Iniciar sesión»).</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Ayuda»</p>
+
+    <section class="wf-pantalla" data-captura="2-ayuda">
+      <h2><span class="wf-paso">2</span>Página de ayuda <code>/ayuda</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/ayuda">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Ayuda</span><span class="wf-enlace">Iniciar sesión</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Ayuda</h3>
+            <p class="wf-texto">Cómo usar Rentit, paso a paso. <span class="wf-marca">1</span></p>
+            <div class="wf-tarjeta">
+              <strong>En esta página</strong> <span class="wf-marca">2</span>
+              <ul>
+                <li class="wf-enlace">Crear una cuenta</li>
+                <li class="wf-enlace">Iniciar sesión</li>
+                <li class="wf-enlace">Ver tu perfil</li>
+                <li class="wf-enlace">Cerrar sesión</li>
+              </ul>
+            </div>
+            <h4>Crear una cuenta <span class="wf-marca">3</span></h4>
+            <ol>
+              <li>Pulsa «Crear cuenta» en la cabecera.</li>
+              <li>Escribe un nombre de usuario, tu correo y una contraseña de al menos 8 caracteres.</li>
+              <li>Pulsa «Crear cuenta». Entrarás directamente con tu sesión iniciada.</li>
+            </ol>
+            <p class="wf-texto">Si un dato no es válido, verás el error debajo del campo.</p>
+            <h4>Iniciar sesión</h4>
+            <div class="wf-lineas"><span></span><span></span><span></span></div>
+            <h4>Ver tu perfil</h4>
+            <div class="wf-lineas"><span></span><span></span></div>
+            <h4>Cerrar sesión</h4>
+            <div class="wf-lineas"><span></span><span></span></div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-enlaces"><span class="wf-enlace">Ayuda</span></span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Ayuda</h3>
+            <div class="wf-tarjeta"><strong>En esta página</strong><div class="wf-lineas"><span></span><span></span><span></span></div></div>
+            <h4>Crear una cuenta</h4>
+            <div class="wf-lineas"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Página pública: se ve sin sesión. Solo texto, sin llamadas a la API.</li>
+        <li>Índice con enlaces a cada sección (<code>/ayuda#crear-cuenta</code>…).</li>
+        <li>Una sección por flujo entregado, con pasos numerados y los textos reales de los botones. En el Sprint 1 se añaden antes de la demo: publicar, editar, retirar y pausar un objeto; buscar y filtrar; ver un objeto; solicitar un alquiler; consultar, aceptar y rechazar solicitudes. Solo se añade un flujo cuando ya está en <code>develop</code>.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Crear una cuenta» del índice</p>
+
+    <section class="wf-pantalla" data-captura="3-seccion">
+      <h2><span class="wf-paso">3</span>Destino: la sección elegida <code>/ayuda#crear-cuenta</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/ayuda#crear-cuenta">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <div class="wf-contenido">
+            <h4>Crear una cuenta</h4>
+            <ol>
+              <li>Pulsa «<span class="wf-enlace">Crear cuenta</span>» en la cabecera. <span class="wf-marca">1</span></li>
+              <li>Escribe un nombre de usuario, tu correo y una contraseña de al menos 8 caracteres.</li>
+              <li>Pulsa «Crear cuenta».</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>La página baja hasta la sección. Los nombres de pantalla de los pasos enlazan a ella (aquí, a <code>/registro</code>).</li>
+      </ol>
+    </section>
+  </body>
+</html>

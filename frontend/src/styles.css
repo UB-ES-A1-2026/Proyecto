@@ -261,3 +261,34 @@ body {
   font-weight: var(--font-weight-medium);
   background-color: var(--color-primary-soft);
 }
+
+/* Página de ayuda (#89) */
+.help {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.help-intro {
+  color: var(--color-text-muted);
+}
+
+.help-index {
+  margin: var(--space-lg) 0;
+  padding: var(--space-md) var(--space-lg);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.help-index h2 {
+  margin-top: 0;
+  font-size: var(--font-size-tagline);
+}
+
+.help section {
+  scroll-margin-top: var(--space-md);
+}
+
+.help-note {
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
