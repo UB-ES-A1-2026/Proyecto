@@ -1,4 +1,4 @@
-// Generado con asistencia de IA (Claude) – revisado por <nombre>, <fecha>
+// Generado con asistencia de IA (Claude) – revisado por <Francesc>, <31/10/2026>
 // Funciones de geometría del spike SP-02 (#91). Sin dependencias: se pueden copiar tal cual
 // a un service del backend (p. ej. backend/src/services/geoService.ts) cuando se implemente.
 

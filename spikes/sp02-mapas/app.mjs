@@ -1,4 +1,4 @@
-// Generado con asistencia de IA (Claude) – revisado por <nombre>, <fecha>
+// Generado con asistencia de IA (Claude) – revisado por <Francesc>, <31/10/2026>
 // Prototipo del spike SP-02 (#91). No es código de producción: todo vive en el navegador
 // para poder probarlo sin backend. En Rentit, geocodificar y calcular la tarifa irían en el
 // backend (ver ADR 0003).
