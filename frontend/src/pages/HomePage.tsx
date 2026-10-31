@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
 import { useAuth } from '../context/useAuth';
+import { SearchBar } from '../components/SearchBar';
 
 // Home del Sprint 0: la página a la que vuelve el usuario tras iniciar sesión (US-01.2).
 // El buscador y los objetos cercanos llegan en el Sprint 1 (EP-03).
@@ -11,6 +12,7 @@ export function HomePage() {
       <section className="home">
         <h1>Hola, {session.user.username}</h1>
         <p className="home-tagline">Alquila objetos a tus vecinos.</p>
+        <SearchBar />
       </section>
     );
   }
@@ -27,6 +29,7 @@ export function HomePage() {
           Crear cuenta
         </Link>
       </div>
+      <SearchBar />
     </section>
   );
 }
