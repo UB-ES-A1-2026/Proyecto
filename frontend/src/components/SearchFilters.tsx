@@ -17,12 +17,19 @@ import {
 export function SearchFilters() {
   const panelId = useId();
   const [searchParams, setSearchParams] = useSearchParams();
-  const filters = readFilters(searchParams);
-  const activeCount = countActiveFilters(filters);
+  const urlFilters = readFilters(searchParams);
   const [open, setOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
+  // Una categoría que no existe (URL antigua o escrita a mano) no cuenta como filtro: el
+  // desplegable mostraría «Todas» y el chip no tendría nombre.
+  const unknownCategory =
+    urlFilters.categoryId !== undefined &&
+    categories.length > 0 &&
+    !categories.some((category) => category.id === urlFilters.categoryId);
+  const filters: Filters = unknownCategory ? { ...urlFilters, categoryId: undefined } : urlFilters;
+  const activeCount = countActiveFilters(filters);
   useEffect(() => {
     let ignore = false;
     getCategories()
@@ -70,8 +77,9 @@ export function SearchFilters() {
 
       {open && (
         <FiltersPanel
-          // Al reabrir el panel, empieza con los filtros que hay en la URL.
-          key={searchParams.toString()}
+          // Si cambian los filtros de la URL (chips, «Atrás»), el panel empieza con los nuevos.
+          // Solo los filtros: si cambia la búsqueda con el panel abierto, no se pierde lo escrito.
+          key={JSON.stringify(filters)}
           id={panelId}
           categories={categories}
           categoriesError={categoriesError}
