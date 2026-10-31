@@ -1,0 +1,14 @@
+{
+  "name": "rentit-spike-sp04-tiempo-real",
+  "version": "0.0.0",
+  "private": true,
+  "description": "SP-04 (#93): prototipo de tiempo real con Server-Sent Events (y comparación con polling) para el seguimiento de la entrega y el chat. No es código de producción.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "prototipo": "node prototipo.mjs",
+    "demo": "node servidor.mjs"
+  }
+}
