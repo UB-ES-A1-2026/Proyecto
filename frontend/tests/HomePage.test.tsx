@@ -20,6 +20,11 @@ describe('home (#7)', () => {
     expect(home.getByText('Alquila objetos a tus vecinos.')).toBeInTheDocument();
     expect(home.getByRole('link', { name: 'Iniciar sesión' })).toHaveAttribute('href', '/login');
     expect(home.getByRole('link', { name: 'Crear cuenta' })).toHaveAttribute('href', '/registro');
+    expect(home.getByRole('search')).toBeInTheDocument();
+    expect(home.getByRole('searchbox', { name: '¿Qué quieres alquilar?' })).toHaveAttribute(
+      'placeholder',
+      'Por ejemplo, taladro',
+    );
   });
 
   it('con sesión saluda al usuario y no muestra los enlaces de acceso', () => {
@@ -31,6 +36,7 @@ describe('home (#7)', () => {
     expect(home.getByRole('heading', { level: 1, name: 'Hola, ana' })).toBeInTheDocument();
     expect(home.queryByRole('link', { name: 'Iniciar sesión' })).not.toBeInTheDocument();
     expect(home.queryByRole('link', { name: 'Crear cuenta' })).not.toBeInTheDocument();
+    expect(home.getByRole('search')).toBeInTheDocument();
   });
 
   it('ya no muestra el estado provisional de la API del esqueleto', () => {
