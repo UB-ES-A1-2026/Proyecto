@@ -1,0 +1,14 @@
+{
+  "name": "rentit-spike-sp01-pagos",
+  "version": "0.0.0",
+  "private": true,
+  "description": "SP-01 (#90): prototipo de pago con fianza detrás de una interfaz PaymentProvider (pasarela simulada y adaptador de Stripe en modo test). No es código de producción.",
+  "type": "module",
+  "scripts": {
+    "prototipo": "node prototipo.mjs",
+    "prototipo:stripe": "node --env-file-if-exists=.env prototipo-stripe.mjs"
+  },
+  "dependencies": {
+    "stripe": "23.0.0"
+  }
+}
