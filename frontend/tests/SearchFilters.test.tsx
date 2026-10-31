@@ -159,6 +159,43 @@ describe('panel de filtros (US-03.02, #118)', () => {
     expect(router.state.location.search).toBe('?q=taladro');
   });
 
+  it('el error del precio se anuncia al lector de pantalla', async () => {
+    const user = userEvent.setup();
+    renderFilters('/buscar?q=taladro');
+
+    await user.click(screen.getByRole('button', { name: 'Filtros' }));
+    await user.type(screen.getByLabelText('Precio máximo (€/día)'), 'diez');
+    await user.click(screen.getByRole('button', { name: 'Aplicar filtros' }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'El campo "precio máximo" no es correcto, revísalo.',
+    );
+  });
+
+  it('una categoría de la URL que no existe no cuenta como filtro ni se vuelve a enviar', async () => {
+    const user = userEvent.setup();
+    const router = renderFilters('/buscar?q=taladro&categoryId=no-existe&maxPrice=10');
+
+    expect(await screen.findByRole('button', { name: 'Filtros (1)' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Quitar filtro Categoría/ }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Filtros (1)' }));
+    expect(screen.getByLabelText('Categoría')).toHaveValue('');
+    await user.click(screen.getByRole('button', { name: 'Aplicar filtros' }));
+
+    expect(currentParams(router).has('categoryId')).toBe(false);
+    expect(currentParams(router).get('maxPrice')).toBe('10');
+  });
+
+  it('un precio no válido en la URL no aparece como filtro activo', () => {
+    renderFilters('/buscar?q=taladro&maxPrice=abc');
+
+    expect(screen.getByRole('button', { name: 'Filtros' })).toBeInTheDocument();
+    expect(screen.queryByRole('list', { name: 'Filtros activos' })).not.toBeInTheDocument();
+  });
+
   it('si no se pueden cargar las categorías, avisa y deja usar el resto de filtros', async () => {
     vi.mocked(fetch).mockRejectedValue(new TypeError('Failed to fetch'));
     const user = userEvent.setup();

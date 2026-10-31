@@ -16,6 +16,12 @@ describe('filtros de la búsqueda en la URL (#118)', () => {
     expect(readFilters(params)).toEqual({ categoryId: 'c1', maxPrice: '10' });
   });
 
+  it('ignora un precio máximo no válido de la URL y normaliza la coma', () => {
+    expect(readFilters(new URLSearchParams('maxPrice=abc'))).toEqual({});
+    expect(readFilters(new URLSearchParams('maxPrice=-5'))).toEqual({});
+    expect(readFilters(new URLSearchParams('maxPrice=7,5'))).toEqual({ maxPrice: '7.5' });
+  });
+
   it('al escribir los filtros mantiene la búsqueda y vuelve a la primera página', () => {
     const params = new URLSearchParams('q=taladro&maxPrice=5&page=3');
 
