@@ -88,7 +88,7 @@ export function FiltersPanel({
             }}
           />
           {maxPriceError && (
-            <p id={`${fieldId}-precio-error`} className="field-error">
+            <p id={`${fieldId}-precio-error`} className="field-error" role="alert">
               {MAX_PRICE_ERROR}
             </p>
           )}
