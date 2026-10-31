@@ -3,6 +3,7 @@ import { Layout } from '../components/Layout';
 import { PrivateRoute } from '../components/PrivateRoute';
 import { AuthProvider } from '../context/AuthContext';
 import { HomePage } from '../pages/HomePage';
+import { ItemDetailPage } from '../pages/ItemDetailPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { ProfilePage } from '../pages/ProfilePage';
@@ -22,6 +23,7 @@ export const routes: RouteObject[] = [
       { path: 'buscar', element: <SearchPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'registro', element: <RegisterPage /> },
+      { path: 'objetos/:id', element: <ItemDetailPage /> },
       { element: <PrivateRoute />, children: [{ path: 'perfil', element: <ProfilePage /> }] },
       { path: '*', element: <NotFoundPage /> },
     ],
