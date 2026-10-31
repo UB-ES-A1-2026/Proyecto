@@ -115,6 +115,14 @@ Cada caso corresponde a un criterio de aceptación del backlog. La columna **Tes
 | CP-OUT-04 | 4. El token anterior deja de ser válido | Sesión iniciada; token copiado (en DevTools › Application › Local Storage › `rentit.session`) | 1. Pulsar «Cerrar sesión» 2. Llamar a `GET /api/usuarios/me` con `Authorization: Bearer <token copiado>` | La API responde `401` | `logout.spec.ts` · criterio 4 |
 | CP-OUT-05 | 5. El botón «atrás» no muestra contenido privado | Sesión iniciada | 1. Ir a «Mi perfil» 2. Ir a la página inicial 3. Pulsar «Cerrar sesión» 4. Pulsar «atrás» en el navegador | No se ve el perfil: se redirige a `/login` | `logout.spec.ts` · criterio 5 |
 
+### TR-08 Página de ayuda (#89)
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-AYU-01 | 1. La página `/ayuda` está publicada | Sin sesión iniciada | 1. Ir a `/` 2. Pulsar «Ayuda» en la cabecera | Se abre `/ayuda` con el título «Ayuda» | `ayuda.spec.ts` · criterio 1 |
+| CP-AYU-02 | 2. Explica los flujos entregados | — | 1. Ir a `/ayuda` 2. Pulsar cada entrada del índice «En esta página» | Hay una sección con pasos numerados para cada flujo entregado (crear una cuenta, iniciar sesión, ver tu perfil y cerrar sesión), y el índice lleva a cada una | `ayuda.spec.ts` · criterio 2 |
+| CP-AYU-03 | 3. Se actualiza en cada sprint | Antes de la demo | 1. Comparar las secciones con las historias del sprint que están en `develop` | Cada flujo entregado tiene su sección; si falta, se añade a la página y a `DELIVERED_FLOWS` de `ayuda.spec.ts` | Revisión manual |
+
 ### Smoke test · T19 (#99)
 
 | ID | Qué comprueba | Pasos | Resultado esperado | Test e2e |
