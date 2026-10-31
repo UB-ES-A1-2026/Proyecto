@@ -105,8 +105,31 @@ Necesitas cuentas en Supabase, Render y Vercel (las tres gratis y sin tarjeta) y
 ## Datos en producción
 
 - **No ejecutes nunca `npm run db:seed` contra producción.** El seed de desarrollo crea `admin@rentit.test` con una contraseña que está en el repo, que es público.
-- Los datos de demo (#97) se crearán con un seed aparte, con contraseñas que no estén en el repo, cuando existan los objetos (Sprint 1).
 - Las previews usan el mismo backend y la misma BD que producción (ADR 0001 §4): prueba con cuentas de prueba, nunca con los datos de la demo.
+
+### Datos de demo (#97)
+
+Para que la demo no salga vacía, el seed `backend/prisma/seed-demo.ts` crea en producción 3 cuentas y los objetos de ejemplo de `backend/prisma/demoData.ts` (varias categorías y barrios, uno de ellos pausado). Los mismos objetos los crea `npm run db:seed` en local, a nombre de `ana` y `bruno`.
+
+| Cuenta | Objetos |
+|---|---|
+| `laura@demo.rentit.test` | Gràcia: taladro, escalera, carro de la compra y una tienda de campaña **pausada** |
+| `jordi@demo.rentit.test` | Poblenou: proyector, altavoz, bici y máquina de palomitas |
+| `marta@demo.rentit.test` | Sant Andreu: cortacésped, hidrolimpiadora, silla de bebé y paddle surf |
+
+La contraseña de las tres es el secreto `DEMO_PASSWORD`: **no está en el repo**, tiene como mínimo 12 caracteres y el script se niega a usar la del seed de desarrollo. La persona de DevOps la comparte con el equipo en persona, nunca por WhatsApp.
+
+**Primera vez:** en *Settings → Secrets and variables → Actions* del repo, añade estos secretos (los valores de las dos URLs son los mismos que `DATABASE_URL` y `DIRECT_URL` en Render):
+
+| Secreto | Valor |
+|---|---|
+| `PROD_DATABASE_URL` | URL del pooler de Supabase (puerto 6543, con `?pgbouncer=true`) |
+| `PROD_DIRECT_URL` | URL directa del pooler (puerto 5432) |
+| `DEMO_PASSWORD` | La contraseña de las cuentas de la demo |
+
+**Cargar los datos:** después de cada release a `main` que cambie las tablas o el catálogo, *Actions → «Datos de demo» → Run workflow*, rama **`main`**, y escribe `produccion` en la confirmación. Se puede repetir sin miedo: actualiza las cuentas y los objetos en lugar de duplicarlos, y no toca nada de lo que hayan creado otros usuarios. En local se puede probar con `DEMO_PASSWORD=<12+ caracteres> npm run db:seed:demo`.
+
+Los objetos de la demo todavía no tienen fotos: llegarán con la subida de fotos (#106).
 
 ## Problemas conocidos
 
