@@ -38,6 +38,7 @@ model User {
   createdAt    DateTime   @default(now()) @map("creado_en")
   updatedAt    DateTime   @updatedAt @map("actualizado_en")
   sessions     Session[]
+  items        Item[]
 
   @@map("usuario")
 }
@@ -53,4 +54,68 @@ model Session {
 
   @@index([userId])
   @@map("sesion")
+}
+
+// Objetos del Sprint 1 (#9, TR-05 #86). Diseño en docs/modelo-datos.md.
+// Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 27/10/2026
+
+enum ItemStatus {
+  published @map("publicado")
+  paused    @map("pausado")
+  withdrawn @map("retirado")
+
+  @@map("estado_objeto")
+}
+
+// Las categorías son datos de referencia: las crea la migración, no el seed, para que existan
+// también en producción (allí no se ejecuta el seed).
+model Category {
+  id    String @id @default(uuid()) @db.Uuid
+  name  String @unique @map("nombre") @db.VarChar(50)
+  items Item[]
+
+  @@map("categoria")
+}
+
+model Item {
+  id                  String      @id @default(uuid()) @db.Uuid
+  ownerId             String      @map("propietario_id") @db.Uuid
+  categoryId          String      @map("categoria_id") @db.Uuid
+  title               String      @map("titulo") @db.VarChar(100)
+  description         String      @map("descripcion") @db.VarChar(2000)
+  // precio_dia > 0 y fianza >= 0: CHECK en la migración (Prisma no los declara en el esquema).
+  dailyPrice          Decimal     @map("precio_dia") @db.Decimal(10, 2)
+  deposit             Decimal     @default(0) @map("fianza") @db.Decimal(10, 2)
+  neighborhood        String      @map("barrio") @db.VarChar(100)
+  // Opcionales: el mapa y la búsqueda por distancia son «si da tiempo» (US-03.04).
+  latitude            Decimal?    @map("latitud") @db.Decimal(9, 6)
+  longitude           Decimal?    @map("longitud") @db.Decimal(9, 6)
+  homeDelivery        Boolean     @default(false) @map("entrega_domicilio")
+  riderDelivery       Boolean     @default(false) @map("entrega_rider")
+  pickupPointDelivery Boolean     @default(false) @map("entrega_punto_recogida")
+  status              ItemStatus  @default(published) @map("estado")
+  createdAt           DateTime    @default(now()) @map("creado_en")
+  updatedAt           DateTime    @updatedAt @map("actualizado_en")
+  // Restrict: no se borra un usuario ni una categoría con objetos (un objeto se «retira», no se borra).
+  owner               User        @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  category            Category    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  photos              ItemPhoto[]
+
+  @@index([ownerId])
+  @@index([categoryId])
+  @@index([status])
+  @@map("objeto")
+}
+
+// Se guarda la clave del fichero en el bucket, no una URL (ADR 0002).
+// orden entre 1 y 5 (máximo 5 fotos por objeto): CHECK en la migración.
+model ItemPhoto {
+  id     String @id @default(uuid()) @db.Uuid
+  itemId String @map("objeto_id") @db.Uuid
+  key    String @unique @map("clave")
+  order  Int    @map("orden")
+  item   Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([itemId, order])
+  @@map("foto_objeto")
 }
