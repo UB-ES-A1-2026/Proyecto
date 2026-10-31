@@ -13,11 +13,18 @@ export type FilterKey = (typeof FILTER_KEYS)[number];
 
 export const MAX_PRICE_ERROR = 'El campo "precio máximo" no es correcto, revísalo.';
 
+// Una URL escrita a mano puede traer valores no válidos (?maxPrice=abc): se ignoran en lugar
+// de mostrarlos como filtro activo y mandarlos a la API, que respondería 400.
 export function readFilters(params: URLSearchParams): SearchFilters {
   const filters: SearchFilters = {};
   for (const key of FILTER_KEYS) {
     const value = params.get(key)?.trim();
-    if (value) filters[key] = value;
+    if (!value) continue;
+    if (key === 'maxPrice') {
+      if (isValidMaxPrice(value)) filters.maxPrice = normalizeMaxPrice(value);
+    } else {
+      filters[key] = value;
+    }
   }
   return filters;
 }
