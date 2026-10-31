@@ -9,3 +9,6 @@ backend/coverage/
 /e2e/blob-report/
 /e2e/playwright/.cache/
 /e2e/playwright/.auth/
+
+# Vercel CLI (docs/despliegue.md): enlaza la carpeta con el proyecto; no se sube
+.vercel/

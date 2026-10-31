@@ -1,0 +1,112 @@
+# Despliegue del frontend en Vercel (#96) desde GitHub Actions con la CLI de Vercel.
+# No usamos la integración Git de Vercel: en el plan Hobby bloquea los despliegues de repos de una
+# organización y de commits de personas que no son la dueña de la cuenta (docs/despliegue.md).
+# - push a main → producción · PR hacia develop o main → preview (la URL sale en el resumen del job).
+# Mientras no existan los secretos VERCEL_*, el job avisa y termina en verde sin desplegar.
+# Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 25/10/2026
+name: Despliegue del frontend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [develop, main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-frontend-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# El token NO va aquí (revisión de Kai en #165): el build, que ejecuta el código del PR, va en un job
+# sin token; el despliegue va en otro job, en otra máquina, y solo sube lo ya compilado.
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  # Producción solo desde main (CONTRIBUTING, «Despliegue»); todo lo demás es preview.
+  ENTORNO: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && 'production' || 'preview' }}
+
+jobs:
+  build:
+    name: Build
+    # Los PRs desde forks no tienen acceso a los secretos.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      listo: ${{ steps.config.outputs.listo }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Comprobar que Vercel está configurado
+        id: config
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::notice::Faltan los secretos VERCEL_* (ver docs/despliegue.md): no se despliega."
+            echo "listo=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "listo=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Antes de ejecutar ningún código del PR. Se ejecuta desde la raíz: Root Directory = frontend.
+      - name: Descargar la configuración del proyecto (${{ env.ENTORNO }})
+        if: steps.config.outputs.listo == 'true'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: npx --yes vercel@63.1.0 pull --yes --environment="$ENTORNO" --token="$VERCEL_TOKEN"
+
+      # Sin token: aquí se ejecuta el `npm run build` del código del PR.
+      - name: Build
+        if: steps.config.outputs.listo == 'true'
+        run: |
+          PROD=""
+          if [ "$ENTORNO" = "production" ]; then PROD="--prod"; fi
+          npx --yes vercel@63.1.0 build $PROD
+
+      - name: Guardar lo compilado
+        if: steps.config.outputs.listo == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vercel-output
+          path: .vercel/output
+          include-hidden-files: true
+          retention-days: 1
+
+  deploy:
+    name: Vercel
+    needs: build
+    if: needs.build.outputs.listo == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Máquina nueva: no hay código del repo, solo lo compilado en el job anterior.
+      - name: Recuperar lo compilado
+        uses: actions/download-artifact@v4
+        with:
+          name: vercel-output
+          path: .vercel/output
+
+      - name: Desplegar (${{ env.ENTORNO }})
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        # La CLI comprueba que exista la carpeta del Root Directory, aunque con --prebuilt no la use.
+        run: |
+          set -o pipefail
+          mkdir -p frontend
+          PROD=""
+          if [ "$ENTORNO" = "production" ]; then PROD="--prod"; fi
+          npx --yes vercel@63.1.0 deploy --prebuilt $PROD --token="$VERCEL_TOKEN" | tee deploy.log
+          URL=$(grep -oE 'https://[a-z0-9-]+\.vercel\.app' deploy.log | head -1)
+          echo "### Frontend desplegado ($ENTORNO)" >> "$GITHUB_STEP_SUMMARY"
+          echo "$URL" >> "$GITHUB_STEP_SUMMARY"

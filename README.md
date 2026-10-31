@@ -6,7 +6,7 @@ Aplicación web para **alquilar objetos de uso puntual** que no compensa comprar
 
 > Proyecto de la asignatura **Ingeniería del Software**.
 
-- **Demo / producción:** pendiente (se despliega a partir del Sprint 1).
+- **Demo / producción:** https://rentit-eosin.vercel.app (API: https://rentit-api-gfkc.onrender.com/api/health). Se actualiza en cada release a `main`; cómo está montado en [docs/despliegue.md](docs/despliegue.md). La primera petición puede tardar ~1 min: el backend gratuito de Render se duerme.
 - **Tablero kanban:** https://github.com/orgs/UB-ES-A1-2026/projects/4/views/1
 - **Backlog (épicas y user stories):** Trello del equipo (pide acceso a cualquier miembro).
 
