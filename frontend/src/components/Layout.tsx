@@ -2,7 +2,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import { useAuth } from '../context/useAuth';
 import { LogoutButton } from './LogoutButton';
 
-// Layout base (#21): cabecera con la navegación entre login, registro y perfil.
+// Layout base (#21): cabecera con la navegación entre login, registro, perfil y ayuda.
 export function Layout() {
   const { session } = useAuth();
   const { pathname, search, state } = useLocation();
@@ -21,6 +21,10 @@ export function Layout() {
           Rentit
         </Link>
         <nav aria-label="Principal" className="app-nav">
+          {/* La ayuda (#89) se ve con y sin sesión. */}
+          <NavLink to="/ayuda" className="nav-link">
+            Ayuda
+          </NavLink>
           {session ? (
             <>
               <NavLink to="/objetos/nuevo" className="nav-link">

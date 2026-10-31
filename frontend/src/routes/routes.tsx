@@ -2,6 +2,7 @@ import type { RouteObject } from 'react-router';
 import { Layout } from '../components/Layout';
 import { PrivateRoute } from '../components/PrivateRoute';
 import { AuthProvider } from '../context/AuthContext';
+import { HelpPage } from '../pages/HelpPage';
 import { HomePage } from '../pages/HomePage';
 import { ItemDetailPage } from '../pages/ItemDetailPage';
 import { LoginPage } from '../pages/LoginPage';
@@ -28,6 +29,7 @@ export const routes: RouteObject[] = [
       { path: 'login', element: <LoginPage /> },
       { path: 'registro', element: <RegisterPage /> },
       { path: 'objetos/:id', element: <ItemDetailPage /> },
+      { path: 'ayuda', element: <HelpPage /> },
       {
         element: <PrivateRoute />,
         children: [
