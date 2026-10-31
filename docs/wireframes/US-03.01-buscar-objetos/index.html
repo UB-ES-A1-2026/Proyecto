@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-03.01 Buscar objetos · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-03.01 Buscar objetos</h1>
+      <p class="wf-historia">
+        Como <strong>usuario</strong>, quiero <strong>buscar objetos por su nombre</strong> para
+        <strong>encontrar lo que necesito</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #56 · Wireframe de baja fidelidad · Generado con asistencia de IA (Claude/Copilot) – revisado por Danyal,
+        31/10/2026
+      </p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-inicio">
+      <h2><span class="wf-paso">1</span>Punto de entrada: página inicial con sesión <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Hola, ana</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-campo">
+              <label>¿Qué quieres alquilar?</label>
+              <div class="wf-input">Por ejemplo, taladro</div>
+            </div>
+            <span class="wf-boton">Buscar <span class="wf-marca">1</span></span>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Si el campo está vacío, «Buscar» no hace nada y la URL no cambia (criterio 3).</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Escribir «taladro» y pulsar «Buscar»</p>
+
+    <section class="wf-pantalla" data-captura="2-resultados">
+      <h2><span class="wf-paso">2</span>Resultados de búsqueda <code>/buscar?q=taladro</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/buscar?q=taladro">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-fila">
+              <div class="wf-campo">
+                <label>¿Qué quieres alquilar?</label>
+                <div class="wf-input">taladro</div>
+              </div>
+              <span class="wf-boton">Buscar</span>
+            </div>
+            <div class="wf-caja">Filtros (US-03.02, #118)</div>
+            <h3 class="wf-h1">Resultados para «taladro» <span class="wf-marca">2</span></h3>
+            <p class="wf-texto">3 objetos encontrados</p>
+            <div class="wf-rejilla">
+              <div class="wf-tarjeta">
+                <div class="wf-imagen"></div>
+                <h4>Taladro percutor Bosch</h4>
+                <p class="wf-texto">5,00 € / día</p>
+                <p class="wf-texto">Gràcia · Herramientas</p>
+              </div>
+              <div class="wf-tarjeta">
+                <div class="wf-imagen"></div>
+                <h4>Taladro inalámbrico</h4>
+                <p class="wf-texto">5,00 € / día</p>
+                <p class="wf-texto">Sants · Herramientas</p>
+              </div>
+              <div class="wf-tarjeta">
+                <div class="wf-imagen"></div>
+                <h4>Taladro compacto</h4>
+                <p class="wf-texto">5,00 € / día</p>
+                <p class="wf-texto">Poblenou · Herramientas <span class="wf-marca">6</span></p>
+              </div>
+            </div>
+            <p class="wf-texto">Anterior · Página 1 de 2 · Siguiente <span class="wf-marca">5</span></p>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas" start="2">
+        <li>Mientras se cargan los resultados, se muestra el mensaje «Buscando…».</li>
+        <li>Los datos de resultados vienen de <code>GET /api/objetos</code> (contrato del issue #117).</li>
+        <li>Se muestran 20 resultados por página.</li>
+        <li>«Anterior» está desactivado en la primera página y «Siguiente» en la última.</li>
+        <li>Los objetos pausados y retirados no salen.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Cambiar la búsqueda por «zzzz» y pulsar «Buscar»</p>
+
+    <section class="wf-pantalla" data-captura="3-sin-resultados">
+      <h2><span class="wf-paso">3</span>Búsqueda sin resultados <code>/buscar?q=zzzz</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/buscar?q=zzzz">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-fila">
+              <div class="wf-campo">
+                <label>¿Qué quieres alquilar?</label>
+                <div class="wf-input">zzzz</div>
+              </div>
+              <span class="wf-boton">Buscar</span>
+            </div>
+            <div class="wf-caja">Filtros (US-03.02, #118)</div>
+            <p class="wf-texto">No hemos encontrado ningún objeto para «zzzz».</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <p class="wf-flecha">Desde los resultados (pantalla 2), clic en una tarjeta</p>
+
+    <section class="wf-pantalla" data-captura="4-ficha">
+      <h2><span class="wf-paso">4</span>Destino: ficha del objeto <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/:id">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-caja">Ficha del objeto (US-03.03, otra historia)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>
