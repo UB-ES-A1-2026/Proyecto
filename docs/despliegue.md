@@ -92,6 +92,24 @@ Necesitas cuentas en Supabase, Render y Vercel (las tres gratis y sin tarjeta) y
    - El smoke test contra producción, desde `e2e/`: `BASE_URL=<url de Vercel> API_URL=<url de Render>/api npm run test:smoke`.
 3. Pon la URL pública en el README («Demo / producción»).
 
+### 6. Fotos de los objetos (Supabase Storage)
+Las fotos van a un bucket **privado** de Supabase Storage a través de su API de S3 ([ADR 0002](adr/0002-almacenamiento-imagenes.md), #106). Mientras no esté configurado, la API funciona igual y la subida de fotos responde `503`.
+
+1. En Supabase → **Storage → New bucket**: nombre `rentit-fotos`, **sin** marcar *Public bucket*.
+2. En **Project Settings → Storage → S3 Connection**: copia el *Endpoint* y la *Region*, y en **S3 Access Keys → New access key** crea una clave (el *Secret* solo se ve una vez).
+3. En Render → `rentit-api` → **Environment**, añade:
+
+   | Variable | Valor |
+   |---|---|
+   | `S3_BUCKET` | `rentit-fotos` |
+   | `S3_ENDPOINT` | El *Endpoint* del paso 2 (`https://<proyecto>.supabase.co/storage/v1/s3`) |
+   | `S3_REGION` | La *Region* del paso 2 |
+   | `S3_ACCESS_KEY_ID` | El *Access key ID* |
+   | `S3_SECRET_ACCESS_KEY` | El *Secret access key* (secreto: solo en Render) |
+   | `S3_FORCE_PATH_STYLE` | `true` |
+
+4. Guarda: Render vuelve a desplegar solo. Comprueba la subida desde la web publicando un objeto con foto. Si el navegador da un error de CORS al hacer el `PUT`, revisa la configuración de CORS del bucket en Supabase.
+
 ## Cuentas y accesos
 
 - Los proyectos de **Vercel** (*scope* `marcsanz-dev`), **Render** (`rentit-api`) y **Supabase** están en las cuentas personales de Marc, la persona de DevOps del Sprint 1. El plan Hobby de Vercel es de **una sola persona** (no se pueden invitar miembros).
