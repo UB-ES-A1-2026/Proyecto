@@ -114,6 +114,59 @@ export function parseCorsPreviewPattern(
   return regex;
 }
 
+export interface S3Config {
+  endpoint: string | undefined;
+  region: string;
+  bucket: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  forcePathStyle: boolean;
+}
+
+// Almacenamiento de las fotos (ADR 0002, #106): cualquier proveedor con API de S3 (Supabase Storage
+// en producción). Opcional: sin S3_BUCKET el backend arranca igual y las rutas de fotos responden 503.
+// Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 31/10/2026
+export function parseS3Config(
+  variables: NodeJS.ProcessEnv = process.env,
+): S3Config | null {
+  const bucket = variables.S3_BUCKET?.trim();
+
+  if (!bucket) {
+    return null;
+  }
+
+  const read = (name: string): string => {
+    const value = variables[name]?.trim();
+    if (!value) {
+      throw new Error(
+        `Falta la variable de entorno ${name} (necesaria porque S3_BUCKET está definida)`,
+      );
+    }
+    return value;
+  };
+
+  const endpoint = variables.S3_ENDPOINT?.trim() || undefined;
+  if (endpoint) {
+    try {
+      const url = new URL(endpoint);
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+        throw new Error();
+      }
+    } catch {
+      throw new Error('La variable S3_ENDPOINT debe ser una URL HTTP o HTTPS');
+    }
+  }
+
+  return {
+    endpoint,
+    region: read('S3_REGION'),
+    bucket,
+    accessKeyId: read('S3_ACCESS_KEY_ID'),
+    secretAccessKey: read('S3_SECRET_ACCESS_KEY'),
+    forcePathStyle: variables.S3_FORCE_PATH_STYLE?.trim() === 'true',
+  };
+}
+
 function parseBcryptRounds(): number {
   const value = process.env.BCRYPT_ROUNDS?.trim() || '10';
   const rounds = Number(value);
@@ -134,4 +187,5 @@ export const env = Object.freeze({
   corsOrigins: parseCorsOrigins(),
   corsPreviewPattern: parseCorsPreviewPattern(process.env.CORS_PREVIEW_PATTERN),
   bcryptRounds: parseBcryptRounds(),
+  s3: parseS3Config(),
 });
