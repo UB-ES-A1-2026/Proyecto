@@ -406,3 +406,47 @@ body {
 .item-rent-button {
   width: auto;
 }
+
+/* US-04.02 Consultar mis solicitudes (#124) */
+.my-reservations {
+  margin: var(--space-xl) auto;
+}
+
+.my-reservations > section {
+  margin-top: var(--space-lg);
+}
+
+.reservation-list {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.reservation-card {
+  overflow: hidden;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.reservation-card-toggle {
+  width: 100%;
+  padding: var(--space-md);
+  color: var(--color-text);
+  background: var(--color-background);
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.reservation-card-toggle:hover,
+.reservation-card-toggle[aria-expanded='true'] {
+  background: var(--color-primary-soft);
+}
+
+.reservation-card-detail {
+  padding: 0 var(--space-md) var(--space-md);
+}
+
+.reservation-card-detail p {
+  margin: var(--space-sm) 0;
+}
