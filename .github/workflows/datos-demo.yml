@@ -1,0 +1,57 @@
+# Carga los datos de la demo en la BD de producción (#97): 3 cuentas y los objetos de ejemplo
+# de backend/prisma/demoData.ts. Solo se lanza a mano (Actions → «Datos de demo» → Run workflow),
+# desde main y escribiendo «produccion». Se puede repetir: no duplica nada.
+# Las URLs de la BD y la contraseña de las cuentas son secretos de GitHub (docs/despliegue.md).
+# Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 31/10/2026
+name: Datos de demo
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmacion:
+        description: 'Escribe «produccion» para cargar los datos de demo en la BD de producción'
+        required: true
+
+concurrency:
+  group: datos-demo
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  seed:
+    name: Seed de la demo
+    # Desde main, para que el esquema sea el mismo que el de la API desplegada.
+    if: github.ref == 'refs/heads/main' && inputs.confirmacion == 'produccion'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
+      DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}
+    steps:
+      - name: Comprobar los secretos
+        run: |
+          for name in DATABASE_URL DIRECT_URL DEMO_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Falta un secreto (PROD_DATABASE_URL, PROD_DIRECT_URL o DEMO_PASSWORD). Ver docs/despliegue.md."
+              exit 1
+            fi
+          done
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      # Render ya las aplica al arrancar; aquí es por si el seed se lanza antes de que termine.
+      - run: npm run db:deploy
+      - run: npm run db:seed:demo
+      - name: Resumen
+        run: echo "### Datos de demo cargados en producción (3 cuentas \`@demo.rentit.test\` y sus objetos)" >> "$GITHUB_STEP_SUMMARY"

@@ -144,7 +144,7 @@ cd backend
 cp .env.example .env
 npm install
 npm run db:migrate     # aplica las migraciones
-npm run db:seed        # carga los usuarios de prueba
+npm run db:seed        # carga los usuarios de prueba y objetos de ejemplo
 npm run dev            # http://localhost:3000
 ```
 
@@ -169,6 +169,8 @@ Los crea `npm run db:seed` (y también `npm run db:reset`). Todos tienen la cont
 | `ana@rentit.test` | usuario |
 | `bruno@rentit.test` | usuario |
 | `admin@rentit.test` | administrador |
+
+El seed también crea 12 objetos de ejemplo de `ana` y `bruno` (`backend/prisma/demoData.ts`), uno de ellos pausado. En producción no se usa este seed: ver «Datos de demo» en [docs/despliegue.md](docs/despliegue.md).
 
 ### Otros comandos útiles (en `backend/`)
 
