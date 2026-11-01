@@ -18,6 +18,9 @@ export function Layout() {
               <NavLink to="/mis-objetos" className="nav-link">
                 Mis objetos
               </NavLink>
+              <NavLink to="/mis-solicitudes" className="nav-link">
+                Mis solicitudes
+              </NavLink>
               <NavLink to="/perfil" className="nav-link">
                 Mi perfil
               </NavLink>
