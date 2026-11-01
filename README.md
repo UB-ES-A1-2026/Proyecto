@@ -194,6 +194,7 @@ Cada carpeta tiene su `.env.example`; cópialo a `.env` (que nunca se sube al re
 | `DIRECT_URL` | URL de PostgreSQL para las migraciones (en producción, el *session pooler* de Supabase) | igual que `DATABASE_URL` |
 | `CORS_ORIGINS` | Orígenes permitidos, separados por comas | `http://localhost:5173` |
 | `BCRYPT_ROUNDS` | Coste de bcrypt (entre 4 y 31) | `10` |
+| `S3_BUCKET` y el resto de `S3_*` | Bucket de las fotos de los objetos (ADR 0002). **Opcionales**: sin ellas la API arranca igual y la subida de fotos responde `503` | ver `backend/.env.example` |
 
 Los tests del backend usan `backend/.env.test`, que apunta a la BD `rentit_test`.
 
@@ -228,6 +229,8 @@ URL base en local: `http://localhost:3000/api`. Todas las peticiones y respuesta
 | `POST` | `/auth/login` | Público | Inicia sesión |
 | `POST` | `/auth/logout` | Privado | Cierra la sesión actual |
 | `GET` | `/usuarios/me` | Privado | Devuelve el perfil del usuario |
+| `POST` | `/objetos/:id/fotos/subida` | Privado (propietario) | Da una URL para subir una foto del objeto |
+| `POST` | `/objetos/:id/fotos` | Privado (propietario) | Confirma una foto subida y la guarda |
 
 ### `GET /health`
 
@@ -312,6 +315,33 @@ Respuesta `200`:
 ```
 
 `401` si el token falta, no es válido o ha caducado.
+
+### Fotos de un objeto (privado, solo el propietario)
+
+La foto no pasa por nuestro servidor: se sube directamente al bucket con una URL temporal ([ADR 0002](docs/adr/0002-almacenamiento-imagenes.md)). Son tres pasos:
+
+1. `POST /objetos/:id/fotos/subida` con el tipo y el tamaño de la foto:
+
+   ```json
+   { "contentType": "image/webp", "size": 183204 }
+   ```
+
+   Respuesta `201`: `{ "key": "objetos/<id>/<uuid>.webp", "uploadUrl": "https://…", "expiresIn": 300 }`.
+2. El navegador hace `PUT <uploadUrl>` con la foto como cuerpo y la cabecera `Content-Type` **igual** a la que ha pedido (la URL caduca en 5 minutos).
+3. `POST /objetos/:id/fotos` con `{ "key": "<la clave del paso 1>" }`. El backend comprueba el fichero subido y, si es válido, guarda solo la clave. Respuesta `201`: `{ "id": "…", "key": "…", "order": 1, "url": "https://…" }`. `url` sirve para enseñarla y caduca en 1 hora.
+
+Reglas: solo **JPG, PNG o WebP**, **5 MB como máximo** y **5 fotos por objeto**. El tipo se comprueba también con los primeros bytes del fichero, así que no se puede colar otro tipo de fichero renombrado.
+
+| Código | Cuándo | `field` |
+|---|---|---|
+| `400` | Tipo no permitido o tamaño incorrecto (paso 1) | `contentType` o `size` |
+| `400` | Clave incorrecta, foto no subida o fichero no válido (paso 3; el fichero se borra) | `key` |
+| `403` | El objeto es de otra persona | — |
+| `404` | El objeto no existe | — |
+| `409` | El objeto ya tiene 5 fotos, está retirado o la foto ya estaba guardada | — o `key` |
+| `503` | El almacenamiento de fotos no está configurado en ese servidor | — |
+
+Para los demás endpoints (ficha, búsqueda, «Mis objetos»), `listItemPhotos(itemId)` de `backend/src/services/photoService.ts` devuelve las fotos ordenadas con su URL de lectura.
 
 ### Probarlo desde la terminal
 

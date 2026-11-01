@@ -4,6 +4,7 @@ import { healthRoutes } from './healthRoutes.js';
 import { itemSearchRoutes } from './itemSearchRoutes.js';
 import { itemDetailRoutes } from './itemDetailRoutes.js';
 import { itemRoutes } from './itemRoutes.js';
+import { photoRoutes } from './photoRoutes.js';
 import { userRoutes } from './userRoutes.js';
 
 export const apiRoutes = Router();
@@ -14,3 +15,4 @@ apiRoutes.use(userRoutes);
 apiRoutes.use(itemSearchRoutes);
 apiRoutes.use(itemDetailRoutes);
 apiRoutes.use(itemRoutes);
+apiRoutes.use(photoRoutes);
