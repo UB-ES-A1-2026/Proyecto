@@ -32,7 +32,7 @@ const SECTIONS: HelpSection[] = [
         Pulsa «<Link to="/login">Iniciar sesión</Link>» en la cabecera.
       </>,
       'Escribe tu correo electrónico y tu contraseña.',
-      'Pulsa «Iniciar sesión». Volverás a la página en la que estabas.',
+      'Pulsa «Iniciar sesión». Irás a la página de inicio o, si intentabas abrir una página que pide sesión (como «Mi perfil»), a esa página.',
     ],
     note: 'Si el correo o la contraseña no son correctos, verás el error debajo del campo.',
   },
