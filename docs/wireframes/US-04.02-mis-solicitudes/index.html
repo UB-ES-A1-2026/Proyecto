@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-04.02 Consultar mis solicitudes · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-04.02 Consultar mis solicitudes</h1>
+      <p class="wf-historia">
+        Como <strong>propietario</strong>, quiero <strong>consultar mis solicitudes de alquiler</strong> para
+        <strong>saber el estado de cada una</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #61 · Wireframe de baja fidelidad · Generado con asistencia de IA (Claude/Copilot) – revisado por Danyal, 01/11/2026
+      </p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-entrada">
+      <h2><span class="wf-paso">1</span>Entrada con sesión <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-marca">1</span>
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Hola, ana</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El enlace «Mis solicitudes» de la cabecera está marcado y lleva a <code>/mis-solicitudes</code>.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Mis solicitudes»</p>
+
+    <section class="wf-pantalla" data-captura="2-lista">
+      <h2><span class="wf-paso">2</span>Lista de solicitudes <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <h4>Enviadas</h4>
+            <button type="button" class="wf-boton wf-secundario wf-ancho">
+              ▸ Bicicleta de paseo · 5–7 nov. 2026 · Pendiente
+            </button>
+            <h4>Recibidas</h4>
+            <div class="wf-fila">
+              <button type="button" class="wf-boton wf-secundario wf-ancho">
+                ▸ Taladro percutor Bosch · 8–10 nov. 2026 · Pendiente
+              </button>
+              <button type="button" class="wf-boton wf-secundario wf-ancho">
+                ▸ Tienda de campaña · 1–3 nov. 2026 · Aceptada
+              </button>
+              <button type="button" class="wf-boton wf-secundario wf-ancho">
+                ▸ Escalera plegable · 12–13 nov. 2026 · Rechazada
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas" start="2">
+        <li>Los datos vienen de <code>GET /api/usuarios/me/reservas</code> (#123).</li>
+        <li>«Enviadas» son las solicitudes que he pedido yo; «Recibidas», las de mis objetos.</li>
+        <li>Los estados posibles son Pendiente, Aceptada, Rechazada, Cancelada, Pagada, En curso y Finalizada.</li>
+        <li>De la otra persona solo se muestra el nombre de usuario.</li>
+        <li>Mientras carga, se ve «Cargando tus solicitudes…».</li>
+        <li>Las solicitudes se crean desde la ficha del objeto (US-04.01).</li>
+        <li>Sin sesión, <code>/mis-solicitudes</code> lleva a <code>/login</code>.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en la fila «Taladro percutor Bosch»</p>
+
+    <section class="wf-pantalla" data-captura="3-detalle">
+      <h2><span class="wf-paso">3</span>Detalle de una solicitud recibida <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <h4>Enviadas</h4>
+            <button type="button" class="wf-boton wf-secundario wf-ancho">
+              ▸ Bicicleta de paseo · 5–7 nov. 2026 · Pendiente
+            </button>
+            <h4>Recibidas</h4>
+            <button type="button" class="wf-boton wf-secundario wf-ancho">
+              ▸ Taladro percutor Bosch · 8–10 nov. 2026 · Pendiente
+            </button>
+            <div class="wf-tarjeta">
+              <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
+              <p class="wf-texto">Fechas: Del 8 de noviembre de 2026 al 10 de noviembre de 2026</p>
+              <p class="wf-texto">Importe total: 15,00 €</p>
+              <p class="wf-texto">Estado: Pendiente</p>
+              <p class="wf-texto">Solicitada por: bruno</p>
+              <p class="wf-texto">Enviada el 31 de octubre de 2026</p>
+              <div class="wf-caja">Botones «Aceptar» y «Rechazar» (US-04.03 y US-04.04, #126)</div>
+            </div>
+            <button type="button" class="wf-boton wf-secundario wf-ancho">
+              ▸ Tienda de campaña · 1–3 nov. 2026 · Aceptada
+            </button>
+            <button type="button" class="wf-boton wf-secundario wf-ancho">
+              ▸ Escalera plegable · 12–13 nov. 2026 · Rechazada
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <p class="wf-flecha">Lo que ve un usuario que todavía no tiene solicitudes</p>
+
+    <section class="wf-pantalla" data-captura="4-vacia">
+      <h2><span class="wf-paso">4</span>Lista vacía <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <h4>Enviadas</h4>
+            <p class="wf-texto">No tienes solicitudes abiertas</p>
+            <h4>Recibidas</h4>
+            <p class="wf-texto">Todavía no has recibido solicitudes.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <p class="wf-flecha">Desde el detalle (pantalla 3), clic en el nombre del objeto</p>
+
+    <section class="wf-pantalla" data-captura="5-destino">
+      <h2><span class="wf-paso">5</span>Destino: ficha del objeto <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/:id">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-caja">Ficha del objeto (US-03.03, otra historia)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>
