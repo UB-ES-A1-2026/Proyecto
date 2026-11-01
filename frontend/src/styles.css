@@ -823,3 +823,31 @@ body {
   font-size: var(--font-size-tagline);
   font-weight: var(--font-weight-bold);
 }
+
+
+/* US-04.03 y US-04.04 Aceptar y rechazar (#126) */
+.reservation-decision {
+  margin-top: var(--space-md);
+}
+
+.reservation-decision-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.reservation-decision-actions .button-primary {
+  width: auto;
+}
+
+.reservation-decision-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.reservation-decision-message {
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+}
