@@ -1,11 +1,11 @@
-# ADR 0003 · Mapas, geocodificación y distancias
+# ADR 0005 · Mapas, geocodificación y distancias
 
 - **Estado:** Propuesto (pendiente de revisión del equipo)
 - **Fecha:** 31/10/2026
 - **Responsable:** Francesc (spike SP-02, #91)
 - **Relacionado:** [ADR 0001](0001-stack.md), [`docs/modelo-datos.md`](../modelo-datos.md) (`objeto.barrio`, `objeto.latitud`, `objeto.longitud`, `punto_recogida`), prototipo en [`spikes/sp02-mapas/`](../../spikes/sp02-mapas/)
 
-> Generado con asistencia de IA (Claude) – revisado por <Francesc>, <31/10/2026>.
+> Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 31/10/2026.
 
 ## Contexto
 

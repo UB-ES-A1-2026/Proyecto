@@ -1,6 +1,6 @@
 # SP-02 · Prototipo de mapa, geocodificación y distancias
 
-Prototipo del spike [#91](https://github.com/UB-ES-A1-2026/Proyecto/issues/91). La decisión y el porqué están en [ADR 0003](../../docs/adr/0003-mapas-geolocalizacion.md). **No es código de producción**: está aislado del frontend y del backend y **no tiene dependencias** (Leaflet se carga desde un CDN con SRI).
+Prototipo del spike [#91](https://github.com/UB-ES-A1-2026/Proyecto/issues/91). La decisión y el porqué están en [ADR 0005](../../docs/adr/0005-mapas-geolocalizacion.md). **No es código de producción**: está aislado del frontend y del backend y **no tiene dependencias** (Leaflet se carga desde un CDN con SRI).
 
 ## Qué demuestra
 
