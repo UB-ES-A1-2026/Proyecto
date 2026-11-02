@@ -261,3 +261,96 @@ body {
   font-weight: var(--font-weight-medium);
   background-color: var(--color-primary-soft);
 }
+
+/* US-03.01 Buscar objetos (#115) */
+.search-bar {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--space-md);
+  align-items: end;
+  max-width: var(--content-max-width);
+  margin: var(--space-lg) auto;
+  text-align: left;
+}
+
+.search-field {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.search-bar > .button-primary {
+  width: auto;
+}
+
+@media (max-width: 479px) {
+  .search-bar {
+    flex-wrap: wrap;
+  }
+
+  .search-field {
+    flex-basis: 100%;
+  }
+}
+
+.search-field label {
+  font-weight: var(--font-weight-medium);
+}
+
+.search-field input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.search-page {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+}
+
+.search-page > .search-bar {
+  margin-top: 0;
+}
+
+.search-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: var(--space-md);
+  margin: var(--space-lg) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.search-result-card {
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.search-result-card img,
+.search-result-photo-placeholder {
+  display: flex;
+  width: 100%;
+  min-height: 8rem;
+  align-items: center;
+  justify-content: center;
+  object-fit: cover;
+  background-color: var(--color-divider);
+}
+
+.search-result-card h2 {
+  font-size: 1.125rem;
+}
+
+.search-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  align-items: center;
+  justify-content: center;
+  margin: var(--space-lg) 0;
+}
