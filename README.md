@@ -228,6 +228,8 @@ URL base en local: `http://localhost:3000/api`. Todas las peticiones y respuesta
 | `POST` | `/auth/login` | Público | Inicia sesión |
 | `POST` | `/auth/logout` | Privado | Cierra la sesión actual |
 | `GET` | `/usuarios/me` | Privado | Devuelve el perfil del usuario |
+| `POST` | `/objetos/:id/pausar` | Privado | Pausa un objeto publicado (solo su propietario) |
+| `POST` | `/objetos/:id/reanudar` | Privado | Reanuda un objeto pausado (solo su propietario) |
 
 ### `GET /health`
 
@@ -312,6 +314,29 @@ Respuesta `200`:
 ```
 
 `401` si el token falta, no es válido o ha caducado.
+
+### `POST /objetos/:id/pausar` y `POST /objetos/:id/reanudar` (privados)
+
+Pausan un objeto publicado o reanudan uno pausado, sin cuerpo. Un objeto pausado no sale en la búsqueda ni admite solicitudes nuevas, pero conserva sus reservas y sigue en «Mis objetos».
+
+Respuesta `200`:
+
+```json
+{
+  "id": "8b0e…",
+  "title": "Taladro percutor",
+  "dailyPrice": "5.50",
+  "neighborhood": "Gràcia",
+  "status": "paused"
+}
+```
+
+| Código | Cuándo |
+|---|---|
+| `401` | No hay sesión |
+| `403` | El objeto no es tuyo |
+| `404` | El objeto no existe |
+| `409` | El objeto no está en el estado necesario: solo se pausa uno publicado y solo se reanuda uno pausado |
 
 ### Probarlo desde la terminal
 
