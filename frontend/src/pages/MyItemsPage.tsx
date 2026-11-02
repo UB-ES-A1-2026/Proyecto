@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { EditItemDialog } from '../components/EditItemDialog';
+import { WithdrawItemDialog } from '../components/WithdrawItemDialog';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import { getMyItems, type ItemDetail, type ItemStatus, type MyItem } from '../services/itemService';
@@ -32,13 +33,14 @@ function countByFilter(items: MyItem[], filter: Filter): number {
 }
 
 // Pantalla «Mis objetos» (#109): lista los objetos del usuario y los edita en una ventana.
-// Retirar (#111) y Pausar / Reanudar (#113) se añadirán en cada fila.
+// También retira un anuncio (#111). Pausar / Reanudar (#113) se añadirá en cada fila.
 export function MyItemsPage() {
   const { session, clearSession } = useAuth();
   const token = session?.token;
   const [items, setItems] = useState<MyItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [withdrawing, setWithdrawing] = useState<MyItem | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
   const visibleItems =
@@ -86,6 +88,21 @@ export function MyItemsPage() {
     );
     setEditingId(null);
     setMessage('Los cambios se han guardado.');
+  }
+
+  function openWithdraw(item: MyItem) {
+    setMessage(null);
+    setWithdrawing(item);
+  }
+
+  // La fila se queda en la lista como «Retirado»: el propietario la sigue viendo con su filtro.
+  function handleWithdrawn(id: string) {
+    setItems(
+      (current) =>
+        current?.map((item) => (item.id === id ? { ...item, status: 'withdrawn' } : item)) ?? null,
+    );
+    setWithdrawing(null);
+    setMessage('El anuncio se ha retirado.');
   }
 
   return (
@@ -184,25 +201,36 @@ export function MyItemsPage() {
                     <p className="item-hint">{STATUS_HINTS[item.status]}</p>
                   </div>
                   <div className="item-actions">
-                    {/* Retirar es definitivo: un objeto retirado no se puede editar (409, #202). */}
+                    {/* Retirar es definitivo: un objeto retirado no se puede editar (409, #202)
+                        ni volver a retirar. */}
                     {item.status !== 'withdrawn' && (
-                      <button
-                        type="button"
-                        className="button-edit"
-                        aria-label={`Editar ${item.title}`}
-                        onClick={() => openEditor(item.id)}
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                          <path
-                            d="M4 20h4L19 9l-4-4L4 16v4Z"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        Editar
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          className="button-edit"
+                          aria-label={`Editar ${item.title}`}
+                          onClick={() => openEditor(item.id)}
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                              d="M4 20h4L19 9l-4-4L4 16v4Z"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          className="button-withdraw"
+                          aria-label={`Retirar anuncio ${item.title}`}
+                          onClick={() => openWithdraw(item)}
+                        >
+                          Retirar anuncio
+                        </button>
+                      </>
                     )}
                   </div>
                 </li>
@@ -213,6 +241,13 @@ export function MyItemsPage() {
       )}
       {editingId && (
         <EditItemDialog id={editingId} onClose={() => setEditingId(null)} onSaved={handleSaved} />
+      )}
+      {withdrawing && (
+        <WithdrawItemDialog
+          item={withdrawing}
+          onClose={() => setWithdrawing(null)}
+          onWithdrawn={handleWithdrawn}
+        />
       )}
     </section>
   );

@@ -52,6 +52,13 @@ export type ItemChanges = {
   deposit: number;
 };
 
+// Respuesta de PATCH /api/objetos/:id/estado: retirar (#110) y pausar / reanudar (#112).
+// Contrato provisional hasta que exista el endpoint.
+export type ItemStatusChange = {
+  id: string;
+  status: ItemStatus;
+};
+
 export function getMyItems(token: string): Promise<MyItem[]> {
   return apiRequest<MyItem[]>('/usuarios/me/objetos', { token });
 }
@@ -64,6 +71,18 @@ export function updateItem(token: string, id: string, changes: ItemChanges): Pro
   return apiRequest<ItemDetail>(`/objetos/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: changes,
+    token,
+  });
+}
+
+export function changeItemStatus(
+  token: string,
+  id: string,
+  status: ItemStatus,
+): Promise<ItemStatusChange> {
+  return apiRequest<ItemStatusChange>(`/objetos/${encodeURIComponent(id)}/estado`, {
+    method: 'PATCH',
+    body: { status },
     token,
   });
 }
