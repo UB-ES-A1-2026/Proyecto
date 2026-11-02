@@ -228,6 +228,7 @@ URL base en local: `http://localhost:3000/api`. Todas las peticiones y respuesta
 | `POST` | `/auth/login` | Público | Inicia sesión |
 | `POST` | `/auth/logout` | Privado | Cierra la sesión actual |
 | `GET` | `/usuarios/me` | Privado | Devuelve el perfil del usuario |
+| `POST` | `/objetos/:id/retirar` | Privado | Retira un objeto (solo su propietario y sin reservas activas) |
 
 ### `GET /health`
 
@@ -312,6 +313,29 @@ Respuesta `200`:
 ```
 
 `401` si el token falta, no es válido o ha caducado.
+
+### `POST /objetos/:id/retirar` (privado)
+
+Retira un objeto, sin cuerpo. No se borra: pasa a `withdrawn`, deja de estar disponible para los demás y sigue en «Mis objetos».
+
+Respuesta `200`:
+
+```json
+{
+  "id": "8b0e…",
+  "title": "Taladro percutor",
+  "dailyPrice": "5.50",
+  "neighborhood": "Gràcia",
+  "status": "withdrawn"
+}
+```
+
+| Código | Cuándo |
+|---|---|
+| `401` | No hay sesión |
+| `403` | El objeto no es tuyo |
+| `404` | El objeto no existe |
+| `409` | Ya está retirado o tiene alguna reserva activa: pendiente, aceptada, pagada o en curso. Las pendientes hay que rechazarlas antes |
 
 ### Probarlo desde la terminal
 
