@@ -228,6 +228,7 @@ URL base en local: `http://localhost:3000/api`. Todas las peticiones y respuesta
 | `POST` | `/auth/login` | Público | Inicia sesión |
 | `POST` | `/auth/logout` | Privado | Cierra la sesión actual |
 | `GET` | `/usuarios/me` | Privado | Devuelve el perfil del usuario |
+| `GET` | `/usuarios/me/reservas` | Privado | Devuelve las solicitudes enviadas y recibidas |
 
 ### `GET /health`
 
@@ -312,6 +313,33 @@ Respuesta `200`:
 ```
 
 `401` si el token falta, no es válido o ha caducado.
+
+### `GET /usuarios/me/reservas` (privado)
+
+Devuelve las solicitudes que ha hecho el usuario (`sent`) y las que han recibido sus objetos (`received`), de la más nueva a la más antigua y en cualquier estado. Si no hay ninguna, las listas van vacías.
+
+Respuesta `200`:
+
+```json
+{
+  "sent": [
+    {
+      "id": "4f1a…",
+      "item": { "id": "8b0e…", "title": "Taladro percutor" },
+      "startDate": "2026-12-04",
+      "endDate": "2026-12-06",
+      "totalPrice": "16.50",
+      "status": "pending",
+      "renter": { "id": "2c9d…", "username": "bruno" },
+      "owner": { "id": "7a3e…", "username": "ana" },
+      "createdAt": "2026-11-02T10:00:00.000Z"
+    }
+  ],
+  "received": []
+}
+```
+
+`status` puede ser `pending`, `accepted`, `rejected`, `cancelled`, `paid`, `in_progress` o `finished`. `401` si el token falta, no es válido o ha caducado.
 
 ### Probarlo desde la terminal
 
