@@ -354,3 +354,55 @@ body {
   justify-content: center;
   margin: var(--space-lg) 0;
 }
+
+/* US-03.03 Ver un objeto (#15) */
+.item-detail,
+.item-not-found {
+  margin: var(--space-xl) auto;
+}
+
+.item-detail h1,
+.item-not-found h1 {
+  margin-top: 0;
+}
+
+.item-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-md);
+  margin: 0 0 var(--space-lg);
+  padding: 0;
+  list-style: none;
+}
+
+.item-photos img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.item-prices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-lg);
+  font-weight: var(--font-weight-medium);
+}
+
+.item-availability {
+  color: var(--color-text-muted);
+}
+
+.item-metadata dt {
+  font-weight: var(--font-weight-medium);
+}
+
+.item-metadata dd {
+  margin: var(--space-xs) 0 var(--space-md);
+}
+
+.item-rent-button {
+  width: auto;
+}

@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-03.03 Ver un objeto · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-03.03 Ver un objeto</h1>
+      <p class="wf-historia">
+        Como <strong>usuario</strong>, quiero <strong>ver los detalles de un objeto</strong> para
+        <strong>decidir si solicito alquilarlo</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #58 · Wireframe de baja fidelidad · Generado con asistencia de IA (Claude/Copilot) –
+        revisado por Danyal, 01/11/2026
+      </p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-resultados">
+      <h2><span class="wf-paso">1</span>Punto de entrada: resultados de búsqueda <code>/buscar?q=taladro</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/buscar?q=taladro">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-fila">
+              <div class="wf-campo">
+                <label>¿Qué quieres alquilar?</label>
+                <div class="wf-input">taladro</div>
+              </div>
+              <span class="wf-boton">Buscar</span>
+            </div>
+            <div class="wf-caja">Filtros (US-03.02, #118)</div>
+            <h3 class="wf-h1">Resultados para «taladro»</h3>
+            <p class="wf-texto">3 objetos encontrados</p>
+            <div class="wf-rejilla">
+              <article class="wf-tarjeta">
+                <div class="wf-imagen"></div>
+                <h4 class="wf-h1">Taladro percutor Bosch <span class="wf-marca">1</span></h4>
+                <p class="wf-texto">5,00 € / día</p>
+                <p class="wf-texto">Gràcia · Herramientas</p>
+              </article>
+              <article class="wf-tarjeta">
+                <div class="wf-imagen"></div>
+                <h4 class="wf-h1">Taladro inalámbrico</h4>
+                <p class="wf-texto">4,00 € / día</p>
+                <p class="wf-texto">Eixample · Herramientas</p>
+              </article>
+              <article class="wf-tarjeta">
+                <div class="wf-imagen"></div>
+                <h4 class="wf-h1">Taladro con cable</h4>
+                <p class="wf-texto">3,00 € / día</p>
+                <p class="wf-texto">Sants · Herramientas</p>
+              </article>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Al pulsar la primera tarjeta, «Taladro percutor Bosch», se abre su ficha.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Taladro percutor Bosch»</p>
+
+    <section class="wf-pantalla" data-captura="2-ficha">
+      <h2><span class="wf-paso">2</span>Ficha del objeto <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/:id">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-rejilla">
+              <div class="wf-imagen"></div>
+              <div class="wf-imagen"></div>
+              <div class="wf-imagen"></div>
+            </div>
+            <p class="wf-ayuda">
+              Fotos del objeto <span class="wf-marca">3</span><span class="wf-marca">4</span>
+            </p>
+            <h3 class="wf-h1">Taladro percutor Bosch <span class="wf-marca">1</span></h3>
+            <div class="wf-fila">
+              <p class="wf-texto">5,00 € / día</p>
+              <p class="wf-texto">Fianza: 20,00 € <span class="wf-marca">5</span></p>
+              <p class="wf-texto">Disponible <span class="wf-marca">6</span></p>
+            </div>
+            <div class="wf-lineas"><span></span><span></span><span></span></div>
+            <p class="wf-texto">Categoría: Herramientas y bricolaje</p>
+            <p class="wf-texto">Barrio: Gràcia</p>
+            <p class="wf-texto">Formas de entrega: Entrega a domicilio · Punto de recogida</p>
+            <p class="wf-texto">Publicado por ana <span class="wf-marca">2</span></p>
+            <span class="wf-boton">Alquilar <span class="wf-marca">8</span></span>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Los datos del objeto vienen de <code>GET /api/objetos/:id</code> (#119).</li>
+        <li>Del propietario solo se muestra el nombre de usuario; nunca el correo.</li>
+        <li>Si el objeto no tiene fotos, en la zona de fotos se muestra «Este objeto no tiene fotos.»</li>
+        <li>Mientras carga, se ve «Cargando el objeto…».</li>
+        <li>Si la fianza es 0, se muestra «Sin fianza».</li>
+        <li>Un objeto pausado solo lo ve su propietario, con «Pausado: no aparece en las búsquedas».</li>
+        <li>Sin sesión, «Alquilar» lleva a <code>/login</code>; después de iniciar sesión, se vuelve a la ficha.</li>
+        <li>Con sesión, «Alquilar» lleva a <code>/objetos/:id/solicitar</code>, destino de la solicitud de alquiler.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">La misma ficha, vista por su propietaria (ana)</p>
+
+    <section class="wf-pantalla" data-captura="3-ficha-propietario">
+      <h2><span class="wf-paso">3</span>Ficha vista por la propietaria <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/:id">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-rejilla">
+              <div class="wf-imagen"></div>
+              <div class="wf-imagen"></div>
+              <div class="wf-imagen"></div>
+            </div>
+            <h3 class="wf-h1">Taladro percutor Bosch</h3>
+            <div class="wf-fila">
+              <p class="wf-texto">5,00 € / día</p>
+              <p class="wf-texto">Fianza: 20,00 €</p>
+              <p class="wf-texto">Disponible</p>
+            </div>
+            <div class="wf-lineas"><span></span><span></span><span></span></div>
+            <p class="wf-texto">Categoría: Herramientas y bricolaje</p>
+            <p class="wf-texto">Barrio: Gràcia</p>
+            <p class="wf-texto">Formas de entrega: Entrega a domicilio · Punto de recogida</p>
+            <p class="wf-texto">Publicado por ana</p>
+            <p class="wf-aviso">Este anuncio es tuyo.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <p class="wf-flecha">Si se abre un enlace a un objeto que no existe</p>
+
+    <section class="wf-pantalla" data-captura="4-no-encontrado">
+      <h2><span class="wf-paso">4</span>Objeto no encontrado <code>/objetos/&lt;id inexistente&gt;</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/&lt;id inexistente&gt;">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">No hemos encontrado este objeto</h3>
+            <p class="wf-texto">Puede que se haya retirado o que el enlace no sea correcto.</p>
+            <span class="wf-enlace">Volver al inicio</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <p class="wf-flecha">Desde la ficha (pantalla 2), clic en «Alquilar»</p>
+
+    <section class="wf-pantalla" data-captura="5-destino">
+      <h2><span class="wf-paso">5</span>Destino: solicitud de alquiler <code>/objetos/:id/solicitar</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/:id/solicitar">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-caja">Solicitud de alquiler (US-04.01, #121)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>
