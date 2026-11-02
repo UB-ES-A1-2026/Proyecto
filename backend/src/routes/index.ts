@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authRoutes } from './authRoutes.js';
+import { categoryRoutes } from './categoryRoutes.js';
 import { healthRoutes } from './healthRoutes.js';
 import { itemEditRoutes } from './itemEditRoutes.js';
 import { itemSearchRoutes } from './itemSearchRoutes.js';
@@ -26,5 +27,6 @@ apiRoutes.use(reservationRoutes);
 apiRoutes.use(itemPauseRoutes);
 apiRoutes.use(itemWithdrawRoutes);
 apiRoutes.use(reservationDecisionRoutes);
+apiRoutes.use(categoryRoutes);
 apiRoutes.use(itemRoutes);
 apiRoutes.use(photoRoutes);
