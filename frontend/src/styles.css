@@ -16,6 +16,7 @@
   --color-divider: #e5e7eb;
   --color-error: #dc2626;
   --color-error-background: #fef2f2;
+  --color-error-hover: #b91c1c;
   --color-success: #15803d;
   --color-success-background: #f0fdf4;
   --color-warning: #92400e;
@@ -841,6 +842,42 @@ body {
 }
 
 .button-pause:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Retirar un anuncio (US-02.03, #111): acción destructiva, en el color de error. */
+.button-withdraw {
+  padding: 0.7rem var(--space-lg);
+  font: inherit;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-error);
+  background-color: var(--color-background);
+  border: var(--border-width) solid var(--color-error);
+  border-radius: var(--radius-large);
+  cursor: pointer;
+}
+
+.button-withdraw:hover {
+  background-color: var(--color-error-background);
+}
+
+.button-danger {
+  padding: 0.7rem;
+  font: inherit;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-on-primary);
+  background-color: var(--color-error);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.button-danger:hover {
+  background-color: var(--color-error-hover);
+}
+
+.button-danger:disabled {
   cursor: not-allowed;
   opacity: 0.7;
 }

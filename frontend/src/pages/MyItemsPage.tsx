@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { EditItemDialog } from '../components/EditItemDialog';
+import { WithdrawItemDialog } from '../components/WithdrawItemDialog';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import {
@@ -39,7 +40,7 @@ function countByFilter(items: MyItem[], filter: Filter): number {
 }
 
 // Pantalla «Mis objetos» (#109): lista los objetos del usuario y los edita en una ventana.
-// También lo pausa o reanuda (#113). Retirar (#111) se añadirá en cada fila.
+// También lo pausa o reanuda (#113) y retira un anuncio (#111).
 export function MyItemsPage() {
   const { session, clearSession } = useAuth();
   const token = session?.token;
@@ -47,6 +48,7 @@ export function MyItemsPage() {
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [withdrawing, setWithdrawing] = useState<MyItem | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
@@ -129,6 +131,22 @@ export function MyItemsPage() {
     } finally {
       setTogglingId(null);
     }
+  }
+
+  function openWithdraw(item: MyItem) {
+    setMessage(null);
+    setActionError(null);
+    setWithdrawing(item);
+  }
+
+  // La fila se queda en la lista como «Retirado»: el propietario la sigue viendo con su filtro.
+  function handleWithdrawn(id: string) {
+    setItems(
+      (current) =>
+        current?.map((item) => (item.id === id ? { ...item, status: 'withdrawn' } : item)) ?? null,
+    );
+    setWithdrawing(null);
+    setMessage('El anuncio se ha retirado.');
   }
 
   return (
@@ -233,7 +251,7 @@ export function MyItemsPage() {
                   </div>
                   <div className="item-actions">
                     {/* Retirar es definitivo: un objeto retirado no se puede editar (409, #202)
-                        ni pausar o reanudar. */}
+                        ni pausar, reanudar o volver a retirar. */}
                     {item.status !== 'withdrawn' && (
                       <>
                         <button
@@ -268,6 +286,14 @@ export function MyItemsPage() {
                               ? 'Reanudar'
                               : 'Pausar'}
                         </button>
+                        <button
+                          type="button"
+                          className="button-withdraw"
+                          aria-label={`Retirar anuncio ${item.title}`}
+                          onClick={() => openWithdraw(item)}
+                        >
+                          Retirar anuncio
+                        </button>
                       </>
                     )}
                   </div>
@@ -279,6 +305,13 @@ export function MyItemsPage() {
       )}
       {editingId && (
         <EditItemDialog id={editingId} onClose={() => setEditingId(null)} onSaved={handleSaved} />
+      )}
+      {withdrawing && (
+        <WithdrawItemDialog
+          item={withdrawing}
+          onClose={() => setWithdrawing(null)}
+          onWithdrawn={handleWithdrawn}
+        />
       )}
     </section>
   );
