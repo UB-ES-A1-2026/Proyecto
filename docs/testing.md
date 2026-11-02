@@ -125,6 +125,18 @@ Cada caso corresponde a un criterio de aceptación del backlog. La columna **Tes
 | CP-SMK-02 | La página inicial carga | Ir a `/` | Se ve el título «Rentit» y no hay errores de JavaScript | `smoke.spec.ts` |
 | CP-SMK-03 | Flujo básico de registro y login | 1. Registrarse con un usuario nuevo 2. Cerrar sesión 3. Iniciar sesión con ese usuario | Tras el registro y tras el login se ve «Hola, <usuario>» | `smoke.spec.ts` |
 
+### US-03.01 Buscar objetos (#56) · S1-T14 (#116)
+
+Objetos del seed (`backend/prisma/demoData.ts`): «Taladro percutor Bosch» (publicado) y «Tienda de campaña para 4 personas» (pausado).
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-BUS-01 | 1. Se puede escribir el nombre de un objeto | Seed cargado | 1. Ir a `/` | Se ven el campo «¿Qué quieres alquilar?» y el botón «Buscar» | `buscar-objetos.spec.ts` · criterio 1 |
+| CP-BUS-02 | 2. Buscar muestra los anuncios relacionados | Seed cargado | 1. Escribir `taladro` 2. Pulsar «Buscar» 3. Pulsar el anuncio | Se va a `/buscar?q=taladro` con «Resultados para «taladro»»; sale «Taladro percutor Bosch» y ningún anuncio sin «taladro» en el nombre. El anuncio lleva a `/objetos/<id>` | `buscar-objetos.spec.ts` · criterio 2 |
+| CP-BUS-03 | 3. Sin texto no pasa nada | — | 1. Dejar el campo vacío (o solo espacios) 2. Pulsar «Buscar» | La página y la URL no cambian | `buscar-objetos.spec.ts` · criterio 3 |
+| CP-BUS-04 | 4. Sin resultados | — | 1. Buscar `xyzzy-no-existe` | Se muestra «No hemos encontrado ningún objeto para «xyzzy-no-existe».» | `buscar-objetos.spec.ts` · criterio 4 |
+| CP-BUS-05 | (Estado) No salen pausados ni retirados | Seed cargado | 1. Buscar `tienda` | No sale «Tienda de campaña para 4 personas» (pausado) y se muestra el mensaje de sin resultados. Los retirados los cubre el test de API de #114 | `buscar-objetos.spec.ts` · estado |
+
 ## 5. Pendiente
 
 - **Smoke test en el CI:** el workflow de GitHub Actions que arranca PostgreSQL, el backend y el frontend y ejecuta `npm run test:smoke`. Se coordina con el CI general (#19, Kai). En el CI conviene servir el frontend compilado (`npm run build` + `npm run preview`) en lugar de `npm run dev`, para evitar la espera de la primera carga de Vite.
