@@ -228,6 +228,8 @@ URL base en local: `http://localhost:3000/api`. Todas las peticiones y respuesta
 | `POST` | `/auth/login` | Público | Inicia sesión |
 | `POST` | `/auth/logout` | Privado | Cierra la sesión actual |
 | `GET` | `/usuarios/me` | Privado | Devuelve el perfil del usuario |
+| `POST` | `/reservas/:id/aceptar` | Privado (propietario) | Acepta una solicitud pendiente |
+| `POST` | `/reservas/:id/rechazar` | Privado (propietario) | Rechaza una solicitud pendiente |
 
 ### `GET /health`
 
@@ -312,6 +314,34 @@ Respuesta `200`:
 ```
 
 `401` si el token falta, no es válido o ha caducado.
+
+### `POST /reservas/:id/aceptar` y `POST /reservas/:id/rechazar` (privados, solo el propietario)
+
+Sin cuerpo. Una solicitud solo se puede responder una vez, aunque lleguen dos peticiones a la vez.
+
+Respuesta `200`, la reserva actualizada:
+
+```json
+{
+  "id": "…",
+  "item": { "id": "…", "title": "Taladro percutor" },
+  "startDate": "2026-12-04",
+  "endDate": "2026-12-06",
+  "totalPrice": "15.00",
+  "status": "accepted",
+  "renter": { "id": "…", "username": "bruno" },
+  "owner": { "id": "…", "username": "ana" },
+  "createdAt": "2026-11-02T10:00:00.000Z"
+}
+```
+
+| Código | Cuándo |
+|---|---|
+| `401` | Sin sesión |
+| `403` | El objeto es de otra persona |
+| `404` | La solicitud no existe |
+| `409` | La solicitud ya no está pendiente |
+| `409` | Solo al aceptar: las fechas se solapan con otra reserva aceptada, pagada o en curso |
 
 ### Probarlo desde la terminal
 
