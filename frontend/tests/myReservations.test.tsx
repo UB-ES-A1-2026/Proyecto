@@ -115,6 +115,27 @@ describe('Mis solicitudes (US-04.02, #124)', () => {
     expect(screen.queryByText(/31 de octubre de 2026 al/)).not.toBeInTheDocument();
   });
 
+  it('formatea fechas recibidas con hora', async () => {
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    mockReservations({
+      sent: [],
+      received: [
+        reservation({
+          startDate: '2026-11-01T00:00:00.000Z',
+          endDate: '2026-11-03T00:00:00.000Z',
+        }),
+      ],
+    });
+    const user = userEvent.setup();
+
+    renderRoute('/mis-solicitudes');
+    await user.click(await screen.findByRole('button', { name: /Taladro percutor Bosch/ }));
+
+    expect(
+      screen.getByText('Fechas: Del 1 de noviembre de 2026 al 3 de noviembre de 2026'),
+    ).toBeVisible();
+  });
+
   it('muestra el propietario en las solicitudes enviadas', async () => {
     localStorage.setItem('rentit.session', JSON.stringify(SESSION));
     mockReservations({
