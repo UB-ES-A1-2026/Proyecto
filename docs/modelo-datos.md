@@ -231,6 +231,20 @@ Se crean en la migración `crea_categoria_objeto_y_foto_objeto` como parte de TR
 
 En Prisma, los modelos son `Category`, `Item` e `ItemPhoto` (en inglés, como dice `AGENTS.md`), y el enum `ItemStatus` vale `published`, `paused` o `withdrawn`.
 
+## Tabla `reserva` (Sprint 1 · #120)
+
+Se crea en la migración `crea_reserva` como parte de TR-05 (#86), para que esté en `develop` antes que las historias que la usan (US-04.01 a US-04.04). Lo que no se ve en el diagrama:
+
+| Decisión | Por qué |
+|---|---|
+| `modo_entrega` es **opcional** | Se elige en US-05.01 (Sprint 2). En el Sprint 1 la solicitud solo lleva fechas e importe. |
+| `fecha_inicio` y `fecha_fin` son `DATE`, **sin hora** | El alquiler va por días y así no depende de la zona horaria. Las dos fechas cuentan: del 4 al 6 son 3 días. |
+| `precio_total` se guarda en la reserva | Si el propietario cambia el precio después, la solicitud conserva el importe que vio el arrendatario. |
+| `CHECK` en la BD: `fecha_fin >= fecha_inicio` y `precio_total > 0` | El backend también lo valida, pero así la BD nunca guarda datos imposibles. |
+| Un objeto o un usuario con reservas **no se pueden borrar** | Las reservas son el historial de los alquileres. |
+
+En Prisma, el modelo es `Reservation`, y los enums son `ReservationStatus` (`pending`, `accepted`, `rejected`, `cancelled`, `paid`, `in_progress`, `finished`) y `DeliveryMode` (`home`, `rider`, `pickup_point`).
+
 ## Qué tablas entran en cada sprint
 
 | Sprint | Tablas nuevas | Historias |
