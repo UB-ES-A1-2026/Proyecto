@@ -3,12 +3,31 @@ import { prisma } from './prisma.js';
 
 export interface ItemSearchCriteria {
   text?: string;
+  // Filtros de US-03.02 (#117). Todos opcionales y combinados con AND.
+  categoryId?: string;
+  // Importe en texto con punto decimal («10.50»): Prisma lo compara como Decimal, sin floats.
+  maxPrice?: string;
+  neighborhood?: string;
 }
 
 // Solo objetos publicados: los pausados y retirados no salen en la búsqueda (#112).
-// Los filtros de US-03.02 (#117) se añaden como condiciones nuevas de este where.
 function buildWhere(criteria: ItemSearchCriteria): Prisma.ItemWhereInput {
   const where: Prisma.ItemWhereInput = { status: 'published' };
+
+  if (criteria.categoryId) {
+    where.categoryId = criteria.categoryId;
+  }
+
+  if (criteria.maxPrice) {
+    where.dailyPrice = { lte: criteria.maxPrice };
+  }
+
+  if (criteria.neighborhood) {
+    where.neighborhood = {
+      contains: criteria.neighborhood,
+      mode: 'insensitive',
+    };
+  }
 
   if (criteria.text) {
     where.OR = [
