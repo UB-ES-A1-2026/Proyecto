@@ -2,7 +2,7 @@
 
 Cómo se ve Rentit y cómo mantenerlo coherente al añadir pantallas (TR-09, #155).
 
-> Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 03/11/2026.
+> Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 03/11/2026. Paleta y logo de la maqueta de Figma de Francesc (#157) aplicados por Danyal, 03/11/2026 (#158).
 
 ## La norma
 
@@ -10,31 +10,40 @@ Toda la identidad está en el bloque `:root` de [`frontend/src/styles.css`](../f
 
 ## Logo y favicon
 
-- Son el mismo archivo: [`frontend/public/favicon.svg`](../frontend/public/favicon.svg), una «R» blanca sobre un cuadrado azul (`#2563eb`).
-- En la cabecera va a 28 × 28 px, seguido del nombre «Rentit». Es decorativo (`alt=""`) porque el nombre ya está escrito al lado.
-- Un SVG no puede leer las variables CSS. Si cambia `--color-primary`, hay que cambiar también el color en el logo.
+- Son el mismo archivo: [`frontend/public/favicon.svg`](../frontend/public/favicon.svg), la «R» verde (`#0f5c55`) sobre un cuadrado naranja redondeado (`#f2a33a`), igual que en la maqueta de Figma.
+- En la cabecera va a 28 × 28 px, seguido del nombre «Rentit» en naranja. Es decorativo (`alt=""`) porque el nombre ya está escrito al lado.
+- Un SVG no puede leer las variables CSS. Si cambian `--color-primary` o `--color-accent`, hay que cambiar también los colores del logo.
+
+## Cabecera
+
+Como en la maqueta: barra verde (`--color-primary`), logo y nombre en naranja (`--color-accent`) y enlaces en blanco (`--color-on-primary`). La página en la que estás se marca con el verde oscuro (`--color-primary-hover`).
 
 ## Colores
 
+Los de la maqueta de Figma: verde y naranja, con texto verde muy oscuro y fondos beige.
+
 | Variable | Valor | Para qué |
 |---|---|---|
-| `--color-primary` | `#2563eb` | Botón principal, enlaces y elementos activos |
-| `--color-primary-hover` | `#1d4ed8` | Botón principal al pasar el ratón |
-| `--color-primary-soft` | `#eff6ff` | Fondo del elemento activo o seleccionado |
-| `--color-on-primary` | `#ffffff` | Texto sobre un fondo de color |
-| `--color-text` | `#1f2937` | Texto normal |
-| `--color-text-muted` | `#4b5563` | Texto secundario y ayudas de los campos |
+| `--color-primary` | `#0f5c55` | Cabecera, enlaces, botones secundarios y elementos activos |
+| `--color-primary-hover` | `#0b4741` | Verde al pasar el ratón y enlace activo de la cabecera |
+| `--color-primary-soft` | `#dcebe8` | Fondo del elemento activo o seleccionado y etiquetas |
+| `--color-on-primary` | `#ffffff` | Texto sobre el verde |
+| `--color-accent` | `#f2a33a` | Botón principal («Publicar», «Alquilar», «Iniciar sesión»…), logo y nombre de la cabecera |
+| `--color-accent-hover` | `#e08d1f` | Botón principal al pasar el ratón |
+| `--color-on-accent` | `#14302c` | Texto sobre el naranja: siempre oscuro, nunca blanco |
+| `--color-text` | `#14302c` | Texto normal |
+| `--color-text-muted` | `#4d6560` | Texto secundario y ayudas de los campos |
 | `--color-background` | `#ffffff` | Fondo de la página |
-| `--color-surface` | `#f3f4f6` | Fondo de zonas destacadas |
-| `--color-border` | `#d1d5db` | Bordes de campos y tarjetas |
-| `--color-divider` | `#e5e7eb` | Líneas de separación |
-| `--color-error` | `#d42020` | Texto y borde de error, acciones destructivas |
-| `--color-error-background` | `#fef2f2` | Fondo de los mensajes de error |
-| `--color-error-hover` | `#b91c1c` | Acción destructiva al pasar el ratón |
+| `--color-surface` | `#f5f1e6` | Fondo de zonas destacadas (beige de la maqueta) |
+| `--color-border` | `#7c9a93` | Bordes de campos y tarjetas |
+| `--color-divider` | `#e9e5dc` | Líneas de separación |
+| `--color-error` | `#b42318` | Texto y borde de error, acciones destructivas |
+| `--color-error-background` | `#fef3f2` | Fondo de los mensajes de error |
+| `--color-error-hover` | `#912018` | Acción destructiva al pasar el ratón |
 | `--color-success` | `#15803d` | Texto de éxito |
 | `--color-success-background` | `#f0fdf4` | Fondo de los mensajes de éxito |
-| `--color-warning` | `#92400e` | Texto de aviso |
-| `--color-warning-soft` | `#fef3c7` | Fondo de los avisos |
+| `--color-warning` | `#8a4b08` | Texto de aviso |
+| `--color-warning-soft` | `#feead1` | Fondo de los avisos |
 | `--color-overlay` | `rgb(0 0 0 / 0.45)` | Fondo oscuro detrás de una ventana |
 
 ## Tipografía
@@ -58,8 +67,8 @@ Espaciados (`--space-xs` a `--space-xl`), bordes y anchos máximos también son 
 
 | Clase | Cuándo |
 |---|---|
-| `button-primary` | La acción principal de la pantalla. Solo uno por formulario |
-| `button-secondary` | Acciones secundarias, como «Cancelar» o «Volver» |
+| `button-primary` | La acción principal de la pantalla, en naranja con texto oscuro. Solo uno por formulario |
+| `button-secondary` | Acciones secundarias, como «Cancelar» o «Volver», con borde verde |
 | `button-link` | Acción con aspecto de enlace, como «Cerrar sesión» |
 | `button-danger` | Confirmar una acción destructiva, como retirar un anuncio |
 
@@ -91,12 +100,17 @@ Todo el texto normal cumple **WCAG AA**, al menos 4,5:1. Si cambias un color, `n
 
 | Texto sobre fondo | Contraste |
 |---|---|
-| `--color-text` sobre `--color-background` | 14,68:1 |
-| `--color-text-muted` sobre `--color-surface` | 6,87:1 |
-| `--color-primary` sobre `--color-background` | 5,17:1 |
-| `--color-primary` sobre `--color-primary-soft` | 4,75:1 |
-| `--color-on-primary` sobre `--color-primary` | 5,17:1 |
-| `--color-error` sobre `--color-background` | 5,21:1 |
-| `--color-error` sobre `--color-error-background` | 4,77:1 |
+| `--color-text` sobre `--color-background` | 14,10:1 |
+| `--color-text-muted` sobre `--color-surface` | 5,56:1 |
+| `--color-primary` sobre `--color-background` | 7,83:1 |
+| `--color-primary` sobre `--color-primary-soft` | 6,37:1 |
+| `--color-on-primary` sobre `--color-primary` | 7,83:1 |
+| `--color-on-accent` sobre `--color-accent` | 6,77:1 |
+| `--color-on-accent` sobre `--color-accent-hover` | 5,37:1 |
+| `--color-error` sobre `--color-background` | 6,57:1 |
+| `--color-error` sobre `--color-error-background` | 6,05:1 |
 | `--color-success` sobre `--color-success-background` | 4,79:1 |
-| `--color-warning` sobre `--color-warning-soft` | 6,37:1 |
+| `--color-warning` sobre `--color-warning-soft` | 5,79:1 |
+| `--color-accent` sobre `--color-primary` (solo el nombre de la cabecera, texto grande: mínimo 3:1) | 3,76:1 |
+
+El naranja nunca lleva texto blanco encima (no llega a 4,5:1): siempre `--color-on-accent`.
