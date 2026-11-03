@@ -205,6 +205,43 @@ describe('PATCH /api/objetos/:id', () => {
     expect(response.status).toBe(401);
   });
 
+  it('can edit a paused item', async () => {
+    const { ana, token } = await setUp();
+    const item = await createTestItem(ana.id, { status: 'paused' });
+
+    const response = await patchItem(token, item.id, VALID_CHANGES);
+
+    expect(response.status).toBe(200);
+    expect(response.body.title).toBe('Taladro nuevo');
+    expect(response.body.status).toBe('paused');
+  });
+
+  it('returns 409 for a withdrawn item and changes nothing', async () => {
+    const { ana, token } = await setUp();
+    const item = await createTestItem(ana.id, { status: 'withdrawn' });
+
+    const response = await patchItem(token, item.id, VALID_CHANGES);
+
+    expect(response.status).toBe(409);
+    expect(response.body).toEqual({
+      error: 'No se puede editar un objeto retirado.',
+    });
+    const saved = await prisma.item.findUniqueOrThrow({
+      where: { id: item.id },
+    });
+    expect(saved.title).toBe(item.title);
+  });
+
+  it('returns 403 for a withdrawn item of another user', async () => {
+    const { ana } = await setUp();
+    const item = await createTestItem(ana.id, { status: 'withdrawn' });
+    const brunoToken = await loginAs('bruno@rentit.test');
+
+    const response = await patchItem(brunoToken, item.id, VALID_CHANGES);
+
+    expect(response.status).toBe(403);
+  });
+
   it('returns 403 when the user is not the owner and changes nothing', async () => {
     const { item } = await setUp();
     const brunoToken = await loginAs('bruno@rentit.test');
@@ -241,11 +278,11 @@ describe('PATCH /api/objetos/:id', () => {
     ['title', 'nombre', { title: undefined }],
     ['description', 'descripción', { description: '' }],
     ['description', 'descripción', { description: 'x'.repeat(2001) }],
-    ['dailyPrice', 'precio por día', { dailyPrice: 0 }],
-    ['dailyPrice', 'precio por día', { dailyPrice: -1 }],
-    ['dailyPrice', 'precio por día', { dailyPrice: 1.234 }],
-    ['dailyPrice', 'precio por día', { dailyPrice: 100_000_000 }],
-    ['dailyPrice', 'precio por día', { dailyPrice: 'mucho' }],
+    ['dailyPrice', 'precio', { dailyPrice: 0 }],
+    ['dailyPrice', 'precio', { dailyPrice: -1 }],
+    ['dailyPrice', 'precio', { dailyPrice: 1.234 }],
+    ['dailyPrice', 'precio', { dailyPrice: 100_000_000 }],
+    ['dailyPrice', 'precio', { dailyPrice: 'mucho' }],
     ['deposit', 'fianza', { deposit: -1 }],
     ['deposit', 'fianza', { deposit: undefined }],
   ])(
