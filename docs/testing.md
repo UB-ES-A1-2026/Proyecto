@@ -213,6 +213,7 @@ Retirar no se puede deshacer, así que solo se retira de verdad la «Máquina de
 | CP-RET-03 | 3. Cancelar no cambia nada | Como CP-RET-01 | 1. «Cancelar» en el diálogo 2. Buscar `silla` | La silla sigue «Publicado» y sale en la búsqueda | `retirar-objeto.spec.ts` · criterio 3 |
 | CP-RET-04 | 4. Un no propietario no puede retirarlo | Sesión de bruno | 1. Abrir la ficha de la silla 2. `POST /api/objetos/<id>/retirar` con el token de bruno | En la ficha no hay «Retirar anuncio», la API responde `403` y la silla sigue publicada | `retirar-objeto.spec.ts` · criterio 4 |
 | CP-RET-05 | (Supuesto de #110) Con reservas activas no se retira | Sesión de ana | 1. «Retirar anuncio» en la escalera 2. Confirmar | El diálogo muestra «No puedes retirar un objeto con reservas activas.» y la escalera sigue publicada | `retirar-objeto.spec.ts` · reservas activas |
+
 ### US-04.03 Aceptar una solicitud (#62) · S1-T39 (#177)
 
 Solicitudes del seed (#210). bruno ha pedido a ana el taladro (pendiente: se acepta en el criterio 2), la escalera (ya aceptada) y el carro (pendiente). ana ha pedido a bruno el proyector (pendiente). El criterio 2 cambia la BD: en local, vuelve a ejecutar `npm run db:seed` antes de repetirlo.
@@ -223,6 +224,7 @@ Solicitudes del seed (#210). bruno ha pedido a ana el taladro (pendiente: se ace
 | CP-ACE-02 | 2. Aceptar una solicitud «Pendiente» | Sesión de ana | 1. Abrir el taladro en «Recibidas» 2. Pulsar «Aceptar» | Sale «Has aceptado la solicitud.» y pasa a «Aceptada». bruno la ve «Aceptada» en «Enviadas» | `aceptar-solicitud.spec.ts` · criterio 2 |
 | CP-ACE-03 | 3. Una aceptada no se puede volver a aceptar ni rechazar | Sesión de ana | 1. Abrir la escalera (aceptada) 2. Llamar a `POST /api/reservas/:id/aceptar` y `/rechazar` | No hay botones. La API responde `409` y sigue «Aceptada» | `aceptar-solicitud.spec.ts` · criterio 3 |
 | CP-ACE-04 | (Permisos) Solo el propietario acepta | — | 1. `POST /api/reservas/<id del carro>/aceptar` con el token de bruno | `403`, y la solicitud sigue «Pendiente» | `aceptar-solicitud.spec.ts` · permisos |
+
 ### US-02.01 Publicar un objeto (#50) · S1-T5 (#107)
 
 Se publica sin fotos, porque la subida va a S3 y en el CI no hay almacenamiento (las fotos son opcionales). Cada anuncio lleva un nombre único («Lijadora e2e <n>») para poder repetir los tests.
@@ -236,6 +238,17 @@ Se publica sin fotos, porque la subida va a S3 y en el CI no hay almacenamiento 
 | CP-PUB-05 | 5. Campo erróneo (precio) | Sesión de ana | 1. Todo válido salvo el precio `0` 2. «Publicar» | No se publica (sigue en `/objetos/nuevo` y no sale en la búsqueda) y bajo el precio sale «El campo "precio" no es correcto, revísalo.» | `publicar-objeto.spec.ts` · criterio 5a |
 | CP-PUB-06 | 5. Campo obligatorio vacío | Sesión de ana | 1. Nombre vacío 2. «Publicar» | No se publica y bajo el nombre sale «El campo "nombre" no es correcto, revísalo.» | `publicar-objeto.spec.ts` · criterio 5b |
 | CP-PUB-07 | (Acceso) Sin sesión | Sin sesión | 1. Ir a `/objetos/nuevo` | Se redirige a `/login` | `publicar-objeto.spec.ts` · acceso |
+
+### US-04.04 Rechazar una solicitud (#63) · S1-T40 (#178)
+
+Solicitudes del seed (#210). bruno ha pedido a ana el carro (pendiente: se rechaza en el criterio 2). ana ha pedido a bruno el altavoz (ya rechazada) y el proyector (pendiente). El criterio 2 cambia la BD: en local, vuelve a ejecutar `npm run db:seed` antes de repetirlo.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-REC-01 | 1. El propietario ve objeto, quién lo pide, fechas y estado | Sesión de bruno | 1. «Mis solicitudes» 2. Abrir el proyector en «Recibidas» | Se ven el enlace al objeto, «Solicitada por: ana», las fechas, «Estado: Pendiente» y el botón «Rechazar» | `rechazar-solicitud.spec.ts` · criterio 1 |
+| CP-REC-02 | 2. Rechazar una solicitud «Pendiente» | Sesión de ana | 1. Abrir el carro en «Recibidas» 2. Pulsar «Rechazar» | Sale «Has rechazado la solicitud.» y pasa a «Rechazada». bruno la ve «Rechazada» en «Enviadas» | `rechazar-solicitud.spec.ts` · criterio 2 |
+| CP-REC-03 | 3. Una rechazada no se puede volver a aceptar ni rechazar | Sesión de bruno | 1. Abrir el altavoz (rechazada) en «Recibidas» 2. Llamar a la API de aceptar y de rechazar | No hay botones. La API responde `409` y sigue «Rechazada» | `rechazar-solicitud.spec.ts` · criterio 3 |
+| CP-REC-04 | (Permisos) Solo el propietario rechaza | — | 1. `POST /api/reservas/<id del proyector>/rechazar` con el token de ana | `403`, y la solicitud sigue «Pendiente» | `rechazar-solicitud.spec.ts` · permisos |
 
 ## 5. Pendiente
 
