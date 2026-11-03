@@ -259,8 +259,12 @@ describe('POST /api/reservas', () => {
   it.each(['pending', 'rejected', 'cancelled', 'finished'] as const)(
     'does not block the dates of a reservation that is %s',
     async (status) => {
-      const { renter, item, token } = await setUp();
-      await createTestReservation(item.id, renter.id, {
+      const { item, token } = await setUp();
+      const otherRenter = await createTestUser({
+        username: 'carla',
+        email: 'carla@rentit.test',
+      });
+      await createTestReservation(item.id, otherRenter.id, {
         startDate: daysFromToday(10),
         endDate: daysFromToday(12),
         status,
@@ -275,6 +279,55 @@ describe('POST /api/reservas', () => {
       expect(response.status).toBe(201);
     },
   );
+
+  // La reserva aceptada va del día 10 al 12.
+  it.each([
+    ['starts inside and ends after', 11, 14],
+    ['starts before and ends inside', 8, 11],
+    ['ends on its first day', 8, 10],
+    ['starts on its last day', 12, 14],
+    ['is inside', 11, 11],
+    ['wraps around it', 9, 15],
+    ['has the same dates', 10, 12],
+  ])(
+    'returns 409 when the request %s an accepted reservation',
+    async (_case, startDay, endDay) => {
+      const { renter, item, token } = await setUp();
+      await createTestReservation(item.id, renter.id, {
+        startDate: daysFromToday(10),
+        endDate: daysFromToday(12),
+        status: 'accepted',
+      });
+
+      const response = await postReservation(token, {
+        itemId: item.id,
+        startDate: daysFromToday(startDay),
+        endDate: daysFromToday(endDay),
+      });
+
+      expect(response.status).toBe(409);
+      expect(response.body.error).toBe(
+        'El objeto no está disponible en esas fechas.',
+      );
+    },
+  );
+
+  it('accepts dates right before an accepted reservation', async () => {
+    const { renter, item, token } = await setUp();
+    await createTestReservation(item.id, renter.id, {
+      startDate: daysFromToday(10),
+      endDate: daysFromToday(12),
+      status: 'accepted',
+    });
+
+    const response = await postReservation(token, {
+      itemId: item.id,
+      startDate: daysFromToday(8),
+      endDate: daysFromToday(9),
+    });
+
+    expect(response.status).toBe(201);
+  });
 
   it('accepts dates right after an accepted reservation', async () => {
     const { renter, item, token } = await setUp();
@@ -310,4 +363,96 @@ describe('POST /api/reservas', () => {
 
     expect(response.status).toBe(201);
   });
+});
+
+describe('POST /api/reservas: solicitudes duplicadas', () => {
+  it('returns 409 when the user already has a pending request for the same dates', async () => {
+    const { item, token } = await setUp();
+    const body = {
+      itemId: item.id,
+      startDate: daysFromToday(10),
+      endDate: daysFromToday(12),
+    };
+    await postReservation(token, body);
+
+    const response = await postReservation(token, body);
+
+    expect(response.status).toBe(409);
+    expect(response.body).toEqual({
+      error: 'Ya tienes una solicitud pendiente para estas fechas.',
+    });
+    expect(await prisma.reservation.count()).toBe(1);
+  });
+
+  it('only creates one reservation with a double click', async () => {
+    const { item, token } = await setUp();
+    const body = {
+      itemId: item.id,
+      startDate: daysFromToday(10),
+      endDate: daysFromToday(12),
+    };
+
+    const responses = await Promise.all([
+      postReservation(token, body),
+      postReservation(token, body),
+    ]);
+
+    expect(responses.map(({ status }) => status).sort()).toEqual([201, 409]);
+    expect(await prisma.reservation.count()).toBe(1);
+  });
+
+  it('allows the same user to request other dates', async () => {
+    const { item, token } = await setUp();
+    await postReservation(token, {
+      itemId: item.id,
+      startDate: daysFromToday(10),
+      endDate: daysFromToday(12),
+    });
+
+    const response = await postReservation(token, {
+      itemId: item.id,
+      startDate: daysFromToday(11),
+      endDate: daysFromToday(13),
+    });
+
+    expect(response.status).toBe(201);
+  });
+
+  it('allows another user to request the same dates', async () => {
+    const { item, token } = await setUp();
+    await createTestUser({ username: 'carla', email: 'carla@rentit.test' });
+    const body = {
+      itemId: item.id,
+      startDate: daysFromToday(10),
+      endDate: daysFromToday(12),
+    };
+    await postReservation(token, body);
+
+    const response = await postReservation(
+      await loginAs('carla@rentit.test'),
+      body,
+    );
+
+    expect(response.status).toBe(201);
+  });
+
+  it.each(['rejected', 'cancelled'] as const)(
+    'allows requesting the same dates again after a %s request',
+    async (status) => {
+      const { renter, item, token } = await setUp();
+      await createTestReservation(item.id, renter.id, {
+        startDate: daysFromToday(10),
+        endDate: daysFromToday(12),
+        status,
+      });
+
+      const response = await postReservation(token, {
+        itemId: item.id,
+        startDate: daysFromToday(10),
+        endDate: daysFromToday(12),
+      });
+
+      expect(response.status).toBe(201);
+    },
+  );
 });
