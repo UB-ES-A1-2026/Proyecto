@@ -3,7 +3,12 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import { getItem, updateItem, type ItemDetail } from '../services/itemService';
+import { ACCEPTED_PHOTO_TYPES, uploadItemPhoto } from '../services/photoService';
 import { Modal } from './Modal';
+
+// Fotos que se pueden añadir al editar (US-02.02, #51). Borrarlas queda para el Sprint 2.
+const PHOTOS_MAX = 5;
+const PHOTOS_ERROR = 'El campo "fotografías" no es correcto, revísalo.';
 
 type Field = 'title' | 'description' | 'dailyPrice' | 'deposit';
 type FieldErrors = Partial<Record<Field, string>>;
@@ -64,7 +69,7 @@ function validate(values: FormValues): FieldErrors {
 type EditItemDialogProps = {
   id: string;
   onClose: () => void;
-  onSaved: (item: ItemDetail) => void;
+  onSaved: (item: ItemDetail, photosFailed: boolean) => void;
 };
 
 // Formulario de edición de un objeto (#109), en una ventana sobre «Mis objetos».
@@ -123,7 +128,7 @@ type EditItemFormProps = {
   item: ItemDetail;
   token: string;
   onCancel: () => void;
-  onSaved: (item: ItemDetail) => void;
+  onSaved: (item: ItemDetail, photosFailed: boolean) => void;
 };
 
 function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
@@ -136,6 +141,8 @@ function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [newPhotos, setNewPhotos] = useState<File[]>([]);
+  const [photosError, setPhotosError] = useState(false);
   const { clearSession } = useAuth();
   const titleRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
@@ -146,6 +153,17 @@ function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
     setValues((current) => ({ ...current, [field]: value }));
     setErrors(({ [field]: _removed, ...rest }) => rest);
     setFormError(null);
+  }
+
+  function addPhotos(files: FileList | null) {
+    const next = [...newPhotos, ...Array.from(files ?? [])];
+    const allowed = ACCEPTED_PHOTO_TYPES.split(',');
+    const invalid =
+      item.photos.length + next.length > PHOTOS_MAX ||
+      next.some((photo) => !allowed.includes(photo.type));
+
+    setPhotosError(invalid);
+    if (!invalid) setNewPhotos(next);
   }
 
   // Muestra los errores y pone el foco en el primer campo que falla. Devuelve si había alguno.
@@ -179,7 +197,21 @@ function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
         dailyPrice: parseAmount(values.dailyPrice) ?? 0,
         deposit: parseAmount(values.deposit) ?? 0,
       });
-      onSaved(saved);
+
+      // Los cambios ya están guardados: si falla una foto se avisa, pero no se pierden.
+      let photosFailed = false;
+      for (const photo of newPhotos) {
+        try {
+          await uploadItemPhoto(item.id, photo, token);
+        } catch (photoError) {
+          if (photoError instanceof ApiError && photoError.status === 401) {
+            clearSession();
+            return;
+          }
+          photosFailed = true;
+        }
+      }
+      onSaved(saved, photosFailed);
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         clearSession();
@@ -291,6 +323,46 @@ function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
             0 si no pides fianza.
           </p>
           {fieldError('deposit')}
+        </div>
+
+        <div className="form-field">
+          <label htmlFor="item-photos">Añadir fotografías</label>
+          <input
+            id="item-photos"
+            type="file"
+            multiple
+            accept={ACCEPTED_PHOTO_TYPES}
+            onChange={(event) => {
+              addPhotos(event.target.files);
+              event.target.value = '';
+            }}
+            aria-invalid={photosError ? true : undefined}
+            aria-describedby={`item-photos-hint${photosError ? ' item-photos-error' : ''}`}
+          />
+          <p id="item-photos-hint" className="field-hint">
+            Tiene {item.photos.length} de {PHOTOS_MAX} fotos. JPG, PNG o WebP, de 5 MB como máximo.
+          </p>
+          {photosError && (
+            <p id="item-photos-error" className="field-error">
+              {PHOTOS_ERROR}
+            </p>
+          )}
+          {newPhotos.map((photo, index) => (
+            <p key={`${photo.name}-${index}`} className="field-hint">
+              {photo.name}{' '}
+              <button
+                type="button"
+                className="button-link"
+                aria-label={`Quitar ${photo.name}`}
+                onClick={() => {
+                  setNewPhotos((current) => current.filter((_, position) => position !== index));
+                  setPhotosError(false);
+                }}
+              >
+                Quitar
+              </button>
+            </p>
+          ))}
         </div>
 
         <div className="form-actions">

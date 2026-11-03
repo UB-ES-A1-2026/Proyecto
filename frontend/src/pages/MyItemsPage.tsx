@@ -88,7 +88,7 @@ export function MyItemsPage() {
   }
 
   // Actualiza la fila con lo guardado, sin volver a pedir toda la lista.
-  function handleSaved(saved: ItemDetail) {
+  function handleSaved(saved: ItemDetail, photosFailed: boolean) {
     setItems(
       (current) =>
         current?.map((item) =>
@@ -98,7 +98,13 @@ export function MyItemsPage() {
         ) ?? null,
     );
     setEditingId(null);
-    setMessage('Los cambios se han guardado.');
+    if (photosFailed) {
+      setActionError(
+        'Los cambios se han guardado, pero alguna foto no se ha podido subir. Vuelve a «Editar» para intentarlo otra vez.',
+      );
+    } else {
+      setMessage('Los cambios se han guardado.');
+    }
   }
 
   // Pausar y reanudar (#113) se pueden deshacer, así que se aplican sin ventana de confirmación.

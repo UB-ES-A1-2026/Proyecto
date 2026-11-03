@@ -1,7 +1,14 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ApiError } from '../src/services/apiClient';
+import { uploadItemPhoto } from '../src/services/photoService';
 import { renderRoute } from './renderRoute';
+
+vi.mock('../src/services/photoService', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/services/photoService')>();
+  return { ...actual, uploadItemPhoto: vi.fn() };
+});
 
 const SESSION_KEY = 'rentit.session';
 
@@ -28,6 +35,7 @@ const ITEM = {
   dailyPrice: '5.50',
   deposit: '20.00',
   status: 'published',
+  photos: [],
 };
 
 const error = (field: string) => `El campo "${field}" no es correcto, revísalo.`;
@@ -229,5 +237,80 @@ describe('ventana de edición de un objeto (US-02.02, #109)', () => {
     expect(editButton).toHaveFocus();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(false);
+  });
+});
+
+describe('añadir fotos al editar (US-02.02, #51)', () => {
+  const jpeg = (name: string) => new File(['foto'], name, { type: 'image/jpeg' });
+
+  async function openWithPhoto(file: File | File[]) {
+    const opened = await openForm();
+    await opened.user.upload(within(opened.dialog).getByLabelText('Añadir fotografías'), file);
+    return opened;
+  }
+
+  beforeEach(() => {
+    vi.mocked(uploadItemPhoto).mockReset().mockResolvedValue({
+      id: 'photo-1',
+      key: 'objetos/o1/photo-1.webp',
+      order: 1,
+      url: 'https://example.test/photo.webp',
+    });
+  });
+
+  it('guarda los cambios y después sube las fotos elegidas', async () => {
+    const fetchMock = mockItemApi();
+    const file = jpeg('nueva.jpg');
+    const { user, save } = await openWithPhoto(file);
+
+    await user.click(save);
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Los cambios se han guardado.');
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(true);
+    expect(uploadItemPhoto).toHaveBeenCalledWith('o1', file, 'token-de-prueba');
+  });
+
+  it('sin fotos elegidas no sube nada', async () => {
+    mockItemApi();
+    const { user, save } = await openForm();
+
+    await user.click(save);
+
+    await screen.findByRole('status');
+    expect(uploadItemPhoto).not.toHaveBeenCalled();
+  });
+
+  it('si falla una foto, cierra la ventana y avisa de que los cambios sí se han guardado', async () => {
+    mockItemApi();
+    vi.mocked(uploadItemPhoto).mockRejectedValue(new ApiError(503, 'Sin almacenamiento.'));
+    const { user, save } = await openWithPhoto(jpeg('nueva.jpg'));
+
+    await user.click(save);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Los cambios se han guardado, pero alguna foto no se ha podido subir.',
+    );
+    expect(screen.queryByRole('dialog', { name: 'Editar objeto' })).not.toBeInTheDocument();
+  });
+
+  it('no deja pasar de 5 fotos contando las que ya tiene', async () => {
+    const photos = [1, 2, 3, 4].map((n) => ({ id: `p${n}`, url: `https://example.test/${n}` }));
+    mockItemApi({ onLoad: () => Response.json({ ...ITEM, photos }) });
+    const { dialog } = await openWithPhoto([jpeg('a.jpg'), jpeg('b.jpg')]);
+
+    expect(within(dialog).getByText(error('fotografías'))).toBeInTheDocument();
+    expect(within(dialog).getByText(/Tiene 4 de 5 fotos/)).toBeInTheDocument();
+    expect(within(dialog).queryByText(/a\.jpg/)).not.toBeInTheDocument();
+  });
+
+  it('permite quitar una foto elegida antes de guardar', async () => {
+    mockItemApi();
+    const { user, save, dialog } = await openWithPhoto(jpeg('nueva.jpg'));
+
+    await user.click(within(dialog).getByRole('button', { name: 'Quitar nueva.jpg' }));
+    await user.click(save);
+
+    await screen.findByRole('status');
+    expect(uploadItemPhoto).not.toHaveBeenCalled();
   });
 });

@@ -143,6 +143,11 @@
                 <div class="wf-input">40,00</div>
                 <p class="wf-ayuda">0 si no pides fianza.</p>
               </div>
+              <div class="wf-campo">
+                <label>Añadir fotografías</label>
+                <div class="wf-input">Elegir archivos</div>
+                <p class="wf-ayuda">Tiene 2 de 5 fotos. JPG, PNG o WebP, de 5 MB como máximo.</p>
+              </div>
               <div class="wf-fila">
                 <span class="wf-boton">Guardar</span><span class="wf-marca">3</span>
                 <span class="wf-boton wf-secundario">Cancelar</span>
@@ -154,10 +159,13 @@
       <ol class="wf-notas">
         <li>Ventana sobre la lista. «×», «Cancelar», la tecla Esc o un clic fuera la cierran sin guardar. Mientras se carga el objeto: «Cargando el objeto…».</li>
         <li>
-          Criterio 2: el formulario llega relleno con los datos actuales. Las fotos y la disponibilidad no están en este
-          alcance (dependen de US-02.01, ver #108).
+          Criterio 2: el formulario llega relleno con los datos actuales y permite añadir fotos, hasta 5 en total. La
+          disponibilidad se cambia con «Pausar» y «Reanudar» en la lista (US-02.04). Borrar fotos queda para el Sprint 2.
         </li>
-        <li>Al pulsar se valida todo a la vez. Mientras se guarda, el botón dice «Guardando…» y está desactivado.</li>
+        <li>
+          Al pulsar se valida todo a la vez. Mientras se guarda, el botón dice «Guardando…» y está desactivado. Si falla
+          una foto, los cambios ya están guardados: se cierra la ventana y la lista lo avisa.
+        </li>
       </ol>
     </section>
 

@@ -163,6 +163,7 @@ Se edita la «Hidrolimpiadora Kärcher» de ana (8 €/día, fianza 50 €), que
 | CP-EDI-03 | 3. Guardar con valores válidos | Como CP-EDI-01 | 1. Cambiar el nombre y el precio a `11,50` 2. «Guardar» 3. Recargar | Tras recargar, la lista y el formulario muestran el nombre y el precio nuevos | `editar-objeto.spec.ts` · criterio 3 |
 | CP-EDI-04 | 4. Campo erróneo | Como CP-EDI-01 | 1. Precio `-5` 2. «Guardar» 3. Recargar | Sale el error del precio con el campo marcado. Tras recargar, sigue a 8 € | `editar-objeto.spec.ts` · criterio 4 |
 | CP-EDI-05 | (Permisos) No propietario | Sesión de bruno | 1. «Mis objetos» 2. `PATCH /api/objetos/<id>` con el token de bruno | La hidrolimpiadora no aparece en sus objetos y la API responde `403` | `editar-objeto.spec.ts` · permisos |
+| CP-EDI-06 | 2. Añadir fotografías | Como CP-EDI-01, con un almacenamiento S3 configurado | 1. Elegir una foto en «Añadir fotografías» 2. «Guardar» | Sale «Los cambios se han guardado.» y la foto queda en el objeto | Manual: el CI no tiene almacenamiento. Tests de componente en `editItem.test.tsx` |
 
 ### US-04.02 Consultar mis solicitudes (#61) · S1-T38 (#176)
 
