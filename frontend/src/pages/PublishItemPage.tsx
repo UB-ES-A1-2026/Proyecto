@@ -163,6 +163,17 @@ export function PublishItemPage() {
     [],
   );
 
+  if (partialSuccessId) {
+    return (
+      <section className="publish-item">
+        <p role="alert" className="publish-item-partial-success">
+          {PHOTO_UPLOAD_ERROR}{' '}
+          <Link to={`/objetos/${partialSuccessId}`}>Ver el anuncio</Link>
+        </p>
+      </section>
+    );
+  }
+
   function clearError(field: Field) {
     setErrors((current) => {
       const next = { ...current };
@@ -295,12 +306,6 @@ export function PublishItemPage() {
       {formError && (
         <p role="alert" className="form-error">
           {formError}
-        </p>
-      )}
-      {partialSuccessId && (
-        <p role="alert" className="publish-item-partial-success">
-          {PHOTO_UPLOAD_ERROR}{' '}
-          <Link to={`/objetos/${partialSuccessId}`}>Ver el anuncio</Link>
         </p>
       )}
       <form onSubmit={handleSubmit} noValidate>
