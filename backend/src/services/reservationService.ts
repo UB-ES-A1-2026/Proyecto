@@ -60,6 +60,10 @@ function assertValidDates(
   }
 }
 
+function toUtcDate(date: string): Date {
+  return new Date(`${date}T00:00:00.000Z`);
+}
+
 // Comprueba si las fechas están libres antes de solicitar el alquiler (criterio 3 de US-04.01).
 export async function checkAvailability(
   input: { itemId: string; startDate: string; endDate: string },
@@ -75,8 +79,8 @@ export async function checkAvailability(
 
   const overlapping = await hasOverlappingReservation(
     input.itemId,
-    new Date(`${input.startDate}T00:00:00.000Z`),
-    new Date(`${input.endDate}T00:00:00.000Z`),
+    toUtcDate(input.startDate),
+    toUtcDate(input.endDate),
     OCCUPYING_STATUSES,
   );
 
@@ -100,8 +104,8 @@ export async function createReservation(
     throw new AppError(403, OWN_ITEM_MESSAGE);
   }
 
-  const startDate = new Date(`${input.startDate}T00:00:00.000Z`);
-  const endDate = new Date(`${input.endDate}T00:00:00.000Z`);
+  const startDate = toUtcDate(input.startDate);
+  const endDate = toUtcDate(input.endDate);
   const totalPrice = item.dailyPrice.times(countRentalDays(startDate, endDate));
 
   if (totalPrice.greaterThan(MAX_TOTAL_PRICE)) {
