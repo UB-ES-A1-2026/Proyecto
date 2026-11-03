@@ -2,7 +2,14 @@ import { useEffect, useState } from 'react';
 import { EditItemDialog } from '../components/EditItemDialog';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
-import { getMyItems, type ItemDetail, type ItemStatus, type MyItem } from '../services/itemService';
+import {
+  getMyItems,
+  pauseItem,
+  resumeItem,
+  type ItemDetail,
+  type ItemStatus,
+  type MyItem,
+} from '../services/itemService';
 
 const priceFormatter = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 
@@ -32,14 +39,16 @@ function countByFilter(items: MyItem[], filter: Filter): number {
 }
 
 // Pantalla «Mis objetos» (#109): lista los objetos del usuario y los edita en una ventana.
-// Retirar (#111) y Pausar / Reanudar (#113) se añadirán en cada fila.
+// También lo pausa o reanuda (#113). Retirar (#111) se añadirá en cada fila.
 export function MyItemsPage() {
   const { session, clearSession } = useAuth();
   const token = session?.token;
   const [items, setItems] = useState<MyItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
   const visibleItems =
     filter === 'all' ? (items ?? []) : (items ?? []).filter((item) => item.status === filter);
@@ -71,6 +80,7 @@ export function MyItemsPage() {
 
   function openEditor(id: string) {
     setMessage(null);
+    setActionError(null);
     setEditingId(id);
   }
 
@@ -86,6 +96,39 @@ export function MyItemsPage() {
     );
     setEditingId(null);
     setMessage('Los cambios se han guardado.');
+  }
+
+  // Pausar y reanudar (#113) se pueden deshacer, así que se aplican sin ventana de confirmación.
+  async function togglePause(item: MyItem) {
+    if (!token || togglingId) return;
+
+    setMessage(null);
+    setActionError(null);
+    setTogglingId(item.id);
+    try {
+      const changed =
+        item.status === 'paused'
+          ? await resumeItem(token, item.id)
+          : await pauseItem(token, item.id);
+      setItems((current) => current?.map((row) => (row.id === changed.id ? changed : row)) ?? null);
+      setMessage(
+        changed.status === 'paused'
+          ? 'El anuncio se ha pausado: no aparecerá en las búsquedas hasta que lo reanudes.'
+          : 'El anuncio se ha reanudado y vuelve a aparecer en las búsquedas.',
+      );
+    } catch (requestError) {
+      // Sesión caducada o revocada: al borrarla, PrivateRoute lleva al login.
+      if (requestError instanceof ApiError && requestError.status === 401) {
+        clearSession();
+      } else if (requestError instanceof ApiError) {
+        // Mensajes de #112: 403 si no es tuyo, 404 si no existe y 409 si el estado no lo permite.
+        setActionError(requestError.message);
+      } else {
+        setActionError('Ha ocurrido un error inesperado.');
+      }
+    } finally {
+      setTogglingId(null);
+    }
   }
 
   return (
@@ -111,6 +154,11 @@ export function MyItemsPage() {
       {message && (
         <p role="status" className="form-success">
           {message}
+        </p>
+      )}
+      {actionError && (
+        <p role="alert" className="form-error">
+          {actionError}
         </p>
       )}
       {error ? (
@@ -184,25 +232,43 @@ export function MyItemsPage() {
                     <p className="item-hint">{STATUS_HINTS[item.status]}</p>
                   </div>
                   <div className="item-actions">
-                    {/* Retirar es definitivo: un objeto retirado no se puede editar (409, #202). */}
+                    {/* Retirar es definitivo: un objeto retirado no se puede editar (409, #202)
+                        ni pausar o reanudar. */}
                     {item.status !== 'withdrawn' && (
-                      <button
-                        type="button"
-                        className="button-edit"
-                        aria-label={`Editar ${item.title}`}
-                        onClick={() => openEditor(item.id)}
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                          <path
-                            d="M4 20h4L19 9l-4-4L4 16v4Z"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        Editar
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          className="button-edit"
+                          aria-label={`Editar ${item.title}`}
+                          onClick={() => openEditor(item.id)}
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                              d="M4 20h4L19 9l-4-4L4 16v4Z"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          className="button-pause"
+                          aria-label={`${item.status === 'paused' ? 'Reanudar' : 'Pausar'} ${item.title}`}
+                          disabled={togglingId !== null}
+                          onClick={() => togglePause(item)}
+                        >
+                          {togglingId === item.id
+                            ? item.status === 'paused'
+                              ? 'Reanudando…'
+                              : 'Pausando…'
+                            : item.status === 'paused'
+                              ? 'Reanudar'
+                              : 'Pausar'}
+                        </button>
+                      </>
                     )}
                   </div>
                 </li>
