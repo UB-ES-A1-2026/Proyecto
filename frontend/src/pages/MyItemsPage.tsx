@@ -140,10 +140,9 @@ export function MyItemsPage() {
   }
 
   // La fila se queda en la lista como «Retirado»: el propietario la sigue viendo con su filtro.
-  function handleWithdrawn(id: string) {
+  function handleWithdrawn(withdrawn: MyItem) {
     setItems(
-      (current) =>
-        current?.map((item) => (item.id === id ? { ...item, status: 'withdrawn' } : item)) ?? null,
+      (current) => current?.map((item) => (item.id === withdrawn.id ? withdrawn : item)) ?? null,
     );
     setWithdrawing(null);
     setMessage('El anuncio se ha retirado.');
