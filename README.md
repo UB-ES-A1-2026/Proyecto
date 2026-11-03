@@ -228,6 +228,8 @@ URL base en local: `http://localhost:3000/api`. Todas las peticiones y respuesta
 | `POST` | `/auth/login` | Público | Inicia sesión |
 | `POST` | `/auth/logout` | Privado | Cierra la sesión actual |
 | `GET` | `/usuarios/me` | Privado | Devuelve el perfil del usuario |
+| `GET` | `/usuarios/me/objetos` | Privado | Devuelve los objetos del usuario |
+| `PATCH` | `/objetos/:id` | Privado | Edita un objeto (solo su propietario) |
 
 ### `GET /health`
 
@@ -312,6 +314,53 @@ Respuesta `200`:
 ```
 
 `401` si el token falta, no es válido o ha caducado.
+
+### `GET /usuarios/me/objetos` (privado)
+
+Devuelve los objetos del usuario en cualquier estado, del más nuevo al más antiguo. Si no tiene ninguno, la lista va vacía.
+
+Respuesta `200`:
+
+```json
+[
+  {
+    "id": "8b0e…",
+    "title": "Taladro percutor",
+    "dailyPrice": "5.50",
+    "neighborhood": "Gràcia",
+    "status": "published"
+  }
+]
+```
+
+`status` puede ser `published`, `paused` o `withdrawn`. `401` si el token falta, no es válido o ha caducado.
+
+### `PATCH /objetos/:id` (privado)
+
+Edita un objeto. Solo puede hacerlo su propietario. Hay que enviar los cuatro campos.
+
+Cuerpo:
+
+```json
+{ "title": "Taladro percutor", "description": "Con maletín y brocas.", "dailyPrice": 7.5, "deposit": 40 }
+```
+
+| Campo | Reglas |
+|---|---|
+| `title` | De 1 a 100 caracteres |
+| `description` | De 1 a 2000 caracteres |
+| `dailyPrice` | Mayor que 0, con hasta 2 decimales |
+| `deposit` | 0 o más, con hasta 2 decimales |
+
+Respuesta `200`: el objeto con los importes como texto (`"7.50"`), su categoría, sus fotos y el `id` y el `username` del propietario.
+
+| Código | Cuándo | `field` |
+|---|---|---|
+| `400` | Algún campo no cumple las reglas | `title`, `description`, `dailyPrice` o `deposit` |
+| `401` | No hay sesión | — |
+| `403` | El objeto no es tuyo | — |
+| `404` | El objeto no existe | — |
+| `409` | El objeto está retirado | — |
 
 ### Probarlo desde la terminal
 
