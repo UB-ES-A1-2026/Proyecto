@@ -67,3 +67,11 @@ export function updateItem(token: string, id: string, changes: ItemChanges): Pro
     token,
   });
 }
+
+// POST /api/objetos/:id/retirar (#110), sin cuerpo. Devuelve el objeto con la forma de la lista.
+export function withdrawItem(token: string, id: string): Promise<MyItem> {
+  return apiRequest<MyItem>(`/objetos/${encodeURIComponent(id)}/retirar`, {
+    method: 'POST',
+    token,
+  });
+}
