@@ -106,6 +106,7 @@ Cada caso corresponde a un criterio de aceptación del backlog. La columna **Tes
 | CP-LOG-05 | 3. Correo que no existe | Sin sesión iniciada | 1. Ir a `/login` 2. Escribir `noexiste@rentit.test` y cualquier contraseña 3. Pulsar «Iniciar sesión» | No se inicia sesión; bajo el correo aparece «El campo "correo electrónico" no es correcto, revísalo.» | `login.spec.ts` · criterio 3b |
 | CP-LOG-06 | 3. Campos vacíos | Sin sesión iniciada | 1. Ir a `/login` 2. Pulsar «Iniciar sesión» sin escribir nada | No se inicia sesión; aparecen los errores del correo y de la contraseña | `login.spec.ts` · criterio 3c |
 | CP-LOG-07 | 4. Mostrar / ocultar contraseña | Sin sesión iniciada | 1. Ir a `/login` 2. Escribir una contraseña 3. Pulsar «Mostrar» 4. Pulsar «Ocultar» | En el paso 2 la contraseña se ve oculta; en el 3 se ve el texto; en el 4 vuelve a ocultarse | `login.spec.ts` · criterio 4 |
+| CP-LOG-08 | 2. Vuelve a la página en la que estaba (búsqueda, #224) | Sin sesión iniciada | 1. Ir a `/buscar?q=taladro` 2. Pulsar «Iniciar sesión» en la cabecera 3. Iniciar sesión con `ana@rentit.test` / `Rentit2026` | Se vuelve a `/buscar?q=taladro` con la sesión iniciada | `login.spec.ts` · criterio 2 (búsqueda) |
 
 ### US-01.3 Cerrar sesión (#47) · T25 (#105)
 
