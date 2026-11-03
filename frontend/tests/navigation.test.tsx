@@ -111,4 +111,18 @@ describe('layout y navegación (#21)', () => {
 
     expect(screen.getByRole('link', { name: 'Rentit' })).toHaveAttribute('href', '/');
   });
+
+  it('sin sesión no muestra el enlace para publicar un objeto', () => {
+    renderRoute('/');
+
+    expect(mainNav().queryByRole('link', { name: 'Publicar objeto' })).not.toBeInTheDocument();
+  });
+
+  it('con sesión muestra Publicar objeto antes de Mi perfil', () => {
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    renderRoute('/');
+
+    const links = mainNav().getAllByRole('link').map((link) => link.textContent);
+    expect(links).toEqual(['Publicar objeto', 'Mi perfil']);
+  });
 });
