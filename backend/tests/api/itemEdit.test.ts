@@ -8,7 +8,7 @@ import { createTestUser, TEST_PASSWORD } from '../helpers/users.js';
 
 // GET /api/usuarios/me/objetos y PATCH /api/objetos/:id (US-02.02, #108): contrato publicado
 // en la issue, el que usa la pantalla «Mis objetos» de #109.
-// Generado con asistencia de IA (Claude)
+// Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
 
 const VALID_CHANGES = {
   title: 'Taladro nuevo',
