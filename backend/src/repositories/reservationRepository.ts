@@ -1,4 +1,4 @@
-// Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 02/11/2026
+// Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
 import type { Prisma, ReservationStatus } from '@prisma/client';
 import { reservationDetailInclude } from '../services/reservation.js';
 import { prisma } from './prisma.js';
@@ -9,6 +9,41 @@ export function findItemForReservation(itemId: string) {
     where: { id: itemId },
     select: { ownerId: true, status: true, dailyPrice: true },
   });
+}
+
+// Las dos fechas cuentan: una reserva que acaba el día que empieza esta se solapa.
+function overlappingReservationsWhere(
+  itemId: string,
+  startDate: Date,
+  endDate: Date,
+  occupyingStatuses: readonly ReservationStatus[],
+): Prisma.ReservationWhereInput {
+  return {
+    itemId,
+    status: { in: [...occupyingStatuses] },
+    startDate: { lte: endDate },
+    endDate: { gte: startDate },
+  };
+}
+
+// Solo informa: al crear la solicitud se vuelve a comprobar con el objeto bloqueado.
+export async function hasOverlappingReservation(
+  itemId: string,
+  startDate: Date,
+  endDate: Date,
+  occupyingStatuses: readonly ReservationStatus[],
+): Promise<boolean> {
+  const overlapping = await prisma.reservation.findFirst({
+    where: overlappingReservationsWhere(
+      itemId,
+      startDate,
+      endDate,
+      occupyingStatuses,
+    ),
+    select: { id: true },
+  });
+
+  return overlapping !== null;
 }
 
 export type InsertReservationResult =
@@ -54,14 +89,13 @@ export function insertReservationIfAvailable(
       return { outcome: 'duplicate' };
     }
 
-    // Las dos fechas cuentan: una reserva que acaba el día que empieza esta se solapa.
     const overlapping = await transaction.reservation.findFirst({
-      where: {
+      where: overlappingReservationsWhere(
         itemId,
-        status: { in: [...occupyingStatuses] },
-        startDate: { lte: endDate },
-        endDate: { gte: startDate },
-      },
+        startDate,
+        endDate,
+        occupyingStatuses,
+      ),
       select: { id: true },
     });
     if (overlapping) {
