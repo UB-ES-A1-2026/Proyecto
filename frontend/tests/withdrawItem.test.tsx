@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { changeItemStatus } from '../src/services/itemService';
+import { withdrawItem } from '../src/services/itemService';
 import { renderRoute } from './renderRoute';
 
 const SESSION_KEY = 'rentit.session';
@@ -31,8 +31,11 @@ const LIST = [
 
 type Handler = (url: string, init?: RequestInit) => Response | Promise<Response>;
 
-// La lista responde bien; el PATCH del estado lo responde `onWithdraw`.
-function mockItemApi(onWithdraw: Handler = () => Response.json({ id: 'o1', status: 'withdrawn' })) {
+// Respuesta 200 de POST /api/objetos/:id/retirar (#110): el objeto con la forma de la lista.
+const WITHDRAWN = { ...LIST[0], status: 'withdrawn' };
+
+// La lista responde bien; el POST de retirar lo responde `onWithdraw`.
+function mockItemApi(onWithdraw: Handler = () => Response.json(WITHDRAWN)) {
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     const url = String(input);
     if (url.endsWith('/usuarios/me/objetos')) return Response.json(LIST);
@@ -102,35 +105,51 @@ describe('retirar un anuncio (US-02.03, #111)', () => {
     expect(row.queryByRole('button', { name: /Retirar anuncio/ })).not.toBeInTheDocument();
 
     const [url, init] = fetchMock.mock.calls[1];
-    expect(String(url)).toMatch(/\/objetos\/o1\/estado$/);
-    expect(init?.method).toBe('PATCH');
+    expect(String(url)).toMatch(/\/objetos\/o1\/retirar$/);
+    expect(init?.method).toBe('POST');
     expect(init?.headers).toMatchObject({ Authorization: 'Bearer token-de-prueba' });
-    expect(JSON.parse(String(init?.body))).toEqual({ status: 'withdrawn' });
+    expect(init?.body).toBeUndefined();
   });
 
-  it('si tiene reservas activas avisa y no lo retira', async () => {
-    mockItemApi(() => Response.json({ error: 'Tiene reservas activas' }, { status: 409 }));
+  it('si tiene reservas activas avisa con el mensaje de la API y no lo retira', async () => {
+    mockItemApi(() =>
+      Response.json(
+        { error: 'No puedes retirar un objeto con reservas activas.' },
+        { status: 409 },
+      ),
+    );
     const { user, dialog } = await openWithdraw();
 
     await user.click(within(dialog).getByRole('button', { name: 'Retirar anuncio' }));
 
     expect(await within(dialog).findByRole('alert')).toHaveTextContent(
-      'No puedes retirar este anuncio porque tiene reservas activas.',
+      'No puedes retirar un objeto con reservas activas.',
     );
     expect(within(dialog).getByRole('button', { name: 'Retirar anuncio' })).toBeEnabled();
     expect(itemRow('Taladro percutor').getByText('Publicado')).toBeInTheDocument();
   });
 
+  it('si ya estaba retirado muestra el aviso de la API', async () => {
+    mockItemApi(() => Response.json({ error: 'Este objeto ya está retirado.' }, { status: 409 }));
+    const { user, dialog } = await openWithdraw();
+
+    await user.click(within(dialog).getByRole('button', { name: 'Retirar anuncio' }));
+
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      'Este objeto ya está retirado.',
+    );
+  });
+
   it('si no es el propietario muestra el error de la API', async () => {
     mockItemApi(() =>
-      Response.json({ error: 'No puedes modificar un objeto que no es tuyo.' }, { status: 403 }),
+      Response.json({ error: 'Solo el propietario puede retirar este objeto.' }, { status: 403 }),
     );
     const { user, dialog } = await openWithdraw();
 
     await user.click(within(dialog).getByRole('button', { name: 'Retirar anuncio' }));
 
     expect(await within(dialog).findByRole('alert')).toHaveTextContent(
-      'No puedes modificar un objeto que no es tuyo.',
+      'Solo el propietario puede retirar este objeto.',
     );
   });
 
@@ -144,16 +163,12 @@ describe('retirar un anuncio (US-02.03, #111)', () => {
   });
 });
 
-describe('changeItemStatus (#111)', () => {
-  it('hace PATCH /objetos/:id/estado con el estado nuevo', async () => {
-    const fetchMock = vi
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue(Response.json({ id: 'o1', status: 'withdrawn' }));
+describe('withdrawItem (#111)', () => {
+  it('hace POST /objetos/:id/retirar sin cuerpo y devuelve el objeto', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json(WITHDRAWN));
 
-    await expect(changeItemStatus('token-de-prueba', 'o1', 'withdrawn')).resolves.toEqual({
-      id: 'o1',
-      status: 'withdrawn',
-    });
-    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/objetos\/o1\/estado$/);
+    await expect(withdrawItem('token-de-prueba', 'o1')).resolves.toEqual(WITHDRAWN);
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/objetos\/o1\/retirar$/);
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST');
   });
 });

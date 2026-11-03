@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
-import { changeItemStatus } from '../services/itemService';
+import { withdrawItem, type MyItem } from '../services/itemService';
 import { Modal } from './Modal';
 
 type WithdrawItemDialogProps = {
   item: { id: string; title: string };
   onClose: () => void;
-  onWithdrawn: (id: string) => void;
+  onWithdrawn: (item: MyItem) => void;
 };
 
 // Confirmación de «Retirar anuncio» (US-02.03, #111). Cancelar no cambia nada (criterio 3).
@@ -22,18 +22,16 @@ export function WithdrawItemDialog({ item, onClose, onWithdrawn }: WithdrawItemD
     setSubmitting(true);
     setError(null);
     try {
-      await changeItemStatus(session.token, item.id, 'withdrawn');
-      onWithdrawn(item.id);
+      onWithdrawn(await withdrawItem(session.token, item.id));
     } catch (requestError) {
       // Sesión caducada o revocada: al borrarla, PrivateRoute lleva al login.
       if (requestError instanceof ApiError && requestError.status === 401) {
         clearSession();
         return;
       }
-      // El backend (#110) no deja retirar un objeto con reservas activas.
-      if (requestError instanceof ApiError && requestError.status === 409) {
-        setError('No puedes retirar este anuncio porque tiene reservas activas.');
-      } else if (requestError instanceof ApiError) {
+      // Mensajes de #110: 403 si no es tuyo, 404 si no existe y 409 si tiene reservas activas
+      // o ya está retirado.
+      if (requestError instanceof ApiError) {
         setError(requestError.message);
       } else {
         setError('Ha ocurrido un error inesperado.');
