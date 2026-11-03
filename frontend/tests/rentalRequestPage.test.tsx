@@ -43,6 +43,7 @@ type Handler = (url: string, init?: RequestInit) => Response | Promise<Response>
 function mockApi(onItem: Handler = () => Response.json(ITEM)) {
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     const url = String(input);
+    if (url.includes('/reservas/disponibilidad')) return Response.json({ available: true });
     if (url.endsWith('/reservas')) return Response.json(RESERVATION, { status: 201 });
     return onItem(url, init);
   });
@@ -96,14 +97,16 @@ describe('pantalla /objetos/:id/solicitar (US-04.01, #121)', () => {
     });
     fireEvent.change(screen.getByLabelText('Fecha de fin'), { target: { value: '2026-11-12' } });
     expect(screen.getByText('18,00 €')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Solicitar alquiler' }));
+    const requestButton = screen.getByRole('button', { name: 'Solicitar alquiler' });
+    await waitFor(() => expect(requestButton).toBeEnabled());
+    await user.click(requestButton);
     // La foto es decorativa (alt=""), así que no tiene rol «img»: se busca por su clase.
     expect(document.querySelector('.rental-item-photo')).toHaveAttribute('src', ITEM.photos[0].url);
     await user.click(screen.getByRole('button', { name: 'Confirmar' }));
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/mis-solicitudes'));
-    const [, init] = fetchMock.mock.calls[1];
-    expect(JSON.parse(String(init?.body))).toEqual({
+    const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
+    expect(JSON.parse(String(post?.[1]?.body))).toEqual({
       itemId: ITEM_ID,
       startDate: '2026-11-10',
       endDate: '2026-11-12',
