@@ -47,6 +47,8 @@ describe('contraste de la paleta (WCAG AA)', () => {
     ['color-success', 'color-success-background'],
     ['color-warning', 'color-background'],
     ['color-warning', 'color-warning-soft'],
+    ['color-on-accent', 'color-accent'],
+    ['color-on-accent', 'color-accent-hover'],
   ])('--%s sobre --%s', (foreground, background) => {
     expect(contrast(foreground, background)).toBeGreaterThanOrEqual(MIN_CONTRAST);
   });
@@ -58,5 +60,12 @@ describe('los colores están en un solo sitio', () => {
     const withoutComments = outsideRoot.replace(/\/\*[\s\S]*?\*\//g, '');
 
     expect(withoutComments.match(/#[0-9a-f]{3,8}\b|rgba?\(/gi)).toBeNull();
+  });
+});
+
+describe('nombre de la cabecera (texto grande, #158)', () => {
+  // «Rentit» va en negrita a 1,25rem (20px): WCAG AA pide 3:1 para el texto grande.
+  it('--color-accent sobre --color-primary', () => {
+    expect(contrast('color-accent', 'color-primary')).toBeGreaterThanOrEqual(3);
   });
 });
