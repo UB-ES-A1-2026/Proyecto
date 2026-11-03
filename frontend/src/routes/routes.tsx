@@ -7,6 +7,7 @@ import { ItemDetailPage } from '../pages/ItemDetailPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { ProfilePage } from '../pages/ProfilePage';
+import { PublishItemPage } from '../pages/PublishItemPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { SearchPage } from '../pages/SearchPage';
 
@@ -24,7 +25,13 @@ export const routes: RouteObject[] = [
       { path: 'login', element: <LoginPage /> },
       { path: 'registro', element: <RegisterPage /> },
       { path: 'objetos/:id', element: <ItemDetailPage /> },
-      { element: <PrivateRoute />, children: [{ path: 'perfil', element: <ProfilePage /> }] },
+      {
+        element: <PrivateRoute />,
+        children: [
+          { path: 'perfil', element: <ProfilePage /> },
+          { path: 'objetos/nuevo', element: <PublishItemPage /> },
+        ],
+      },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
