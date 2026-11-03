@@ -8,6 +8,7 @@ import { myReservationsRoutes } from './myReservationsRoutes.js';
 import { reservationRoutes } from './reservationRoutes.js';
 import { itemPauseRoutes } from './itemPauseRoutes.js';
 import { itemWithdrawRoutes } from './itemWithdrawRoutes.js';
+import { reservationDecisionRoutes } from './reservationDecisionRoutes.js';
 import { userRoutes } from './userRoutes.js';
 
 export const apiRoutes = Router();
@@ -22,3 +23,4 @@ apiRoutes.use(myReservationsRoutes);
 apiRoutes.use(reservationRoutes);
 apiRoutes.use(itemPauseRoutes);
 apiRoutes.use(itemWithdrawRoutes);
+apiRoutes.use(reservationDecisionRoutes);
