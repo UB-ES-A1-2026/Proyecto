@@ -10,6 +10,7 @@ import { MyReservationsPage } from '../pages/MyReservationsPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { RegisterPage } from '../pages/RegisterPage';
+import { RentalRequestPage } from '../pages/RentalRequestPage';
 import { SearchPage } from '../pages/SearchPage';
 
 export const routes: RouteObject[] = [
@@ -32,6 +33,7 @@ export const routes: RouteObject[] = [
           { path: 'perfil', element: <ProfilePage /> },
           { path: 'mis-objetos', element: <MyItemsPage /> },
           { path: 'mis-solicitudes', element: <MyReservationsPage /> },
+          { path: 'objetos/:id/solicitar', element: <RentalRequestPage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },
