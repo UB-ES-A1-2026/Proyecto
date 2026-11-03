@@ -257,7 +257,7 @@ describe('publicar un objeto (US-02.01, #13)', () => {
 
   it('si falla una foto conserva el anuncio creado y ofrece verlo', async () => {
     const user = userEvent.setup();
-    const { postBodies } = mockApi();
+    const { fetchMock, postBodies } = mockApi();
     vi.mocked(uploadItemPhoto).mockRejectedValueOnce(
       new ApiError(503, 'No se ha podido subir la foto.', 'photos'),
     );
@@ -277,7 +277,13 @@ describe('publicar un objeto (US-02.01, #13)', () => {
       'href',
       '/objetos/item-123',
     );
+    expect(screen.queryByRole('button', { name: 'Publicar' })).not.toBeInTheDocument();
     expect(postBodies).toHaveLength(1);
+    expect(
+      fetchMock.mock.calls.filter(
+        ([url, init]) => String(url).endsWith('/api/objetos') && init?.method === 'POST',
+      ),
+    ).toHaveLength(1);
     expect(uploadItemPhoto).toHaveBeenCalledTimes(1);
   });
 
