@@ -2,7 +2,7 @@
 import type { ItemStatus } from '@prisma/client';
 import { AppError } from '../errors/appError.js';
 import {
-  findItemOwner,
+  findItemOwnerAndStatus,
   findItemsByOwner,
   updateItemById,
 } from '../repositories/itemEditRepository.js';
@@ -11,6 +11,7 @@ import { toItemDetail, type ItemDetail } from './itemDetail.js';
 export const ITEM_NOT_FOUND_MESSAGE = 'No hemos encontrado este objeto.';
 export const NOT_OWNER_MESSAGE =
   'Solo el propietario puede editar este objeto.';
+export const WITHDRAWN_MESSAGE = 'No se puede editar un objeto retirado.';
 
 export interface MyItem {
   id: string;
@@ -37,13 +38,14 @@ export async function getMyItems(ownerId: string): Promise<MyItem[]> {
   }));
 }
 
-// Editar un objeto (US-02.02, #108): solo su propietario.
+// Editar un objeto (US-02.02, #108): solo su propietario. Retirar es definitivo (#110), así que
+// un objeto retirado ya no se puede editar; uno pausado, sí.
 export async function updateItem(
   itemId: string,
   userId: string,
   changes: ItemChanges,
 ): Promise<ItemDetail> {
-  const item = await findItemOwner(itemId);
+  const item = await findItemOwnerAndStatus(itemId);
 
   if (!item) {
     throw new AppError(404, ITEM_NOT_FOUND_MESSAGE);
@@ -51,6 +53,10 @@ export async function updateItem(
 
   if (item.ownerId !== userId) {
     throw new AppError(403, NOT_OWNER_MESSAGE);
+  }
+
+  if (item.status === 'withdrawn') {
+    throw new AppError(409, WITHDRAWN_MESSAGE);
   }
 
   const updated = await updateItemById(itemId, changes);
