@@ -1,4 +1,4 @@
-// Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 02/11/2026
+// Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
 import type { ReservationStatus } from '@prisma/client';
 import { AppError } from '../errors/appError.js';
 import {
