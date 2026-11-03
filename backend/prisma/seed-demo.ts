@@ -7,6 +7,7 @@ import {
   DEMO_USERS,
   demoPasswordError,
   upsertDemoItems,
+  upsertDemoReservations,
   upsertUsers,
 } from './demoSeed.js';
 
@@ -22,10 +23,11 @@ async function main(): Promise<void> {
   const rounds = Number(process.env.BCRYPT_ROUNDS ?? '10');
   const ownerIds = await upsertUsers(prisma, DEMO_USERS, password, rounds);
   const items = await upsertDemoItems(prisma, ownerIds);
+  const reservations = await upsertDemoReservations(prisma, ownerIds);
 
   // Nunca se escribe la contraseña en el log.
   console.info(
-    `Datos de demo listos: ${DEMO_USERS.length} cuentas (${DEMO_USERS.map(({ email }) => email).join(', ')}) y ${items} objetos`,
+    `Datos de demo listos: ${DEMO_USERS.length} cuentas (${DEMO_USERS.map(({ email }) => email).join(', ')}), ${items} objetos y ${reservations} solicitudes`,
   );
 }
 

@@ -3,7 +3,7 @@
 // Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 31/10/2026
 import bcrypt from 'bcrypt';
 import type { PrismaClient, UserRole } from '@prisma/client';
-import { DEMO_ITEMS } from './demoData.js';
+import { DEMO_ITEMS, DEMO_RESERVATIONS } from './demoData.js';
 
 // Contraseña de las cuentas del seed de desarrollo: está en el repo, que es público.
 export const DEV_PASSWORD = 'Rentit2026';
@@ -97,4 +97,67 @@ export async function upsertDemoItems(
   }
 
   return DEMO_ITEMS.length;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Fecha (sin hora) a N días de `today`, a medianoche UTC, como guarda Prisma las columnas DATE.
+function daysFrom(today: Date, days: number): Date {
+  const midnight = Date.UTC(
+    today.getUTCFullYear(),
+    today.getUTCMonth(),
+    today.getUTCDate(),
+  );
+  return new Date(midnight + days * DAY_MS);
+}
+
+// Crea o actualiza las solicitudes de DEMO_RESERVATIONS (US-04.02 a US-04.04). Necesita que
+// existan antes los usuarios y los objetos. Hay como mucho una por objeto y arrendatario: si ya
+// existe, se le devuelven las fechas, el importe y el estado del catálogo, así que repetir el
+// seed deja otra vez pendientes las que se hayan aceptado o rechazado al probar.
+export async function upsertDemoReservations(
+  prisma: PrismaClient,
+  userIds: readonly string[],
+  today = new Date(),
+): Promise<number> {
+  for (const reservation of DEMO_RESERVATIONS) {
+    const ownerId = userIds[reservation.item.owner];
+    const renterId = userIds[reservation.renter];
+    if (!ownerId || !renterId) {
+      throw new Error(
+        `Faltan usuarios para la solicitud de «${reservation.item.title}»`,
+      );
+    }
+
+    const item = await prisma.item.findFirst({
+      where: { ownerId, title: reservation.item.title },
+      select: { id: true, dailyPrice: true },
+    });
+    if (!item) {
+      throw new Error(
+        `No existe «${reservation.item.title}»: crea antes los objetos (upsertDemoItems)`,
+      );
+    }
+
+    const data = {
+      itemId: item.id,
+      renterId,
+      startDate: daysFrom(today, reservation.startInDays),
+      endDate: daysFrom(today, reservation.startInDays + reservation.days - 1),
+      totalPrice: item.dailyPrice.times(reservation.days),
+      status: reservation.status,
+    };
+    const existing = await prisma.reservation.findFirst({
+      where: { itemId: item.id, renterId },
+      select: { id: true },
+    });
+
+    if (existing) {
+      await prisma.reservation.update({ where: { id: existing.id }, data });
+    } else {
+      await prisma.reservation.create({ data });
+    }
+  }
+
+  return DEMO_RESERVATIONS.length;
 }
