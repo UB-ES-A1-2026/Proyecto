@@ -1,8 +1,8 @@
 // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 03/11/2026
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
-import { requestRental, type Reservation } from '../services/rentalService';
+import { checkAvailability, requestRental, type Reservation } from '../services/rentalService';
 import {
   calculateTotalPrice,
   countRentalDays,
@@ -26,6 +26,13 @@ type RentalRequestProps = {
   onRequested: (reservation: Reservation) => void;
 };
 
+// Mismo texto que el 409 de POST /reservas (#120).
+const NOT_AVAILABLE_MESSAGE = 'El objeto no está disponible en esas fechas.';
+
+// Resultado de la consulta de disponibilidad para unas fechas concretas («inicio|fin»): así se
+// ignora el de unas fechas anteriores si el usuario las cambia mientras se espera la respuesta.
+type AvailabilityResult = { datesKey: string } & ({ available: boolean } | { error: string });
+
 // Selector de fechas, resumen y confirmación de US-04.01 (#121). Lo muestra RentalRequestPage en
 // /objetos/:id/solicitar, a donde lleva «Alquilar» en la página de detalle (#15).
 export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProps) {
@@ -35,13 +42,54 @@ export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProp
   const [formError, setFormError] = useState<string | null>(null);
   const [step, setStep] = useState<'dates' | 'summary'>('dates');
   const [submitting, setSubmitting] = useState(false);
+  const [availability, setAvailability] = useState<AvailabilityResult | null>(null);
   const { session, clearSession } = useAuth();
+  const token = session?.token;
 
   const today = todayIso();
   const errors = { ...validateRentalDates(startDate, endDate, today), ...apiErrors };
   const datesValid = startDate !== '' && endDate !== '' && !errors.startDate && !errors.endDate;
   const days = datesValid ? countRentalDays(startDate, endDate) : 0;
   const totalPrice = calculateTotalPrice(item.pricePerDay, days);
+  const datesKey = datesValid ? `${startDate}|${endDate}` : null;
+  const currentAvailability = availability?.datesKey === datesKey ? availability : null;
+  const checkingAvailability = datesKey !== null && currentAvailability === null;
+  const isAvailable =
+    currentAvailability !== null &&
+    'available' in currentAvailability &&
+    currentAvailability.available;
+
+  // Criterio 3 de US-04.01: con las dos fechas válidas se pregunta si están libres (#204), y solo
+  // entonces se puede pulsar «Solicitar alquiler».
+  useEffect(() => {
+    if (!datesKey || !token) return;
+    let ignore = false;
+
+    checkAvailability(token, { itemId: item.id, startDate, endDate })
+      .then(({ available }) => {
+        if (!ignore) setAvailability({ datesKey, available });
+      })
+      .catch((error: unknown) => {
+        if (ignore) return;
+        if (error instanceof ApiError && error.status === 401) {
+          clearSession();
+        } else if (
+          error instanceof ApiError &&
+          (error.field === 'startDate' || error.field === 'endDate')
+        ) {
+          setApiErrors({ [error.field]: error.message });
+        } else {
+          setAvailability({
+            datesKey,
+            error: error instanceof ApiError ? error.message : 'Ha ocurrido un error inesperado.',
+          });
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [datesKey, token, item.id, startDate, endDate, clearSession]);
 
   function changeDate(field: 'startDate' | 'endDate', value: string) {
     if (field === 'startDate') setStartDate(value);
@@ -52,7 +100,7 @@ export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProp
 
   function handleDatesSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!datesValid) return;
+    if (!isAvailable) return;
     // Un error de un envío anterior (p. ej. el 409 por solape) no se arrastra al resumen nuevo.
     setFormError(null);
     setStep('summary');
@@ -81,8 +129,9 @@ export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProp
       // Errores de #120. Si el problema está en las fechas (409 por solape, con field), se vuelve
       // a elegirlas; si no (objeto propio, no publicado, solicitud duplicada…), se queda en el
       // resumen con el mensaje de la API.
-      if (error instanceof ApiError && error.status === 409 && error.field) {
-        setFormError(error.message);
+      if (error instanceof ApiError && error.status === 409 && error.field && datesKey) {
+        // Alguien ha ocupado las fechas después de consultarlas: ahora ya no están libres.
+        setAvailability({ datesKey, available: false });
         setStep('dates');
       } else if (
         error instanceof ApiError &&
@@ -203,11 +252,20 @@ export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProp
             'Elige las fechas para ver el precio.'
           )}
         </p>
+        {checkingAvailability && (
+          <p className="rental-price field-hint">Comprobando disponibilidad…</p>
+        )}
+        {currentAvailability &&
+          ('error' in currentAvailability || !currentAvailability.available) && (
+            <p role="alert" className="form-error">
+              {'error' in currentAvailability ? currentAvailability.error : NOT_AVAILABLE_MESSAGE}
+            </p>
+          )}
         <div className="rental-actions">
           <button type="button" className="button-secondary" onClick={onCancel}>
             Cancelar
           </button>
-          <button type="submit" className="button-primary" disabled={!datesValid}>
+          <button type="submit" className="button-primary" disabled={!isAvailable}>
             Solicitar alquiler
           </button>
         </div>

@@ -38,6 +38,15 @@ export function getRentalItem(id: string, token: string): Promise<RentalItemDeta
   return apiRequest<RentalItemDetail>(`/objetos/${encodeURIComponent(id)}`, { token });
 }
 
+// Respuesta de GET /api/reservas/disponibilidad (#204). Solo informa: POST /reservas lo vuelve a
+// comprobar al crear la solicitud.
+export type Availability = { available: boolean };
+
+export function checkAvailability(token: string, input: RentalRequestInput): Promise<Availability> {
+  const query = new URLSearchParams(input).toString();
+  return apiRequest<Availability>(`/reservas/disponibilidad?${query}`, { token });
+}
+
 export function requestRental(token: string, input: RentalRequestInput): Promise<Reservation> {
   return apiRequest<Reservation>('/reservas', { method: 'POST', body: input, token });
 }
