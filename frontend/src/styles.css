@@ -728,3 +728,24 @@ body {
 .item-rent-button {
   width: auto;
 }
+
+/* Pausar / Reanudar un anuncio (US-02.04, #113) */
+.button-pause {
+  padding: 0.7rem var(--space-lg);
+  font: inherit;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
+  background-color: var(--color-background);
+  border: var(--border-width) solid var(--color-primary);
+  border-radius: var(--radius-large);
+  cursor: pointer;
+}
+
+.button-pause:hover {
+  background-color: var(--color-primary-soft);
+}
+
+.button-pause:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
