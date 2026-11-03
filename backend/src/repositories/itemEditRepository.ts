@@ -17,10 +17,10 @@ export function findItemsByOwner(ownerId: string) {
   });
 }
 
-export function findItemOwner(id: string) {
+export function findItemOwnerAndStatus(id: string) {
   return prisma.item.findUnique({
     where: { id },
-    select: { ownerId: true },
+    select: { ownerId: true, status: true },
   });
 }
 

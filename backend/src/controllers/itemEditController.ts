@@ -60,7 +60,7 @@ function readChanges(body: unknown): itemEditService.ItemChanges {
       'descripción',
       2000,
     ),
-    dailyPrice: readAmount(fields.dailyPrice, 'dailyPrice', 'precio por día', {
+    dailyPrice: readAmount(fields.dailyPrice, 'dailyPrice', 'precio', {
       allowZero: false,
     }),
     deposit: readAmount(fields.deposit, 'deposit', 'fianza', {

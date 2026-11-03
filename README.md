@@ -360,6 +360,7 @@ Respuesta `200`: el objeto con los importes como texto (`"7.50"`), su categoría
 | `401` | No hay sesión | — |
 | `403` | El objeto no es tuyo | — |
 | `404` | El objeto no existe | — |
+| `409` | El objeto está retirado | — |
 
 ### Probarlo desde la terminal
 
