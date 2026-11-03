@@ -233,6 +233,8 @@ URL base en local: `http://localhost:3000/api`. Todas las peticiones y respuesta
 | `GET` | `/usuarios/me/reservas` | Privado | Devuelve las solicitudes enviadas y recibidas |
 | `POST` | `/reservas` | Privado | Solicita el alquiler de un objeto |
 | `GET` | `/reservas/disponibilidad` | Privado | Comprueba si un objeto está libre en unas fechas |
+| `POST` | `/objetos/:id/pausar` | Privado | Pausa un objeto publicado (solo su propietario) |
+| `POST` | `/objetos/:id/reanudar` | Privado | Reanuda un objeto pausado (solo su propietario) |
 
 ### `GET /health`
 
@@ -444,6 +446,29 @@ Respuesta `200`:
 | `400` | Falta un parámetro o tiene un formato incorrecto, la fecha de inicio es anterior a hoy o la de fin es anterior a la de inicio | `itemId`, `startDate` o `endDate` |
 | `401` | No hay sesión | — |
 | `404` | El objeto no existe o no está publicado | — |
+
+### `POST /objetos/:id/pausar` y `POST /objetos/:id/reanudar` (privados)
+
+Pausan un objeto publicado o reanudan uno pausado, sin cuerpo. Un objeto pausado no sale en la búsqueda ni admite solicitudes nuevas, pero conserva sus reservas y sigue en «Mis objetos».
+
+Respuesta `200`:
+
+```json
+{
+  "id": "8b0e…",
+  "title": "Taladro percutor",
+  "dailyPrice": "5.50",
+  "neighborhood": "Gràcia",
+  "status": "paused"
+}
+```
+
+| Código | Cuándo |
+|---|---|
+| `401` | No hay sesión |
+| `403` | El objeto no es tuyo |
+| `404` | El objeto no existe |
+| `409` | El objeto no está en el estado necesario: solo se pausa uno publicado y solo se reanuda uno pausado |
 
 ### Probarlo desde la terminal
 
