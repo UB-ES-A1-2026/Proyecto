@@ -1,5 +1,5 @@
 // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 03/11/2026
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { RentalRequest, type RentalItem } from '../src/components/RentalRequest';
@@ -27,8 +27,24 @@ const RENTAL = {
   createdAt: '2026-11-01T12:00:00.000Z',
 };
 
-function mockFetch(handler: () => Response | Promise<Response>) {
-  return vi.spyOn(globalThis, 'fetch').mockImplementation(async () => handler());
+type Handler = () => Response | Promise<Response>;
+
+// GET /reservas/disponibilidad (#204) lo responde `onAvailability` (por defecto, libre); el resto
+// de peticiones, que son el POST /reservas, las responde `handler`.
+function mockFetch(
+  handler: Handler = () => Response.json(RENTAL, { status: 201 }),
+  onAvailability: Handler = () => Response.json({ available: true }),
+) {
+  return vi
+    .spyOn(globalThis, 'fetch')
+    .mockImplementation(async (input) =>
+      String(input).includes('/reservas/disponibilidad') ? onAvailability() : handler(),
+    );
+}
+
+// Las llamadas a POST /reservas, sin las consultas de disponibilidad.
+function postCalls(fetchMock: ReturnType<typeof mockFetch>) {
+  return fetchMock.mock.calls.filter(([, init]) => init?.method === 'POST');
 }
 
 function renderRentalRequest() {
@@ -45,7 +61,7 @@ function renderRentalRequest() {
 
 // Elige fechas válidas, pasa al resumen y pulsa «Confirmar».
 async function confirmRequest(user: ReturnType<typeof userEvent.setup>) {
-  chooseDates('2026-11-04', '2026-11-06');
+  await chooseAvailableDates('2026-11-04', '2026-11-06');
   await user.click(requestButton());
   await user.click(screen.getByRole('button', { name: 'Confirmar' }));
 }
@@ -53,6 +69,12 @@ async function confirmRequest(user: ReturnType<typeof userEvent.setup>) {
 function chooseDates(startDate: string, endDate: string) {
   fireEvent.change(screen.getByLabelText('Fecha de inicio'), { target: { value: startDate } });
   fireEvent.change(screen.getByLabelText('Fecha de fin'), { target: { value: endDate } });
+}
+
+// Elige las fechas y espera a que la API diga que están libres.
+async function chooseAvailableDates(startDate: string, endDate: string) {
+  chooseDates(startDate, endDate);
+  await waitFor(() => expect(requestButton()).toBeEnabled());
 }
 
 function requestButton() {
@@ -63,6 +85,7 @@ beforeEach(() => {
   // Solo se finge la fecha: «hoy» es el 1 de noviembre de 2026.
   vi.useFakeTimers({ toFake: ['Date'] });
   vi.setSystemTime(new Date(2026, 10, 1, 12, 0));
+  mockFetch();
 });
 
 afterEach(() => vi.useRealTimers());
@@ -77,14 +100,14 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
     expect(screen.getByLabelText('Fecha de inicio')).toHaveAttribute('min', '2026-11-01');
   });
 
-  it('muestra el precio del periodo y activa «Solicitar alquiler»', () => {
+  it('muestra el precio del periodo y activa «Solicitar alquiler» si las fechas están libres', async () => {
     renderRentalRequest();
 
     chooseDates('2026-11-04', '2026-11-06');
 
     expect(screen.getByText(/3 días × 5,00 € =/)).toBeInTheDocument();
     expect(screen.getByText('15,00 €')).toBeInTheDocument();
-    expect(requestButton()).toBeEnabled();
+    await waitFor(() => expect(requestButton()).toBeEnabled());
   });
 
   it('no deja que la fecha de fin sea anterior a la de inicio', () => {
@@ -111,11 +134,11 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
   });
 
   it('enseña el resumen antes de enviar y «Volver» conserva las fechas', async () => {
-    const fetchMock = mockFetch(() => Response.json(RENTAL, { status: 201 }));
+    const fetchMock = mockFetch();
     const user = userEvent.setup();
     renderRentalRequest();
 
-    chooseDates('2026-11-04', '2026-11-06');
+    await chooseAvailableDates('2026-11-04', '2026-11-06');
     await user.click(requestButton());
 
     expect(screen.getByRole('heading', { name: 'Revisa tu solicitud' })).toBeInTheDocument();
@@ -127,7 +150,7 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
     expect(details.getByText('Importe del alquiler (3 días)')).toBeInTheDocument();
     expect(details.getByText('15,00 €')).toBeInTheDocument();
     expect(screen.getByText('Taladro percutor Bosch')).toBeInTheDocument();
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(postCalls(fetchMock)).toHaveLength(0);
 
     await user.click(screen.getByRole('button', { name: 'Volver' }));
 
@@ -136,16 +159,14 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
   });
 
   it('al confirmar crea la solicitud con el token y avisa a quien la usa', async () => {
-    const fetchMock = mockFetch(() => Response.json(RENTAL, { status: 201 }));
+    const fetchMock = mockFetch();
     const user = userEvent.setup();
     const { onRequested } = renderRentalRequest();
 
-    chooseDates('2026-11-04', '2026-11-06');
-    await user.click(requestButton());
-    await user.click(screen.getByRole('button', { name: 'Confirmar' }));
+    await confirmRequest(user);
 
     expect(onRequested).toHaveBeenCalledWith(RENTAL);
-    const [url, init] = fetchMock.mock.calls[0];
+    const [[url, init]] = postCalls(fetchMock);
     expect(String(url)).toMatch(/\/reservas$/);
     expect(init?.method).toBe('POST');
     expect(init?.headers).toMatchObject({ Authorization: 'Bearer token-de-prueba' });
@@ -173,6 +194,8 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
     );
     expect(screen.getByRole('heading', { name: 'Solicitar alquiler' })).toBeInTheDocument();
     expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('2026-11-04');
+    // Ahora se sabe que no están libres: no se puede volver a solicitar con las mismas fechas.
+    expect(requestButton()).toBeDisabled();
     expect(onRequested).not.toHaveBeenCalled();
   });
 
@@ -305,6 +328,7 @@ describe('cambios de la revisión de #203', () => {
     await confirmRequest(user);
     expect(await screen.findByRole('alert')).toBeInTheDocument();
 
+    await chooseAvailableDates('2026-11-04', '2026-11-08');
     await user.click(requestButton());
 
     expect(screen.getByRole('heading', { name: 'Revisa tu solicitud' })).toBeInTheDocument();
@@ -321,5 +345,110 @@ describe('cambios de la revisión de #203', () => {
     await vi.waitFor(() => expect(clearSession).toHaveBeenCalled());
     expect(screen.getByRole('button', { name: 'Confirmar' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Volver' })).toBeEnabled();
+  });
+});
+
+describe('consulta de disponibilidad (criterio 3 de US-04.01, #204)', () => {
+  it('con las dos fechas válidas pregunta a la API y espera la respuesta', async () => {
+    let respond: (response: Response) => void = () => {};
+    const fetchMock = mockFetch(
+      undefined,
+      () => new Promise<Response>((resolve) => (respond = resolve)),
+    );
+    renderRentalRequest();
+
+    chooseDates('2026-11-04', '2026-11-06');
+
+    expect(screen.getByText('Comprobando disponibilidad…')).toBeInTheDocument();
+    expect(requestButton()).toBeDisabled();
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(String(url)).toMatch(
+      /\/reservas\/disponibilidad\?itemId=item-1&startDate=2026-11-04&endDate=2026-11-06$/,
+    );
+    expect(init?.headers).toMatchObject({ Authorization: 'Bearer token-de-prueba' });
+
+    respond(Response.json({ available: true }));
+    await waitFor(() => expect(requestButton()).toBeEnabled());
+    expect(screen.queryByText('Comprobando disponibilidad…')).not.toBeInTheDocument();
+  });
+
+  it('no pregunta mientras las fechas no son válidas', () => {
+    const fetchMock = mockFetch();
+    renderRentalRequest();
+
+    chooseDates('2026-11-06', '2026-11-04');
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('si las fechas están ocupadas lo avisa y no deja solicitar', async () => {
+    mockFetch(undefined, () => Response.json({ available: false }));
+    renderRentalRequest();
+
+    chooseDates('2026-11-04', '2026-11-06');
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'El objeto no está disponible en esas fechas.',
+    );
+    expect(requestButton()).toBeDisabled();
+  });
+
+  it('ignora la respuesta de unas fechas anteriores si el usuario las cambia', async () => {
+    const pending: ((response: Response) => void)[] = [];
+    mockFetch(undefined, () => new Promise<Response>((resolve) => pending.push(resolve)));
+    renderRentalRequest();
+
+    chooseDates('2026-11-04', '2026-11-06');
+    fireEvent.change(screen.getByLabelText('Fecha de fin'), { target: { value: '2026-11-08' } });
+    await waitFor(() => expect(pending).toHaveLength(2));
+
+    // Llega primero la respuesta nueva (libre) y después la antigua (ocupada).
+    pending[1](Response.json({ available: true }));
+    await waitFor(() => expect(requestButton()).toBeEnabled());
+    pending[0](Response.json({ available: false }));
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(requestButton()).toBeEnabled();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('si la API rechaza una fecha al consultar, la marca en su campo', async () => {
+    mockFetch(undefined, () =>
+      Response.json(
+        { error: 'La fecha de inicio no puede ser anterior a hoy.', field: 'startDate' },
+        { status: 400 },
+      ),
+    );
+    renderRentalRequest();
+
+    chooseDates('2026-11-04', '2026-11-06');
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('Fecha de inicio')).toHaveAccessibleDescription(
+        'La fecha de inicio no puede ser anterior a hoy.',
+      ),
+    );
+    expect(requestButton()).toBeDisabled();
+  });
+
+  it('si el objeto ya no está publicado muestra el error de la API', async () => {
+    mockFetch(undefined, () =>
+      Response.json({ error: 'No hemos encontrado este objeto.' }, { status: 404 }),
+    );
+    renderRentalRequest();
+
+    chooseDates('2026-11-04', '2026-11-06');
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('No hemos encontrado este objeto.');
+    expect(requestButton()).toBeDisabled();
+  });
+
+  it('con la sesión caducada al consultar borra la sesión', async () => {
+    mockFetch(undefined, () => Response.json({ error: 'Sesión no válida' }, { status: 401 }));
+    const { clearSession } = renderRentalRequest();
+
+    chooseDates('2026-11-04', '2026-11-06');
+
+    await waitFor(() => expect(clearSession).toHaveBeenCalled());
   });
 });
