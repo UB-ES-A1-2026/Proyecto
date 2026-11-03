@@ -3,6 +3,7 @@ import type { ReservationStatus } from '@prisma/client';
 import { AppError } from '../errors/appError.js';
 import {
   findItemForReservation,
+  hasOverlappingReservation,
   insertReservationIfAvailable,
 } from '../repositories/reservationRepository.js';
 import { toReservationDetail, type ReservationDetail } from './reservation.js';
@@ -45,11 +46,10 @@ export function todayInSpain(now: Date = new Date()): string {
   }).format(now);
 }
 
-export async function createReservation(
-  renterId: string,
-  input: { itemId: string; startDate: string; endDate: string },
-  now: Date = new Date(),
-): Promise<ReservationDetail> {
+function assertValidDates(
+  input: { startDate: string; endDate: string },
+  now: Date,
+): void {
   // Las fechas son «AAAA-MM-DD»: se pueden comparar como texto.
   if (input.startDate < todayInSpain(now)) {
     throw new AppError(400, START_DATE_IN_PAST_MESSAGE, 'startDate');
@@ -58,6 +58,37 @@ export async function createReservation(
   if (input.endDate < input.startDate) {
     throw new AppError(400, END_BEFORE_START_MESSAGE, 'endDate');
   }
+}
+
+// Comprueba si las fechas están libres antes de solicitar el alquiler (criterio 3 de US-04.01).
+export async function checkAvailability(
+  input: { itemId: string; startDate: string; endDate: string },
+  now: Date = new Date(),
+): Promise<{ available: boolean }> {
+  assertValidDates(input, now);
+
+  const item = await findItemForReservation(input.itemId);
+
+  if (!item || item.status !== 'published') {
+    throw new AppError(404, ITEM_NOT_FOUND_MESSAGE);
+  }
+
+  const overlapping = await hasOverlappingReservation(
+    input.itemId,
+    new Date(`${input.startDate}T00:00:00.000Z`),
+    new Date(`${input.endDate}T00:00:00.000Z`),
+    OCCUPYING_STATUSES,
+  );
+
+  return { available: !overlapping };
+}
+
+export async function createReservation(
+  renterId: string,
+  input: { itemId: string; startDate: string; endDate: string },
+  now: Date = new Date(),
+): Promise<ReservationDetail> {
+  assertValidDates(input, now);
 
   const item = await findItemForReservation(input.itemId);
 

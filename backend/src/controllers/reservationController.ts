@@ -23,12 +23,13 @@ function isValidDate(value: unknown): value is string {
   return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value);
 }
 
-function readCreateBody(body: unknown): {
+// El cuerpo de POST /reservas y la query de GET /reservas/disponibilidad llevan los mismos campos.
+function readReservationInput(source: unknown): {
   itemId: string;
   startDate: string;
   endDate: string;
 } {
-  const { itemId, startDate, endDate } = (body ?? {}) as Record<
+  const { itemId, startDate, endDate } = (source ?? {}) as Record<
     string,
     unknown
   >;
@@ -50,11 +51,19 @@ function readCreateBody(body: unknown): {
 
 // POST /api/reservas (US-04.01, #120). requireAuth garantiza que request.auth existe.
 export const createReservation: RequestHandler = async (request, response) => {
-  const input = readCreateBody(request.body);
+  const input = readReservationInput(request.body);
   const reservation = await reservationService.createReservation(
     request.auth!.userId,
     input,
   );
 
   response.status(201).json(reservation);
+};
+
+// GET /api/reservas/disponibilidad (US-04.01, #120).
+export const getAvailability: RequestHandler = async (request, response) => {
+  const input = readReservationInput(request.query);
+  const availability = await reservationService.checkAvailability(input);
+
+  response.status(200).json(availability);
 };
