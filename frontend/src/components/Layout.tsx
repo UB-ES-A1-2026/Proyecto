@@ -15,6 +15,9 @@ export function Layout() {
         <nav aria-label="Principal" className="app-nav">
           {session ? (
             <>
+              <NavLink to="/objetos/nuevo" className="nav-link">
+                Publicar objeto
+              </NavLink>
               <NavLink to="/perfil" className="nav-link">
                 Mi perfil
               </NavLink>
