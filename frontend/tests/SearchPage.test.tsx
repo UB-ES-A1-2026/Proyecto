@@ -3,6 +3,13 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderRoute } from './renderRoute';
 
+// El panel de filtros (#118) pide las categorías al montarse. Se simula su servicio para que
+// `fetch` solo reciba la búsqueda, que es lo que comprueban estos tests.
+vi.mock('../src/services/categoryService', () => ({
+  getCategories: () =>
+    Promise.resolve([{ id: '11111111-1111-4111-8111-111111111111', name: 'Deporte' }]),
+}));
+
 const ITEM = {
   id: 'item-1',
   title: 'Taladro percutor',
@@ -115,7 +122,9 @@ describe('SearchPage', () => {
   });
 
   it('vuelve a consultar la API cuando cambia maxPrice en la URL', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json(SEARCH_RESPONSE));
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(Response.json(SEARCH_RESPONSE));
     const { router } = renderRoute('/buscar?q=taladro');
 
     await screen.findByText('Taladro percutor');
@@ -136,5 +145,32 @@ describe('SearchPage', () => {
     expect(screen.getByRole('heading', { name: 'Buscar objetos' })).toBeInTheDocument();
     expect(screen.getByText('Escribe qué quieres alquilar y pulsa «Buscar».')).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('muestra el botón «Filtros» junto a la búsqueda (US-03.02, #118)', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json(SEARCH_RESPONSE));
+
+    renderRoute('/buscar?q=taladro');
+
+    expect(await screen.findByRole('button', { name: /^Filtros/ })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+  });
+
+  it('si los filtros no dejan resultados, ofrece quitarlos en lugar del mensaje normal', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      Response.json({ items: [], page: 1, pageSize: 20, total: 0 }),
+    );
+    const user = userEvent.setup();
+
+    const { router } = renderRoute('/buscar?q=taladro&maxPrice=2');
+
+    expect(await screen.findByText(/No hay objetos que cumplan estos filtros/)).toBeVisible();
+    expect(screen.queryByText('No hemos encontrado ningún objeto para «taladro».')).toBeNull();
+
+    await user.click(screen.getAllByRole('button', { name: 'Limpiar filtros' }).at(-1)!);
+
+    await waitFor(() => expect(router.state.location.search).toBe('?q=taladro'));
   });
 });

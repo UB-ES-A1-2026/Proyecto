@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router';
+import { countActiveFilters, readFilters } from '../components/filterParams';
+import { NoResultsWithFilters, SearchFilters } from '../components/SearchFilters';
 import { SearchBar } from '../components/SearchBar';
 import { ApiError } from '../services/apiClient';
 import { searchItems, type SearchParams, type SearchResponse } from '../services/searchService';
@@ -76,7 +78,7 @@ export function SearchPage() {
   return (
     <section className="search-page">
       <SearchBar key={q} initialQuery={q} />
-      {/* Aquí va <SearchFilters /> (US-03.02, #118) */}
+      <SearchFilters />
 
       {!hasCriteria ? (
         <>
@@ -93,15 +95,21 @@ export function SearchPage() {
               {error}
             </p>
           ) : response && response.items.length === 0 ? (
-            <p>
-              {q
-                ? `No hemos encontrado ningún objeto para «${q}».`
-                : 'No hemos encontrado ningún objeto.'}
-            </p>
+            // Si hay filtros, la causa son ellos: se ofrece quitarlos (US-03.02, #118)
+            countActiveFilters(readFilters(urlParams)) > 0 ? (
+              <NoResultsWithFilters />
+            ) : (
+              <p>
+                {q
+                  ? `No hemos encontrado ningún objeto para «${q}».`
+                  : 'No hemos encontrado ningún objeto.'}
+              </p>
+            )
           ) : response ? (
             <>
               <p>
-                {response.total} {response.total === 1 ? 'objeto encontrado' : 'objetos encontrados'}
+                {response.total}{' '}
+                {response.total === 1 ? 'objeto encontrado' : 'objetos encontrados'}
               </p>
               <ul className="search-results">
                 {response.items.map((item) => (
