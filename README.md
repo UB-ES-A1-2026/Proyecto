@@ -229,6 +229,7 @@ URL base en local: `http://localhost:3000/api`. Todas las peticiones y respuesta
 | `POST` | `/auth/logout` | Privado | Cierra la sesión actual |
 | `GET` | `/usuarios/me` | Privado | Devuelve el perfil del usuario |
 | `POST` | `/reservas` | Privado | Solicita el alquiler de un objeto |
+| `GET` | `/reservas/disponibilidad` | Privado | Comprueba si un objeto está libre en unas fechas |
 
 ### `GET /health`
 
@@ -348,6 +349,24 @@ Respuesta `201`:
 | `404` | El objeto no existe o no está publicado | — |
 | `409` | Las fechas se solapan con una reserva aceptada, pagada o en curso (las pendientes no ocupan fechas) | `startDate` |
 | `409` | Ya tienes una solicitud pendiente de ese objeto con las mismas fechas | — |
+
+### `GET /reservas/disponibilidad` (privado)
+
+Comprueba si un objeto está libre en unas fechas, antes de solicitarlo. Las fechas ocupadas son las de reservas aceptadas, pagadas o en curso; las pendientes no ocupan. Es solo informativo: `POST /reservas` lo vuelve a comprobar al crear la solicitud.
+
+Parámetros de la URL: `itemId`, `startDate` y `endDate`, por ejemplo `?itemId=8b0e…&startDate=2026-12-04&endDate=2026-12-06`.
+
+Respuesta `200`:
+
+```json
+{ "available": true }
+```
+
+| Código | Cuándo | `field` |
+|---|---|---|
+| `400` | Falta un parámetro o tiene un formato incorrecto, la fecha de inicio es anterior a hoy o la de fin es anterior a la de inicio | `itemId`, `startDate` o `endDate` |
+| `401` | No hay sesión | — |
+| `404` | El objeto no existe o no está publicado | — |
 
 ### Probarlo desde la terminal
 

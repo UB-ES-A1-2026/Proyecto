@@ -9,7 +9,7 @@ import { createTestReservation } from '../helpers/reservations.js';
 import { createTestUser, TEST_PASSWORD } from '../helpers/users.js';
 
 // POST /api/reservas (US-04.01, #120): un test por cada caso del contrato publicado en la issue.
-// Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 02/11/2026
+// Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
 
 // Fecha «AAAA-MM-DD» a tantos días de hoy, para que los tests no caduquen.
 function daysFromToday(days: number): string {
@@ -46,6 +46,200 @@ function postReservation(token: string, body: object) {
 
 beforeEach(async () => {
   await resetDb();
+});
+
+function getAvailability(token: string, query: object) {
+  return request(app)
+    .get('/api/reservas/disponibilidad')
+    .set('Authorization', `Bearer ${token}`)
+    .query(query);
+}
+
+describe('GET /api/reservas/disponibilidad', () => {
+  it('says the item is available when it has no reservations', async () => {
+    const { item, token } = await setUp();
+
+    const response = await getAvailability(token, {
+      itemId: item.id,
+      startDate: daysFromToday(10),
+      endDate: daysFromToday(12),
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ available: true });
+  });
+
+  it.each(['accepted', 'paid', 'in_progress'] as const)(
+    'says the item is not available when a %s reservation overlaps',
+    async (status) => {
+      const { renter, item, token } = await setUp();
+      await createTestReservation(item.id, renter.id, {
+        startDate: daysFromToday(11),
+        endDate: daysFromToday(15),
+        status,
+      });
+
+      const response = await getAvailability(token, {
+        itemId: item.id,
+        startDate: daysFromToday(10),
+        endDate: daysFromToday(12),
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ available: false });
+    },
+  );
+
+  it.each(['pending', 'rejected', 'cancelled', 'finished'] as const)(
+    'ignores a %s reservation on the same dates',
+    async (status) => {
+      const { renter, item, token } = await setUp();
+      await createTestReservation(item.id, renter.id, {
+        startDate: daysFromToday(10),
+        endDate: daysFromToday(12),
+        status,
+      });
+
+      const response = await getAvailability(token, {
+        itemId: item.id,
+        startDate: daysFromToday(10),
+        endDate: daysFromToday(12),
+      });
+
+      expect(response.body).toEqual({ available: true });
+    },
+  );
+
+  it('counts both dates: a reservation ending on the start date overlaps', async () => {
+    const { renter, item, token } = await setUp();
+    await createTestReservation(item.id, renter.id, {
+      startDate: daysFromToday(8),
+      endDate: daysFromToday(10),
+      status: 'accepted',
+    });
+
+    const overlapping = await getAvailability(token, {
+      itemId: item.id,
+      startDate: daysFromToday(10),
+      endDate: daysFromToday(12),
+    });
+    const nextDay = await getAvailability(token, {
+      itemId: item.id,
+      startDate: daysFromToday(11),
+      endDate: daysFromToday(12),
+    });
+
+    expect(overlapping.body).toEqual({ available: false });
+    expect(nextDay.body).toEqual({ available: true });
+  });
+
+  it('ignores reservations of other items', async () => {
+    const { owner, renter, item, token } = await setUp();
+    const otherItem = await createTestItem(owner.id);
+    await createTestReservation(otherItem.id, renter.id, {
+      startDate: daysFromToday(10),
+      endDate: daysFromToday(12),
+      status: 'accepted',
+    });
+
+    const response = await getAvailability(token, {
+      itemId: item.id,
+      startDate: daysFromToday(10),
+      endDate: daysFromToday(12),
+    });
+
+    expect(response.body).toEqual({ available: true });
+  });
+
+  it('requires a session', async () => {
+    const { item } = await setUp();
+
+    const response = await request(app)
+      .get('/api/reservas/disponibilidad')
+      .query({
+        itemId: item.id,
+        startDate: daysFromToday(10),
+        endDate: daysFromToday(12),
+      });
+
+    expect(response.status).toBe(401);
+  });
+
+  it.each([
+    ['itemId', { itemId: 'no-es-un-uuid' }],
+    ['startDate', { startDate: '2026-02-30' }],
+    ['endDate', { endDate: undefined }],
+    ['startDate', { startDate: [daysFromToday(10), daysFromToday(11)] }],
+  ])('rejects an invalid %s', async (field, override) => {
+    const { item, token } = await setUp();
+
+    const response = await getAvailability(token, {
+      itemId: item.id,
+      startDate: daysFromToday(10),
+      endDate: daysFromToday(12),
+      ...override,
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.field).toBe(field);
+  });
+
+  it('rejects a start date before today', async () => {
+    const { item, token } = await setUp();
+
+    const response = await getAvailability(token, {
+      itemId: item.id,
+      startDate: daysFromToday(-1),
+      endDate: daysFromToday(2),
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      error: 'La fecha de inicio no puede ser anterior a hoy.',
+      field: 'startDate',
+    });
+  });
+
+  it('rejects an end date before the start date', async () => {
+    const { item, token } = await setUp();
+
+    const response = await getAvailability(token, {
+      itemId: item.id,
+      startDate: daysFromToday(12),
+      endDate: daysFromToday(10),
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.field).toBe('endDate');
+  });
+
+  it('returns 404 when the item does not exist', async () => {
+    const { token } = await setUp();
+
+    const response = await getAvailability(token, {
+      itemId: '00000000-0000-4000-8000-000000000000',
+      startDate: daysFromToday(10),
+      endDate: daysFromToday(12),
+    });
+
+    expect(response.status).toBe(404);
+  });
+
+  it.each(['paused', 'withdrawn'] as const)(
+    'returns 404 when the item is %s',
+    async (status) => {
+      const { owner, token } = await setUp();
+      const item = await createTestItem(owner.id, { status });
+
+      const response = await getAvailability(token, {
+        itemId: item.id,
+        startDate: daysFromToday(10),
+        endDate: daysFromToday(12),
+      });
+
+      expect(response.status).toBe(404);
+    },
+  );
 });
 
 describe('POST /api/reservas', () => {
