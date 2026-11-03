@@ -176,6 +176,20 @@ Solicitudes del seed (`DEMO_RESERVATIONS` en `backend/prisma/demoData.ts`, #210)
 | CP-MSO-05 | (Recibidas) El propietario ve las que le llegan | Sesión de ana | 1. Abrir la solicitud de la escalera en «Recibidas» | Sale «Solicitada por: bruno», y la escalera no aparece en «Enviadas» | `mis-solicitudes.spec.ts` · recibidas |
 | CP-MSO-06 | (Acceso) Sin sesión | Sin sesión | 1. Ir a `/mis-solicitudes` | Se redirige a `/login` | `mis-solicitudes.spec.ts` · acceso |
 
+### US-04.01 Solicitar un alquiler (#60) · S1-T21 (#122)
+
+bruno solicita el «Cortacésped eléctrico» de ana (9 €/día). Las fechas son aleatorias, dentro de 1 a 2 años, para poder repetir los tests. La «Escalera de aluminio» de ana tiene en el seed (#210) una solicitud aceptada para dentro de 14 y 15 días, así que esas fechas están ocupadas.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-SOL-01 | 1. Elegir fechas de inicio y fin | Sesión de bruno | 1. Buscar `cortacésped` y abrir la ficha 2. «Alquilar» 3. Elegir inicio y fin | Se va a `/objetos/<id>/solicitar` y quedan las dos fechas elegidas, sin error | `solicitar-alquiler.spec.ts` · criterio 1 |
+| CP-SOL-02 | 1. El fin no puede ser anterior al inicio | Como CP-SOL-01 | 1. Elegir un fin anterior al inicio | «La fecha de fin no puede ser anterior a la fecha de inicio.» y «Solicitar alquiler» desactivado | `solicitar-alquiler.spec.ts` · criterio 1 |
+| CP-SOL-03 | 2. Se muestra el precio del periodo | Como CP-SOL-01 | 1. Elegir 3 días | «3 días × 9,00 € = 27,00 €» (las dos fechas cuentan) | `solicitar-alquiler.spec.ts` · criterio 2 |
+| CP-SOL-04 | 3. Con fechas disponibles se puede solicitar | Como CP-SOL-01 | 1. Fechas libres del cortacésped 2. Fechas de la escalera dentro de 13 y 14 días | En el paso 1, «Solicitar alquiler» está activo. En el 2 sale «El objeto no está disponible en esas fechas.» y el botón está desactivado | `solicitar-alquiler.spec.ts` · criterio 3 |
+| CP-SOL-05 | 4. Resumen antes de enviar | Fechas libres | 1. «Solicitar alquiler» | «Revisa tu solicitud» con el objeto, «Desde», «Hasta», «Importe del alquiler (3 días)», 27,00 € y «Confirmar». Todavía no se ha creado ninguna solicitud | `solicitar-alquiler.spec.ts` · criterio 4 |
+| CP-SOL-06 | 5. Confirmar crea la solicitud «Pendiente» | CP-SOL-05 | 1. «Confirmar» | Se va a «Mis solicitudes» y en «Enviadas» sale el cortacésped «Pendiente». bruno tiene una solicitud enviada más | `solicitar-alquiler.spec.ts` · criterio 5 |
+| CP-SOL-07 | (Permisos) No se puede alquilar un objeto propio | Sesión de ana | 1. Abrir la ficha del cortacésped 2. `POST /api/reservas` con el token de ana | «Este anuncio es tuyo.», sin botón «Alquilar», y la API responde `403` | `solicitar-alquiler.spec.ts` · permisos |
+
 ## 5. Pendiente
 
 - **Smoke test en el CI:** el workflow de GitHub Actions que arranca PostgreSQL, el backend y el frontend y ejecuta `npm run test:smoke`. Se coordina con el CI general (#19, Kai). En el CI conviene servir el frontend compilado (`npm run build` + `npm run preview`) en lugar de `npm run dev`, para evitar la espera de la primera carga de Vite.
