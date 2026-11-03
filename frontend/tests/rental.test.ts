@@ -1,3 +1,4 @@
+// Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 03/11/2026
 import { describe, expect, it } from 'vitest';
 import {
   calculateTotalPrice,

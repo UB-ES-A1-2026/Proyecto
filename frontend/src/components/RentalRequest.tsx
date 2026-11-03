@@ -1,3 +1,4 @@
+// Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 03/11/2026
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
@@ -25,8 +26,8 @@ type RentalRequestProps = {
   onRequested: (reservation: Reservation) => void;
 };
 
-// Selector de fechas, resumen y confirmación de US-04.01 (#121). Solo es el contenido: la página
-// de detalle del objeto (#15) lo mostrará dentro de una ventana al pulsar «Alquilar».
+// Selector de fechas, resumen y confirmación de US-04.01 (#121). Lo muestra RentalRequestPage en
+// /objetos/:id/solicitar, a donde lleva «Alquilar» en la página de detalle (#15).
 export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProps) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -51,7 +52,10 @@ export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProp
 
   function handleDatesSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (datesValid) setStep('summary');
+    if (!datesValid) return;
+    // Un error de un envío anterior (p. ej. el 409 por solape) no se arrastra al resumen nuevo.
+    setFormError(null);
+    setStep('summary');
   }
 
   async function handleConfirm() {
@@ -67,6 +71,8 @@ export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProp
       });
       onRequested(reservation);
     } catch (error) {
+      // Los botones se reactivan siempre, también si el componente sigue montado tras un 401.
+      setSubmitting(false);
       // Sesión caducada o revocada: al borrarla, PrivateRoute lleva al login.
       if (error instanceof ApiError && error.status === 401) {
         clearSession();
@@ -89,14 +95,13 @@ export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProp
       } else {
         setFormError('Ha ocurrido un error inesperado.');
       }
-      setSubmitting(false);
     }
   }
 
   if (step === 'summary') {
     return (
       <section className="rental-request" aria-labelledby="rental-title">
-        <h2 id="rental-title">Revisa tu solicitud</h2>
+        <h1 id="rental-title">Revisa tu solicitud</h1>
         {formError && (
           <p role="alert" className="form-error">
             {formError}
@@ -144,7 +149,7 @@ export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProp
 
   return (
     <section className="rental-request" aria-labelledby="rental-title">
-      <h2 id="rental-title">Solicitar alquiler</h2>
+      <h1 id="rental-title">Solicitar alquiler</h1>
       <p className="field-hint">
         {item.title} · {formatPrice(item.pricePerDay)} / día
       </p>

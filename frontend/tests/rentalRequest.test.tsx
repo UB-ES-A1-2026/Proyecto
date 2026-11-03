@@ -1,3 +1,4 @@
+// Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 03/11/2026
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -272,5 +273,53 @@ describe('requestRental (#121)', () => {
       }),
     ).resolves.toEqual(RENTAL);
     expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/reservas$/);
+  });
+});
+
+describe('cambios de la revisión de #203', () => {
+  it('desactiva «Volver» y «Confirmar» mientras se envía', async () => {
+    let respond: (response: Response) => void = () => {};
+    mockFetch(() => new Promise<Response>((resolve) => (respond = resolve)));
+    const user = userEvent.setup();
+    const { onRequested } = renderRentalRequest();
+
+    await confirmRequest(user);
+
+    expect(screen.getByRole('button', { name: 'Enviando…' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Volver' })).toBeDisabled();
+
+    respond(Response.json(RENTAL, { status: 201 }));
+    await vi.waitFor(() => expect(onRequested).toHaveBeenCalledWith(RENTAL));
+  });
+
+  it('no arrastra el error de un envío anterior al volver al resumen', async () => {
+    mockFetch(() =>
+      Response.json(
+        { error: 'El objeto no está disponible en esas fechas.', field: 'startDate' },
+        { status: 409 },
+      ),
+    );
+    const user = userEvent.setup();
+    renderRentalRequest();
+
+    await confirmRequest(user);
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+
+    await user.click(requestButton());
+
+    expect(screen.getByRole('heading', { name: 'Revisa tu solicitud' })).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('con la sesión caducada reactiva los botones aunque siga en pantalla', async () => {
+    mockFetch(() => Response.json({ error: 'Sesión no válida' }, { status: 401 }));
+    const user = userEvent.setup();
+    const { clearSession } = renderRentalRequest();
+
+    await confirmRequest(user);
+
+    await vi.waitFor(() => expect(clearSession).toHaveBeenCalled());
+    expect(screen.getByRole('button', { name: 'Confirmar' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Volver' })).toBeEnabled();
   });
 });
