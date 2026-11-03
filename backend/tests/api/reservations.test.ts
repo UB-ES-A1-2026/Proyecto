@@ -9,7 +9,7 @@ import { createTestReservation } from '../helpers/reservations.js';
 import { createTestUser, TEST_PASSWORD } from '../helpers/users.js';
 
 // POST /api/reservas (US-04.01, #120): un test por cada caso del contrato publicado en la issue.
-// Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 02/11/2026
+// Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
 
 // Fecha «AAAA-MM-DD» a tantos días de hoy, para que los tests no caduquen.
 function daysFromToday(days: number): string {
