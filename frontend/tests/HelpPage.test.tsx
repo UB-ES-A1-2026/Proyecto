@@ -9,6 +9,7 @@ const SECTIONS = [
   { id: 'iniciar-sesion', title: 'Iniciar sesión' },
   { id: 'ver-perfil', title: 'Ver tu perfil' },
   { id: 'cerrar-sesion', title: 'Cerrar sesión' },
+  { id: 'buscar', title: 'Buscar un objeto' },
 ];
 
 const SESSION = {

@@ -53,6 +53,19 @@ const SECTIONS: HelpSection[] = [
     steps: ['Pulsa «Cerrar sesión» en la cabecera.', 'Volverás a la pantalla de inicio de sesión.'],
     note: 'Después de cerrar sesión, nadie puede volver a entrar en tu cuenta desde ese navegador sin tu contraseña.',
   },
+  {
+    id: 'buscar',
+    title: 'Buscar un objeto',
+    steps: [
+      <>
+        En la <Link to="/">página de inicio</Link>, escribe en «¿Qué quieres alquilar?» lo que
+        necesitas, por ejemplo «taladro».
+      </>,
+      'Pulsa «Buscar». Verás los objetos disponibles cuyo nombre o descripción contienen ese texto, con su precio por día y su barrio.',
+      'Pulsa el nombre de un objeto para abrir su ficha.',
+    ],
+    note: 'Si no hay ningún objeto con ese texto, verás un aviso. Los objetos que su propietario ha pausado o retirado no salen en la búsqueda.',
+  },
 ];
 
 export function HelpPage() {

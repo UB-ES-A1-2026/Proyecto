@@ -123,7 +123,7 @@ Cada caso corresponde a un criterio de aceptación del backlog. La columna **Tes
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
 | CP-AYU-01 | 1. La página `/ayuda` está publicada | Sin sesión iniciada | 1. Ir a `/` 2. Pulsar «Ayuda» en la cabecera | Se abre `/ayuda` con el título «Ayuda» | `ayuda.spec.ts` · criterio 1 |
-| CP-AYU-02 | 2. Explica los flujos entregados | — | 1. Ir a `/ayuda` 2. Pulsar cada entrada del índice «En esta página» | Hay una sección con pasos numerados para cada flujo entregado (crear una cuenta, iniciar sesión, ver tu perfil y cerrar sesión), y el índice lleva a cada una | `ayuda.spec.ts` · criterio 2 |
+| CP-AYU-02 | 2. Explica los flujos entregados | — | 1. Ir a `/ayuda` 2. Pulsar cada entrada del índice «En esta página» | Hay una sección con pasos numerados para cada flujo entregado (crear una cuenta, iniciar sesión, ver tu perfil, cerrar sesión y buscar un objeto), y el índice lleva a cada una | `ayuda.spec.ts` · criterio 2 |
 | CP-AYU-03 | 3. Se actualiza en cada sprint | Antes de la demo | 1. Comparar las secciones con las historias del sprint que están en `develop` | Cada flujo entregado tiene su sección; si falta, se añade a la página y a `DELIVERED_FLOWS` de `ayuda.spec.ts` | Revisión manual |
 
 ### Smoke test · T19 (#99)
