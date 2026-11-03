@@ -191,6 +191,17 @@ bruno solicita el «Cortacésped eléctrico» de ana (9 €/día). Las fechas so
 | CP-SOL-06 | 5. Confirmar crea la solicitud «Pendiente» | CP-SOL-05 | 1. «Confirmar» | Se va a «Mis solicitudes» y en «Enviadas» sale el cortacésped «Pendiente». bruno tiene una solicitud enviada más | `solicitar-alquiler.spec.ts` · criterio 5 |
 | CP-SOL-07 | (Permisos) No se puede alquilar un objeto propio | Sesión de ana | 1. Abrir la ficha del cortacésped 2. `POST /api/reservas` con el token de ana | «Este anuncio es tuyo.», sin botón «Alquilar», y la API responde `403` | `solicitar-alquiler.spec.ts` · permisos |
 
+### US-02.04 Pausar un objeto (#53) · S1-T35 (#173)
+
+Se pausa la «Tabla de paddle surf hinchable» de ana. Al terminar cada test se reanuda por la API si ha quedado pausada, para que los e2e de buscar y filtrar la sigan viendo.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-PAU-01 | 1. Un objeto pausado no aparece en la búsqueda | Sesión de ana | 1. «Mis objetos» 2. «Pausar» en la tabla de paddle 3. Con la sesión de bruno, buscar `paddle` | Sale «El anuncio se ha pausado: no aparecerá en las búsquedas hasta que lo reanudes.». bruno ve «No hemos encontrado ningún objeto para «paddle».» | `pausar-objeto.spec.ts` · criterio 1 |
+| CP-PAU-02 | 1. …pero sigue en «Mis objetos» | CP-PAU-01 hecho | 1. Recargar «Mis objetos» | La tabla sigue en la lista como «Pausado», con «No aparece en las búsquedas hasta que lo reanudes» y el botón «Reanudar» | `pausar-objeto.spec.ts` · criterio 1 |
+| CP-PAU-03 | (Reanudar) Vuelve a aparecer | CP-PAU-01 hecho | 1. «Reanudar» 2. Con la sesión de bruno, buscar `paddle` | Sale «El anuncio se ha reanudado y vuelve a aparecer en las búsquedas.», la fila vuelve a «Publicado» y bruno la encuentra | `pausar-objeto.spec.ts` · reanudar |
+| CP-PAU-04 | (Permisos) Un no propietario no puede pausarlo | Sesión de bruno | 1. «Mis objetos» 2. `POST /api/objetos/<id>/pausar` con el token de bruno | No le sale el botón «Pausar» de la tabla, la API responde `403` y sigue publicada | `pausar-objeto.spec.ts` · permisos |
+
 ## 5. Pendiente
 
 - **Smoke test en el CI:** el workflow de GitHub Actions que arranca PostgreSQL, el backend y el frontend y ejecuta `npm run test:smoke`. Se coordina con el CI general (#19, Kai). En el CI conviene servir el frontend compilado (`npm run build` + `npm run preview`) en lugar de `npm run dev`, para evitar la espera de la primera carga de Vite.

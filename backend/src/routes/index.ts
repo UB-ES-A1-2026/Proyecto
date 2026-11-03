@@ -6,6 +6,7 @@ import { itemSearchRoutes } from './itemSearchRoutes.js';
 import { itemDetailRoutes } from './itemDetailRoutes.js';
 import { myReservationsRoutes } from './myReservationsRoutes.js';
 import { reservationRoutes } from './reservationRoutes.js';
+import { itemPauseRoutes } from './itemPauseRoutes.js';
 import { userRoutes } from './userRoutes.js';
 
 export const apiRoutes = Router();
@@ -18,3 +19,4 @@ apiRoutes.use(itemSearchRoutes);
 apiRoutes.use(itemDetailRoutes);
 apiRoutes.use(myReservationsRoutes);
 apiRoutes.use(reservationRoutes);
+apiRoutes.use(itemPauseRoutes);

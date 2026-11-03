@@ -67,3 +67,19 @@ export function updateItem(token: string, id: string, changes: ItemChanges): Pro
     token,
   });
 }
+
+// POST /api/objetos/:id/pausar y /reanudar (#112), sin cuerpo. Devuelven el objeto con la forma
+// de la lista. Solo se pausa uno publicado y solo se reanuda uno pausado (si no, 409).
+export function pauseItem(token: string, id: string): Promise<MyItem> {
+  return apiRequest<MyItem>(`/objetos/${encodeURIComponent(id)}/pausar`, {
+    method: 'POST',
+    token,
+  });
+}
+
+export function resumeItem(token: string, id: string): Promise<MyItem> {
+  return apiRequest<MyItem>(`/objetos/${encodeURIComponent(id)}/reanudar`, {
+    method: 'POST',
+    token,
+  });
+}
