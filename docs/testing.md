@@ -151,6 +151,20 @@ Se llega a la ficha desde la búsqueda de `taladro` (US-03.01): «Taladro percut
 | CP-VER-06 | 4. El propietario no alquila su objeto | Sesión de ana | 1. Abrir la ficha | Se ve «Este anuncio es tuyo.» y no hay botón «Alquilar» | `ver-objeto.spec.ts` · criterio 4c |
 | CP-VER-07 | (Errores) Objeto que no existe | — | 1. Ir a `/objetos/00000000-0000-4000-8000-000000000000` | Se ve «No hemos encontrado este objeto» y el enlace «Volver al inicio» | `ver-objeto.spec.ts` · errores |
 
+### US-02.01 Publicar un objeto (#50) · S1-T5 (#107)
+
+Se publica sin fotos, porque la subida va a S3 y en el CI no hay almacenamiento (las fotos son opcionales). Cada anuncio lleva un nombre único («Lijadora e2e <n>») para poder repetir los tests.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-PUB-01 | 1. Se ven los campos del anuncio | Sesión de ana | 1. «Publicar objeto» en la cabecera | Se va a `/objetos/nuevo` y se ven Nombre, Descripción, Fotografías, Precio por día, Disponibilidad y «Publicar» | `publicar-objeto.spec.ts` · criterio 1 |
+| CP-PUB-02 | 2. Se puede elegir la categoría | Sesión de ana | 1. Abrir «Categoría» | Están las 8 categorías de la migración y se puede elegir una | `publicar-objeto.spec.ts` · criterio 2 |
+| CP-PUB-03 | 3. Publicar con datos válidos | Sesión de ana | 1. Rellenar nombre, descripción, «Herramientas y bricolaje», `7,50`, fianza `20` y «Sants» 2. «Publicar» | Se va a la ficha con esos datos («7,50 € / día», «Fianza: 20,00 €», «Disponible»…) y el objeto sale en la búsqueda | `publicar-objeto.spec.ts` · criterio 3 |
+| CP-PUB-04 | 4. El anuncio es de quien lo crea | Sesión de ana | 1. Publicar 2. Abrir la ficha con la sesión de bruno | ana ve «Publicado por ana» y «Este anuncio es tuyo.». bruno ve «Publicado por ana» y el botón «Alquilar» | `publicar-objeto.spec.ts` · criterio 4 |
+| CP-PUB-05 | 5. Campo erróneo (precio) | Sesión de ana | 1. Todo válido salvo el precio `0` 2. «Publicar» | No se publica (sigue en `/objetos/nuevo` y no sale en la búsqueda) y bajo el precio sale «El campo "precio" no es correcto, revísalo.» | `publicar-objeto.spec.ts` · criterio 5a |
+| CP-PUB-06 | 5. Campo obligatorio vacío | Sesión de ana | 1. Nombre vacío 2. «Publicar» | No se publica y bajo el nombre sale «El campo "nombre" no es correcto, revísalo.» | `publicar-objeto.spec.ts` · criterio 5b |
+| CP-PUB-07 | (Acceso) Sin sesión | Sin sesión | 1. Ir a `/objetos/nuevo` | Se redirige a `/login` | `publicar-objeto.spec.ts` · acceso |
+
 ## 5. Pendiente
 
 - **Smoke test en el CI:** el workflow de GitHub Actions que arranca PostgreSQL, el backend y el frontend y ejecuta `npm run test:smoke`. Se coordina con el CI general (#19, Kai). En el CI conviene servir el frontend compilado (`npm run build` + `npm run preview`) en lugar de `npm run dev`, para evitar la espera de la primera carga de Vite.
