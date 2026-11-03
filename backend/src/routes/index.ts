@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authRoutes } from './authRoutes.js';
+import { categoryRoutes } from './categoryRoutes.js';
 import { healthRoutes } from './healthRoutes.js';
 import { itemEditRoutes } from './itemEditRoutes.js';
 import { itemSearchRoutes } from './itemSearchRoutes.js';
@@ -9,6 +10,8 @@ import { reservationRoutes } from './reservationRoutes.js';
 import { itemPauseRoutes } from './itemPauseRoutes.js';
 import { itemWithdrawRoutes } from './itemWithdrawRoutes.js';
 import { reservationDecisionRoutes } from './reservationDecisionRoutes.js';
+import { itemRoutes } from './itemRoutes.js';
+import { photoRoutes } from './photoRoutes.js';
 import { userRoutes } from './userRoutes.js';
 
 export const apiRoutes = Router();
@@ -24,3 +27,6 @@ apiRoutes.use(reservationRoutes);
 apiRoutes.use(itemPauseRoutes);
 apiRoutes.use(itemWithdrawRoutes);
 apiRoutes.use(reservationDecisionRoutes);
+apiRoutes.use(categoryRoutes);
+apiRoutes.use(itemRoutes);
+apiRoutes.use(photoRoutes);
