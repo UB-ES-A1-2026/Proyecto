@@ -1,4 +1,4 @@
-// Generado con asistencia de IA (Claude)
+// Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
 import type { RequestHandler } from 'express';
 import { AppError } from '../errors/appError.js';
 import * as itemEditService from '../services/itemEditService.js';
