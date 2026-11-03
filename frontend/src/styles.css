@@ -909,8 +909,6 @@ body {
   border-radius: var(--radius);
 }
 
-
-
 /* US-02.01 Publicar un objeto (#13) */
 .publish-item {
   max-width: var(--form-max-width);

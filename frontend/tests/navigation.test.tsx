@@ -123,6 +123,6 @@ describe('layout y navegación (#21)', () => {
     renderRoute('/');
 
     const links = mainNav().getAllByRole('link').map((link) => link.textContent);
-    expect(links).toEqual(['Publicar objeto', 'Mi perfil']);
+    expect(links).toEqual(['Publicar objeto', 'Mis objetos', 'Mis solicitudes', 'Mi perfil']);
   });
 });
