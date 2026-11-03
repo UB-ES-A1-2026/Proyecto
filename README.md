@@ -233,6 +233,8 @@ URL base en local: `http://localhost:3000/api`. Todas las peticiones y respuesta
 | `GET` | `/usuarios/me/reservas` | Privado | Devuelve las solicitudes enviadas y recibidas |
 | `POST` | `/reservas` | Privado | Solicita el alquiler de un objeto |
 | `GET` | `/reservas/disponibilidad` | Privado | Comprueba si un objeto está libre en unas fechas |
+| `POST` | `/reservas/:id/aceptar` | Privado (propietario) | Acepta una solicitud pendiente |
+| `POST` | `/reservas/:id/rechazar` | Privado (propietario) | Rechaza una solicitud pendiente |
 
 ### `GET /health`
 
@@ -414,6 +416,23 @@ Respuesta `201`:
   "status": "pending",
   "renter": { "id": "2c9d…", "username": "bruno" },
   "owner": { "id": "7a3e…", "username": "ana" },
+
+### `POST /reservas/:id/aceptar` y `POST /reservas/:id/rechazar` (privados, solo el propietario)
+
+Sin cuerpo. Una solicitud solo se puede responder una vez, aunque lleguen dos peticiones a la vez.
+
+Respuesta `200`, la reserva actualizada:
+
+```json
+{
+  "id": "…",
+  "item": { "id": "…", "title": "Taladro percutor" },
+  "startDate": "2026-12-04",
+  "endDate": "2026-12-06",
+  "totalPrice": "15.00",
+  "status": "accepted",
+  "renter": { "id": "…", "username": "bruno" },
+  "owner": { "id": "…", "username": "ana" },
   "createdAt": "2026-11-02T10:00:00.000Z"
 }
 ```
@@ -444,6 +463,13 @@ Respuesta `200`:
 | `400` | Falta un parámetro o tiene un formato incorrecto, la fecha de inicio es anterior a hoy o la de fin es anterior a la de inicio | `itemId`, `startDate` o `endDate` |
 | `401` | No hay sesión | — |
 | `404` | El objeto no existe o no está publicado | — |
+| Código | Cuándo |
+|---|---|
+| `401` | Sin sesión |
+| `403` | El objeto es de otra persona |
+| `404` | La solicitud no existe |
+| `409` | La solicitud ya no está pendiente |
+| `409` | Solo al aceptar: las fechas se solapan con otra reserva aceptada, pagada o en curso |
 
 ### Probarlo desde la terminal
 
