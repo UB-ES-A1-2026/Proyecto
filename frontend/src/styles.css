@@ -353,6 +353,8 @@ body {
   align-items: center;
   justify-content: center;
   margin: var(--space-lg) 0;
+}
+
 /* Filtros de la búsqueda (#118) */
 .search-filters {
   margin: var(--space-md) 0;
