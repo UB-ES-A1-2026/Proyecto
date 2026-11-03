@@ -6,6 +6,7 @@ import { HomePage } from '../pages/HomePage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { ProfilePage } from '../pages/ProfilePage';
+import { PublishItemPage } from '../pages/PublishItemPage';
 import { RegisterPage } from '../pages/RegisterPage';
 
 export const routes: RouteObject[] = [
@@ -20,7 +21,13 @@ export const routes: RouteObject[] = [
       { index: true, element: <HomePage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'registro', element: <RegisterPage /> },
-      { element: <PrivateRoute />, children: [{ path: 'perfil', element: <ProfilePage /> }] },
+      {
+        element: <PrivateRoute />,
+        children: [
+          { path: 'perfil', element: <ProfilePage /> },
+          { path: 'objetos/nuevo', element: <PublishItemPage /> },
+        ],
+      },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
