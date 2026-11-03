@@ -3,8 +3,7 @@ import type { ReservationStatus } from '@prisma/client';
 import { AppError } from '../errors/appError.js';
 import {
   findItemForReservation,
-  hasOverlappingReservation,
-  insertReservation,
+  insertReservationIfAvailable,
 } from '../repositories/reservationRepository.js';
 import { toReservationDetail, type ReservationDetail } from './reservation.js';
 
@@ -12,6 +11,8 @@ export const ITEM_NOT_FOUND_MESSAGE = 'No hemos encontrado este objeto.';
 export const OWN_ITEM_MESSAGE = 'No puedes alquilar tu propio objeto.';
 export const NOT_AVAILABLE_MESSAGE =
   'El objeto no está disponible en esas fechas.';
+export const DUPLICATE_REQUEST_MESSAGE =
+  'Ya tienes una solicitud pendiente para estas fechas.';
 export const START_DATE_IN_PAST_MESSAGE =
   'La fecha de inicio no puede ser anterior a hoy.';
 export const END_BEFORE_START_MESSAGE =
@@ -76,24 +77,19 @@ export async function createReservation(
     throw new AppError(400, RENTAL_TOO_LONG_MESSAGE, 'endDate');
   }
 
-  if (
-    await hasOverlappingReservation(
-      input.itemId,
-      startDate,
-      endDate,
-      OCCUPYING_STATUSES,
-    )
-  ) {
-    throw new AppError(409, NOT_AVAILABLE_MESSAGE, 'startDate');
+  const result = await insertReservationIfAvailable(
+    { itemId: input.itemId, renterId, startDate, endDate, totalPrice },
+    OCCUPYING_STATUSES,
+  );
+
+  switch (result.outcome) {
+    case 'not_published':
+      throw new AppError(404, ITEM_NOT_FOUND_MESSAGE);
+    case 'duplicate':
+      throw new AppError(409, DUPLICATE_REQUEST_MESSAGE);
+    case 'overlapping':
+      throw new AppError(409, NOT_AVAILABLE_MESSAGE, 'startDate');
+    case 'created':
+      return toReservationDetail(result.reservation);
   }
-
-  const reservation = await insertReservation({
-    itemId: input.itemId,
-    renterId,
-    startDate,
-    endDate,
-    totalPrice,
-  });
-
-  return toReservationDetail(reservation);
 }
