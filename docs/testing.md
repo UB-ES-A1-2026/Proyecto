@@ -202,6 +202,18 @@ Se pausa la «Tabla de paddle surf hinchable» de ana. Al terminar cada test se 
 | CP-PAU-03 | (Reanudar) Vuelve a aparecer | CP-PAU-01 hecho | 1. «Reanudar» 2. Con la sesión de bruno, buscar `paddle` | Sale «El anuncio se ha reanudado y vuelve a aparecer en las búsquedas.», la fila vuelve a «Publicado» y bruno la encuentra | `pausar-objeto.spec.ts` · reanudar |
 | CP-PAU-04 | (Permisos) Un no propietario no puede pausarlo | Sesión de bruno | 1. «Mis objetos» 2. `POST /api/objetos/<id>/pausar` con el token de bruno | No le sale el botón «Pausar» de la tabla, la API responde `403` y sigue publicada | `pausar-objeto.spec.ts` · permisos |
 
+### US-02.03 Retirar un objeto (#52) · S1-T34 (#172)
+
+Retirar no se puede deshacer, así que solo se retira de verdad la «Máquina de palomitas» de bruno, que no usa ningún otro e2e. `npm run db:seed` la vuelve a dejar publicada. La «Silla de coche para bebé» de ana se usa para cancelar y para los permisos, y la «Escalera de aluminio» tiene en el seed (#210) una solicitud aceptada.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-RET-01 | 1. Elegir un anuncio propio y pulsar «Retirar anuncio» | Sesión de ana | 1. «Mis objetos» 2. «Retirar anuncio» en la silla | Se abre el diálogo «¿Seguro que quieres retirar «Silla de coche para bebé»?» con «Retirar anuncio» y «Cancelar» | `retirar-objeto.spec.ts` · criterio 1 |
+| CP-RET-02 | 2. Confirmar retira el anuncio | Sesión de bruno, con la máquina de palomitas publicada | 1. «Retirar anuncio» en la máquina de palomitas 2. Confirmar 3. Con la sesión de ana, buscar `palomitas` y abrir su ficha | Sale «El anuncio se ha retirado.» y la fila queda como «Retirado», sin acciones. ana no la encuentra en la búsqueda y la ficha muestra «No hemos encontrado este objeto», sin «Alquilar» | `retirar-objeto.spec.ts` · criterio 2 |
+| CP-RET-03 | 3. Cancelar no cambia nada | Como CP-RET-01 | 1. «Cancelar» en el diálogo 2. Buscar `silla` | La silla sigue «Publicado» y sale en la búsqueda | `retirar-objeto.spec.ts` · criterio 3 |
+| CP-RET-04 | 4. Un no propietario no puede retirarlo | Sesión de bruno | 1. Abrir la ficha de la silla 2. `POST /api/objetos/<id>/retirar` con el token de bruno | En la ficha no hay «Retirar anuncio», la API responde `403` y la silla sigue publicada | `retirar-objeto.spec.ts` · criterio 4 |
+| CP-RET-05 | (Supuesto de #110) Con reservas activas no se retira | Sesión de ana | 1. «Retirar anuncio» en la escalera 2. Confirmar | El diálogo muestra «No puedes retirar un objeto con reservas activas.» y la escalera sigue publicada | `retirar-objeto.spec.ts` · reservas activas |
+
 ## 5. Pendiente
 
 - **Smoke test en el CI:** el workflow de GitHub Actions que arranca PostgreSQL, el backend y el frontend y ejecuta `npm run test:smoke`. Se coordina con el CI general (#19, Kai). En el CI conviene servir el frontend compilado (`npm run build` + `npm run preview`) en lugar de `npm run dev`, para evitar la espera de la primera carga de Vite.
