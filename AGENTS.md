@@ -41,9 +41,12 @@ Norma del profesor desde el Sprint 1. Detalle, plantilla y piezas en [docs/wiref
 - **Abre los PNG y revísalos** (nada cortado ni solapado). Después **para y enseña `flujo.png` a la persona** para que lo valide antes de programar. Si la historia no tiene criterios suficientes para dibujar el flujo (por ejemplo, no dice desde dónde se llega), pregunta en lugar de inventarlo.
 - Usa solo las clases de `docs/wireframes/wireframe.css`. Nada de estilos de la marca ni librerías nuevas.
 - Si la implementación cambia la pantalla, actualiza el wireframe y vuelve a generar los PNG en el mismo PR.
+- **Norma fija para todas las demos:** ninguna historia con pantalla llega a la demo sin su wireframe. Las de los Sprints 2 y 3 ya tienen uno propuesto en `docs/wireframes/`: al empezar cada historia, repásalo con la persona y actualízalo antes de programar.
 
 ## Historias de usuario
 Cuando redactes o revises una historia (issue o Trello), usa la plantilla `.github/ISSUE_TEMPLATE/historia-de-usuario.md`. Además del «Como… quiero… para…», tiene que decir **desde qué pantalla y con qué acción llega el usuario**, el flujo paso a paso, a dónde va al terminar y criterios de aceptación comprobables, incluidos los errores.
+
+**Norma fija para todas las demos (tarjetas de Trello):** antes de cada demo, cada tarjeta de historia del sprint tiene en la descripción «Cómo llega el usuario», «Flujo», «Al terminar», los errores y el wireframe, además de la lista «Acceptance criteria». Solo va a «Done Sprint N» lo que ya está en `develop`, con sus criterios marcados y sin marcar los que aún no se cumplan. La tarjeta US-01.1 se deja como está a propósito, para mostrar cómo han mejorado las tarjetas.
 
 ## Restricciones permanentes
 - **No añadas dependencias nuevas** a ningún `package.json` sin que la tarea lo diga explícitamente.
