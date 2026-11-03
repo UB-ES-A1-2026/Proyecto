@@ -208,3 +208,63 @@ describe('ReservationCard', () => {
     expect(within(container).getByText('Acciones futuras')).toBeVisible();
   });
 });
+
+describe('Aceptar y rechazar desde Mis solicitudes (US-04.03 y US-04.04, #126)', () => {
+  function mockApi(data: { sent: Reservation[]; received: Reservation[] }) {
+    return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (init?.method !== 'POST') return Response.json(data);
+      const status = url.endsWith('/aceptar') ? 'accepted' : 'rejected';
+      return Response.json(reservation({ id: 'r1', status }));
+    });
+  }
+
+  it('solo ofrece los botones en las recibidas pendientes', async () => {
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    mockApi({
+      sent: [reservation({ id: 'sent', item: { id: 'i1', title: 'Bicicleta de paseo' } })],
+      received: [
+        reservation({ id: 'r1' }),
+        reservation({
+          id: 'r2',
+          item: { id: 'i2', title: 'Tienda de campaña' },
+          status: 'accepted',
+        }),
+      ],
+    });
+
+    renderRoute('/mis-solicitudes');
+
+    const received = await screen.findByRole('region', { name: 'Recibidas' });
+    const sent = screen.getByRole('region', { name: 'Enviadas' });
+    expect(within(received).getAllByRole('button', { name: 'Aceptar', hidden: true })).toHaveLength(
+      1,
+    );
+    expect(
+      within(received).getAllByRole('button', { name: 'Rechazar', hidden: true }),
+    ).toHaveLength(1);
+    expect(within(sent).queryByRole('button', { name: 'Aceptar', hidden: true })).toBeNull();
+  });
+
+  it.each([
+    ['Aceptar', '/reservas/r1/aceptar', 'Has aceptado la solicitud.', /Aceptada/],
+    ['Rechazar', '/reservas/r1/rechazar', 'Has rechazado la solicitud.', /Rechazada/],
+  ])('«%s» llama a la API y la tarjeta cambia de estado', async (name, path, message, state) => {
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    const fetchMock = mockApi({ sent: [], received: [reservation({ id: 'r1' })] });
+    const user = userEvent.setup();
+
+    renderRoute('/mis-solicitudes');
+
+    await user.click(await screen.findByRole('button', { name: /Taladro percutor Bosch/ }));
+    await user.click(screen.getByRole('button', { name }));
+
+    expect(await screen.findByText(message)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Taladro percutor Bosch/ })).toHaveAccessibleName(
+      state,
+    );
+    expect(screen.queryByRole('button', { name })).not.toBeInTheDocument();
+    const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
+    expect(String(post?.[0])).toMatch(new RegExp(`${path}$`));
+  });
+});
