@@ -772,3 +772,54 @@ body {
 .reservation-card-detail p {
   margin: var(--space-sm) 0;
 }
+
+/* Selector de fechas y resumen de la solicitud de alquiler (US-04.01, #121) */
+.rental-request {
+  max-width: var(--form-max-width);
+}
+
+.rental-price {
+  margin: 0 0 var(--space-md);
+}
+
+.rental-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.rental-actions > * {
+  flex: 1;
+}
+
+.rental-item {
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+  margin-bottom: var(--space-md);
+}
+
+.rental-item-photo {
+  width: 5rem;
+  height: 5rem;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
+.rental-item-title {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+}
+
+.rental-summary dt {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.rental-summary dd {
+  margin: var(--space-xs) 0 var(--space-md);
+}
+
+.rental-total {
+  font-size: var(--font-size-tagline);
+  font-weight: var(--font-weight-bold);
+}
