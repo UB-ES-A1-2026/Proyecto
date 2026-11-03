@@ -290,7 +290,9 @@ body {
   border-radius: var(--radius);
 }
 
-.publish-item-field [aria-invalid='true'] {
+.publish-item-field input[aria-invalid='true']:not([type='checkbox']):not([type='radio']),
+.publish-item-field select[aria-invalid='true'],
+.publish-item-field textarea[aria-invalid='true'] {
   border-color: var(--color-error);
 }
 
