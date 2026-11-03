@@ -684,6 +684,8 @@ body {
   align-items: center;
   justify-content: center;
   margin: var(--space-lg) 0;
+}
+
 /* Página de ayuda (#89) */
 .help {
   max-width: 720px;
