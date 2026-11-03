@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
-import { requestRental, type Rental } from '../services/rentalService';
+import { requestRental, type Reservation } from '../services/rentalService';
 import {
   calculateTotalPrice,
   countRentalDays,
@@ -22,7 +22,7 @@ export type RentalItem = {
 type RentalRequestProps = {
   item: RentalItem;
   onCancel: () => void;
-  onRequested: (rental: Rental) => void;
+  onRequested: (reservation: Reservation) => void;
 };
 
 // Selector de fechas, resumen y confirmación de US-04.01 (#121). Solo es el contenido: la página
@@ -34,7 +34,7 @@ export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProp
   const [formError, setFormError] = useState<string | null>(null);
   const [step, setStep] = useState<'dates' | 'summary'>('dates');
   const [submitting, setSubmitting] = useState(false);
-  const { session } = useAuth();
+  const { session, clearSession } = useAuth();
 
   const today = todayIso();
   const errors = { ...validateRentalDates(startDate, endDate, today), ...apiErrors };
@@ -60,12 +60,23 @@ export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProp
     setSubmitting(true);
     setFormError(null);
     try {
-      const rental = await requestRental(session.token, { itemId: item.id, startDate, endDate });
-      onRequested(rental);
+      const reservation = await requestRental(session.token, {
+        itemId: item.id,
+        startDate,
+        endDate,
+      });
+      onRequested(reservation);
     } catch (error) {
-      // Si el problema está en las fechas, se vuelve a elegirlas; si no, se puede reintentar.
-      if (error instanceof ApiError && error.status === 409) {
-        setFormError('Estas fechas ya no están disponibles. Elige otras.');
+      // Sesión caducada o revocada: al borrarla, PrivateRoute lleva al login.
+      if (error instanceof ApiError && error.status === 401) {
+        clearSession();
+        return;
+      }
+      // Errores de #120. Si el problema está en las fechas (409 por solape, con field), se vuelve
+      // a elegirlas; si no (objeto propio, no publicado, solicitud duplicada…), se queda en el
+      // resumen con el mensaje de la API.
+      if (error instanceof ApiError && error.status === 409 && error.field) {
+        setFormError(error.message);
         setStep('dates');
       } else if (
         error instanceof ApiError &&
@@ -73,8 +84,6 @@ export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProp
       ) {
         setApiErrors({ [error.field]: error.message });
         setStep('dates');
-      } else if (error instanceof ApiError && error.status !== 0) {
-        setFormError('No se ha podido enviar la solicitud. Inténtalo de nuevo.');
       } else if (error instanceof ApiError) {
         setFormError(error.message);
       } else {
