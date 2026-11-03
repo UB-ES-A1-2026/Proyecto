@@ -66,6 +66,16 @@ const SECTIONS: HelpSection[] = [
     ],
     note: 'Si no hay ningún objeto con ese texto, verás un aviso. Los objetos que su propietario ha pausado o retirado no salen en la búsqueda.',
   },
+  {
+    id: 'ver-objeto',
+    title: 'Ver la ficha de un objeto',
+    steps: [
+      'En los resultados de la búsqueda, pulsa el nombre del objeto.',
+      'En su ficha verás las fotos, el precio por día, la fianza, si está disponible, la descripción, la categoría, el barrio, las formas de entrega y quién lo publica.',
+      'Pulsa «Alquilar» para pedirlo. Si no has iniciado sesión, primero se te pedirá que lo hagas y después volverás a la ficha.',
+    ],
+    note: 'De quien publica el objeto solo se ve su nombre de usuario. Si el objeto es tuyo, verás «Este anuncio es tuyo.» en lugar del botón «Alquilar».',
+  },
 ];
 
 export function HelpPage() {

@@ -17,6 +17,7 @@ const DELIVERED_FLOWS = [
   'Ver tu perfil',
   'Cerrar sesión',
   'Buscar un objeto',
+  'Ver la ficha de un objeto',
 ];
 
 // Criterio 1
