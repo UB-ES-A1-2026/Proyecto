@@ -684,6 +684,7 @@ Más detalle en [docs/arquitectura.md](docs/arquitectura.md#4-despliegue).
 | [docs/adr/0001-stack.md](docs/adr/0001-stack.md) | Elección del stack y configuración que hay que respetar |
 | [docs/arquitectura.md](docs/arquitectura.md) | Capas, flujo de autenticación, estructura de carpetas y despliegue |
 | [docs/modelo-datos.md](docs/modelo-datos.md) | Tablas y campos de la base de datos |
+| [docs/guia-estilo.md](docs/guia-estilo.md) | Logo, colores, tipografía, componentes comunes y contraste |
 | [docs/testing.md](docs/testing.md) | Estrategia de pruebas, convenciones e2e y casos de prueba de aceptación |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | GitFlow, commits, PRs y Definition of Done |
 | [AGENTS.md](AGENTS.md) | Normas para trabajar con agentes de IA |
