@@ -137,6 +137,20 @@ Objetos del seed (`backend/prisma/demoData.ts`): «Taladro percutor Bosch» (pub
 | CP-BUS-04 | 4. Sin resultados | — | 1. Buscar `xyzzy-no-existe` | Se muestra «No hemos encontrado ningún objeto para «xyzzy-no-existe».» | `buscar-objetos.spec.ts` · criterio 4 |
 | CP-BUS-05 | (Estado) No salen pausados ni retirados | Seed cargado | 1. Buscar `tienda` | No sale «Tienda de campaña para 4 personas» (pausado) y se muestra el mensaje de sin resultados. Los retirados los cubre el test de API de #114 | `buscar-objetos.spec.ts` · estado |
 
+### US-03.03 Ver un objeto (#58) · S1-T37 (#175)
+
+Se llega a la ficha desde la búsqueda de `taladro` (US-03.01): «Taladro percutor Bosch» es de ana, cuesta 6 €/día y está publicado.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-VER-01 | 1. Abrir un anuncio desde los resultados | Seed cargado | 1. Ir a `/buscar?q=taladro` 2. Pulsar «Taladro percutor Bosch» | Se abre `/objetos/<id>` con el título del objeto | `ver-objeto.spec.ts` · criterio 1 |
+| CP-VER-02 | 2. La ficha muestra los datos del objeto | Seed cargado | 1. Abrir la ficha | Se ven la descripción, «6,00 € / día», «Disponible» y las fotos (o «Este objeto no tiene fotos.» si no tiene) | `ver-objeto.spec.ts` · criterio 2 |
+| CP-VER-03 | 3. Información pública del propietario | — | 1. Abrir la ficha | Se ve «Publicado por ana» y en la ficha no aparece ningún correo | `ver-objeto.spec.ts` · criterio 3 |
+| CP-VER-04 | 4. Botón «Alquilar» | Sesión de bruno | 1. Abrir la ficha 2. Pulsar «Alquilar» | Se va a `/objetos/<id>/solicitar` (US-04.01) | `ver-objeto.spec.ts` · criterio 4a |
+| CP-VER-05 | 4. «Alquilar» sin sesión | Sin sesión | 1. Abrir la ficha 2. Pulsar «Alquilar» | Se va a `/login`; tras iniciar sesión se vuelve a la ficha | `ver-objeto.spec.ts` · criterio 4b |
+| CP-VER-06 | 4. El propietario no alquila su objeto | Sesión de ana | 1. Abrir la ficha | Se ve «Este anuncio es tuyo.» y no hay botón «Alquilar» | `ver-objeto.spec.ts` · criterio 4c |
+| CP-VER-07 | (Errores) Objeto que no existe | — | 1. Ir a `/objetos/00000000-0000-4000-8000-000000000000` | Se ve «No hemos encontrado este objeto» y el enlace «Volver al inicio» | `ver-objeto.spec.ts` · errores |
+
 ## 5. Pendiente
 
 - **Smoke test en el CI:** el workflow de GitHub Actions que arranca PostgreSQL, el backend y el frontend y ejecuta `npm run test:smoke`. Se coordina con el CI general (#19, Kai). En el CI conviene servir el frontend compilado (`npm run build` + `npm run preview`) en lugar de `npm run dev`, para evitar la espera de la primera carga de Vite.
