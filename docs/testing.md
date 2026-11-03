@@ -213,6 +213,16 @@ Retirar no se puede deshacer, así que solo se retira de verdad la «Máquina de
 | CP-RET-03 | 3. Cancelar no cambia nada | Como CP-RET-01 | 1. «Cancelar» en el diálogo 2. Buscar `silla` | La silla sigue «Publicado» y sale en la búsqueda | `retirar-objeto.spec.ts` · criterio 3 |
 | CP-RET-04 | 4. Un no propietario no puede retirarlo | Sesión de bruno | 1. Abrir la ficha de la silla 2. `POST /api/objetos/<id>/retirar` con el token de bruno | En la ficha no hay «Retirar anuncio», la API responde `403` y la silla sigue publicada | `retirar-objeto.spec.ts` · criterio 4 |
 | CP-RET-05 | (Supuesto de #110) Con reservas activas no se retira | Sesión de ana | 1. «Retirar anuncio» en la escalera 2. Confirmar | El diálogo muestra «No puedes retirar un objeto con reservas activas.» y la escalera sigue publicada | `retirar-objeto.spec.ts` · reservas activas |
+### US-04.03 Aceptar una solicitud (#62) · S1-T39 (#177)
+
+Solicitudes del seed (#210). bruno ha pedido a ana el taladro (pendiente: se acepta en el criterio 2), la escalera (ya aceptada) y el carro (pendiente). ana ha pedido a bruno el proyector (pendiente). El criterio 2 cambia la BD: en local, vuelve a ejecutar `npm run db:seed` antes de repetirlo.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-ACE-01 | 1. El propietario ve objeto, quién lo pide, fechas y estado | Sesión de bruno | 1. «Mis solicitudes» 2. Abrir el proyector en «Recibidas» | Se ven el enlace al objeto, «Solicitada por: ana», las fechas, «Estado: Pendiente» y el botón «Aceptar» | `aceptar-solicitud.spec.ts` · criterio 1 |
+| CP-ACE-02 | 2. Aceptar una solicitud «Pendiente» | Sesión de ana | 1. Abrir el taladro en «Recibidas» 2. Pulsar «Aceptar» | Sale «Has aceptado la solicitud.» y pasa a «Aceptada». bruno la ve «Aceptada» en «Enviadas» | `aceptar-solicitud.spec.ts` · criterio 2 |
+| CP-ACE-03 | 3. Una aceptada no se puede volver a aceptar ni rechazar | Sesión de ana | 1. Abrir la escalera (aceptada) 2. Llamar a `POST /api/reservas/:id/aceptar` y `/rechazar` | No hay botones. La API responde `409` y sigue «Aceptada» | `aceptar-solicitud.spec.ts` · criterio 3 |
+| CP-ACE-04 | (Permisos) Solo el propietario acepta | — | 1. `POST /api/reservas/<id del carro>/aceptar` con el token de bruno | `403`, y la solicitud sigue «Pendiente» | `aceptar-solicitud.spec.ts` · permisos |
 
 ## 5. Pendiente
 
