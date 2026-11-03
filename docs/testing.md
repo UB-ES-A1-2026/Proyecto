@@ -151,6 +151,18 @@ Se llega a la ficha desde la búsqueda de `taladro` (US-03.01): «Taladro percut
 | CP-VER-06 | 4. El propietario no alquila su objeto | Sesión de ana | 1. Abrir la ficha | Se ve «Este anuncio es tuyo.» y no hay botón «Alquilar» | `ver-objeto.spec.ts` · criterio 4c |
 | CP-VER-07 | (Errores) Objeto que no existe | — | 1. Ir a `/objetos/00000000-0000-4000-8000-000000000000` | Se ve «No hemos encontrado este objeto» y el enlace «Volver al inicio» | `ver-objeto.spec.ts` · errores |
 
+### US-02.02 Editar un objeto (#51) · S1-T33 (#171)
+
+Se edita la «Hidrolimpiadora Kärcher» de ana (8 €/día, fianza 50 €), que no usa ningún otro e2e. Cada test la deja como estaba al terminar. Del criterio 2, la disponibilidad se cambia con «Pausar» y «Reanudar» en «Mis objetos» (US-02.04), igual que «Disponible ya» o «Pausado» al publicar. Añadir fotos llega cuando entre la subida de US-02.01. Borrar fotos queda para el Sprint 2 (decisión de Marc, 03/11).
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-EDI-01 | 1. Elegir un objeto propio y pulsar «Editar» | Sesión de ana | 1. «Mis objetos» 2. «Editar» en la hidrolimpiadora | Se abre «Editar objeto» con su nombre, descripción, precio y fianza actuales | `editar-objeto.spec.ts` · criterio 1 |
+| CP-EDI-02 | 2. Se pueden modificar los campos | Como CP-EDI-01 | 1. Abrir la edición | Nombre, descripción, precio por día y fianza son editables. La disponibilidad se cambia con pausar y reanudar (CP-PAU) | `editar-objeto.spec.ts` · criterio 2 |
+| CP-EDI-03 | 3. Guardar con valores válidos | Como CP-EDI-01 | 1. Cambiar el nombre y el precio a `11,50` 2. «Guardar» 3. Recargar | Tras recargar, la lista y el formulario muestran el nombre y el precio nuevos | `editar-objeto.spec.ts` · criterio 3 |
+| CP-EDI-04 | 4. Campo erróneo | Como CP-EDI-01 | 1. Precio `-5` 2. «Guardar» 3. Recargar | Sale el error del precio con el campo marcado. Tras recargar, sigue a 8 € | `editar-objeto.spec.ts` · criterio 4 |
+| CP-EDI-05 | (Permisos) No propietario | Sesión de bruno | 1. «Mis objetos» 2. `PATCH /api/objetos/<id>` con el token de bruno | La hidrolimpiadora no aparece en sus objetos y la API responde `403` | `editar-objeto.spec.ts` · permisos |
+
 ## 5. Pendiente
 
 - **Smoke test en el CI:** el workflow de GitHub Actions que arranca PostgreSQL, el backend y el frontend y ejecuta `npm run test:smoke`. Se coordina con el CI general (#19, Kai). En el CI conviene servir el frontend compilado (`npm run build` + `npm run preview`) en lugar de `npm run dev`, para evitar la espera de la primera carga de Vite.
