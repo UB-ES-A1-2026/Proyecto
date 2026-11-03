@@ -7,6 +7,7 @@ import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { RegisterPage } from '../pages/RegisterPage';
+import { RentalRequestPage } from '../pages/RentalRequestPage';
 
 export const routes: RouteObject[] = [
   {
@@ -20,7 +21,13 @@ export const routes: RouteObject[] = [
       { index: true, element: <HomePage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'registro', element: <RegisterPage /> },
-      { element: <PrivateRoute />, children: [{ path: 'perfil', element: <ProfilePage /> }] },
+      {
+        element: <PrivateRoute />,
+        children: [
+          { path: 'perfil', element: <ProfilePage /> },
+          { path: 'objetos/:id/solicitar', element: <RentalRequestPage /> },
+        ],
+      },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

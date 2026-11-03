@@ -1,3 +1,4 @@
+// Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 03/11/2026
 // Cálculos del alquiler (US-04.01, #121). Las fechas son cadenas «AAAA-MM-DD», como las da
 // <input type="date"> y como las espera la API, así que no dependen de la zona horaria.
 
@@ -17,7 +18,7 @@ export function todayIso(now: Date = new Date()): string {
   return `${now.getFullYear()}-${month}-${day}`;
 }
 
-// Cuenta el primer y el último día: del 4 al 6 son 3 días. Pendiente de confirmar con #120.
+// Cuenta el primer y el último día: del 4 al 6 son 3 días, igual que el backend (#120).
 export function countRentalDays(startDate: string, endDate: string): number {
   return Math.round((toUtcTime(endDate) - toUtcTime(startDate)) / MS_PER_DAY) + 1;
 }
