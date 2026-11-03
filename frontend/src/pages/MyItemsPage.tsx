@@ -184,23 +184,26 @@ export function MyItemsPage() {
                     <p className="item-hint">{STATUS_HINTS[item.status]}</p>
                   </div>
                   <div className="item-actions">
-                    <button
-                      type="button"
-                      className="button-edit"
-                      aria-label={`Editar ${item.title}`}
-                      onClick={() => openEditor(item.id)}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                        <path
-                          d="M4 20h4L19 9l-4-4L4 16v4Z"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      Editar
-                    </button>
+                    {/* Retirar es definitivo: un objeto retirado no se puede editar (409, #202). */}
+                    {item.status !== 'withdrawn' && (
+                      <button
+                        type="button"
+                        className="button-edit"
+                        aria-label={`Editar ${item.title}`}
+                        onClick={() => openEditor(item.id)}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                          <path
+                            d="M4 20h4L19 9l-4-4L4 16v4Z"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        Editar
+                      </button>
+                    )}
                   </div>
                 </li>
               ))}

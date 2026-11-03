@@ -79,6 +79,26 @@ describe('pantalla «Mis objetos» (US-02.02, #109)', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
+  it('no muestra «Editar» en los objetos retirados, porque no se pueden editar (#202)', async () => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
+    const withdrawn = {
+      id: 'o3',
+      title: 'Escalera',
+      dailyPrice: '3',
+      neighborhood: 'Sants',
+      status: 'withdrawn',
+    };
+    mockFetch(() => Response.json([...ITEMS, withdrawn]));
+
+    renderRoute('/mis-objetos');
+
+    const row = (await screen.findByRole('heading', { name: 'Escalera' })).closest('li');
+    expect(row).not.toBeNull();
+    expect(within(row as HTMLElement).getByText('Retirado')).toBeInTheDocument();
+    expect(within(row as HTMLElement).queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Editar Taladro percutor' })).toBeInTheDocument();
+  });
+
   it('los filtros muestran cuántos objetos hay en cada estado y filtran la lista', async () => {
     localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
     mockFetch(() => Response.json(ITEMS));
