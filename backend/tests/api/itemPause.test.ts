@@ -8,7 +8,7 @@ import { createTestReservation } from '../helpers/reservations.js';
 import { createTestUser, TEST_PASSWORD } from '../helpers/users.js';
 
 // POST /api/objetos/:id/pausar y /reanudar (US-02.04, #112): contrato publicado en la issue.
-// Generado con asistencia de IA (Claude)
+// Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
 
 async function loginAs(email: string): Promise<string> {
   const response = await request(app)
