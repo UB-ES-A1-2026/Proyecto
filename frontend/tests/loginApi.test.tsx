@@ -125,6 +125,8 @@ describe('«Iniciar sesión» de la cabecera vuelve a la página en la que estab
   function mockApi() {
     return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
       if (String(input).endsWith('/auth/login')) return Response.json(LOGIN_RESPONSE);
+      // La página de resultados también pide las categorías para el panel de filtros (#118)
+      if (String(input).endsWith('/categorias')) return Response.json([]);
       return Response.json({ items: [], total: 0, page: 1, pageSize: 12 });
     });
   }
