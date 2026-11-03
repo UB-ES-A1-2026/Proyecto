@@ -11,35 +11,68 @@ export function findItemForReservation(itemId: string) {
   });
 }
 
-// ¿Alguna reserva del objeto en esos estados se solapa con las fechas? Las dos fechas cuentan.
-export async function hasOverlappingReservation(
-  itemId: string,
-  startDate: Date,
-  endDate: Date,
-  statuses: readonly ReservationStatus[],
-): Promise<boolean> {
-  const overlapping = await prisma.reservation.findFirst({
-    where: {
-      itemId,
-      status: { in: [...statuses] },
-      startDate: { lte: endDate },
-      endDate: { gte: startDate },
-    },
-    select: { id: true },
-  });
+export type InsertReservationResult =
+  | {
+      outcome: 'created';
+      reservation: Prisma.ReservationGetPayload<{
+        include: typeof reservationDetailInclude;
+      }>;
+    }
+  | { outcome: 'not_published' | 'duplicate' | 'overlapping' };
 
-  return overlapping !== null;
-}
+// Crea la solicitud si se puede. Bloquea la fila del objeto durante la transacción, como aceptar
+// (#125): así, un doble clic no crea dos solicitudes iguales y, si el objeto se retira o se acepta
+// otra reserva a la vez, esta solicitud lo tiene en cuenta.
+export function insertReservationIfAvailable(
+  data: {
+    itemId: string;
+    renterId: string;
+    startDate: Date;
+    endDate: Date;
+    totalPrice: Prisma.Decimal;
+  },
+  occupyingStatuses: readonly ReservationStatus[],
+): Promise<InsertReservationResult> {
+  const { itemId, renterId, startDate, endDate } = data;
 
-export function insertReservation(data: {
-  itemId: string;
-  renterId: string;
-  startDate: Date;
-  endDate: Date;
-  totalPrice: Prisma.Decimal;
-}) {
-  return prisma.reservation.create({
-    data,
-    include: reservationDetailInclude,
+  return prisma.$transaction(async (transaction) => {
+    await transaction.$queryRaw`SELECT id FROM objeto WHERE id = ${itemId}::uuid FOR UPDATE`;
+
+    const item = await transaction.item.findUnique({
+      where: { id: itemId },
+      select: { status: true },
+    });
+    if (item?.status !== 'published') {
+      return { outcome: 'not_published' };
+    }
+
+    const duplicate = await transaction.reservation.findFirst({
+      where: { itemId, renterId, startDate, endDate, status: 'pending' },
+      select: { id: true },
+    });
+    if (duplicate) {
+      return { outcome: 'duplicate' };
+    }
+
+    // Las dos fechas cuentan: una reserva que acaba el día que empieza esta se solapa.
+    const overlapping = await transaction.reservation.findFirst({
+      where: {
+        itemId,
+        status: { in: [...occupyingStatuses] },
+        startDate: { lte: endDate },
+        endDate: { gte: startDate },
+      },
+      select: { id: true },
+    });
+    if (overlapping) {
+      return { outcome: 'overlapping' };
+    }
+
+    const reservation = await transaction.reservation.create({
+      data,
+      include: reservationDetailInclude,
+    });
+
+    return { outcome: 'created', reservation };
   });
 }

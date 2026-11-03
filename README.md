@@ -424,6 +424,7 @@ Respuesta `201`:
 | `403` | El objeto es tuyo | — |
 | `404` | El objeto no existe o no está publicado | — |
 | `409` | Las fechas se solapan con una reserva aceptada, pagada o en curso (las pendientes no ocupan fechas) | `startDate` |
+| `409` | Ya tienes una solicitud pendiente de ese objeto con las mismas fechas | — |
 
 ### Probarlo desde la terminal
 
