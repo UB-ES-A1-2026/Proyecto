@@ -1,4 +1,4 @@
-// Generado con asistencia de IA (Claude) – revisado por <nombre>, <fecha>
+// Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 03/11/2026
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
