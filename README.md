@@ -228,6 +228,7 @@ URL base en local: `http://localhost:3000/api`. Todas las peticiones y respuesta
 | `POST` | `/auth/login` | Público | Inicia sesión |
 | `POST` | `/auth/logout` | Privado | Cierra la sesión actual |
 | `GET` | `/usuarios/me` | Privado | Devuelve el perfil del usuario |
+| `POST` | `/reservas` | Privado | Solicita el alquiler de un objeto |
 
 ### `GET /health`
 
@@ -312,6 +313,40 @@ Respuesta `200`:
 ```
 
 `401` si el token falta, no es válido o ha caducado.
+
+### `POST /reservas` (privado)
+
+Solicita el alquiler de un objeto. El importe lo calcula el backend: precio por día × días, contando el primer y el último día.
+
+Cuerpo:
+
+```json
+{ "itemId": "8b0e…", "startDate": "2026-12-04", "endDate": "2026-12-06" }
+```
+
+Respuesta `201`:
+
+```json
+{
+  "id": "4f1a…",
+  "item": { "id": "8b0e…", "title": "Taladro percutor" },
+  "startDate": "2026-12-04",
+  "endDate": "2026-12-06",
+  "totalPrice": "16.50",
+  "status": "pending",
+  "renter": { "id": "2c9d…", "username": "bruno" },
+  "owner": { "id": "7a3e…", "username": "ana" },
+  "createdAt": "2026-11-02T10:00:00.000Z"
+}
+```
+
+| Código | Cuándo | `field` |
+|---|---|---|
+| `400` | Falta un campo o tiene un formato incorrecto, la fecha de inicio es anterior a hoy, la de fin es anterior a la de inicio o el importe es demasiado alto | `itemId`, `startDate` o `endDate` |
+| `401` | No hay sesión | — |
+| `403` | El objeto es tuyo | — |
+| `404` | El objeto no existe o no está publicado | — |
+| `409` | Las fechas se solapan con una reserva aceptada, pagada o en curso (las pendientes no ocupan fechas) | `startDate` |
 
 ### Probarlo desde la terminal
 
