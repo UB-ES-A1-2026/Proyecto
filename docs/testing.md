@@ -163,6 +163,19 @@ Se edita la «Hidrolimpiadora Kärcher» de ana (8 €/día, fianza 50 €), que
 | CP-EDI-04 | 4. Campo erróneo | Como CP-EDI-01 | 1. Precio `-5` 2. «Guardar» 3. Recargar | Sale el error del precio con el campo marcado. Tras recargar, sigue a 8 € | `editar-objeto.spec.ts` · criterio 4 |
 | CP-EDI-05 | (Permisos) No propietario | Sesión de bruno | 1. «Mis objetos» 2. `PATCH /api/objetos/<id>` con el token de bruno | La hidrolimpiadora no aparece en sus objetos y la API responde `403` | `editar-objeto.spec.ts` · permisos |
 
+### US-04.02 Consultar mis solicitudes (#61) · S1-T38 (#176)
+
+Solicitudes del seed (`DEMO_RESERVATIONS` en `backend/prisma/demoData.ts`, #210): bruno pide a ana la escalera (aceptada), y ana pide a bruno el proyector (pendiente) y el altavoz (rechazada). Las pendientes del taladro y del carro son para los e2e de aceptar y rechazar, y estos tests no las usan.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-MSO-01 | 1. La lista muestra objeto, fechas y estado | Sesión de bruno | 1. Pulsar «Mis solicitudes» en la cabecera | En «Enviadas» sale la escalera, con sus fechas y «Aceptada» | `mis-solicitudes.spec.ts` · criterio 1 |
+| CP-MSO-02 | 2. Estados «Pendiente», «Aceptada» y «Rechazada» | Sesión de ana | 1. Ir a «Mis solicitudes» | Proyector «Pendiente» y altavoz «Rechazada» en «Enviadas», y escalera «Aceptada» en «Recibidas» | `mis-solicitudes.spec.ts` · criterio 2 |
+| CP-MSO-03 | 3. Abrir el detalle | Sesión de ana | 1. Pulsar la solicitud del proyector | Se despliega con el enlace al objeto, «Fechas: Del … al …», «Importe total: 12,00 €», «Estado: Pendiente» y «Propietario: bruno» | `mis-solicitudes.spec.ts` · criterio 3 |
+| CP-MSO-04 | 4. Sin solicitudes | Usuario recién registrado | 1. Ir a «Mis solicitudes» | «No tienes solicitudes abiertas» en «Enviadas» y «Todavía no has recibido solicitudes.» en «Recibidas» | `mis-solicitudes.spec.ts` · criterio 4 |
+| CP-MSO-05 | (Recibidas) El propietario ve las que le llegan | Sesión de ana | 1. Abrir la solicitud de la escalera en «Recibidas» | Sale «Solicitada por: bruno», y la escalera no aparece en «Enviadas» | `mis-solicitudes.spec.ts` · recibidas |
+| CP-MSO-06 | (Acceso) Sin sesión | Sin sesión | 1. Ir a `/mis-solicitudes` | Se redirige a `/login` | `mis-solicitudes.spec.ts` · acceso |
+
 ## 5. Pendiente
 
 - **Smoke test en el CI:** el workflow de GitHub Actions que arranca PostgreSQL, el backend y el frontend y ejecuta `npm run test:smoke`. Se coordina con el CI general (#19, Kai). En el CI conviene servir el frontend compilado (`npm run build` + `npm run preview`) en lugar de `npm run dev`, para evitar la espera de la primera carga de Vite.
