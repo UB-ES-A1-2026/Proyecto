@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
 import { EditItemDialog } from '../components/EditItemDialog';
 import { WithdrawItemDialog } from '../components/WithdrawItemDialog';
 import { useAuth } from '../context/useAuth';
@@ -155,8 +156,7 @@ export function MyItemsPage() {
           <h1 className="page-title">Mis objetos</h1>
           <p className="page-subtitle">Los objetos que tienes publicados para alquilar.</p>
         </div>
-        {/* El formulario de publicación llega con S1-T4 (#13): de momento el botón solo se muestra. */}
-        <button type="button" className="button-publish" disabled>
+        <Link to="/objetos/nuevo" className="button-publish">
           <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
             <path
               d="M12 5v14M5 12h14"
@@ -166,7 +166,7 @@ export function MyItemsPage() {
             />
           </svg>
           Publicar un objeto
-        </button>
+        </Link>
       </div>
       {message && (
         <p role="status" className="form-success">

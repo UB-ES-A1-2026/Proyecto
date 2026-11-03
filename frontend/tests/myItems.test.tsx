@@ -132,13 +132,16 @@ describe('pantalla «Mis objetos» (US-02.02, #109)', () => {
     expect(await screen.findByText('Todavía no has publicado ningún objeto.')).toBeInTheDocument();
   });
 
-  it('muestra el botón «Publicar un objeto», desactivado hasta que exista el formulario', async () => {
+  it('«Publicar un objeto» lleva al formulario de publicación', async () => {
     localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
     mockFetch(() => Response.json([]));
 
     renderRoute('/mis-objetos');
 
-    expect(await screen.findByRole('button', { name: 'Publicar un objeto' })).toBeDisabled();
+    expect(await screen.findByRole('link', { name: 'Publicar un objeto' })).toHaveAttribute(
+      'href',
+      '/objetos/nuevo',
+    );
   });
 
   it('si la sesión ya no es válida (401) la borra y vuelve al login', async () => {

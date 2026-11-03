@@ -462,16 +462,12 @@ body {
   background-color: var(--color-primary);
   border: none;
   border-radius: var(--radius-large);
+  text-decoration: none;
   cursor: pointer;
 }
 
-.button-publish:hover:enabled {
+.button-publish:hover {
   background-color: var(--color-primary-hover);
-}
-
-.button-publish:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
 }
 
 /* En móvil la foto se hace pequeña al lado de los datos y los botones bajan a su propia fila. */
