@@ -2,6 +2,7 @@
 import { AppError } from '../errors/appError.js';
 import { findItemDetailById } from '../repositories/itemDetailRepository.js';
 import { toItemDetail, type ItemDetail } from './itemDetail.js';
+import { listItemPhotos } from './photoService.js';
 
 export const ITEM_NOT_FOUND_MESSAGE = 'No hemos encontrado este objeto.';
 
@@ -18,7 +19,10 @@ export async function getItemDetail(
     throw new AppError(404, ITEM_NOT_FOUND_MESSAGE);
   }
 
-  // Las fotos llegan con #106 (US-02.01): cuando esa historia esté en develop, aquí se
-  // usará listItemPhotos(item.id).
-  return toItemDetail(item, []);
+  const photos = await listItemPhotos(item.id);
+
+  return toItemDetail(
+    item,
+    photos.map(({ id, url }) => ({ id, url })),
+  );
 }

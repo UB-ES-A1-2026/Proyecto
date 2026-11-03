@@ -16,6 +16,15 @@ export function findItemPhotos(itemId: string) {
   });
 }
 
+// Fotos de varios objetos a la vez, para no hacer una consulta por cada resultado de la búsqueda.
+export function findPhotosOfItems(itemIds: string[]) {
+  return prisma.itemPhoto.findMany({
+    where: { itemId: { in: itemIds } },
+    orderBy: { order: 'asc' },
+    select: { itemId: true, key: true },
+  });
+}
+
 export function findPhotoByKey(key: string) {
   return prisma.itemPhoto.findUnique({ where: { key } });
 }

@@ -7,6 +7,7 @@ import {
   updateItemById,
 } from '../repositories/itemEditRepository.js';
 import { toItemDetail, type ItemDetail } from './itemDetail.js';
+import { listItemPhotos } from './photoService.js';
 
 export const ITEM_NOT_FOUND_MESSAGE = 'No hemos encontrado este objeto.';
 export const NOT_OWNER_MESSAGE =
@@ -61,7 +62,10 @@ export async function updateItem(
 
   const updated = await updateItemById(itemId, changes);
 
-  // Las fotos llegan con #106 (US-02.01): cuando esa historia esté en develop, aquí se
-  // usarán las del objeto, como en el detalle (#119).
-  return toItemDetail(updated, []);
+  const photos = await listItemPhotos(itemId);
+
+  return toItemDetail(
+    updated,
+    photos.map(({ id, url }) => ({ id, url })),
+  );
 }

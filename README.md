@@ -551,7 +551,7 @@ Reglas: solo **JPG, PNG o WebP**, **5 MB como máximo** y **5 fotos por objeto**
 | `409` | El objeto ya tiene 5 fotos, está retirado o la foto ya estaba guardada | — o `key` |
 | `503` | El almacenamiento de fotos no está configurado en ese servidor | — |
 
-Para los demás endpoints (ficha, búsqueda, «Mis objetos»), `listItemPhotos(itemId)` de `backend/src/services/photoService.ts` devuelve las fotos ordenadas con su URL de lectura.
+La ficha y la edición devuelven las fotos del objeto con `listItemPhotos(itemId)`, y la búsqueda, la primera de cada objeto con `listFirstPhotoUrls(itemIds)`, las dos en `backend/src/services/photoService.ts`. Sin almacenamiento configurado no fallan: la ficha devuelve `photos: []` y la búsqueda, `photo: null`.
 
 ### Probarlo desde la terminal
 
