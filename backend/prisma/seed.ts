@@ -3,7 +3,12 @@
 // Desde #97 también crea los objetos de ejemplo de demoData.ts. NUNCA contra producción: la
 // contraseña está en el repo (docs/despliegue.md). Para producción está seed-demo.ts.
 import { PrismaClient, UserRole } from '@prisma/client';
-import { DEV_PASSWORD, upsertDemoItems, upsertUsers } from './demoSeed.js';
+import {
+  DEV_PASSWORD,
+  upsertDemoItems,
+  upsertDemoReservations,
+  upsertUsers,
+} from './demoSeed.js';
 
 const prisma = new PrismaClient();
 
@@ -24,9 +29,11 @@ async function main(): Promise<void> {
 
   // Los objetos son de ana y bruno; admin no publica nada.
   const items = await upsertDemoItems(prisma, [anaId, brunoId, anaId]);
+  // Las solicitudes son entre ana (0) y bruno (1).
+  const reservations = await upsertDemoReservations(prisma, [anaId, brunoId]);
 
   console.info(
-    `Seed completado: ${demoUsers.length} usuarios de prueba y ${items} objetos`,
+    `Seed completado: ${demoUsers.length} usuarios de prueba, ${items} objetos y ${reservations} solicitudes`,
   );
 }
 

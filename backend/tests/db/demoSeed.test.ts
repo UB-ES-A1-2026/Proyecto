@@ -1,11 +1,12 @@
 import bcrypt from 'bcrypt';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { DEMO_ITEMS } from '../../prisma/demoData.js';
+import { DEMO_ITEMS, DEMO_RESERVATIONS } from '../../prisma/demoData.js';
 import {
   DEMO_USERS,
   DEV_PASSWORD,
   demoPasswordError,
   upsertDemoItems,
+  upsertDemoReservations,
   upsertUsers,
 } from '../../prisma/demoSeed.js';
 import { prisma } from '../../src/repositories/prisma.js';
@@ -103,5 +104,87 @@ describe('seed de la demo', () => {
     await expect(upsertDemoItems(prisma, [])).rejects.toThrow(
       'Falta el propietario',
     );
+  });
+});
+
+// Solicitudes de ejemplo (US-04.02 a US-04.04) – revisado por Alex Matos, 03/11/2026
+describe('solicitudes de la demo', () => {
+  const TODAY = new Date('2026-11-03T22:30:00.000Z');
+
+  async function seedWithReservations() {
+    const ownerIds = await seedDemo();
+    await upsertDemoReservations(prisma, ownerIds, TODAY);
+    return ownerIds;
+  }
+
+  it('crea cada solicitud con su objeto, arrendatario, fechas, importe y estado', async () => {
+    const userIds = await seedWithReservations();
+
+    const reservations = await prisma.reservation.findMany({
+      include: { item: true },
+    });
+    expect(reservations).toHaveLength(DEMO_RESERVATIONS.length);
+
+    for (const demo of DEMO_RESERVATIONS) {
+      const reservation = reservations.find(
+        ({ item }) => item.title === demo.item.title,
+      );
+      expect(reservation?.item.ownerId).toBe(userIds[demo.item.owner]);
+      expect(reservation?.renterId).toBe(userIds[demo.renter]);
+      expect(reservation?.status).toBe(demo.status);
+      expect(reservation?.totalPrice.toFixed(2)).toBe(
+        reservation?.item.dailyPrice.times(demo.days).toFixed(2),
+      );
+      const start = new Date(Date.UTC(2026, 10, 3 + demo.startInDays));
+      const end = new Date(
+        Date.UTC(2026, 10, 3 + demo.startInDays + demo.days - 1),
+      );
+      expect(reservation?.startDate).toEqual(start);
+      expect(reservation?.endDate).toEqual(end);
+    }
+  });
+
+  it('nadie solicita su propio objeto y hay pendientes en las dos direcciones', async () => {
+    const userIds = await seedWithReservations();
+
+    for (const demo of DEMO_RESERVATIONS) {
+      expect(demo.renter).not.toBe(demo.item.owner);
+    }
+    for (const [owner, renter] of [
+      [0, 1],
+      [1, 0],
+    ]) {
+      expect(
+        await prisma.reservation.count({
+          where: {
+            status: 'pending',
+            renterId: userIds[renter],
+            item: { ownerId: userIds[owner] },
+          },
+        }),
+      ).toBeGreaterThan(0);
+    }
+  });
+
+  it('se puede repetir: no duplica y vuelve a dejar el estado del catálogo', async () => {
+    const userIds = await seedWithReservations();
+    await prisma.reservation.updateMany({ data: { status: 'accepted' } });
+
+    await upsertDemoReservations(prisma, userIds, TODAY);
+
+    expect(await prisma.reservation.count()).toBe(DEMO_RESERVATIONS.length);
+    expect(
+      await prisma.reservation.count({ where: { status: 'pending' } }),
+    ).toBe(
+      DEMO_RESERVATIONS.filter(({ status }) => status === 'pending').length,
+    );
+  });
+
+  it('falla con un mensaje claro si no se han creado antes los objetos', async () => {
+    const userIds = await upsertUsers(prisma, DEMO_USERS, DEMO_PASSWORD, 4);
+
+    await expect(
+      upsertDemoReservations(prisma, userIds, TODAY),
+    ).rejects.toThrow('crea antes los objetos');
   });
 });

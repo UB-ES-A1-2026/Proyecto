@@ -198,3 +198,56 @@ export const DEMO_ITEMS: readonly DemoItem[] = [
     status: 'published',
   },
 ];
+
+// Solicitudes de alquiler de ejemplo (US-04.02 a US-04.04). Con ellas, «Mis solicitudes» no sale
+// vacía y se puede aceptar o rechazar sin tener que crear antes una solicitud. Los índices son los
+// de la lista de usuarios (0 = ana o laura, 1 = bruno o jordi). Las fechas son días a partir de
+// hoy, para que nunca queden en el pasado. Las dos pendientes de «Taladro» y «Carro» son para
+// los e2e de aceptar (#177) y rechazar (#178): cada vez que se ejecuta el seed, vuelven a estar
+// pendientes.
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 03/11/2026
+export interface DemoReservation {
+  item: { owner: number; title: string };
+  renter: number;
+  startInDays: number;
+  days: number;
+  status: 'pending' | 'accepted' | 'rejected';
+}
+
+export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
+  {
+    item: { owner: 0, title: 'Taladro percutor Bosch' },
+    renter: 1,
+    startInDays: 7,
+    days: 3,
+    status: 'pending',
+  },
+  {
+    item: { owner: 0, title: 'Carro de la compra plegable' },
+    renter: 1,
+    startInDays: 10,
+    days: 2,
+    status: 'pending',
+  },
+  {
+    item: { owner: 0, title: 'Escalera de aluminio de 3 peldaños' },
+    renter: 1,
+    startInDays: 14,
+    days: 2,
+    status: 'accepted',
+  },
+  {
+    item: { owner: 1, title: 'Proyector Full HD' },
+    renter: 0,
+    startInDays: 5,
+    days: 1,
+    status: 'pending',
+  },
+  {
+    item: { owner: 1, title: 'Altavoz Bluetooth JBL' },
+    renter: 0,
+    startInDays: 3,
+    days: 2,
+    status: 'rejected',
+  },
+];
