@@ -1,8 +1,10 @@
 // Generado con asistencia de IA – revisado por Danyal, 01/11/2026
 import { useEffect, useState } from 'react';
 import { ReservationCard } from '../components/ReservationCard';
+import { ReservationDecision } from '../components/ReservationDecision';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
+import type { DecidedReservation } from '../services/reservationDecisionService';
 import { getMyReservations, type MyReservations } from '../services/reservationService';
 
 export function MyReservationsPage() {
@@ -35,6 +37,21 @@ export function MyReservationsPage() {
     };
   }, [token, clearSession]);
 
+  // Al responder a una solicitud, su tarjeta pasa al estado nuevo sin volver a pedir la lista.
+  function handleDecided(updated: DecidedReservation) {
+    setReservations(
+      (current) =>
+        current && {
+          ...current,
+          received: current.received.map((reservation) =>
+            reservation.id === updated.id
+              ? { ...reservation, status: updated.status }
+              : reservation,
+          ),
+        },
+    );
+  }
+
   return (
     <section className="my-reservations">
       <h1>Mis solicitudes</h1>
@@ -61,7 +78,13 @@ export function MyReservationsPage() {
             {reservations.received.length > 0 ? (
               <div className="reservation-list">
                 {reservations.received.map((reservation) => (
-                  <ReservationCard key={reservation.id} reservation={reservation} role="received" />
+                  <ReservationCard key={reservation.id} reservation={reservation} role="received">
+                    <ReservationDecision
+                      reservationId={reservation.id}
+                      status={reservation.status}
+                      onDecided={handleDecided}
+                    />
+                  </ReservationCard>
                 ))}
               </div>
             ) : (

@@ -1,9 +1,10 @@
 import { apiRequest } from './apiClient';
+import type { ReservationStatus } from './reservationService';
 
 // Generado con asistencia de IA – revisado por Danyal, 01/11/2026
 export type DecidedReservation = {
   id: string;
-  status: string;
+  status: ReservationStatus;
 };
 
 export function acceptReservation(token: string, id: string): Promise<DecidedReservation> {
