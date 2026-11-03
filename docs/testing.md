@@ -190,6 +190,17 @@ bruno solicita el «Cortacésped eléctrico» de ana (9 €/día). Las fechas so
 | CP-SOL-06 | 5. Confirmar crea la solicitud «Pendiente» | CP-SOL-05 | 1. «Confirmar» | Se va a «Mis solicitudes» y en «Enviadas» sale el cortacésped «Pendiente». bruno tiene una solicitud enviada más | `solicitar-alquiler.spec.ts` · criterio 5 |
 | CP-SOL-07 | (Permisos) No se puede alquilar un objeto propio | Sesión de ana | 1. Abrir la ficha del cortacésped 2. `POST /api/reservas` con el token de ana | «Este anuncio es tuyo.», sin botón «Alquilar», y la API responde `403` | `solicitar-alquiler.spec.ts` · permisos |
 
+### US-04.03 Aceptar una solicitud (#62) · S1-T39 (#177)
+
+Solicitudes del seed (#210). bruno ha pedido a ana el taladro (pendiente: se acepta en el criterio 2), la escalera (ya aceptada) y el carro (pendiente). ana ha pedido a bruno el proyector (pendiente). El criterio 2 cambia la BD: en local, vuelve a ejecutar `npm run db:seed` antes de repetirlo.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-ACE-01 | 1. El propietario ve objeto, quién lo pide, fechas y estado | Sesión de bruno | 1. «Mis solicitudes» 2. Abrir el proyector en «Recibidas» | Se ven el enlace al objeto, «Solicitada por: ana», las fechas, «Estado: Pendiente» y el botón «Aceptar» | `aceptar-solicitud.spec.ts` · criterio 1 |
+| CP-ACE-02 | 2. Aceptar una solicitud «Pendiente» | Sesión de ana | 1. Abrir el taladro en «Recibidas» 2. Pulsar «Aceptar» | Sale «Has aceptado la solicitud.» y pasa a «Aceptada». bruno la ve «Aceptada» en «Enviadas» | `aceptar-solicitud.spec.ts` · criterio 2 |
+| CP-ACE-03 | 3. Una aceptada no se puede volver a aceptar ni rechazar | Sesión de ana | 1. Abrir la escalera (aceptada) 2. Llamar a `POST /api/reservas/:id/aceptar` y `/rechazar` | No hay botones. La API responde `409` y sigue «Aceptada» | `aceptar-solicitud.spec.ts` · criterio 3 |
+| CP-ACE-04 | (Permisos) Solo el propietario acepta | — | 1. `POST /api/reservas/<id del carro>/aceptar` con el token de bruno | `403`, y la solicitud sigue «Pendiente» | `aceptar-solicitud.spec.ts` · permisos |
+
 ## 5. Pendiente
 
 - **Smoke test en el CI:** el workflow de GitHub Actions que arranca PostgreSQL, el backend y el frontend y ejecuta `npm run test:smoke`. Se coordina con el CI general (#19, Kai). En el CI conviene servir el frontend compilado (`npm run build` + `npm run preview`) en lugar de `npm run dev`, para evitar la espera de la primera carga de Vite.
