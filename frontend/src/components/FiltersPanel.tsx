@@ -8,9 +8,11 @@ import {
   normalizeMaxPrice,
   type SearchFilters,
 } from './filterParams';
+import { Icon } from './Icon';
 
 type FiltersPanelProps = {
   id?: string;
+  open: boolean;
   categories: Category[];
   categoriesError?: string | null;
   initialFilters: SearchFilters;
@@ -22,6 +24,7 @@ type FiltersPanelProps = {
 // No sabe nada de la URL: recibe los filtros actuales y avisa al aplicar o limpiar.
 export function FiltersPanel({
   id,
+  open,
   categories,
   categoriesError,
   initialFilters,
@@ -33,6 +36,18 @@ export function FiltersPanel({
   const [maxPrice, setMaxPrice] = useState(initialFilters.maxPrice ?? '');
   const [neighborhood, setNeighborhood] = useState(initialFilters.neighborhood ?? '');
   const [maxPriceError, setMaxPriceError] = useState(false);
+
+  // Si cambian los filtros de la URL (chips, «Atrás»), el panel pasa a mostrar los nuevos. El panel
+  // no se vuelve a montar para no perder el foco, y si solo cambia la búsqueda no se pierde lo escrito.
+  const filtersKey = JSON.stringify(initialFilters);
+  const [shownFiltersKey, setShownFiltersKey] = useState(filtersKey);
+  if (filtersKey !== shownFiltersKey) {
+    setShownFiltersKey(filtersKey);
+    setCategoryId(initialFilters.categoryId ?? '');
+    setMaxPrice(initialFilters.maxPrice ?? '');
+    setNeighborhood(initialFilters.neighborhood ?? '');
+    setMaxPriceError(false);
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -56,7 +71,18 @@ export function FiltersPanel({
   }
 
   return (
-    <form id={id} className="filters-panel" aria-label="Filtros" noValidate onSubmit={handleSubmit}>
+    <form
+      id={id}
+      className="card filters-panel"
+      data-open={open}
+      aria-label="Filtros"
+      noValidate
+      onSubmit={handleSubmit}
+    >
+      <p className="filters-title">
+        <Icon name="tune" />
+        Filtros
+      </p>
       <div className="filters-fields">
         <div className="form-field">
           <label htmlFor={`${fieldId}-categoria`}>Categoría</label>
@@ -108,10 +134,10 @@ export function FiltersPanel({
       </div>
 
       <div className="filters-actions">
-        <button type="submit" className="button-primary">
+        <button type="submit" className="button-secondary filters-apply">
           Aplicar filtros
         </button>
-        <button type="button" className="button-secondary" onClick={handleClear}>
+        <button type="button" className="button-quiet" onClick={handleClear}>
           Limpiar filtros
         </button>
       </div>

@@ -1,6 +1,6 @@
 // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 18/10/2026
 import { useRef, useState, type FormEvent } from 'react';
-import { useLocation, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { PasswordInput } from '../components/PasswordInput';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
@@ -97,8 +97,12 @@ export function LoginPage() {
   }
 
   return (
-    <section className="auth-card">
-      <h1>Iniciar sesión</h1>
+    <section className="auth-card card">
+      <header className="auth-card-header">
+        <img className="auth-logo" src="/favicon.svg" alt="" width={56} height={56} />
+        <h1>Iniciar sesión</h1>
+        <p className="auth-tagline">Alquila lo que necesitas, cerca de casa.</p>
+      </header>
       {formError && (
         <p role="alert" className="form-error">
           {formError}
@@ -107,20 +111,22 @@ export function LoginPage() {
       <form onSubmit={handleSubmit} noValidate>
         <div className="form-field">
           <label htmlFor="login-email">Correo electrónico</label>
-          <input
-            id="login-email"
-            ref={emailRef}
-            type="email"
-            name="email"
-            autoComplete="email"
-            value={email}
-            onChange={(event) => {
-              setEmail(event.target.value);
-              clearError('email');
-            }}
-            aria-invalid={errors.email ? true : undefined}
-            aria-describedby={errors.email ? 'login-email-error' : undefined}
-          />
+          <div className="auth-input">
+            <input
+              id="login-email"
+              ref={emailRef}
+              type="email"
+              name="email"
+              autoComplete="email"
+              value={email}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                clearError('email');
+              }}
+              aria-invalid={errors.email ? true : undefined}
+              aria-describedby={errors.email ? 'login-email-error' : undefined}
+            />
+          </div>
           {errors.email && (
             <p id="login-email-error" className="field-error">
               {errors.email}
@@ -130,19 +136,21 @@ export function LoginPage() {
 
         <div className="form-field">
           <label htmlFor="login-password">Contraseña</label>
-          <PasswordInput
-            id="login-password"
-            ref={passwordRef}
-            name="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(event) => {
-              setPassword(event.target.value);
-              clearError('password');
-            }}
-            aria-invalid={errors.password ? true : undefined}
-            aria-describedby={errors.password ? 'login-password-error' : undefined}
-          />
+          <div className="auth-input">
+            <PasswordInput
+              id="login-password"
+              ref={passwordRef}
+              name="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                clearError('password');
+              }}
+              aria-invalid={errors.password ? true : undefined}
+              aria-describedby={errors.password ? 'login-password-error' : undefined}
+            />
+          </div>
           {errors.password && (
             <p id="login-password-error" className="field-error">
               {errors.password}
@@ -154,6 +162,9 @@ export function LoginPage() {
           {submitting ? 'Iniciando sesión…' : 'Iniciar sesión'}
         </button>
       </form>
+      <p className="auth-switch">
+        ¿Aún no tienes cuenta? <Link to="/registro">Regístrate</Link>
+      </p>
     </section>
   );
 }

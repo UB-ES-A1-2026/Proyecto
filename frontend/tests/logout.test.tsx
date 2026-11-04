@@ -11,10 +11,20 @@ const SESSION = {
   user: { id: 'u1', username: 'ana', email: 'ana@rentit.test', role: 'user' },
 };
 
+const PROFILE = {
+  id: 'u1',
+  username: 'ana',
+  email: 'ana@rentit.test',
+  createdAt: '2026-01-01T00:00:00.000Z',
+};
+
 function mockFetch(logoutResponse: () => Response | Promise<Response>) {
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
-    if (String(input).endsWith('/health')) return Response.json({ status: 'ok' });
-    return logoutResponse();
+    const url = String(input);
+    if (url.endsWith('/health')) return Response.json({ status: 'ok' });
+    if (url.endsWith('/auth/logout')) return logoutResponse();
+    if (url.endsWith('/usuarios/me')) return Response.json(PROFILE);
+    return Response.json({ items: [], sent: [], received: [] });
   });
 }
 
@@ -32,7 +42,7 @@ describe('cerrar sesión (US-01.3, #104)', () => {
   it('invalida la sesión en la API, borra el token y lleva al login', async () => {
     localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
     const fetchMock = mockFetch(() => new Response(null, { status: 204 }));
-    const { router } = renderRoute('/');
+    const { router } = renderRoute('/perfil');
 
     await userEvent.setup().click(screen.getByRole('button', { name: 'Cerrar sesión' }));
 
@@ -52,7 +62,7 @@ describe('cerrar sesión (US-01.3, #104)', () => {
         { status: 401 },
       ),
     );
-    const { router } = renderRoute('/');
+    const { router } = renderRoute('/perfil');
 
     await userEvent.setup().click(screen.getByRole('button', { name: 'Cerrar sesión' }));
 

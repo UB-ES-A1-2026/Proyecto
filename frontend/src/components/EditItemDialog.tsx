@@ -4,6 +4,7 @@ import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import { getItemDetail, updateItem, type ItemDetail } from '../services/itemService';
 import { ACCEPTED_PHOTO_TYPES, uploadItemPhoto } from '../services/photoService';
+import { Icon } from './Icon';
 import { Modal } from './Modal';
 
 // Fotos que se pueden añadir al editar (US-02.02, #51). Borrarlas queda para el Sprint 2.
@@ -108,7 +109,8 @@ export function EditItemDialog({ id, onClose, onSaved }: EditItemDialogProps) {
     <Modal title="Editar objeto" onClose={onClose}>
       {loadError ? (
         <>
-          <p role="alert" className="form-error">
+          <p role="alert" className="form-error manage-notice">
+            <Icon name="error" />
             {loadError}
           </p>
           <button type="button" className="button-secondary" onClick={onClose}>
@@ -118,10 +120,31 @@ export function EditItemDialog({ id, onClose, onSaved }: EditItemDialogProps) {
       ) : item && token ? (
         <EditItemForm item={item} token={token} onCancel={onClose} onSaved={onSaved} />
       ) : (
-        <p>Cargando el objeto…</p>
+        <>
+          <p className="manage-visually-hidden">Cargando el objeto…</p>
+          <div className="edit-item-skeleton" aria-hidden="true">
+            <div className="skeleton manage-skeleton-title" />
+            <div className="skeleton edit-item-skeleton-input" />
+            <div className="skeleton manage-skeleton-title" />
+            <div className="skeleton edit-item-skeleton-textarea" />
+          </div>
+        </>
       )}
     </Modal>
   );
+}
+
+// Miniatura de una foto aún sin subir. La URL temporal se libera al quitarla o al cerrar la ventana.
+function NewPhotoThumbnail({ file }: { file: File }) {
+  const imageRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    if (imageRef.current) imageRef.current.src = url;
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  return <img ref={imageRef} alt={`Vista previa de ${file.name}`} />;
 }
 
 type EditItemFormProps = {
@@ -247,7 +270,8 @@ function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
   return (
     <>
       {formError && (
-        <p role="alert" className="form-error">
+        <p role="alert" className="form-error manage-notice">
+          <Icon name="error" />
           {formError}
         </p>
       )}
@@ -276,7 +300,7 @@ function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
             id="item-description"
             ref={descriptionRef}
             name="description"
-            rows={6}
+            rows={5}
             value={values.description}
             onChange={(event) => setValue('description', event.target.value)}
             aria-invalid={errors.description ? true : undefined}
@@ -288,58 +312,66 @@ function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
           {fieldError('description')}
         </div>
 
-        <div className="form-field">
-          <label htmlFor="item-dailyPrice">Precio por día (€)</label>
-          <input
-            id="item-dailyPrice"
-            ref={dailyPriceRef}
-            type="text"
-            inputMode="decimal"
-            name="dailyPrice"
-            value={values.dailyPrice}
-            onChange={(event) => setValue('dailyPrice', event.target.value)}
-            aria-invalid={errors.dailyPrice ? true : undefined}
-            aria-describedby={describedBy('dailyPrice', 'item-dailyPrice-hint')}
-          />
-          <p id="item-dailyPrice-hint" className="field-hint">
-            Mayor que 0, con hasta 2 decimales. Por ejemplo, 5,50.
-          </p>
-          {fieldError('dailyPrice')}
+        <div className="edit-item-amounts">
+          <div className="form-field">
+            <label htmlFor="item-dailyPrice">Precio por día (€)</label>
+            <input
+              id="item-dailyPrice"
+              ref={dailyPriceRef}
+              type="text"
+              inputMode="decimal"
+              name="dailyPrice"
+              value={values.dailyPrice}
+              onChange={(event) => setValue('dailyPrice', event.target.value)}
+              aria-invalid={errors.dailyPrice ? true : undefined}
+              aria-describedby={describedBy('dailyPrice', 'item-dailyPrice-hint')}
+            />
+            <p id="item-dailyPrice-hint" className="field-hint">
+              Mayor que 0, con hasta 2 decimales. Por ejemplo, 5,50.
+            </p>
+            {fieldError('dailyPrice')}
+          </div>
+
+          <div className="form-field">
+            <label htmlFor="item-deposit">Fianza (€)</label>
+            <input
+              id="item-deposit"
+              ref={depositRef}
+              type="text"
+              inputMode="decimal"
+              name="deposit"
+              value={values.deposit}
+              onChange={(event) => setValue('deposit', event.target.value)}
+              aria-invalid={errors.deposit ? true : undefined}
+              aria-describedby={describedBy('deposit', 'item-deposit-hint')}
+            />
+            <p id="item-deposit-hint" className="field-hint">
+              0 si no pides fianza.
+            </p>
+            {fieldError('deposit')}
+          </div>
         </div>
 
         <div className="form-field">
-          <label htmlFor="item-deposit">Fianza (€)</label>
-          <input
-            id="item-deposit"
-            ref={depositRef}
-            type="text"
-            inputMode="decimal"
-            name="deposit"
-            value={values.deposit}
-            onChange={(event) => setValue('deposit', event.target.value)}
-            aria-invalid={errors.deposit ? true : undefined}
-            aria-describedby={describedBy('deposit', 'item-deposit-hint')}
-          />
-          <p id="item-deposit-hint" className="field-hint">
-            0 si no pides fianza.
-          </p>
-          {fieldError('deposit')}
-        </div>
-
-        <div className="form-field">
-          <label htmlFor="item-photos">Añadir fotografías</label>
-          <input
-            id="item-photos"
-            type="file"
-            multiple
-            accept={ACCEPTED_PHOTO_TYPES}
-            onChange={(event) => {
-              addPhotos(event.target.files);
-              event.target.value = '';
-            }}
-            aria-invalid={photosError ? true : undefined}
-            aria-describedby={`item-photos-hint${photosError ? ' item-photos-error' : ''}`}
-          />
+          {/* El campo cubre toda la zona: así se puede pulsar o soltar encima las fotos. */}
+          <div className="photo-picker">
+            <input
+              id="item-photos"
+              type="file"
+              multiple
+              accept={ACCEPTED_PHOTO_TYPES}
+              onChange={(event) => {
+                addPhotos(event.target.files);
+                event.target.value = '';
+              }}
+              aria-invalid={photosError ? true : undefined}
+              aria-describedby={`item-photos-hint${photosError ? ' item-photos-error' : ''}`}
+            />
+            <label htmlFor="item-photos">
+              <Icon name="add_photo_alternate" size="1.75rem" />
+              Añadir fotografías
+            </label>
+          </div>
           <p id="item-photos-hint" className="field-hint">
             Tiene {item.photos.length} de {PHOTOS_MAX} fotos. JPG, PNG o WebP, de 5 MB como máximo.
           </p>
@@ -348,22 +380,36 @@ function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
               {PHOTOS_ERROR}
             </p>
           )}
-          {newPhotos.map((photo, index) => (
-            <p key={`${photo.name}-${index}`} className="field-hint">
-              {photo.name}{' '}
-              <button
-                type="button"
-                className="button-link"
-                aria-label={`Quitar ${photo.name}`}
-                onClick={() => {
-                  setNewPhotos((current) => current.filter((_, position) => position !== index));
-                  setPhotosError(false);
-                }}
-              >
-                Quitar
-              </button>
-            </p>
-          ))}
+          {item.photos.length + newPhotos.length > 0 && (
+            <ul className="edit-item-photos">
+              {item.photos.map((photo, index) => (
+                <li key={photo.id} className="edit-item-photo">
+                  <img src={photo.url} alt={`Foto ${index + 1} de ${item.title}`} />
+                </li>
+              ))}
+              {newPhotos.map((photo, index) => (
+                <li key={`${photo.name}-${index}`} className="edit-item-photo">
+                  <NewPhotoThumbnail file={photo} />
+                  <span className="edit-item-photo-name" title={photo.name}>
+                    {photo.name}
+                  </span>
+                  <button
+                    type="button"
+                    className="edit-item-photo-remove"
+                    aria-label={`Quitar ${photo.name}`}
+                    onClick={() => {
+                      setNewPhotos((current) =>
+                        current.filter((_, position) => position !== index),
+                      );
+                      setPhotosError(false);
+                    }}
+                  >
+                    <Icon name="close" size="1rem" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className="form-actions">

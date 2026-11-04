@@ -22,7 +22,7 @@ async function login(page: Page, user: User) {
   await page.getByLabel('Correo electrónico').fill(user.email);
   await page.getByLabel('Contraseña', { exact: true }).fill(user.password);
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
-  await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Mi perfil' })).toBeVisible();
 }
 
 async function openMyReservations(page: Page) {
@@ -93,6 +93,7 @@ test.describe('US-04.04 Rechazar una solicitud', () => {
     ).toBeVisible();
 
     // bruno la ve rechazada en sus enviadas
+    await page.goto('/perfil');
     await page.getByRole('button', { name: 'Cerrar sesión' }).click();
     await login(page, BRUNO);
     await openMyReservations(page);

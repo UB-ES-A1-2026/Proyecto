@@ -14,9 +14,10 @@
         <strong>mantener su información al día</strong>.
       </p>
       <p class="wf-meta">
-        Issue #51 · Tarea #109 · Dibujado a partir de lo implementado · Generado con asistencia de IA (Claude) –
-        revisado por Francesc Curto, 03/11/2026
+        Issue #51 · Tarea #109 · Dibujado a partir de lo implementado · Actualizado con asistencia de IA (Claude) tras el
+        rediseño (#258), pendiente de revisar por el equipo
       </p>
+      <p class="wf-meta">Maqueta de Figma · Marco «Mis objetos»: coincide la lista con filtros por estado, «Publicar un objeto» y los botones de cada objeto.</p>
     </header>
 
     <section class="wf-pantalla" data-captura="1-entrada">
@@ -27,213 +28,411 @@
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span><span class="wf-marca">1</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
-            <h3 class="wf-h1">Rentit</h3>
+            <h3 class="wf-h1">Hola, ana</h3>
             <p class="wf-texto">Alquila objetos a tus vecinos.</p>
             <div class="wf-caja">Buscador y objetos cercanos</div>
           </div>
         </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Hola, ana</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-caja">Buscador y objetos cercanos</div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
       </div>
       <ol class="wf-notas">
-        <li>Con sesión, la cabecera de todas las páginas tiene el enlace «Mis objetos». Sin sesión, la ruta lleva al login.</li>
+        <li>Con sesión, «Mis objetos» está en la cabecera y, en el móvil, en la barra inferior. Sin sesión, la ruta lleva al login.</li>
       </ol>
     </section>
 
     <p class="wf-flecha">Clic en «Mis objetos»</p>
 
-    <section class="wf-pantalla" data-captura="2-mis-objetos">
-      <h2><span class="wf-paso">2</span>Lista de mis objetos <code>/mis-objetos</code></h2>
+    <section class="wf-pantalla" data-captura="2-cargando">
+      <h2><span class="wf-paso">2</span>Lista cargando <code>/mis-objetos</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-objetos">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
-            <div class="wf-fila">
-              <h3 class="wf-h1">Mis objetos</h3>
-              <span class="wf-boton">+ Publicar un objeto</span><span class="wf-marca">1</span>
+            <div class="wf-columnas">
+              <div>
+                <h3 class="wf-h1">Mis objetos <span class="wf-marca">1</span></h3>
+                <p class="wf-texto">Los objetos que tienes publicados para alquilar.</p>
+              </div>
+              <div><span class="wf-boton">Publicar un objeto</span></div>
             </div>
-            <p class="wf-texto">Los objetos que tienes publicados para alquilar.</p>
-            <div class="wf-fila">
-              <span class="wf-boton">Todos · 3</span>
-              <span class="wf-boton wf-secundario">Publicados · 1</span>
-              <span class="wf-boton wf-secundario">Pausados · 1</span>
-              <span class="wf-boton wf-secundario">Retirados · 1</span><span class="wf-marca">2</span>
-            </div>
-            <p class="wf-texto"></p>
             <div class="wf-tarjeta">
-              <div class="wf-fila">
-                <p class="wf-texto"><strong>Taladro percutor Bosch</strong> · Publicado<br />5,50 € / día · Visible en las búsquedas</p>
-                <span class="wf-boton">Editar</span><span class="wf-marca">3</span>
+              <div class="wf-rejilla">
+                <div class="wf-imagen" aria-hidden="true"></div>
+                <div class="wf-lineas"><span></span><span></span></div>
               </div>
             </div>
             <p class="wf-texto"></p>
             <div class="wf-tarjeta">
-              <div class="wf-fila">
-                <p class="wf-texto"><strong>Bicicleta de paseo</strong> · Pausado<br />8,00 € / día · No aparece en las búsquedas hasta que lo reanudes</p>
-                <span class="wf-boton">Editar</span>
+              <div class="wf-rejilla">
+                <div class="wf-imagen" aria-hidden="true"></div>
+                <div class="wf-lineas"><span></span><span></span></div>
               </div>
-            </div>
-            <p class="wf-texto"></p>
-            <div class="wf-tarjeta">
-              <p class="wf-texto"><strong>Tienda de campaña</strong> · Retirado<br />12,00 € / día · Ya no se puede alquilar <span class="wf-marca">4</span></p>
-            </div>
-          </div>
-        </div>
-        <div class="wf-movil">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
-          <div class="wf-contenido">
-            <h3 class="wf-h1">Mis objetos</h3>
-            <span class="wf-boton wf-ancho">+ Publicar un objeto</span>
-            <p class="wf-texto"></p>
-            <div class="wf-tarjeta">
-              <p class="wf-texto"><strong>Taladro percutor Bosch</strong><br />Publicado · 5,50 € / día</p>
-              <span class="wf-boton wf-ancho">Editar</span>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
+        <li>Mientras carga se ven filas de relleno (tres en la web). «Cargando tus objetos…» solo lo anuncia el lector de pantalla. Si falla, arriba sale el mensaje de la API.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Si no tiene ningún objeto</p>
+
+    <section class="wf-pantalla" data-captura="3-vacio">
+      <h2><span class="wf-paso">3</span>Lista vacía <code>/mis-objetos</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-objetos">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <h3 class="wf-h1">Mis objetos</h3>
+                <p class="wf-texto">Los objetos que tienes publicados para alquilar.</p>
+              </div>
+              <div><span class="wf-boton">Publicar un objeto</span></div>
+            </div>
+            <div class="wf-tarjeta">
+              <p class="wf-texto">Todavía no has publicado ningún objeto. <span class="wf-marca">1</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Sin objetos no salen los filtros. Se puede publicar con el botón de arriba (US-02.01).</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Si tiene objetos</p>
+
+    <section class="wf-pantalla" data-captura="4-mis-objetos">
+      <h2><span class="wf-paso">4</span>Lista de mis objetos <code>/mis-objetos</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-objetos">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <h3 class="wf-h1">Mis objetos</h3>
+                <p class="wf-texto">Los objetos que tienes publicados para alquilar.</p>
+              </div>
+              <div><span class="wf-boton">Publicar un objeto</span><span class="wf-marca">1</span></div>
+            </div>
+            <div class="wf-chips">
+              <span class="wf-chip wf-activo">Todos · 3</span>
+              <span class="wf-chip">Publicados · 1</span>
+              <span class="wf-chip">Pausados · 1</span>
+              <span class="wf-chip">Retirados · 1</span><span class="wf-marca">2</span>
+            </div>
+            <div class="wf-tarjeta">
+              <div class="wf-columnas">
+                <div class="wf-rejilla">
+                  <div class="wf-imagen" aria-label="Foto del objeto"></div>
+                  <p class="wf-texto"><strong>Taladro percutor Bosch</strong> <span class="wf-chip">Publicado</span><br />6,00 € / día<br />Visible en las búsquedas</p>
+                </div>
+                <div class="wf-fila">
+                  <span class="wf-boton">Editar</span><span class="wf-marca">3</span>
+                  <span class="wf-boton wf-secundario">Pausar</span>
+                  <span class="wf-enlace">Retirar anuncio</span>
+                </div>
+              </div>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta">
+              <div class="wf-columnas">
+                <div class="wf-rejilla">
+                  <div class="wf-imagen" aria-label="Sin foto"></div>
+                  <p class="wf-texto"><strong>Tienda de campaña para 4 personas</strong> <span class="wf-chip">Pausado</span><br />8,00 € / día<br />No aparece en las búsquedas hasta que lo reanudes</p>
+                </div>
+                <div class="wf-fila">
+                  <span class="wf-boton">Editar</span>
+                  <span class="wf-boton wf-secundario">Reanudar</span>
+                  <span class="wf-enlace">Retirar anuncio</span>
+                </div>
+              </div>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta">
+              <div class="wf-columnas">
+                <div class="wf-rejilla">
+                  <div class="wf-imagen" aria-label="Sin foto"></div>
+                  <p class="wf-texto"><strong>Cortacésped eléctrico</strong> <span class="wf-chip">Retirado</span><br />9,00 € / día<br />Ya no se puede alquilar</p>
+                </div>
+                <div><span class="wf-marca">4</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis objetos</h3>
+            <p class="wf-texto">Los objetos que tienes publicados para alquilar.</p>
+            <p class="wf-texto"><span class="wf-boton">Publicar un objeto</span></p>
+            <div class="wf-chips">
+              <span class="wf-chip wf-activo">Todos · 3</span>
+              <span class="wf-chip">Publicados · 1</span>
+              <span class="wf-chip">Pausados · 1</span>
+              <span class="wf-chip">Retirados · 1</span>
+            </div>
+            <div class="wf-tarjeta">
+              <div class="wf-fila">
+                <div class="wf-caja">Foto</div>
+                <p class="wf-texto"><strong>Taladro percutor<br />Bosch</strong><br /><span class="wf-chip">Publicado</span><br />6,00 € / día<br />Visible en las<br />búsquedas</p>
+              </div>
+              <div class="wf-fila">
+                <span class="wf-boton">Editar</span>
+                <span class="wf-boton wf-secundario">Pausar</span>
+              </div>
+              <p class="wf-texto"></p>
+              <p class="wf-texto"><span class="wf-enlace">Retirar anuncio</span></p>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
         <li>Lleva al formulario de publicar (<code>/objetos/nuevo</code>).</li>
-        <li>Filtros por estado con el número de objetos de cada uno. Mientras se carga: «Cargando tus objetos…»; sin objetos: «Todavía no has publicado ningún objeto.».</li>
-        <li>Criterio 1: cada objeto publicado o pausado tiene su botón «Editar», que abre la ventana de edición.</li>
-        <li>Los retirados no tienen «Editar»: retirar es definitivo y la API respondería 409 (#202).</li>
+        <li>Filtros por estado con el número de objetos de cada uno. Si un filtro no tiene ninguno: «No tienes objetos en este estado.».</li>
+        <li>Criterio 1: cada objeto publicado o pausado tiene su botón «Editar», que abre la ventana. La fila enseña la primera foto o, sin fotos, un icono.</li>
+        <li>Los retirados no tienen botones: retirar es definitivo y la API respondería 409 (#202).</li>
       </ol>
     </section>
 
     <p class="wf-flecha">Clic en «Editar»</p>
 
-    <section class="wf-pantalla" data-captura="3-editar">
-      <h2><span class="wf-paso">3</span>Ventana «Editar objeto» <code>/mis-objetos</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/mis-objetos">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
-          <div class="wf-contenido">
-            <div class="wf-centrado wf-tarjeta">
-              <div class="wf-fila">
-                <h3 class="wf-h1">Editar objeto</h3>
-                <span class="wf-boton wf-secundario">×</span><span class="wf-marca">1</span>
-              </div>
-              <div class="wf-campo">
-                <label>Nombre <span class="wf-marca">2</span></label>
-                <div class="wf-input">Taladro percutor Bosch</div>
-                <p class="wf-ayuda">Máximo 100 caracteres.</p>
-              </div>
-              <div class="wf-campo">
-                <label>Descripción</label>
-                <div class="wf-input">Taladro de 750 W con maletín y brocas.</div>
-                <p class="wf-ayuda">Máximo 2000 caracteres.</p>
-              </div>
-              <div class="wf-campo">
-                <label>Precio por día (€)</label>
-                <div class="wf-input">5,50</div>
-                <p class="wf-ayuda">Mayor que 0, con hasta 2 decimales. Por ejemplo, 5,50.</p>
-              </div>
-              <div class="wf-campo">
-                <label>Fianza (€)</label>
-                <div class="wf-input">40,00</div>
-                <p class="wf-ayuda">0 si no pides fianza.</p>
-              </div>
-              <div class="wf-campo">
-                <label>Añadir fotografías</label>
-                <div class="wf-input">Elegir archivos</div>
-                <p class="wf-ayuda">Tiene 2 de 5 fotos. JPG, PNG o WebP, de 5 MB como máximo.</p>
-              </div>
-              <div class="wf-fila">
-                <span class="wf-boton">Guardar</span><span class="wf-marca">3</span>
-                <span class="wf-boton wf-secundario">Cancelar</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>Ventana sobre la lista. «×», «Cancelar», la tecla Esc o un clic fuera la cierran sin guardar. Mientras se carga el objeto: «Cargando el objeto…».</li>
-        <li>
-          Criterio 2: el formulario llega relleno con los datos actuales y permite añadir fotos, hasta 5 en total. La
-          disponibilidad se cambia con «Pausar» y «Reanudar» en la lista (US-02.04). Borrar fotos queda para el Sprint 2.
-        </li>
-        <li>
-          Al pulsar se valida todo a la vez. Mientras se guarda, el botón dice «Guardando…» y está desactivado. Si falla
-          una foto, los cambios ya están guardados: se cierra la ventana y la lista lo avisa.
-        </li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Algún campo no es válido</p>
-
-    <section class="wf-pantalla" data-captura="4-errores">
-      <h2><span class="wf-paso">4</span>Formulario con errores <code>/mis-objetos</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/mis-objetos">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
-          <div class="wf-contenido">
-            <div class="wf-centrado wf-tarjeta">
-              <h3 class="wf-h1">Editar objeto</h3>
-              <div class="wf-campo">
-                <label>Nombre</label>
-                <div class="wf-input">Taladro percutor Bosch</div>
-              </div>
-              <div class="wf-campo">
-                <label>Precio por día (€) <span class="wf-marca">1</span></label>
-                <div class="wf-input wf-con-error">0</div>
-                <p class="wf-error">El campo "precio por día" no es correcto, revísalo.</p>
-              </div>
-              <div class="wf-fila">
-                <span class="wf-boton">Guardar</span><span class="wf-marca">2</span>
-                <span class="wf-boton wf-secundario">Cancelar</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>
-          Criterio 4: el error sale debajo de su campo con el texto «El campo "X" no es correcto, revísalo.» y el foco
-          va al primer campo con error. Las mismas reglas que el backend: nombre de 1 a 100 caracteres, descripción de
-          1 a 2000, precio mayor que 0 y fianza de 0 o más.
-        </li>
-        <li>No se guarda nada. El error desaparece en cuanto se edita el campo. Otros errores de la API (403, 404, 409) salen como aviso arriba de la ventana.</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Todos los campos son válidos → se guardan los cambios</p>
-
-    <section class="wf-pantalla" data-captura="5-guardado">
-      <h2><span class="wf-paso">5</span>Destino: lista con los cambios guardados <code>/mis-objetos</code></h2>
+    <section class="wf-pantalla" data-captura="5-editar">
+      <h2><span class="wf-paso">5</span>Ventana «Editar objeto» <code>/mis-objetos</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-objetos">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
-            <h3 class="wf-h1">Mis objetos</h3>
-            <p class="wf-aviso">Los cambios se han guardado. <span class="wf-marca">1</span></p>
-            <div class="wf-tarjeta">
-              <div class="wf-fila">
-                <p class="wf-texto"><strong>Taladro percutor Bosch</strong> · Publicado<br />6,00 € / día · Visible en las búsquedas</p>
-                <span class="wf-boton">Editar</span>
+            <div class="wf-ventana">
+              <div class="wf-nav">
+                <h3 class="wf-h1">Editar objeto <span class="wf-marca">1</span></h3>
+                <span class="wf-boton wf-secundario">×</span>
+              </div>
+              <div class="wf-ventana-cuerpo">
+                <div class="wf-campo">
+                  <label>Nombre <span class="wf-marca">2</span></label>
+                  <div class="wf-input">Taladro percutor Bosch</div>
+                  <p class="wf-ayuda">Máximo 100 caracteres.</p>
+                </div>
+                <div class="wf-campo">
+                  <label>Descripción</label>
+                  <div class="wf-input">Taladro de 750 W con maletín y brocas.</div>
+                  <p class="wf-ayuda">Máximo 2000 caracteres.</p>
+                </div>
+                <div class="wf-rejilla">
+                  <div class="wf-campo">
+                    <label>Precio por día (€)</label>
+                    <div class="wf-input">6,00</div>
+                    <p class="wf-ayuda">Mayor que 0, con hasta 2 decimales. Por ejemplo, 5,50.</p>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Fianza (€)</label>
+                    <div class="wf-input">40,00</div>
+                    <p class="wf-ayuda">0 si no pides fianza.</p>
+                  </div>
+                </div>
+                <div class="wf-caja">Añadir fotografías <span class="wf-marca">3</span></div>
+                <p class="wf-ayuda">Tiene 2 de 5 fotos. JPG, PNG o WebP, de 5 MB como máximo.</p>
+                <p class="wf-texto"></p>
+                <div class="wf-rejilla">
+                  <div class="wf-imagen" aria-label="Foto 1"></div>
+                  <div class="wf-imagen" aria-label="Foto 2"></div>
+                  <div>
+                    <div class="wf-imagen" aria-label="Vista previa de nueva.png"></div>
+                    <p class="wf-ayuda">nueva.png <span class="wf-boton wf-secundario">×</span><span class="wf-marca">4</span></p>
+                  </div>
+                </div>
+              </div>
+              <div class="wf-ventana-botones">
+                <span class="wf-boton wf-ancho">Guardar</span><span class="wf-marca">5</span>
+                <span class="wf-boton wf-secundario wf-ancho">Cancelar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <div class="wf-ventana">
+              <div class="wf-nav">
+                <h3 class="wf-h1">Editar objeto</h3>
+                <span class="wf-boton wf-secundario">×</span>
+              </div>
+              <div class="wf-ventana-cuerpo">
+                <div class="wf-campo"><label>Nombre</label><div class="wf-input">Taladro percutor Bosch</div><p class="wf-ayuda">Máximo 100 caracteres.</p></div>
+                <div class="wf-campo"><label>Descripción</label><div class="wf-input">Taladro de 750 W con maletín y brocas.</div><p class="wf-ayuda">Máximo 2000 caracteres.</p></div>
+                <div class="wf-campo"><label>Precio por día (€)</label><div class="wf-input">6,00</div><p class="wf-ayuda">Mayor que 0, con hasta 2 decimales. Por ejemplo, 5,50.</p></div>
+                <div class="wf-campo"><label>Fianza (€)</label><div class="wf-input">40,00</div><p class="wf-ayuda">0 si no pides fianza.</p></div>
+                <div class="wf-caja">Añadir fotografías</div>
+              </div>
+              <div class="wf-ventana-botones">
+                <span class="wf-boton wf-ancho">Guardar</span>
+                <span class="wf-boton wf-secundario wf-ancho">Cancelar</span>
+              </div>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Ventana sobre la lista. «×», «Cancelar», la tecla Esc o un clic fuera la cierran sin guardar. Mientras carga el objeto se ven campos de relleno. Si no se puede cargar, sale el error y «Cerrar».</li>
+        <li>
+          Criterio 2: llega con los datos actuales. El cuerpo de la ventana hace scroll y la cabecera y los botones se
+          quedan fijos; en el móvil se ve hasta «Añadir fotografías» y las miniaturas quedan más abajo. La disponibilidad
+          se cambia con «Pausar» y «Reanudar» en la lista (US-02.04).
+        </li>
+        <li>Se pulsa o se sueltan encima las fotos. Sin fotos: «Tiene 0 de 5 fotos.» y no hay miniaturas. Con otro tipo de archivo o más de 5 en total: «El campo "fotografías" no es correcto, revísalo.».</li>
+        <li>Las fotos nuevas se pueden quitar antes de guardar. Las que ya tiene no se pueden borrar (queda para el Sprint 2).</li>
+        <li>Al pulsar se valida todo a la vez. Mientras se guarda, el botón dice «Guardando…» y está desactivado.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Algún campo no es válido</p>
+
+    <section class="wf-pantalla" data-captura="6-errores">
+      <h2><span class="wf-paso">6</span>Ventana con errores <code>/mis-objetos</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-objetos">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-ventana">
+              <div class="wf-nav">
+                <h3 class="wf-h1">Editar objeto</h3>
+                <span class="wf-boton wf-secundario">×</span>
+              </div>
+              <div class="wf-ventana-cuerpo">
+                <div class="wf-campo">
+                  <label>Nombre <span class="wf-marca">1</span></label>
+                  <div class="wf-input wf-con-error"></div>
+                  <p class="wf-ayuda">Máximo 100 caracteres.</p>
+                  <p class="wf-error">El campo "nombre" no es correcto, revísalo.</p>
+                </div>
+                <div class="wf-campo">
+                  <label>Descripción</label>
+                  <div class="wf-input">Taladro de 750 W con maletín y brocas.</div>
+                  <p class="wf-ayuda">Máximo 2000 caracteres.</p>
+                </div>
+                <div class="wf-rejilla">
+                  <div class="wf-campo">
+                    <label>Precio por día (€)</label>
+                    <div class="wf-input wf-con-error">0</div>
+                    <p class="wf-ayuda">Mayor que 0, con hasta 2 decimales. Por ejemplo, 5,50.</p>
+                    <p class="wf-error">El campo "precio por día" no es correcto, revísalo.</p>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Fianza (€) <span class="wf-marca">2</span></label>
+                    <div class="wf-input wf-con-error"></div>
+                    <p class="wf-ayuda">0 si no pides fianza.</p>
+                    <p class="wf-error">El campo "fianza" no es correcto, revísalo.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="wf-ventana-botones">
+                <span class="wf-boton wf-ancho">Guardar</span><span class="wf-marca">3</span>
+                <span class="wf-boton wf-secundario wf-ancho">Cancelar</span>
               </div>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Criterio 3: se cierra la ventana, sale el aviso y la fila se actualiza con lo guardado sin volver a cargar la lista.</li>
+        <li>
+          Criterio 4: el error sale debajo de su campo y el foco va al primero. Mismas reglas que el backend: nombre de
+          1 a 100 caracteres, descripción de 1 a 2000, precio mayor que 0 y fianza de 0 o más.
+        </li>
+        <li>Aquí la fianza es obligatoria: para no pedirla se escribe 0.</li>
+        <li>No se guarda nada y el error desaparece al editar el campo. Otros errores de la API salen como aviso arriba de la ventana: «Solo el propietario puede editar este objeto.», «No se puede editar un objeto retirado.» o «No hemos encontrado este objeto.».</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Todos los campos son válidos → se guardan los cambios</p>
+
+    <section class="wf-pantalla" data-captura="7-guardado">
+      <h2><span class="wf-paso">7</span>Destino: lista con los cambios guardados <code>/mis-objetos</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-objetos">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <h3 class="wf-h1">Mis objetos</h3>
+                <p class="wf-texto">Los objetos que tienes publicados para alquilar.</p>
+              </div>
+              <div><span class="wf-boton">Publicar un objeto</span></div>
+            </div>
+            <p class="wf-aviso">Los cambios se han guardado. <span class="wf-marca">1</span></p>
+            <div class="wf-chips">
+              <span class="wf-chip wf-activo">Todos · 3</span>
+              <span class="wf-chip">Publicados · 1</span>
+              <span class="wf-chip">Pausados · 1</span>
+              <span class="wf-chip">Retirados · 1</span>
+            </div>
+            <div class="wf-tarjeta">
+              <div class="wf-columnas">
+                <div class="wf-rejilla">
+                  <div class="wf-imagen" aria-label="Foto del objeto"></div>
+                  <p class="wf-texto"><strong>Taladro percutor Bosch</strong> <span class="wf-chip">Publicado</span><br />7,00 € / día<br />Visible en las búsquedas</p>
+                </div>
+                <div class="wf-fila">
+                  <span class="wf-boton">Editar</span>
+                  <span class="wf-boton wf-secundario">Pausar</span>
+                  <span class="wf-enlace">Retirar anuncio</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Criterio 3: se cierra la ventana, sale el aviso y la fila se actualiza sin volver a cargar la lista. Si falla
+          una foto, los cambios sí se guardan y el aviso es «Los cambios se han guardado, pero alguna foto no se ha
+          podido subir. Vuelve a «Editar» para intentarlo otra vez.».
+        </li>
       </ol>
     </section>
   </body>

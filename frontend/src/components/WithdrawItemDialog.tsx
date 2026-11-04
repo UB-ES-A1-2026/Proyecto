@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import { withdrawItem, type MyItem } from '../services/itemService';
+import { Icon } from './Icon';
 import { Modal } from './Modal';
 
 type WithdrawItemDialogProps = {
@@ -45,14 +46,23 @@ export function WithdrawItemDialog({ item, onClose, onWithdrawn }: WithdrawItemD
   return (
     <Modal title="Retirar anuncio" onClose={onClose}>
       {error && (
-        <p role="alert" className="form-error">
+        <p role="alert" className="form-error manage-notice">
+          <Icon name="error" />
           {error}
         </p>
       )}
-      <p>
-        ¿Seguro que quieres retirar «{item.title}»? Dejará de aparecer para los demás usuarios y
-        nadie podrá solicitar su alquiler.
-      </p>
+      <div className="withdraw-notice">
+        <span className="withdraw-notice-icon">
+          <Icon name="warning" size="1.5rem" />
+        </span>
+        <div>
+          <p className="withdraw-notice-question">¿Seguro que quieres retirar «{item.title}»?</p>
+          <p className="withdraw-notice-text">
+            Dejará de aparecer para los demás usuarios y nadie podrá solicitar su alquiler. Esta
+            acción no se puede deshacer.
+          </p>
+        </div>
+      </div>
       <div className="form-actions">
         <button
           type="button"

@@ -33,14 +33,15 @@ async function login(page: Page, user: User) {
   await page.getByLabel('Correo electrónico').fill(user.email);
   await page.getByLabel('Contraseña', { exact: true }).fill(user.password);
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
-  await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Mi perfil' })).toBeVisible();
 }
 
 async function openPublishForm(page: Page) {
   await page
     .getByRole('navigation', { name: 'Principal' })
-    .getByRole('link', { name: 'Publicar objeto' })
+    .getByRole('link', { name: 'Mis objetos' })
     .click();
+  await page.getByRole('link', { name: 'Publicar un objeto' }).click();
   await expect(page).toHaveURL('/objetos/nuevo');
   await expect(page.getByRole('heading', { level: 1, name: 'Publicar un objeto' })).toBeVisible();
 }
@@ -120,11 +121,12 @@ test.describe('US-02.01 Publicar un objeto', () => {
     await expect(page.getByText('Este anuncio es tuyo.')).toBeVisible();
 
     // Para bruno es un anuncio de otra persona: puede alquilarlo
+    await page.goto('/perfil');
     await page.getByRole('button', { name: 'Cerrar sesión' }).click();
     await login(page, BRUNO);
     await page.goto(itemUrl);
     await expect(page.getByText('Publicado por ana')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Alquilar' })).toBeVisible();
+    await expect(page.getByLabel('Fecha de inicio')).toBeVisible();
   });
 
   // Criterio 5a: campo erróneo

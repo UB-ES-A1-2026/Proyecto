@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '../src/services/apiClient';
@@ -55,10 +55,9 @@ function mockApi(options: MockApiOptions = {}) {
     }
     if (url.endsWith('/objetos') && init?.method === 'POST') {
       postBodies.push(JSON.parse(String(init.body)) as unknown);
-      return Response.json(
-        options.createBody ?? { id: 'item-123', title: VALID.title },
-        { status: options.createStatus ?? 201 },
-      );
+      return Response.json(options.createBody ?? { id: 'item-123', title: VALID.title }, {
+        status: options.createStatus ?? 201,
+      });
     }
     return Response.json({});
   });
@@ -132,9 +131,7 @@ describe('publicar un objeto (US-02.01, #13)', () => {
 
     await user.click(screen.getByRole('button', { name: 'Publicar' }));
 
-    expect(
-      screen.getByText('El campo "precio" no es correcto, revísalo.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('El campo "precio" no es correcto, revísalo.')).toBeInTheDocument();
     expect(screen.getByLabelText('Precio por día (€)')).toHaveFocus();
     expect(fetchMock.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(0);
   });
@@ -147,9 +144,7 @@ describe('publicar un objeto (US-02.01, #13)', () => {
 
     await user.click(screen.getByRole('button', { name: 'Publicar' }));
 
-    expect(
-      screen.getByText('El campo "nombre" no es correcto, revísalo.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('El campo "nombre" no es correcto, revísalo.')).toBeInTheDocument();
     expect(screen.getByLabelText('Nombre')).toHaveFocus();
     expect(fetchMock.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(0);
   });
@@ -302,6 +297,57 @@ describe('publicar un objeto (US-02.01, #13)', () => {
 
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:one.png');
+  });
+
+  it('añade las fotografías que se arrastran a la zona de fotos', async () => {
+    mockApi();
+    renderPublishPage();
+
+    fireEvent.drop(screen.getByLabelText('Fotografías'), {
+      dataTransfer: { files: [new File(['photo'], 'one.png', { type: 'image/png' })] },
+    });
+
+    expect(
+      await screen.findByRole('img', { name: 'Vista previa de fotografía 1' }),
+    ).toHaveAttribute('src', 'blob:one.png');
+    expect(screen.getByText('1 de 5 fotos')).toBeInTheDocument();
+  });
+
+  it('las tarjetas de disponibilidad y entrega siguen siendo campos que se envían', async () => {
+    const user = userEvent.setup();
+    const { postBodies } = mockApi();
+    const { router } = renderPublishPage();
+    await fillValidForm(user);
+
+    const availability = within(screen.getByRole('group', { name: 'Disponibilidad' }));
+    expect(availability.getByRole('radio', { name: 'Disponible ya' })).toBeChecked();
+    await user.click(
+      availability.getByRole('radio', { name: 'Pausado (no aparece en las búsquedas)' }),
+    );
+    const delivery = within(screen.getByRole('group', { name: 'Formas de entrega' }));
+    await user.click(delivery.getByRole('checkbox', { name: 'Entrega con rider' }));
+    await user.click(screen.getByRole('button', { name: 'Publicar' }));
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/objetos/item-123'));
+    expect(postBodies).toEqual([
+      expect.objectContaining({
+        status: 'paused',
+        homeDelivery: false,
+        riderDelivery: true,
+        pickupPointDelivery: false,
+      }),
+    ]);
+  });
+
+  it('pone el foco en el barrio antes que en el precio, como se ven en pantalla', async () => {
+    const user = userEvent.setup();
+    mockApi();
+    renderPublishPage();
+    await fillValidForm(user, { neighborhood: '', dailyPrice: '' });
+
+    await user.click(screen.getByRole('button', { name: 'Publicar' }));
+
+    expect(screen.getByLabelText('Barrio')).toHaveFocus();
   });
 
   it('avisa cuando no se pueden cargar las categorías', async () => {

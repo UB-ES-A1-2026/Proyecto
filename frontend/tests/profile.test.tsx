@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderRoute } from './renderRoute';
@@ -91,6 +91,47 @@ describe('pantalla de perfil (US-01.2, #29)', () => {
       'No se puede conectar con el servidor. Inténtalo más tarde.',
     );
     expect(localStorage.getItem(SESSION_KEY)).not.toBeNull();
+  });
+});
+
+describe('accesos directos del perfil', () => {
+  const RESERVATIONS = { sent: [{ id: 'r1' }], received: [{ id: 'r2' }, { id: 'r3' }] };
+
+  function shortcut(name: RegExp) {
+    return within(screen.getByRole('main')).getByRole('link', { name });
+  }
+
+  it('enlazan a cada página y muestran las cifras de los endpoints', async () => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
+    mockFetch((url) => {
+      if (url.endsWith('/usuarios/me/objetos')) return Response.json([{ id: 'i1' }]);
+      if (url.endsWith('/usuarios/me/reservas')) return Response.json(RESERVATIONS);
+      return Response.json(PROFILE);
+    });
+
+    renderRoute('/perfil');
+
+    expect(await within(shortcut(/Mis objetos/)).findByText('1')).toBeInTheDocument();
+    expect(await within(shortcut(/Mis solicitudes/)).findByText('3')).toBeInTheDocument();
+    expect(shortcut(/Mis objetos/)).toHaveAttribute('href', '/mis-objetos');
+    expect(shortcut(/Mis solicitudes/)).toHaveAttribute('href', '/mis-solicitudes');
+    expect(shortcut(/Publicar un objeto/)).toHaveAttribute('href', '/objetos/nuevo');
+  });
+
+  it('si fallan las cifras la página sigue funcionando y no avisa de ningún error', async () => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
+    mockFetch((url) =>
+      url.endsWith('/usuarios/me')
+        ? Response.json(PROFILE)
+        : Response.json({ error: 'No disponible' }, { status: 503 }),
+    );
+
+    renderRoute('/perfil');
+
+    expect(await screen.findByText('ana@rentit.test')).toBeInTheDocument();
+    expect(await screen.findByText('Gestiona tus anuncios')).toBeInTheDocument();
+    expect(await screen.findByText('Enviadas y recibidas')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });
 

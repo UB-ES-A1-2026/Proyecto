@@ -25,20 +25,6 @@ export type Reservation = {
   createdAt: string;
 };
 
-// Lo que la pantalla de solicitud necesita de GET /api/objetos/:id (#119). La respuesta trae más
-// campos; cuando feature/58 esté en develop se puede usar directamente getItemDetail (#15).
-export type RentalItemDetail = {
-  id: string;
-  title: string;
-  dailyPrice: string;
-  status: 'published' | 'paused' | 'withdrawn';
-  photos: { id: string; url: string }[];
-};
-
-export function getRentalItem(id: string, token: string): Promise<RentalItemDetail> {
-  return apiRequest<RentalItemDetail>(`/objetos/${encodeURIComponent(id)}`, { token });
-}
-
 // Respuesta de GET /api/reservas/disponibilidad (#204). Solo informa: POST /reservas lo vuelve a
 // comprobar al crear la solicitud.
 export type Availability = { available: boolean };

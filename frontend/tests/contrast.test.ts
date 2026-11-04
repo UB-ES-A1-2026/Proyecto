@@ -1,10 +1,11 @@
 // Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 03/11/2026
 /// <reference types="node" />
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 // Vitest no procesa el CSS, así que se lee el archivo tal cual (se ejecuta desde frontend/).
 const styles = readFileSync('src/styles.css', 'utf8');
+const zones = readdirSync('src/styles').map((file) => readFileSync(`src/styles/${file}`, 'utf8'));
 
 // Contraste WCAG AA de la paleta (TR-09, #159): texto normal sobre su fondo, al menos 4,5:1.
 const MIN_CONTRAST = 4.5;
@@ -56,8 +57,8 @@ describe('contraste de la paleta (WCAG AA)', () => {
 
 describe('los colores están en un solo sitio', () => {
   it('fuera del bloque :root no hay colores escritos a mano', () => {
-    const outsideRoot = styles.slice(styles.indexOf('}', styles.indexOf(':root')) + 1);
-    const withoutComments = outsideRoot.replace(/\/\*[\s\S]*?\*\//g, '');
+    const outsideRoot = [styles.slice(styles.indexOf('}', styles.indexOf(':root')) + 1), ...zones];
+    const withoutComments = outsideRoot.join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
 
     expect(withoutComments.match(/#[0-9a-f]{3,8}\b|rgba?\(/gi)).toBeNull();
   });

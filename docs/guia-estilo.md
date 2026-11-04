@@ -18,7 +18,7 @@ Toda la identidad está en el bloque `:root` de [`frontend/src/styles.css`](../f
 
 ## Cabecera
 
-Como en la maqueta: barra verde (`--color-primary`), logo y nombre en naranja (`--color-accent`) y enlaces en blanco (`--color-on-primary`). La página en la que estás se marca con el verde oscuro (`--color-primary-hover`).
+Como en la maqueta: barra verde (`--color-primary`), logo y nombre en naranja (`--color-accent`) y enlaces en blanco (`--color-on-primary`). Se queda fija al hacer scroll. La página en la que estás se marca con el verde oscuro (`--color-primary-hover`). En escritorio los enlaces son solo texto. Por debajo de 760 px pasan a una barra inferior con iconos, como una app. La ayuda es solo un icono, en la esquina superior derecha, y «Cerrar sesión» está en «Mi perfil».
 
 ## Colores
 
@@ -32,12 +32,15 @@ Los de la maqueta de Figma: verde y naranja, con texto verde muy oscuro y fondos
 | `--color-on-primary` | `#ffffff` | Texto sobre el verde |
 | `--color-accent` | `#f2a33a` | Botón principal («Publicar», «Alquilar», «Iniciar sesión»…), logo y nombre de la cabecera |
 | `--color-accent-hover` | `#e08d1f` | Botón principal al pasar el ratón |
+| `--color-accent-soft` | `#fdf0dc` | Degradado suave en los huecos de los objetos sin foto |
 | `--color-on-accent` | `#14302c` | Texto sobre el naranja: siempre oscuro, nunca blanco |
 | `--color-text` | `#14302c` | Texto normal |
 | `--color-text-muted` | `#4d6560` | Texto secundario y ayudas de los campos |
-| `--color-background` | `#ffffff` | Fondo de la página |
+| `--color-page` | `#faf8f3` | Fondo de la página |
+| `--color-background` | `#ffffff` | Fondo de tarjetas, ventanas y campos |
 | `--color-surface` | `#f5f1e6` | Fondo de zonas destacadas (beige de la maqueta) |
-| `--color-border` | `#7c9a93` | Bordes de campos y tarjetas |
+| `--color-border` | `#7c9a93` | Bordes de campos |
+| `--color-border-soft` | `#d9d6cc` | Bordes de tarjetas |
 | `--color-divider` | `#e9e5dc` | Líneas de separación |
 | `--color-error` | `#b42318` | Texto y borde de error, acciones destructivas |
 | `--color-error-background` | `#fef3f2` | Fondo de los mensajes de error |
@@ -46,22 +49,46 @@ Los de la maqueta de Figma: verde y naranja, con texto verde muy oscuro y fondos
 | `--color-success-background` | `#f0fdf4` | Fondo de los mensajes de éxito |
 | `--color-warning` | `#8a4b08` | Texto de aviso |
 | `--color-warning-soft` | `#feead1` | Fondo de los avisos |
+| `--color-focus` | `#0f5c55` | Anillo de foco sobre fondos claros |
+| `--color-focus-on-dark` | `#f2a33a` | Anillo de foco sobre el verde |
 | `--color-overlay` | `rgb(0 0 0 / 0.45)` | Fondo oscuro detrás de una ventana |
+
+**Cómo se reparte el color:** naranja solo para la acción principal de cada pantalla; verde para las secundarias, los enlaces y los estados; fondo beige claro y tarjetas blancas.
 
 ## Tipografía
 
-Se usa la fuente del sistema (`--font-family`): carga al instante y no depende de ningún servicio externo.
+La fuente es **Inter** (`--font-family`), con todos sus pesos en un solo archivo. Está en el repositorio ([`frontend/src/assets/fonts/`](../frontend/src/assets/fonts/)), así que no depende de ningún servicio externo. Si no carga, se usa la del sistema. Licencia: SIL Open Font License 1.1.
 
 | Variable | Valor | Para qué |
 |---|---|---|
 | `--font-size-small` | `0.875rem` | Ayudas y errores de los campos |
 | `--font-size-logo` | `1.25rem` | Nombre en la cabecera |
 | `--font-size-tagline` | `1.125rem` | Frase de la página inicial e importes |
+| `--font-size-section` | `1.375rem` | Título de una sección |
 | `--font-size-title` | `2.25rem` | Título de la página |
+| `--font-size-display` | de `2.25rem` a `3.5rem` | Titular de la página inicial |
 | `--font-weight-medium` | `600` | Etiquetas y botones |
 | `--font-weight-bold` | `700` | Títulos e importes |
 
-Espaciados (`--space-xs` a `--space-xl`), bordes y anchos máximos también son variables de ese bloque.
+Espaciados (`--space-xs` a `--space-3xl`), radios (`--radius-small`, `--radius`, `--radius-large`), la sombra de lo que flota (`--shadow-lg`) y anchos máximos también son variables de ese bloque.
+
+## Iconos
+
+Son [Material Symbols Rounded](https://fonts.google.com/icons) de Google (licencia Apache 2.0), en SVG dentro de [`frontend/src/assets/icons/`](../frontend/src/assets/icons/). Se usan con el componente `Icon`, que toma el color del texto y es decorativo: el nombre accesible lo pone el texto del botón o del enlace.
+
+```tsx
+<Icon name="search" size="1.25rem" />
+```
+
+Para añadir uno, copia su SVG a esa carpeta y añade su nombre a `IconName`, en `components/Icon.tsx`.
+
+## Movimiento
+
+Las animaciones son cortas y sutiles, siempre con estas variables: `--duration-fast` (150 ms), `--duration` (240 ms), `--duration-slow` (420 ms) y `--ease-out`. Con `prefers-reduced-motion` activado se desactivan todas.
+
+## Hojas de estilo
+
+`styles.css` tiene la identidad y las piezas comunes. Lo propio de cada zona va en `styles/discover.css` (inicio, búsqueda, ayuda), `styles/item.css` (ficha y alquiler), `styles/account.css` (cuenta, perfil, publicar) y `styles/manage.css` (mis objetos, ventanas, solicitudes). Las clases de zona van con ámbito (`.item-detail .item-info`), porque todas las hojas se cargan a la vez y una clase con el mismo nombre en otra zona se pisaría.
 
 ## Componentes comunes
 
@@ -71,10 +98,19 @@ Espaciados (`--space-xs` a `--space-xl`), bordes y anchos máximos también son 
 |---|---|
 | `button-primary` | La acción principal de la pantalla, en naranja con texto oscuro. Solo uno por formulario |
 | `button-secondary` | Acciones secundarias, como «Cancelar» o «Volver», con borde verde |
-| `button-link` | Acción con aspecto de enlace, como «Cerrar sesión» |
+| `button-quiet` | Acción discreta, sin borde, como «Cerrar sesión» en el perfil |
+| `link-button` | Botón con aspecto de enlace dentro del contenido, como «Limpiar filtros» |
 | `button-danger` | Confirmar una acción destructiva, como retirar un anuncio |
 
 Mientras se envía, el botón se desactiva y cambia de texto: «Guardando…», «Publicando…».
+
+### Tarjetas, etiquetas y estados
+
+- **Tarjeta:** `card`, con borde y sin sombra, y `card-hover` si toda la tarjeta se puede pulsar. Solo llevan sombra las ventanas, que son lo único que flota.
+- **Iconos:** solo donde aportan algo: categorías, estados vacíos, barra del móvil. Un botón con texto no lleva icono.
+- **Etiqueta de estado:** `badge` con `badge-success`, `badge-warning`, `badge-neutral` o `badge-error`.
+- **Sin contenido:** `empty-state`, con un icono y una frase.
+- **Listas que entran escalonadas:** `stagger`.
 
 ### Campo de formulario
 
@@ -94,7 +130,7 @@ Mientras se envía, el botón se desactiva y cambia de texto: «Guardando…», 
 
 - **Error de un campo:** `field-error`, debajo del campo: `El campo "X" no es correcto, revísalo.`
 - **Error general:** `form-error` con `role="alert"`, encima del formulario.
-- **Carga:** un texto como «Cargando el objeto…».
+- **Carga:** bloques `skeleton` con la forma del contenido y, para lectores de pantalla, un texto como «Cargando el objeto…».
 
 ## Contraste
 

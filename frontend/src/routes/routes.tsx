@@ -1,4 +1,4 @@
-import type { RouteObject } from 'react-router';
+import { Navigate, type RouteObject } from 'react-router';
 import { Layout } from '../components/Layout';
 import { PrivateRoute } from '../components/PrivateRoute';
 import { AuthProvider } from '../context/AuthContext';
@@ -12,7 +12,6 @@ import { NotFoundPage } from '../pages/NotFoundPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { PublishItemPage } from '../pages/PublishItemPage';
 import { RegisterPage } from '../pages/RegisterPage';
-import { RentalRequestPage } from '../pages/RentalRequestPage';
 import { SearchPage } from '../pages/SearchPage';
 
 export const routes: RouteObject[] = [
@@ -29,6 +28,8 @@ export const routes: RouteObject[] = [
       { path: 'login', element: <LoginPage /> },
       { path: 'registro', element: <RegisterPage /> },
       { path: 'objetos/:id', element: <ItemDetailPage /> },
+      // El alquiler ahora está en la ficha: los enlaces antiguos a esta pantalla siguen funcionando.
+      { path: 'objetos/:id/solicitar', element: <Navigate to=".." relative="path" replace /> },
       { path: 'ayuda', element: <HelpPage /> },
       {
         element: <PrivateRoute />,
@@ -37,7 +38,6 @@ export const routes: RouteObject[] = [
           { path: 'mis-objetos', element: <MyItemsPage /> },
           { path: 'mis-solicitudes', element: <MyReservationsPage /> },
           { path: 'objetos/nuevo', element: <PublishItemPage /> },
-          { path: 'objetos/:id/solicitar', element: <RentalRequestPage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },

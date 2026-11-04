@@ -12,9 +12,19 @@ import { test, expect, type Page } from '@playwright/test';
  */
 const PRICE_LABEL = 'Precio máximo (€/día)';
 
-async function openFilters(page: Page) {
-  await page.getByRole('button', { name: /^Filtros/ }).click();
+// En escritorio (el tamaño por defecto de estos tests) el panel siempre se ve.
+function filtersPanel(page: Page) {
   return page.getByRole('form', { name: 'Filtros' });
+}
+
+function filtersToggle(page: Page) {
+  return page.getByRole('button', { name: /^Filtros/ });
+}
+
+function activeFilterChips(page: Page) {
+  return page
+    .getByRole('list', { name: 'Filtros activos' })
+    .getByRole('button', { name: /^Quitar filtro/ });
 }
 
 async function applyFilters(page: Page) {
@@ -40,26 +50,28 @@ async function resultPrices(page: Page): Promise<number[]> {
 
 test.describe('US-03.02 Filtrar objetos', () => {
   // Criterio 1
-  test('desde la búsqueda se abren los filtros de categoría, precio máximo y barrio', async ({
+  test('en la búsqueda se ven los filtros de categoría, precio máximo y barrio sin abrirlos', async ({
     page,
   }) => {
     await page.goto('/buscar?q=taladro');
 
-    const filters = await openFilters(page);
+    const filters = filtersPanel(page);
 
-    await expect(page.getByRole('button', { name: /^Filtros/ })).toHaveAttribute(
-      'aria-expanded',
-      'true',
-    );
     await expect(filters.getByLabel('Categoría')).toBeVisible();
     await expect(filters.getByLabel(PRICE_LABEL)).toBeVisible();
     await expect(filters.getByLabel('Barrio')).toBeVisible();
+    await expect(filtersToggle(page)).toBeHidden();
+
+    // El panel está a la izquierda de los resultados
+    const panelBox = await filters.boundingBox();
+    const resultsBox = await page.locator('.search-results').boundingBox();
+    expect(panelBox!.x + panelBox!.width).toBeLessThanOrEqual(resultsBox!.x);
   });
 
   // Criterios 2 y 3: categoría
   test('al filtrar por categoría solo salen objetos de esa categoría', async ({ page }) => {
     await page.goto('/buscar');
-    const filters = await openFilters(page);
+    const filters = filtersPanel(page);
 
     await filters.getByLabel('Categoría').selectOption({ label: 'Deporte' });
     await applyFilters(page);
@@ -79,7 +91,7 @@ test.describe('US-03.02 Filtrar objetos', () => {
     page,
   }) => {
     await page.goto('/buscar');
-    const filters = await openFilters(page);
+    const filters = filtersPanel(page);
 
     await filters.getByLabel(PRICE_LABEL).fill('4');
     await applyFilters(page);
@@ -98,7 +110,7 @@ test.describe('US-03.02 Filtrar objetos', () => {
   // Criterios 2 y 3: ubicación (barrio)
   test('al filtrar por barrio solo salen objetos de ese barrio', async ({ page }) => {
     await page.goto('/buscar');
-    const filters = await openFilters(page);
+    const filters = filtersPanel(page);
 
     await filters.getByLabel('Barrio').fill('sant andreu');
     await applyFilters(page);
@@ -112,14 +124,15 @@ test.describe('US-03.02 Filtrar objetos', () => {
   // Criterio 4
   test('se pueden aplicar varios filtros a la vez y quitar solo uno', async ({ page }) => {
     await page.goto('/buscar');
-    const filters = await openFilters(page);
+    const filters = filtersPanel(page);
 
     await filters.getByLabel('Categoría').selectOption({ label: 'Deporte' });
     await filters.getByLabel(PRICE_LABEL).fill('10');
     await applyFilters(page);
 
+    await expect(activeFilterChips(page)).toHaveCount(2);
+    await expect(cards(page)).toHaveCount(1);
     expect(await resultTitles(page)).toEqual(['Bicicleta de montaña talla M']);
-    await expect(page.getByRole('button', { name: 'Filtros (2)' })).toBeVisible();
 
     // Al quitar el precio, vuelve la tabla de paddle (15 €) y se mantiene la categoría
     await page.getByRole('button', { name: 'Quitar filtro Hasta 10 €/día' }).click();
@@ -130,7 +143,8 @@ test.describe('US-03.02 Filtrar objetos', () => {
       'Bicicleta de montaña talla M',
       'Tabla de paddle surf hinchable',
     ]);
-    await expect(page.getByRole('button', { name: 'Filtros (1)' })).toBeVisible();
+    await expect(activeFilterChips(page)).toHaveCount(1);
+    await expect(filtersPanel(page).getByLabel(PRICE_LABEL)).toHaveValue('');
   });
 
   // Criterio 5
@@ -138,7 +152,7 @@ test.describe('US-03.02 Filtrar objetos', () => {
     page,
   }) => {
     await page.goto('/buscar?q=taladro');
-    const filters = await openFilters(page);
+    const filters = filtersPanel(page);
     await filters.getByLabel(PRICE_LABEL).fill('2');
     await applyFilters(page);
     await expect(page.getByText('No hay objetos que cumplan estos filtros.')).toBeVisible();
@@ -147,7 +161,20 @@ test.describe('US-03.02 Filtrar objetos', () => {
 
     await expect(page).toHaveURL('/buscar?q=taladro');
     await expect(cards(page).getByRole('link', { name: 'Taladro percutor Bosch' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Filtros', exact: true })).toBeVisible();
+    await expect(page.getByRole('list', { name: 'Filtros activos' })).toHaveCount(0);
+    await expect(filters.getByLabel(PRICE_LABEL)).toHaveValue('');
+  });
+
+  // Criterio 5: «Limpiar filtros» del panel, que en escritorio siempre está a mano
+  test('«Limpiar filtros» del panel vacía los campos y quita los filtros', async ({ page }) => {
+    await page.goto('/buscar?q=taladro&maxPrice=10');
+    const filters = filtersPanel(page);
+    await expect(filters.getByLabel(PRICE_LABEL)).toHaveValue('10');
+
+    await filters.getByRole('button', { name: 'Limpiar filtros' }).click();
+
+    await expect(page).toHaveURL('/buscar?q=taladro');
+    await expect(filters.getByLabel(PRICE_LABEL)).toHaveValue('');
   });
 
   // Validación
@@ -155,7 +182,7 @@ test.describe('US-03.02 Filtrar objetos', () => {
     page,
   }) => {
     await page.goto('/buscar?q=taladro');
-    const filters = await openFilters(page);
+    const filters = filtersPanel(page);
 
     await filters.getByLabel(PRICE_LABEL).fill('-5');
     await applyFilters(page);
@@ -165,5 +192,50 @@ test.describe('US-03.02 Filtrar objetos', () => {
     );
     await expect(filters.getByLabel(PRICE_LABEL)).toHaveAttribute('aria-invalid', 'true');
     await expect(page).toHaveURL('/buscar?q=taladro');
+  });
+
+  // Criterio 1 en móvil: el panel no cabe al lado de los resultados y se abre con el botón
+  test.describe('en móvil', () => {
+    test.use({ viewport: { width: 390, height: 844 } });
+
+    test('el botón «Filtros» abre el panel y se cierra al aplicar', async ({ page }) => {
+      await page.goto('/buscar?q=taladro');
+      const filters = filtersPanel(page);
+
+      await expect(filtersToggle(page)).toHaveAttribute('aria-expanded', 'false');
+      await expect(filters).toBeHidden();
+
+      await filtersToggle(page).click();
+
+      await expect(filtersToggle(page)).toHaveAttribute('aria-expanded', 'true');
+      await expect(filters.getByLabel('Categoría')).toBeVisible();
+      await expect(filters.getByLabel(PRICE_LABEL)).toBeVisible();
+      await expect(filters.getByLabel('Barrio')).toBeVisible();
+
+      await filters.getByLabel(PRICE_LABEL).fill('10');
+      await applyFilters(page);
+
+      await expect(page).toHaveURL(/maxPrice=10/);
+      await expect(filters).toBeHidden();
+      await expect(page.getByRole('button', { name: 'Filtros (1)' })).toBeVisible();
+      await expect(activeFilterChips(page)).toHaveCount(1);
+
+      // Con el panel cerrado, los filtros se limpian desde la lista de filtros activos
+      await page
+        .getByRole('list', { name: 'Filtros activos' })
+        .getByRole('button', { name: 'Limpiar filtros' })
+        .click();
+      await expect(page).toHaveURL('/buscar?q=taladro');
+    });
+
+    test('no hay scroll horizontal', async ({ page }) => {
+      await page.goto('/buscar?q=taladro');
+      await expect(cards(page).first()).toBeVisible();
+
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      );
+      expect(overflow).toBeLessThanOrEqual(0);
+    });
   });
 });

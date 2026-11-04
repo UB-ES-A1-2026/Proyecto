@@ -1,5 +1,5 @@
 // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 31/10/2026
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -46,22 +46,57 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('panel de filtros (US-03.02, #118)', () => {
-  // Criterio 1
-  it('el botón «Filtros» abre el panel con categoría, precio máximo y barrio', async () => {
-    const user = userEvent.setup();
+  // Criterio 1. El CSS no se carga aquí: que el panel se vea siempre en escritorio y se oculte en
+  // móvil según data-open lo comprueba el e2e (filtrar-objetos.spec.ts).
+  it('el panel tiene categoría, precio máximo y barrio sin tener que abrirlo', () => {
     renderFilters('/buscar?q=taladro');
-
-    expect(screen.queryByRole('form', { name: 'Filtros' })).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Filtros' }));
 
     const panel = within(screen.getByRole('form', { name: 'Filtros' }));
     expect(panel.getByLabelText('Categoría')).toBeInTheDocument();
     expect(panel.getByLabelText('Precio máximo (€/día)')).toBeInTheDocument();
     expect(panel.getByLabelText('Barrio')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Filtros' })).toHaveAttribute(
-      'aria-expanded',
-      'true',
-    );
+  });
+
+  it('en móvil, el botón «Filtros» abre y cierra el panel', async () => {
+    const user = userEvent.setup();
+    renderFilters('/buscar?q=taladro');
+    const panel = screen.getByRole('form', { name: 'Filtros' });
+    const toggle = screen.getByRole('button', { name: 'Filtros' });
+
+    expect(panel).toHaveAttribute('data-open', 'false');
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(toggle).toHaveAttribute('aria-controls', panel.id);
+
+    await user.click(toggle);
+    expect(panel).toHaveAttribute('data-open', 'true');
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+
+    await user.click(toggle);
+    expect(panel).toHaveAttribute('data-open', 'false');
+  });
+
+  it('muestra los filtros de la URL y los actualiza si cambian, sin montar otro panel', async () => {
+    const user = userEvent.setup();
+    renderFilters('/buscar?q=taladro&maxPrice=10&neighborhood=Gràcia');
+    const panel = screen.getByRole('form', { name: 'Filtros' });
+    expect(screen.getByLabelText('Precio máximo (€/día)')).toHaveValue('10');
+    expect(screen.getByLabelText('Barrio')).toHaveValue('Gràcia');
+
+    await user.click(screen.getByRole('button', { name: 'Quitar filtro Hasta 10 €/día' }));
+
+    expect(screen.getByLabelText('Precio máximo (€/día)')).toHaveValue('');
+    expect(screen.getByLabelText('Barrio')).toHaveValue('Gràcia');
+    expect(screen.getByRole('form', { name: 'Filtros' })).toBe(panel);
+  });
+
+  it('si solo cambia la búsqueda, no se pierde lo escrito en el panel', async () => {
+    const user = userEvent.setup();
+    const router = renderFilters('/buscar?q=taladro');
+
+    await user.type(screen.getByLabelText('Barrio'), 'Sants');
+    await act(() => router.navigate('/buscar?q=escalera'));
+
+    expect(screen.getByLabelText('Barrio')).toHaveValue('Sants');
   });
 
   // Criterio 2
@@ -94,7 +129,7 @@ describe('panel de filtros (US-03.02, #118)', () => {
     expect(params.get('maxPrice')).toBe('7.5');
     expect(params.get('neighborhood')).toBe('Gràcia');
     expect(params.has('page')).toBe(false);
-    expect(screen.queryByRole('form', { name: 'Filtros' })).not.toBeInTheDocument();
+    expect(screen.getByRole('form', { name: 'Filtros' })).toHaveAttribute('data-open', 'false');
     expect(screen.getByRole('button', { name: 'Filtros (3)' })).toBeInTheDocument();
   });
 

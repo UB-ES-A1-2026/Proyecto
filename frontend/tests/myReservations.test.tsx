@@ -75,6 +75,30 @@ describe('Mis solicitudes (US-04.02, #124)', () => {
     ).toBeVisible();
   });
 
+  it.each([
+    ['un solo día', '2026-11-08', '2026-11-08', '8 nov. 2026'],
+    [
+      'un solo día, con hora',
+      '2026-11-08T00:00:00.000Z',
+      '2026-11-08T00:00:00.000Z',
+      '8 nov. 2026',
+    ],
+    ['varios días del mismo mes', '2026-11-08', '2026-11-10', '8–10 nov. 2026'],
+    ['días de meses distintos', '2026-11-30', '2026-12-02', '30 nov. 2026–2 dic. 2026'],
+  ])('el botón termina en su estado y resume las fechas de %s', async (_, start, end, dates) => {
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    mockReservations({
+      sent: [],
+      received: [reservation({ startDate: start, endDate: end, status: 'accepted' })],
+    });
+
+    renderRoute('/mis-solicitudes');
+
+    expect(
+      await screen.findByRole('button', { name: /Taladro percutor Bosch/ }),
+    ).toHaveAccessibleName(`Taladro percutor Bosch · ${dates} · Aceptada`);
+  });
+
   it('despliega el detalle, formatos de fechas e importe y enlaza al objeto', async () => {
     localStorage.setItem('rentit.session', JSON.stringify(SESSION));
     mockReservations({ sent: [], received: [reservation()] });

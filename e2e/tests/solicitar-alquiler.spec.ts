@@ -20,13 +20,19 @@ type User = typeof ANA;
 const ITEM = 'Cortacésped eléctrico';
 const BUSY_ITEM = 'Escalera de aluminio de 3 peldaños';
 
-// «AAAA-MM-DD» a N días de hoy, como espera el campo de fecha
+// «AAAA-MM-DD» a N días de hoy, como espera la API
 function inDays(days: number): string {
   const date = new Date();
   date.setDate(date.getDate() + days);
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${date.getFullYear()}-${month}-${day}`;
+}
+
+// «dd/mm/aaaa» a N días de hoy, como se escribe en los campos de fecha
+function inDaysText(days: number): string {
+  const [year, month, day] = inDays(days).split('-');
+  return `${day}/${month}/${year}`;
 }
 
 function freeStart(): number {
@@ -38,16 +44,16 @@ async function login(page: Page, user: User) {
   await page.getByLabel('Correo electrónico').fill(user.email);
   await page.getByLabel('Contraseña', { exact: true }).fill(user.password);
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
-  await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Mi perfil' })).toBeVisible();
 }
 
-// Desde la búsqueda, abre la ficha del objeto y pulsa «Alquilar»
+// Desde la búsqueda, abre la ficha del objeto: las fechas están en su panel lateral
 async function startRequest(page: Page, title: string, query: string) {
   await page.goto(`/buscar?q=${encodeURIComponent(query)}`);
   await page.locator('.search-results').getByRole('link', { name: title }).click();
-  await page.getByRole('button', { name: 'Alquilar' }).click();
-  await expect(page).toHaveURL(/\/objetos\/[0-9a-f-]{36}\/solicitar$/);
-  await expect(page.getByRole('heading', { level: 1, name: 'Solicitar alquiler' })).toBeVisible();
+  await expect(page).toHaveURL(/\/objetos\/[0-9a-f-]{36}$/);
+  await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'Elige las fechas' })).toBeVisible();
 }
 
 async function fillDates(page: Page, start: string, end: string) {
@@ -74,11 +80,79 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
     await startRequest(page, ITEM, 'cortacésped');
     const start = freeStart();
 
-    await fillDates(page, inDays(start), inDays(start + 2));
+    await fillDates(page, inDaysText(start), inDaysText(start + 2));
 
-    await expect(page.getByLabel('Fecha de inicio')).toHaveValue(inDays(start));
-    await expect(page.getByLabel('Fecha de fin')).toHaveValue(inDays(start + 2));
+    await expect(page.getByLabel('Fecha de inicio')).toHaveValue(inDaysText(start));
+    await expect(page.getByLabel('Fecha de fin')).toHaveValue(inDaysText(start + 2));
     await expect(page.getByLabel('Fecha de fin')).not.toHaveAttribute('aria-invalid', 'true');
+  });
+
+  // Criterio 1: las mismas fechas, eligiéndolas en el calendario
+  test('se pueden elegir las fechas haciendo clic en el calendario', async ({ page }) => {
+    await startRequest(page, ITEM, 'cortacésped');
+    const panel = page.getByRole('complementary', {
+      name: 'Alquiler de este objeto',
+    });
+    const monthsAhead = 12 + Math.floor(Math.random() * 12);
+    const target = new Date();
+    target.setDate(1);
+    target.setMonth(target.getMonth() + monthsAhead);
+    const monthName = target.toLocaleDateString('es-ES', { month: 'long' });
+    const year = target.getFullYear();
+    const monthNumber = String(target.getMonth() + 1).padStart(2, '0');
+
+    await expect(panel.getByRole('button', { name: 'Mes anterior' })).toBeDisabled();
+    for (let month = 0; month < monthsAhead; month++) {
+      await panel.getByRole('button', { name: 'Mes siguiente' }).click();
+    }
+    await expect(panel.getByText(`${monthName} de ${year}`)).toBeVisible();
+
+    await panel.getByRole('button', { name: `10 de ${monthName} de ${year}` }).click();
+    await expect(page.getByLabel('Fecha de inicio')).toHaveValue(`10/${monthNumber}/${year}`);
+    await expect(page.getByLabel('Fecha de fin')).toHaveValue('');
+
+    await panel.getByRole('button', { name: `12 de ${monthName} de ${year}` }).click();
+    await expect(page.getByLabel('Fecha de fin')).toHaveValue(`12/${monthNumber}/${year}`);
+    await expect(
+      panel.getByRole('button', { name: `11 de ${monthName} de ${year}` }),
+    ).toHaveAttribute('aria-pressed', 'true');
+
+    await expect(page.locator('.rental-price').first()).toHaveText(/3 días × 9,00\s€ = 27,00\s€/);
+    await expect(panel.getByRole('button', { name: 'Solicitar alquiler' })).toBeEnabled();
+
+    // Las fechas elegidas llegan al resumen
+    await panel.getByRole('button', { name: 'Solicitar alquiler' }).click();
+    await expect(panel.getByText(`10 de ${monthName} de ${year}`)).toBeVisible();
+    await expect(panel.getByText(`12 de ${monthName} de ${year}`)).toBeVisible();
+    await panel.getByRole('button', { name: 'Volver' }).click();
+    await expect(page.getByLabel('Fecha de inicio')).toHaveValue(`10/${monthNumber}/${year}`);
+    await expect(panel.getByText(`${monthName} de ${year}`)).toBeVisible();
+  });
+
+  // Criterio 1: el calendario no deja elegir días pasados
+  test('los días pasados del calendario están desactivados', async ({ page }) => {
+    await startRequest(page, ITEM, 'cortacésped');
+    const today = new Date();
+    const panel = page.getByRole('complementary', {
+      name: 'Alquiler de este objeto',
+    });
+    const todayName = today.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+
+    await expect(panel.getByRole('button', { name: todayName, exact: true })).toBeEnabled();
+    if (today.getDate() > 1) {
+      const yesterday = new Date(today);
+      yesterday.setDate(today.getDate() - 1);
+      const yesterdayName = yesterday.toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+      await expect(panel.getByRole('button', { name: yesterdayName, exact: true })).toBeDisabled();
+    }
   });
 
   // Criterio 1: el fin no puede ser anterior al inicio
@@ -88,7 +162,7 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
     await startRequest(page, ITEM, 'cortacésped');
     const start = freeStart();
 
-    await fillDates(page, inDays(start), inDays(start - 1));
+    await fillDates(page, inDaysText(start), inDaysText(start - 1));
 
     await expect(
       page.getByText('La fecha de fin no puede ser anterior a la fecha de inicio.'),
@@ -102,7 +176,7 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
     await startRequest(page, ITEM, 'cortacésped');
     const start = freeStart();
 
-    await fillDates(page, inDays(start), inDays(start + 2));
+    await fillDates(page, inDaysText(start), inDaysText(start + 2));
 
     // Las dos fechas cuentan: 3 días × 9 € = 27 €
     await expect(page.locator('.rental-price').first()).toHaveText(/3 días × 9,00\s€ = 27,00\s€/);
@@ -114,12 +188,12 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
   }) => {
     await startRequest(page, ITEM, 'cortacésped');
     const start = freeStart();
-    await fillDates(page, inDays(start), inDays(start + 2));
+    await fillDates(page, inDaysText(start), inDaysText(start + 2));
     await expect(page.getByRole('button', { name: 'Solicitar alquiler' })).toBeEnabled();
 
     // La escalera tiene una solicitud aceptada para dentro de 14 y 15 días
     await startRequest(page, BUSY_ITEM, 'escalera');
-    await fillDates(page, inDays(13), inDays(14));
+    await fillDates(page, inDaysText(13), inDaysText(14));
 
     await expect(page.getByText('El objeto no está disponible en esas fechas.')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Solicitar alquiler' })).toBeDisabled();
@@ -133,19 +207,25 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
     const before = await sentCount(request, BRUNO);
     await startRequest(page, ITEM, 'cortacésped');
     const start = freeStart();
-    await fillDates(page, inDays(start), inDays(start + 2));
+    await fillDates(page, inDaysText(start), inDaysText(start + 2));
 
     await page.getByRole('button', { name: 'Solicitar alquiler' }).click();
 
+    // El resumen sale en el mismo panel, sin cambiar de pantalla
+    await expect(page).toHaveURL(/\/objetos\/[0-9a-f-]{36}$/);
+    const panel = page.getByRole('complementary', {
+      name: 'Alquiler de este objeto',
+    });
     await expect(
-      page.getByRole('heading', { level: 1, name: 'Revisa tu solicitud' }),
+      panel.getByRole('heading', { level: 2, name: 'Revisa tu solicitud' }),
     ).toBeVisible();
-    await expect(page.getByText(ITEM)).toBeVisible();
-    await expect(page.getByText('Desde')).toBeVisible();
-    await expect(page.getByText('Hasta')).toBeVisible();
-    await expect(page.getByText('Importe del alquiler (3 días)')).toBeVisible();
-    await expect(page.locator('.rental-total')).toHaveText(/27,00\s€/);
-    await expect(page.getByRole('button', { name: 'Confirmar' })).toBeVisible();
+    await expect(panel.getByText(ITEM)).toBeVisible();
+    await expect(panel.getByText('Desde')).toBeVisible();
+    await expect(panel.getByText('Hasta')).toBeVisible();
+    await expect(panel.getByText('Importe del alquiler (3 días)')).toBeVisible();
+    await expect(panel.locator('.rental-total')).toHaveText(/27,00\s€/);
+    await expect(panel.getByRole('button', { name: 'Volver' })).toBeVisible();
+    await expect(panel.getByRole('button', { name: 'Confirmar' })).toBeVisible();
     // Todavía no se ha creado nada
     expect(await sentCount(request, BRUNO)).toBe(before);
   });
@@ -155,7 +235,7 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
     const before = await sentCount(request, BRUNO);
     await startRequest(page, ITEM, 'cortacésped');
     const start = freeStart();
-    await fillDates(page, inDays(start), inDays(start + 2));
+    await fillDates(page, inDaysText(start), inDaysText(start + 2));
     await page.getByRole('button', { name: 'Solicitar alquiler' }).click();
 
     await page.getByRole('button', { name: 'Confirmar' }).click();
@@ -172,6 +252,7 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
 
   // Permisos
   test('nadie puede solicitar su propio objeto', async ({ page, request }) => {
+    await page.goto('/perfil');
     await page.getByRole('button', { name: 'Cerrar sesión' }).click();
     await login(page, ANA);
     await page.goto('/buscar?q=cortacésped');
@@ -179,6 +260,8 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
 
     await expect(page.getByText('Este anuncio es tuyo.')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Alquilar' })).toHaveCount(0);
+    await expect(page.getByLabel('Fecha de inicio')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Solicitar alquiler' })).toHaveCount(0);
 
     // Tampoco por la API
     const itemId = page.url().split('/').pop();

@@ -60,7 +60,7 @@ En el CI (#19, `.github/workflows/ci.yml`) se ejecutan **todos** los tests e2e, 
 
 ### Qué comprobar
 
-- **El resultado, no solo la URL.** Tras un login, además de la URL, comprobar que aparece «Cerrar sesión».
+- **El resultado, no solo la URL.** Tras un login, además de la URL, comprobar que aparece «Mi perfil».
 - **El error en el campo correcto.** Comprobar el texto del error y que el campo tiene `aria-invalid="true"`, no solo que hay algún error en la página.
 - **Que la comprobación puede fallar.** Si un test no puede fallar nunca, no prueba nada. Ejemplo: para comprobar que el token deja de valer tras el logout, primero se comprueba que funciona (200) y después que ya no (401).
 
@@ -90,7 +90,7 @@ Cada caso corresponde a un criterio de aceptación del backlog. La columna **Tes
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
 | CP-REG-01 | 1. Se muestran los campos del formulario | Sin sesión iniciada | 1. Ir a `/registro` | Se ven los campos «Nombre de usuario», «Correo electrónico» y «Contraseña» y el botón «Crear cuenta» | `registro.spec.ts` · criterio 1 |
-| CP-REG-02 | 2. Registro con datos válidos | Sin sesión iniciada; el correo no está registrado | 1. Ir a `/registro` 2. Escribir un nombre de usuario nuevo (p. ej. `usuario_nuevo`), un correo nuevo y la contraseña `Rentit2026` 3. Pulsar «Crear cuenta» | Se crea la cuenta, se muestra la página inicial con «Hola, <usuario>» y la cabecera muestra «Mi perfil» y «Cerrar sesión» | `registro.spec.ts` · criterio 2 |
+| CP-REG-02 | 2. Registro con datos válidos | Sin sesión iniciada; el correo no está registrado | 1. Ir a `/registro` 2. Escribir un nombre de usuario nuevo (p. ej. `usuario_nuevo`), un correo nuevo y la contraseña `Rentit2026` 3. Pulsar «Crear cuenta» | Se crea la cuenta, se muestra la página inicial con «Hola, <usuario>» y la cabecera muestra «Mi perfil» | `registro.spec.ts` · criterio 2 |
 | CP-REG-03 | 3. Falta un dato obligatorio | Sin sesión iniciada | 1. Ir a `/registro` 2. Escribir solo el nombre de usuario 3. Pulsar «Crear cuenta» | No se crea la cuenta; se sigue en `/registro` y bajo el correo y la contraseña aparece «El campo "…" no está correctamente introducido, prueba a revisarlo.» | `registro.spec.ts` · criterio 3a |
 | CP-REG-04 | 3. Correo ya registrado | Sin sesión iniciada | 1. Ir a `/registro` 2. Escribir un nombre de usuario nuevo, el correo `ana@rentit.test` y la contraseña `Rentit2026` 3. Pulsar «Crear cuenta» | No se crea la cuenta; se sigue en `/registro` y bajo el correo aparece el mensaje de error | `registro.spec.ts` · criterio 3b |
 | CP-REG-05 | 4. Mostrar / ocultar contraseña | Sin sesión iniciada | 1. Ir a `/registro` 2. Escribir una contraseña 3. Pulsar «Mostrar» 4. Pulsar «Ocultar» | En el paso 2 la contraseña se ve oculta; en el 3 se ve el texto; en el 4 vuelve a ocultarse | `registro.spec.ts` · criterio 4 |
@@ -101,7 +101,7 @@ Cada caso corresponde a un criterio de aceptación del backlog. La columna **Tes
 |---|---|---|---|---|---|
 | CP-LOG-01 | 1. Se muestran los campos del formulario | Sin sesión iniciada | 1. Ir a `/login` | Se ven los campos «Correo electrónico» y «Contraseña» y el botón «Iniciar sesión» | `login.spec.ts` · criterio 1 |
 | CP-LOG-02 | 2. Vuelve a la página en la que estaba (página privada) | Sin sesión iniciada | 1. Ir a `/perfil` (redirige a `/login`) 2. Iniciar sesión con `ana@rentit.test` / `Rentit2026` | Se vuelve a `/perfil` con la sesión iniciada | `login.spec.ts` · criterio 2 (página privada) |
-| CP-LOG-03 | 2. Vuelve a la página en la que estaba (inicio) | Sin sesión iniciada | 1. Ir a `/` 2. Pulsar «Iniciar sesión» en la cabecera 3. Iniciar sesión con `ana@rentit.test` / `Rentit2026` | Se vuelve a `/` con «Hola, ana» y la cabecera muestra «Cerrar sesión» | `login.spec.ts` · criterio 2 (página inicial) |
+| CP-LOG-03 | 2. Vuelve a la página en la que estaba (inicio) | Sin sesión iniciada | 1. Ir a `/` 2. Pulsar «Iniciar sesión» en la cabecera 3. Iniciar sesión con `ana@rentit.test` / `Rentit2026` | Se vuelve a `/` con «Hola, ana» y la cabecera muestra «Mi perfil» | `login.spec.ts` · criterio 2 (página inicial) |
 | CP-LOG-04 | 3. Contraseña incorrecta | Sin sesión iniciada | 1. Ir a `/login` 2. Escribir `ana@rentit.test` y una contraseña incorrecta 3. Pulsar «Iniciar sesión» | No se inicia sesión; bajo la contraseña aparece «El campo "contraseña" no es correcto, revísalo.» | `login.spec.ts` · criterio 3a |
 | CP-LOG-05 | 3. Correo que no existe | Sin sesión iniciada | 1. Ir a `/login` 2. Escribir `noexiste@rentit.test` y cualquier contraseña 3. Pulsar «Iniciar sesión» | No se inicia sesión; bajo el correo aparece «El campo "correo electrónico" no es correcto, revísalo.» | `login.spec.ts` · criterio 3b |
 | CP-LOG-06 | 3. Campos vacíos | Sin sesión iniciada | 1. Ir a `/login` 2. Pulsar «Iniciar sesión» sin escribir nada | No se inicia sesión; aparecen los errores del correo y de la contraseña | `login.spec.ts` · criterio 3c |
@@ -112,17 +112,17 @@ Cada caso corresponde a un criterio de aceptación del backlog. La columna **Tes
 
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
-| CP-OUT-01 | 1. Hay un botón «Cerrar sesión» | Sesión iniciada como `ana@rentit.test` | 1. Mirar la cabecera | Se ve el botón «Cerrar sesión» | `logout.spec.ts` · criterio 1 |
-| CP-OUT-02 | 2. Cerrar sesión redirige y deja de estar autenticado | Sesión iniciada | 1. Pulsar «Cerrar sesión» | Se va a `/login`; la cabecera muestra «Iniciar sesión» y «Crear cuenta» en lugar de «Mi perfil» y «Cerrar sesión» | `logout.spec.ts` · criterio 2 |
-| CP-OUT-03 | 3. Las rutas privadas dejan de ser accesibles | Sesión iniciada | 1. Pulsar «Cerrar sesión» 2. Escribir en la barra de direcciones `/perfil` | Se redirige a `/login` | `logout.spec.ts` · criterio 3 |
-| CP-OUT-04 | 4. El token anterior deja de ser válido | Sesión iniciada; token copiado (en DevTools › Application › Local Storage › `rentit.session`) | 1. Pulsar «Cerrar sesión» 2. Llamar a `GET /api/usuarios/me` con `Authorization: Bearer <token copiado>` | La API responde `401` | `logout.spec.ts` · criterio 4 |
-| CP-OUT-05 | 5. El botón «atrás» no muestra contenido privado | Sesión iniciada | 1. Ir a «Mi perfil» 2. Ir a la página inicial 3. Pulsar «Cerrar sesión» 4. Pulsar «atrás» en el navegador | No se ve el perfil: se redirige a `/login` | `logout.spec.ts` · criterio 5 |
+| CP-OUT-01 | 1. Hay un botón «Cerrar sesión» | Sesión iniciada como `ana@rentit.test` | 1. Ir a «Mi perfil» | Se ve el botón «Cerrar sesión» | `logout.spec.ts` · criterio 1 |
+| CP-OUT-02 | 2. Cerrar sesión redirige y deja de estar autenticado | Sesión iniciada | 1. En «Mi perfil», pulsar «Cerrar sesión» | Se va a `/login`; la cabecera muestra «Iniciar sesión» y «Crear cuenta» en lugar de «Mi perfil» | `logout.spec.ts` · criterio 2 |
+| CP-OUT-03 | 3. Las rutas privadas dejan de ser accesibles | Sesión iniciada | 1. En «Mi perfil», pulsar «Cerrar sesión» 2. Escribir en la barra de direcciones `/perfil` | Se redirige a `/login` | `logout.spec.ts` · criterio 3 |
+| CP-OUT-04 | 4. El token anterior deja de ser válido | Sesión iniciada; token copiado (en DevTools › Application › Local Storage › `rentit.session`) | 1. En «Mi perfil», pulsar «Cerrar sesión» 2. Llamar a `GET /api/usuarios/me` con `Authorization: Bearer <token copiado>` | La API responde `401` | `logout.spec.ts` · criterio 4 |
+| CP-OUT-05 | 5. El botón «atrás» no muestra contenido privado | Sesión iniciada | 1. Ir a «Mi perfil» 2. Ir a «Mis objetos» 3. Volver a «Mi perfil» y pulsar «Cerrar sesión» 4. Pulsar «atrás» en el navegador | No se ve contenido privado: se redirige a `/login` | `logout.spec.ts` · criterio 5 |
 
 ### TR-08 Página de ayuda (#89)
 
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
-| CP-AYU-01 | 1. La página `/ayuda` está publicada | Sin sesión iniciada | 1. Ir a `/` 2. Pulsar «Ayuda» en la cabecera | Se abre `/ayuda` con el título «Ayuda» | `ayuda.spec.ts` · criterio 1 |
+| CP-AYU-01 | 1. La página `/ayuda` está publicada | Sin sesión iniciada | 1. Ir a `/` 2. Pulsar el icono de ayuda de la cabecera | Se abre `/ayuda` con el título «Ayuda» | `ayuda.spec.ts` · criterio 1 |
 | CP-AYU-02 | 2. Explica los flujos entregados | — | 1. Ir a `/ayuda` 2. Pulsar cada entrada del índice «En esta página» | Hay una sección con pasos numerados para cada flujo entregado (crear una cuenta, iniciar sesión, ver tu perfil, cerrar sesión, buscar, filtrar, ver la ficha, solicitar un alquiler, consultar y responder solicitudes, y publicar, editar, pausar y retirar un objeto), y el índice lleva a cada una | `ayuda.spec.ts` · criterio 2 |
 | CP-AYU-03 | 3. Se actualiza en cada sprint | Antes de la demo | 1. Comparar las secciones con las historias del sprint que están en `develop` | Cada flujo entregado tiene su sección; si falta, se añade a la página y a `DELIVERED_FLOWS` de `ayuda.spec.ts` | Revisión manual |
 
@@ -153,16 +153,16 @@ Se llega a la ficha desde la búsqueda de `taladro` (US-03.01): «Taladro percut
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
 | CP-VER-01 | 1. Abrir un anuncio desde los resultados | Seed cargado | 1. Ir a `/buscar?q=taladro` 2. Pulsar «Taladro percutor Bosch» | Se abre `/objetos/<id>` con el título del objeto | `ver-objeto.spec.ts` · criterio 1 |
-| CP-VER-02 | 2. La ficha muestra los datos del objeto | Seed cargado | 1. Abrir la ficha | Se ven la descripción, «6,00 € / día», «Disponible» y las fotos (o «Este objeto no tiene fotos.» si no tiene) | `ver-objeto.spec.ts` · criterio 2 |
+| CP-VER-02 | 2. La ficha muestra los datos del objeto | Seed cargado | 1. Abrir la ficha | Se ven la descripción, «6,00 € / día» y «Disponible» en el panel lateral, y las fotos con sus miniaturas (o «Este objeto no tiene fotos.» si no tiene) | `ver-objeto.spec.ts` · criterio 2 |
 | CP-VER-03 | 3. Información pública del propietario | — | 1. Abrir la ficha | Se ve «Publicado por ana» y en la ficha no aparece ningún correo | `ver-objeto.spec.ts` · criterio 3 |
-| CP-VER-04 | 4. Botón «Alquilar» | Sesión de bruno | 1. Abrir la ficha 2. Pulsar «Alquilar» | Se va a `/objetos/<id>/solicitar` (US-04.01) | `ver-objeto.spec.ts` · criterio 4a |
-| CP-VER-05 | 4. «Alquilar» sin sesión | Sin sesión | 1. Abrir la ficha 2. Pulsar «Alquilar» | Se va a `/login`; tras iniciar sesión se vuelve a la ficha | `ver-objeto.spec.ts` · criterio 4b |
-| CP-VER-06 | 4. El propietario no alquila su objeto | Sesión de ana | 1. Abrir la ficha | Se ve «Este anuncio es tuyo.» y no hay botón «Alquilar» | `ver-objeto.spec.ts` · criterio 4c |
+| CP-VER-04 | 4. Alquilar con sesión | Sesión de bruno | 1. Abrir la ficha 2. Ir a `/objetos/<id>/solicitar` | En la ficha, el panel muestra las dos fechas y «Solicitar alquiler» desactivado, sin botón «Alquilar» (US-04.01). La URL antigua redirige a la ficha | `ver-objeto.spec.ts` · criterio 4a |
+| CP-VER-05 | 4. «Alquilar» sin sesión | Sin sesión | 1. Abrir la ficha 2. Pulsar «Alquilar» | Se va a `/login`; tras iniciar sesión se vuelve a la ficha, con las fechas en el panel | `ver-objeto.spec.ts` · criterio 4b |
+| CP-VER-06 | 4. El propietario no alquila su objeto | Sesión de ana | 1. Abrir la ficha | Se ve «Este anuncio es tuyo.», sin botón «Alquilar» ni fechas | `ver-objeto.spec.ts` · criterio 4c |
 | CP-VER-07 | (Errores) Objeto que no existe | — | 1. Ir a `/objetos/00000000-0000-4000-8000-000000000000` | Se ve «No hemos encontrado este objeto» y el enlace «Volver al inicio» | `ver-objeto.spec.ts` · errores |
 
 ### US-02.02 Editar un objeto (#51) · S1-T33 (#171)
 
-Se edita la «Hidrolimpiadora Kärcher» de ana (8 €/día, fianza 50 €), que no usa ningún otro e2e. Cada test la deja como estaba al terminar. Del criterio 2, la disponibilidad se cambia con «Pausar» y «Reanudar» en «Mis objetos» (US-02.04), igual que «Disponible ya» o «Pausado» al publicar. Añadir fotos llega cuando entre la subida de US-02.01. Borrar fotos queda para el Sprint 2 (decisión de Marc, 03/11).
+Se edita la «Hidrolimpiadora Kärcher» de ana (8 €/día, fianza 50 €), que no usa ningún otro e2e. Cada test la deja como estaba al terminar. Del criterio 2, la disponibilidad se cambia con «Pausar» y «Reanudar» en «Mis objetos» (US-02.04), igual que «Disponible ya» o «Pausado» al publicar. Añadir fotos se comprueba en los unitarios (`editItem.test.tsx`). Borrar fotos queda para el Sprint 2 (decisión de Marc, 03/11).
 
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
@@ -188,17 +188,19 @@ Solicitudes del seed (`DEMO_RESERVATIONS` en `backend/prisma/demoData.ts`, #210)
 
 ### US-04.01 Solicitar un alquiler (#60) · S1-T21 (#122)
 
-bruno solicita el «Cortacésped eléctrico» de ana (9 €/día). Las fechas son aleatorias, dentro de 1 a 2 años, para poder repetir los tests. La «Escalera de aluminio» de ana tiene en el seed (#210) una solicitud aceptada para dentro de 14 y 15 días, así que esas fechas están ocupadas.
+bruno solicita el «Cortacésped eléctrico» de ana (9 €/día). Las fechas son aleatorias, dentro de 1 a 2 años, para poder repetir los tests. La «Escalera de aluminio» de ana tiene en el seed (#210) una solicitud aceptada para dentro de 14 y 15 días, así que esas fechas están ocupadas. Todo el flujo ocurre en el panel lateral de la ficha, sin cambiar de pantalla.
 
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
-| CP-SOL-01 | 1. Elegir fechas de inicio y fin | Sesión de bruno | 1. Buscar `cortacésped` y abrir la ficha 2. «Alquilar» 3. Elegir inicio y fin | Se va a `/objetos/<id>/solicitar` y quedan las dos fechas elegidas, sin error | `solicitar-alquiler.spec.ts` · criterio 1 |
-| CP-SOL-02 | 1. El fin no puede ser anterior al inicio | Como CP-SOL-01 | 1. Elegir un fin anterior al inicio | «La fecha de fin no puede ser anterior a la fecha de inicio.» y «Solicitar alquiler» desactivado | `solicitar-alquiler.spec.ts` · criterio 1 |
+| CP-SOL-01 | 1. Elegir fechas de inicio y fin | Sesión de bruno | 1. Buscar `cortacésped` y abrir la ficha 2. Escribir inicio y fin en el panel, con formato `dd/mm/aaaa` | Quedan las dos fechas elegidas, sin error | `solicitar-alquiler.spec.ts` · criterio 1 |
+| CP-SOL-01b | 1. Elegir fechas en el calendario | Como CP-SOL-01 | 1. Avanzar con «Mes siguiente» 2. Pulsar el día 10 3. Pulsar el día 12 4. «Solicitar alquiler» 5. «Volver» | Los campos muestran las fechas pulsadas y el 11 queda dentro del rango, con el precio de 3 días. El resumen las enseña y «Volver» las conserva | `solicitar-alquiler.spec.ts` · criterio 1 |
+| CP-SOL-01c | 1. Los días pasados no se pueden elegir | Como CP-SOL-01 | 1. Mirar el mes actual en el calendario | Hoy se puede pulsar; ayer (si es del mismo mes) está desactivado, y «Mes anterior» también | `solicitar-alquiler.spec.ts` · criterio 1 |
+| CP-SOL-02 | 1. El fin no puede ser anterior al inicio | Como CP-SOL-01 | 1. Escribir un fin anterior al inicio (en el calendario no se puede) | «La fecha de fin no puede ser anterior a la fecha de inicio.» y «Solicitar alquiler» desactivado | `solicitar-alquiler.spec.ts` · criterio 1 |
 | CP-SOL-03 | 2. Se muestra el precio del periodo | Como CP-SOL-01 | 1. Elegir 3 días | «3 días × 9,00 € = 27,00 €» (las dos fechas cuentan) | `solicitar-alquiler.spec.ts` · criterio 2 |
 | CP-SOL-04 | 3. Con fechas disponibles se puede solicitar | Como CP-SOL-01 | 1. Fechas libres del cortacésped 2. Fechas de la escalera dentro de 13 y 14 días | En el paso 1, «Solicitar alquiler» está activo. En el 2 sale «El objeto no está disponible en esas fechas.» y el botón está desactivado | `solicitar-alquiler.spec.ts` · criterio 3 |
-| CP-SOL-05 | 4. Resumen antes de enviar | Fechas libres | 1. «Solicitar alquiler» | «Revisa tu solicitud» con el objeto, «Desde», «Hasta», «Importe del alquiler (3 días)», 27,00 € y «Confirmar». Todavía no se ha creado ninguna solicitud | `solicitar-alquiler.spec.ts` · criterio 4 |
+| CP-SOL-05 | 4. Resumen antes de enviar | Fechas libres | 1. «Solicitar alquiler» | En el mismo panel y la misma URL, «Revisa tu solicitud» con el objeto, «Desde», «Hasta», «Importe del alquiler (3 días)», 27,00 €, «Volver» y «Confirmar». Todavía no se ha creado ninguna solicitud | `solicitar-alquiler.spec.ts` · criterio 4 |
 | CP-SOL-06 | 5. Confirmar crea la solicitud «Pendiente» | CP-SOL-05 | 1. «Confirmar» | Se va a «Mis solicitudes» y en «Enviadas» sale el cortacésped «Pendiente». bruno tiene una solicitud enviada más | `solicitar-alquiler.spec.ts` · criterio 5 |
-| CP-SOL-07 | (Permisos) No se puede alquilar un objeto propio | Sesión de ana | 1. Abrir la ficha del cortacésped 2. `POST /api/reservas` con el token de ana | «Este anuncio es tuyo.», sin botón «Alquilar», y la API responde `403` | `solicitar-alquiler.spec.ts` · permisos |
+| CP-SOL-07 | (Permisos) No se puede alquilar un objeto propio | Sesión de ana | 1. Abrir la ficha del cortacésped 2. `POST /api/reservas` con el token de ana | «Este anuncio es tuyo.», sin botón «Alquilar» ni fechas, y la API responde `403` | `solicitar-alquiler.spec.ts` · permisos |
 
 ### US-02.04 Pausar un objeto (#53) · S1-T35 (#173)
 
@@ -240,10 +242,10 @@ Se publica sin fotos, porque la subida va a S3 y en el CI no hay almacenamiento 
 
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
-| CP-PUB-01 | 1. Se ven los campos del anuncio | Sesión de ana | 1. «Publicar objeto» en la cabecera | Se va a `/objetos/nuevo` y se ven Nombre, Descripción, Fotografías, Precio por día, Disponibilidad y «Publicar» | `publicar-objeto.spec.ts` · criterio 1 |
+| CP-PUB-01 | 1. Se ven los campos del anuncio | Sesión de ana | 1. En «Mis objetos», «Publicar un objeto» | Se va a `/objetos/nuevo` y se ven Nombre, Descripción, Fotografías, Precio por día, Disponibilidad y «Publicar» | `publicar-objeto.spec.ts` · criterio 1 |
 | CP-PUB-02 | 2. Se puede elegir la categoría | Sesión de ana | 1. Abrir «Categoría» | Están las 8 categorías de la migración y se puede elegir una | `publicar-objeto.spec.ts` · criterio 2 |
 | CP-PUB-03 | 3. Publicar con datos válidos | Sesión de ana | 1. Rellenar nombre, descripción, «Herramientas y bricolaje», `7,50`, fianza `20` y «Sants» 2. «Publicar» | Se va a la ficha con esos datos («7,50 € / día», «Fianza: 20,00 €», «Disponible»…) y el objeto sale en la búsqueda | `publicar-objeto.spec.ts` · criterio 3 |
-| CP-PUB-04 | 4. El anuncio es de quien lo crea | Sesión de ana | 1. Publicar 2. Abrir la ficha con la sesión de bruno | ana ve «Publicado por ana» y «Este anuncio es tuyo.». bruno ve «Publicado por ana» y el botón «Alquilar» | `publicar-objeto.spec.ts` · criterio 4 |
+| CP-PUB-04 | 4. El anuncio es de quien lo crea | Sesión de ana | 1. Publicar 2. Abrir la ficha con la sesión de bruno | ana ve «Publicado por ana» y «Este anuncio es tuyo.». bruno ve «Publicado por ana» y las fechas en el panel | `publicar-objeto.spec.ts` · criterio 4 |
 | CP-PUB-05 | 5. Campo erróneo (precio) | Sesión de ana | 1. Todo válido salvo el precio `0` 2. «Publicar» | No se publica (sigue en `/objetos/nuevo` y no sale en la búsqueda) y bajo el precio sale «El campo "precio" no es correcto, revísalo.» | `publicar-objeto.spec.ts` · criterio 5a |
 | CP-PUB-06 | 5. Campo obligatorio vacío | Sesión de ana | 1. Nombre vacío 2. «Publicar» | No se publica y bajo el nombre sale «El campo "nombre" no es correcto, revísalo.» | `publicar-objeto.spec.ts` · criterio 5b |
 | CP-PUB-07 | (Acceso) Sin sesión | Sin sesión | 1. Ir a `/objetos/nuevo` | Se redirige a `/login` | `publicar-objeto.spec.ts` · acceso |
@@ -265,13 +267,16 @@ Objetos del seed (`backend/prisma/demoData.ts`). En Deporte están la bicicleta 
 
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
-| CP-FIL-01 | 1. Se abren los filtros desde la búsqueda | Página de resultados | 1. Pulsar «Filtros» | Se ven «Categoría», «Precio máximo (€/día)» y «Barrio» | `filtrar-objetos.spec.ts` · criterio 1 |
+| CP-FIL-01 | 1. Los filtros se ven en la búsqueda | Página de resultados, en escritorio | 1. Ir a `/buscar?q=taladro` | Sin abrir nada, a la izquierda de los resultados se ven «Categoría», «Precio máximo (€/día)» y «Barrio». El botón «Filtros» no sale | `filtrar-objetos.spec.ts` · criterio 1 |
 | CP-FIL-02 | 2-3. Filtrar por categoría | Seed cargado | 1. Elegir «Deporte» 2. «Aplicar filtros» | Solo salen la bicicleta y la tabla de paddle, las dos de «Deporte» | `filtrar-objetos.spec.ts` · criterios 2 y 3 |
 | CP-FIL-03 | 2-3. Filtrar por precio máximo | Seed cargado | 1. Precio máximo `4` 2. «Aplicar filtros» | Solo salen objetos de 4 €/día o menos, incluido el de 4 € | `filtrar-objetos.spec.ts` · criterios 2 y 3 |
 | CP-FIL-04 | 2-3. Filtrar por ubicación | Seed cargado | 1. Barrio `sant andreu` 2. «Aplicar filtros» | Salen los 4 objetos de Sant Andreu y ninguno de otro barrio | `filtrar-objetos.spec.ts` · criterios 2 y 3 |
-| CP-FIL-05 | 4. Varios filtros a la vez | Seed cargado | 1. «Deporte» y precio máximo `10` 2. «Aplicar filtros» 3. Quitar el chip «Hasta 10 €/día» | En el paso 2 solo sale la bicicleta y el botón dice «Filtros (2)». En el 3 vuelve la tabla de paddle y se mantiene la categoría | `filtrar-objetos.spec.ts` · criterio 4 |
+| CP-FIL-05 | 4. Varios filtros a la vez | Seed cargado | 1. «Deporte» y precio máximo `10` 2. «Aplicar filtros» 3. Quitar el chip «Hasta 10 €/día» | En el paso 2 solo sale la bicicleta y hay dos chips. En el 3 vuelve la tabla de paddle, queda un chip, se mantiene la categoría y el campo de precio se vacía | `filtrar-objetos.spec.ts` · criterio 4 |
 | CP-FIL-06 | 5. Limpiar filtros | `/buscar?q=taladro` con precio máximo `2` (sin resultados) | 1. Pulsar «Limpiar filtros» | Se vuelve a `/buscar?q=taladro` y sale otra vez el taladro | `filtrar-objetos.spec.ts` · criterio 5 |
 | CP-FIL-07 | (Validación) Precio máximo no válido | — | 1. Precio máximo `-5` 2. «Aplicar filtros» | No cambia la URL. Bajo el campo sale «El campo "precio máximo" no es correcto, revísalo.» | `filtrar-objetos.spec.ts` · validación |
+| CP-FIL-08 | 5. Limpiar filtros desde el panel | `/buscar?q=taladro&maxPrice=10`, en escritorio | 1. Pulsar «Limpiar filtros» en el panel | Se vuelve a `/buscar?q=taladro` y el campo de precio se vacía | `filtrar-objetos.spec.ts` · criterio 5 |
+| CP-FIL-09 | 1. En móvil, los filtros se abren con su botón | Página de resultados, a 390 px | 1. Pulsar «Filtros» 2. Precio máximo `10` 3. «Aplicar filtros» 4. «Limpiar filtros» junto a los chips | En el paso 1 se abre el panel. En el 3 se cierra y el botón dice «Filtros (1)». En el 4 se vuelve a `/buscar?q=taladro` | `filtrar-objetos.spec.ts` · en móvil |
+| CP-FIL-10 | (Móvil) Sin scroll horizontal | Página de resultados, a 390 px | 1. Ir a `/buscar?q=taladro` | La página no se desplaza en horizontal | `filtrar-objetos.spec.ts` · en móvil |
 
 ## 5. Pendiente
 
