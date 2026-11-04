@@ -62,7 +62,10 @@ export function SearchFilters() {
   const categoryName = categories.find((category) => category.id === filters.categoryId)?.name;
   const chips: { key: FilterKey; label: string }[] = [];
   if (filters.categoryId) chips.push({ key: 'categoryId', label: categoryName ?? 'Categoría' });
-  if (filters.maxPrice) chips.push({ key: 'maxPrice', label: `Hasta ${filters.maxPrice} €/día` });
+  if (filters.maxPrice) {
+    const price = Number(filters.maxPrice).toLocaleString('es-ES');
+    chips.push({ key: 'maxPrice', label: `Hasta ${price} €/día` });
+  }
   if (filters.neighborhood) chips.push({ key: 'neighborhood', label: filters.neighborhood });
 
   return (

@@ -215,6 +215,46 @@ describe('Mis solicitudes (US-04.02, #124)', () => {
 });
 
 describe('ReservationCard', () => {
+  it('una solicitud de un solo día muestra una fecha, no un rango', async () => {
+    const user = userEvent.setup();
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    mockReservations({
+      sent: [reservation({ startDate: '2026-11-09', endDate: '2026-11-09' })],
+      received: [],
+    });
+
+    renderRoute('/mis-solicitudes');
+    await user.click(await screen.findByRole('button', { name: /Taladro percutor Bosch/ }));
+
+    expect(screen.getByText('Fecha: 9 de noviembre de 2026')).toBeVisible();
+    expect(screen.queryByText(/^Fechas: Del/)).not.toBeInTheDocument();
+  });
+
+  it('si otra sesión ya respondió, la tarjeta se actualiza y se mantiene el aviso', async () => {
+    const user = userEvent.setup();
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    let responded = false;
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (_input, init) => {
+      if (init?.method === 'POST') {
+        responded = true;
+        return Response.json({ error: 'Esta solicitud ya no está pendiente.' }, { status: 409 });
+      }
+      return Response.json({
+        sent: [],
+        received: [reservation({ status: responded ? 'accepted' : 'pending' })],
+      });
+    });
+
+    renderRoute('/mis-solicitudes');
+    const toggle = await screen.findByRole('button', { name: /Pendiente$/ });
+    await user.click(toggle);
+    await user.click(screen.getByRole('button', { name: 'Aceptar' }));
+
+    expect(await screen.findByRole('button', { name: /Aceptada$/ })).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('Esta solicitud ya no está pendiente.');
+    expect(screen.queryByRole('button', { name: 'Aceptar' })).not.toBeInTheDocument();
+  });
+
   it('muestra children dentro del detalle desplegable', async () => {
     const user = userEvent.setup();
 

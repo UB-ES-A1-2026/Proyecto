@@ -4,7 +4,7 @@ Cómo se ve Rentit y cómo mantenerlo coherente al añadir pantallas (TR-09, #15
 
 > Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 03/11/2026. Paleta y logo de la maqueta de Figma de Francesc (#157) aplicados por Danyal, 03/11/2026 (#158).
 
-**Maqueta:** [Rentit en Figma](https://www.figma.com/design/C6S1Lj9UBkEW0FxZP8chpV/Sin-t%C3%ADtulo?node-id=0-1) (home con búsqueda, ficha de objeto y login, #157).
+**Figma:** [Rentit · Pantallas](https://www.figma.com/design/iRQFKxo2roZUzXWK7URbj5), con los fundamentos y las pantallas actuales en escritorio y móvil (#258). La [maqueta original](https://www.figma.com/design/C6S1Lj9UBkEW0FxZP8chpV/Sin-t%C3%ADtulo?node-id=0-1) (#157) queda como referencia.
 
 ## La norma
 

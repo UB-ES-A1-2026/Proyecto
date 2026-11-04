@@ -136,8 +136,9 @@ export function ReservationCard({
                 Objeto: <Link to={`/objetos/${reservation.item.id}`}>{reservation.item.title}</Link>
               </ReservationFact>
               <ReservationFact icon="event">
-                Fechas: Del {formatLongDate(reservation.startDate)} al{' '}
-                {formatLongDate(reservation.endDate)}
+                {reservation.startDate === reservation.endDate
+                  ? `Fecha: ${formatLongDate(reservation.startDate)}`
+                  : `Fechas: Del ${formatLongDate(reservation.startDate)} al ${formatLongDate(reservation.endDate)}`}
               </ReservationFact>
               <ReservationFact icon="payments">
                 Importe total: {priceFormatter.format(Number(reservation.totalPrice))}

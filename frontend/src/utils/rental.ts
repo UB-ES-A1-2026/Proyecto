@@ -13,11 +13,14 @@ export function toUtcTime(isoDate: string): number {
   return Date.UTC(year, month - 1, day);
 }
 
-// Fecha de hoy en la zona horaria del usuario, en formato «AAAA-MM-DD».
+// Fecha de hoy en España, en formato «AAAA-MM-DD»: la misma referencia que usa el backend.
 export function todayIso(now: Date = new Date()): string {
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${now.getFullYear()}-${month}-${day}`;
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Madrid',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now);
 }
 
 // Cuenta el primer y el último día: del 4 al 6 son 3 días, igual que el backend (#120).

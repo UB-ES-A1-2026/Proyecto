@@ -60,6 +60,8 @@ Si hace falta una pieza nueva, se añade a `wireframe.css` (en su propio commit)
 
 ## Relación con la maqueta de Figma
 
+Las pantallas actuales de la web están en [Rentit · Pantallas](https://www.figma.com/design/iRQFKxo2roZUzXWK7URbj5) (#258). Lo que sigue compara los wireframes con la maqueta original.
+
 La [maqueta de Figma](https://www.figma.com/design/C6S1Lj9UBkEW0FxZP8chpV/Rentit?node-id=0-1) (#157, en catalán) y estos wireframes no son lo mismo: **la maqueta define cómo se ve Rentit y el wireframe define cómo funciona cada historia**. Si no coinciden, mandan los criterios de aceptación y el wireframe, y la maqueta manda en la identidad visual ([guía de estilo](../guia-estilo.md)). Los wireframes no se redibujan con el aspecto de la maqueta, porque son de baja fidelidad.
 
 Comparados el 04/11/2026, con el rediseño de la web (#258). Cada wireframe de la tabla lo recuerda en una nota debajo de su título.
