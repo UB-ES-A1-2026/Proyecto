@@ -126,6 +126,34 @@ describe('ReservationDecision', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
+  it('con fechas solapadas quita «Aceptar» y deja rechazar la solicitud', async () => {
+    const onDecided = vi.fn();
+    const fetchMock = vi.spyOn(globalThis, 'fetch');
+    fetchMock
+      .mockResolvedValueOnce(
+        Response.json(
+          {
+            error: 'Las fechas de esta solicitud se solapan con otra reserva ya aceptada.',
+            field: 'startDate',
+          },
+          { status: 409 },
+        ),
+      )
+      .mockResolvedValueOnce(Response.json({ id: 'r1', status: 'rejected' }));
+    const user = userEvent.setup();
+    renderDecision('pending', onDecided);
+
+    await user.click(screen.getByRole('button', { name: 'Aceptar' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('se solapan');
+    expect(screen.queryByRole('button', { name: 'Aceptar' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Rechazar' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Has rechazado la solicitud.');
+    expect(onDecided).toHaveBeenCalledWith({ id: 'r1', status: 'rejected' });
+  });
+
   it.each([403, 404])('muestra el error %s y quita las acciones', async (status) => {
     mockFetch(() => Response.json({ error: `Error ${status}` }, { status }));
     const user = userEvent.setup();
@@ -158,9 +186,7 @@ describe('ReservationDecision', () => {
   });
 
   it('borra la sesión y oculta el componente ante un 401', async () => {
-    mockFetch(() =>
-      Response.json({ error: 'Sesión no válida.' }, { status: 401 }),
-    );
+    mockFetch(() => Response.json({ error: 'Sesión no válida.' }, { status: 401 }));
     const user = userEvent.setup();
     renderDecision();
 
