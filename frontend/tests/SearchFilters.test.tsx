@@ -159,6 +159,15 @@ describe('panel de filtros (US-03.02, #118)', () => {
     expect(router.state.location.search).toBe('?q=taladro');
   });
 
+  it('el barrio no admite más de 100 caracteres', async () => {
+    const user = userEvent.setup();
+    renderFilters('/buscar?q=taladro');
+
+    await user.click(screen.getByRole('button', { name: 'Filtros' }));
+
+    expect(screen.getByLabelText('Barrio')).toHaveAttribute('maxlength', '100');
+  });
+
   it('el error del precio se anuncia al lector de pantalla', async () => {
     const user = userEvent.setup();
     renderFilters('/buscar?q=taladro');

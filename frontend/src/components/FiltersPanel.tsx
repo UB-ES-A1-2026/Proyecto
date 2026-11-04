@@ -3,6 +3,7 @@ import { useId, useState, type FormEvent } from 'react';
 import type { Category } from '../services/categoryService';
 import {
   isValidMaxPrice,
+  MAX_NEIGHBORHOOD_LENGTH,
   MAX_PRICE_ERROR,
   normalizeMaxPrice,
   type SearchFilters,
@@ -99,6 +100,7 @@ export function FiltersPanel({
           <input
             id={`${fieldId}-barrio`}
             placeholder="Ej.: Gràcia"
+            maxLength={MAX_NEIGHBORHOOD_LENGTH}
             value={neighborhood}
             onChange={(event) => setNeighborhood(event.target.value)}
           />

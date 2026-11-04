@@ -22,6 +22,13 @@ describe('filtros de la búsqueda en la URL (#118)', () => {
     expect(readFilters(new URLSearchParams('maxPrice=7,5'))).toEqual({ maxPrice: '7.5' });
   });
 
+  it('ignora un barrio de la URL de más de 100 caracteres', () => {
+    expect(readFilters(new URLSearchParams(`neighborhood=${'a'.repeat(101)}`))).toEqual({});
+    expect(readFilters(new URLSearchParams(`neighborhood=${'a'.repeat(100)}`))).toEqual({
+      neighborhood: 'a'.repeat(100),
+    });
+  });
+
   it('al escribir los filtros mantiene la búsqueda y vuelve a la primera página', () => {
     const params = new URLSearchParams('q=taladro&maxPrice=5&page=3');
 
@@ -48,16 +55,31 @@ describe('filtros de la búsqueda en la URL (#118)', () => {
     expect(writeFilters(params, {}).toString()).toBe('q=taladro');
   });
 
+  it('limpiar los filtros sin texto deja «q=» para seguir viendo todos los objetos', () => {
+    const params = new URLSearchParams('maxPrice=10');
+
+    expect(writeFilters(params, {}).toString()).toBe('q=');
+  });
+
+  it('aplicar un filtro sin texto quita el «q=» vacío', () => {
+    const params = new URLSearchParams('q=');
+
+    expect(writeFilters(params, { maxPrice: '10' }).toString()).toBe('maxPrice=10');
+  });
+
   it('cuenta los filtros activos', () => {
     expect(countActiveFilters({})).toBe(0);
     expect(countActiveFilters({ categoryId: 'c1', maxPrice: '10' })).toBe(2);
   });
 
-  it.each(['', '10', '7.5', '7,50', ' 3 '])('acepta «%s» como precio máximo', (value) => {
-    expect(isValidMaxPrice(value)).toBe(true);
-  });
+  it.each(['', '10', '7.5', '7,50', ' 3 ', '12345678', '12345678,99'])(
+    'acepta «%s» como precio máximo',
+    (value) => {
+      expect(isValidMaxPrice(value)).toBe(true);
+    },
+  );
 
-  it.each(['0', '-5', 'diez', '1.234', '10e2', '0,00'])(
+  it.each(['0', '-5', 'diez', '1.234', '10e2', '0,00', '123456789'])(
     'rechaza «%s» como precio máximo',
     (value) => {
       expect(isValidMaxPrice(value)).toBe(false);
