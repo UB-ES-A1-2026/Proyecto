@@ -16,6 +16,8 @@ export function Layout() {
     <>
       <header className="app-header">
         <Link to="/" className="app-logo">
+          {/* El nombre ya está al lado: para quien usa lector de pantalla, el logo es decorativo. */}
+          <img src="/favicon.svg" alt="" width={28} height={28} />
           Rentit
         </Link>
         <nav aria-label="Principal" className="app-nav">
