@@ -42,6 +42,8 @@ export type MyItem = {
   dailyPrice: string;
   neighborhood: string;
   status: ItemStatus;
+  // URL de la primera foto. Pausar, reanudar y retirar no la devuelven.
+  photo?: string | null;
 };
 
 // Cuerpo de PATCH /api/objetos/:id (#109): los campos que se pueden editar desde el formulario.

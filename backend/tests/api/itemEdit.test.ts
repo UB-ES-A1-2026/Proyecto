@@ -85,6 +85,7 @@ describe('GET /api/usuarios/me/objetos', () => {
         dailyPrice: '5.50',
         neighborhood: item.neighborhood,
         status: 'published',
+        photo: null,
       },
     ]);
   });

@@ -93,7 +93,13 @@ export function MyItemsPage() {
       (current) =>
         current?.map((item) =>
           item.id === saved.id
-            ? { ...item, title: saved.title, dailyPrice: saved.dailyPrice, status: saved.status }
+            ? {
+                ...item,
+                title: saved.title,
+                dailyPrice: saved.dailyPrice,
+                status: saved.status,
+                photo: saved.photos[0]?.url ?? item.photo,
+              }
             : item,
         ) ?? null,
     );
@@ -119,7 +125,10 @@ export function MyItemsPage() {
         item.status === 'paused'
           ? await resumeItem(token, item.id)
           : await pauseItem(token, item.id);
-      setItems((current) => current?.map((row) => (row.id === changed.id ? changed : row)) ?? null);
+      setItems(
+        (current) =>
+          current?.map((row) => (row.id === changed.id ? { ...row, ...changed } : row)) ?? null,
+      );
       setMessage(
         changed.status === 'paused'
           ? 'El anuncio se ha pausado: no aparecerá en las búsquedas hasta que lo reanudes.'
@@ -149,7 +158,9 @@ export function MyItemsPage() {
   // La fila se queda en la lista como «Retirado»: el propietario la sigue viendo con su filtro.
   function handleWithdrawn(withdrawn: MyItem) {
     setItems(
-      (current) => current?.map((item) => (item.id === withdrawn.id ? withdrawn : item)) ?? null,
+      (current) =>
+        current?.map((item) => (item.id === withdrawn.id ? { ...item, ...withdrawn } : item)) ??
+        null,
     );
     setWithdrawing(null);
     setMessage('El anuncio se ha retirado.');
@@ -213,34 +224,37 @@ export function MyItemsPage() {
             <ul className="item-list">
               {visibleItems.map((item) => (
                 <li key={item.id} className="item-row">
-                  {/* Las fotos llegan con el spike de imágenes (#92): de momento, un hueco. */}
                   <div className="item-photo" aria-hidden="true">
-                    <svg width="32" height="32" viewBox="0 0 24 24">
-                      <rect
-                        x="3"
-                        y="4"
-                        width="18"
-                        height="16"
-                        rx="2"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                      />
-                      <circle
-                        cx="9"
-                        cy="10"
-                        r="2"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                      />
-                      <path
-                        d="m4 18 5-5 4 4 3-3 4 4"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                      />
-                    </svg>
+                    {item.photo ? (
+                      <img src={item.photo} alt="" />
+                    ) : (
+                      <svg width="32" height="32" viewBox="0 0 24 24">
+                        <rect
+                          x="3"
+                          y="4"
+                          width="18"
+                          height="16"
+                          rx="2"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                        />
+                        <circle
+                          cx="9"
+                          cy="10"
+                          r="2"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                        />
+                        <path
+                          d="m4 18 5-5 4 4 3-3 4 4"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                        />
+                      </svg>
+                    )}
                   </div>
                   <div className="item-info">
                     <div className="item-heading">
