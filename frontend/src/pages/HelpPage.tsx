@@ -45,6 +45,7 @@ const SECTIONS: HelpSection[] = [
         Con la sesión iniciada, pulsa «<Link to="/perfil">Mi perfil</Link>» en el menú.
       </>,
       'Verás tu nombre de usuario, tu correo electrónico y desde cuándo eres miembro.',
+      'También verás cuántos objetos y solicitudes tienes, con un enlace a cada lista, y podrás publicar un objeto.',
     ],
     note: 'Si no has iniciado sesión, primero se te pedirá que lo hagas y después irás a tu perfil.',
   },
@@ -132,7 +133,7 @@ const SECTIONS: HelpSection[] = [
         Con la sesión iniciada, en «Mis objetos», pulsa «
         <Link to="/objetos/nuevo">Publicar un objeto</Link>».
       </>,
-      'Rellena el nombre, la descripción, la categoría, el precio por día, la fianza (escribe 0 si no pides) y el barrio.',
+      'Rellena el nombre, la descripción, la categoría, el precio por día, la fianza (déjala vacía si no pides) y el barrio.',
       'Si quieres, añade hasta 5 fotos JPG, PNG o WebP, de 5 MB como máximo.',
       'Elige si estará disponible ya o pausado, y las formas de entrega.',
       'Pulsa «Publicar». Irás a la ficha de tu objeto.',

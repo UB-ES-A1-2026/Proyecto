@@ -89,6 +89,14 @@ describe('panel de filtros (US-03.02, #118)', () => {
     expect(screen.getByRole('form', { name: 'Filtros' })).toBe(panel);
   });
 
+  it('muestra el precio del filtro con coma decimal', () => {
+    renderFilters('/buscar?q=taladro&maxPrice=4.5');
+
+    expect(
+      screen.getByRole('button', { name: 'Quitar filtro Hasta 4,5 €/día' }),
+    ).toBeInTheDocument();
+  });
+
   it('si solo cambia la búsqueda, no se pierde lo escrito en el panel', async () => {
     const user = userEvent.setup();
     const router = renderFilters('/buscar?q=taladro');

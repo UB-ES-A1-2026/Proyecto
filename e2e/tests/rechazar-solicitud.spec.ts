@@ -71,7 +71,7 @@ test.describe('US-04.04 Rechazar una solicitud', () => {
 
     await expect(proyector.getByRole('link', { name: 'Proyector Full HD' })).toBeVisible();
     await expect(proyector.getByText('Solicitada por: ana')).toBeVisible();
-    await expect(proyector.getByText(/^Fechas: Del .+ al .+/)).toBeVisible();
+    await expect(proyector.getByText(/^Fecha: \d{1,2} de \w+ de \d{4}$/)).toBeVisible();
     await expect(proyector.getByText('Estado: Pendiente')).toBeVisible();
     await expect(proyector.getByRole('button', { name: 'Rechazar' })).toBeVisible();
   });

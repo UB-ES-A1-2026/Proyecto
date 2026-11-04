@@ -89,6 +89,14 @@ export function MyReservationsPage() {
     );
   }
 
+  // Si falla, la tarjeta se queda como estaba: el aviso ya explica lo que ha pasado.
+  function refreshReservations() {
+    if (!token) return;
+    getMyReservations(token)
+      .then(setReservations)
+      .catch(() => undefined);
+  }
+
   return (
     <section className="my-reservations">
       <div className="page-header">
@@ -130,6 +138,7 @@ export function MyReservationsPage() {
                   reservationId={reservation.id}
                   status={reservation.status}
                   onDecided={handleDecided}
+                  onOutdated={refreshReservations}
                 />
               </ReservationCard>
             ))}

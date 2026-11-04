@@ -15,12 +15,15 @@ type ReservationDecisionProps = {
   reservationId: string;
   status: string;
   onDecided: (updated: DecidedReservation) => void;
+  // Otra sesión ya la ha respondido: hay que volver a pedir su estado.
+  onOutdated?: () => void;
 };
 
 export function ReservationDecision({
   reservationId,
   status,
   onDecided,
+  onOutdated,
 }: ReservationDecisionProps) {
   const { session, clearSession } = useAuth();
   const [submitting, setSubmitting] = useState<Decision | null>(null);
@@ -30,7 +33,7 @@ export function ReservationDecision({
   const [acceptBlocked, setAcceptBlocked] = useState(false);
 
   if (!session) return null;
-  if (status !== 'pending' && completed === null) return null;
+  if (status !== 'pending' && completed === null && error === null) return null;
   const token = session.token;
 
   async function decide(decision: Decision) {
@@ -56,6 +59,7 @@ export function ReservationDecision({
         const overlapping = requestError.status === 409 && requestError.field === 'startDate';
         setAcceptBlocked(overlapping);
         setTerminalError([403, 404, 409].includes(requestError.status) && !overlapping);
+        if (requestError.status === 409 && !overlapping) onOutdated?.();
       } else {
         setError('Ha ocurrido un error inesperado.');
         setTerminalError(false);
