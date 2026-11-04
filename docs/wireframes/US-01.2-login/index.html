@@ -9,8 +9,8 @@
     <header class="wf-doc">
       <h1>US-01.2 Inicio de sesión</h1>
       <p class="wf-historia">Como <strong>usuario</strong>, quiero <strong>iniciar sesión</strong> para <strong>acceder a mi cuenta</strong>.</p>
-      <p class="wf-meta">Issue #46 · Wireframe de baja fidelidad, dibujado a partir de lo implementado en el Sprint 0 · Generado con asistencia de IA (Claude), pendiente de revisar por el equipo</p>
-      <p class="wf-meta">Maqueta de Figma · Marco «Log in»: coinciden la tarjeta centrada, el correo, la contraseña y el botón. La maqueta añade «Recorda’m», «He oblidat la contrasenya» y un enlace a registrarse, que no están en los criterios.</p>
+      <p class="wf-meta">Issue #46 · Wireframe de baja fidelidad, dibujado a partir de lo implementado en el Sprint 0 · Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo</p>
+      <p class="wf-meta">Maqueta de Figma · Marco «Log in»: coinciden la tarjeta centrada, el correo, la contraseña, el botón y el enlace a registrarse. La maqueta añade «Recorda’m» y «He oblidat la contrasenya», que no están en los criterios ni en la web.</p>
     </header>
 
     <section class="wf-pantalla" data-captura="1-entrada">
@@ -19,22 +19,42 @@
         <div class="wf-escritorio" data-url="rentit.app/">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Ayuda</span>
-              <span class="wf-enlace">Iniciar sesión</span><span class="wf-marca">1</span>
-              <span class="wf-enlace">Crear cuenta</span>
-            </span>
+            <span class="wf-enlaces"><span class="wf-enlace">Iniciar sesión</span><span class="wf-marca">1</span><span class="wf-enlace">Crear cuenta</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
+            <h3 class="wf-h1">Lo que necesitas, a la vuelta de la esquina</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-campo">
+              <label>¿Qué quieres alquilar?</label>
+              <div class="wf-input">Por ejemplo, taladro <span class="wf-boton">Buscar</span></div>
+            </div>
+            <div class="wf-fila">
+              <span class="wf-boton wf-secundario">Iniciar sesión</span><span class="wf-marca">2</span>
+              <span class="wf-boton wf-secundario">Crear cuenta</span>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-caja">Explora por categoría · Novedades · Cómo funciona</div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Lo que necesitas, a la vuelta de la esquina</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
             <div class="wf-campo">
               <label>¿Qué quieres alquilar?</label>
               <div class="wf-input">Por ejemplo, taladro</div>
             </div>
+            <div class="wf-campo"><span class="wf-boton wf-ancho">Buscar</span></div>
+            <div class="wf-campo"><span class="wf-boton wf-secundario wf-ancho">Iniciar sesión</span></div>
+            <span class="wf-boton wf-secundario wf-ancho">Crear cuenta</span>
           </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Iniciar sesión</span><span>Crear cuenta</span></div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>El enlace «Iniciar sesión» está en la cabecera mientras no hay sesión. También se llega al pulsar «Alquilar» o al abrir una página privada sin sesión.</li>
+        <li>El enlace «Iniciar sesión» está en la cabecera mientras no hay sesión (en el móvil, en la barra inferior). También se llega al pulsar «Alquilar» en una ficha, al abrir una página privada sin sesión o con «Inicia sesión» desde el registro.</li>
+        <li>Botón de la página inicial: también lleva a <code>/login</code>.</li>
       </ol>
     </section>
 
@@ -46,24 +66,44 @@
         <div class="wf-escritorio" data-url="rentit.app/login">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces"><span class="wf-enlace">Ayuda</span><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span></span>
+            <span class="wf-enlaces"><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
-          <div class="wf-contenido wf-centrado">
-            <div class="wf-tarjeta">
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
               <h3 class="wf-h1">Iniciar sesión</h3>
+              <p class="wf-texto">Alquila lo que necesitas, cerca de casa.</p>
               <div class="wf-campo"><label>Correo electrónico</label><div class="wf-input">ana@ejemplo.com</div></div>
               <div class="wf-campo">
                 <label>Contraseña</label>
                 <div class="wf-input">•••••••• <span class="wf-boton wf-secundario">Mostrar <span class="wf-marca">1</span></span></div>
               </div>
               <span class="wf-boton wf-ancho">Iniciar sesión <span class="wf-marca">2</span></span>
+              <p class="wf-ayuda">¿Aún no tienes cuenta? <span class="wf-enlace">Regístrate</span> <span class="wf-marca">3</span></p>
             </div>
           </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <div class="wf-tarjeta">
+              <h3 class="wf-h1">Iniciar sesión</h3>
+              <p class="wf-texto">Alquila lo que necesitas, cerca de casa.</p>
+              <div class="wf-campo"><label>Correo electrónico</label><div class="wf-input">ana@ejemplo.com</div></div>
+              <div class="wf-campo">
+                <label>Contraseña</label>
+                <div class="wf-input">•••••••• <span class="wf-boton wf-secundario">Mostrar</span></div>
+              </div>
+              <span class="wf-boton wf-ancho">Iniciar sesión</span>
+              <p class="wf-ayuda">¿Aún no tienes cuenta? <span class="wf-enlace">Regístrate</span></p>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Iniciar sesión</span><span>Crear cuenta</span></div>
         </div>
       </div>
       <ol class="wf-notas">
         <li>«Mostrar» enseña la contraseña y pasa a decir «Ocultar».</li>
         <li>Mientras se envía, el botón dice «Iniciando sesión…» y está desactivado.</li>
+        <li>Lleva a <code>/registro</code> (US-01.1). Al registrarse se llega a la página inicial, no a la que se estaba.</li>
       </ol>
     </section>
 
@@ -75,11 +115,12 @@
         <div class="wf-escritorio" data-url="rentit.app/login">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces"><span class="wf-enlace">Ayuda</span><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span></span>
+            <span class="wf-enlaces"><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
-          <div class="wf-contenido wf-centrado">
-            <div class="wf-tarjeta">
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
               <h3 class="wf-h1">Iniciar sesión</h3>
+              <p class="wf-texto">Alquila lo que necesitas, cerca de casa.</p>
               <div class="wf-campo">
                 <label>Correo electrónico</label>
                 <div class="wf-input wf-con-error">ana@</div>
@@ -87,12 +128,13 @@
               </div>
               <div class="wf-campo"><label>Contraseña</label><div class="wf-input">•••••••• <span class="wf-boton wf-secundario">Mostrar</span></div></div>
               <span class="wf-boton wf-ancho">Iniciar sesión</span>
+              <p class="wf-ayuda">¿Aún no tienes cuenta? <span class="wf-enlace">Regístrate</span></p>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>El error sale debajo del campo, con el formato «El campo "X" no es correcto, revísalo.», y el cursor va a ese campo. Con la contraseña vacía pasa lo mismo.</li>
+        <li>El error sale debajo del campo y el cursor va a ese campo. Un correo mal escrito o que no existe da este texto. Una contraseña vacía o incorrecta da «El campo "contraseña" no es correcto, revísalo.». Con los dos campos vacíos salen los dos. Si el fallo no es de un campo, el aviso sale encima del formulario: «No se puede conectar con el servidor. Inténtalo más tarde.» o «Ha ocurrido un error inesperado.».</li>
       </ol>
     </section>
 
@@ -104,16 +146,27 @@
         <div class="wf-escritorio" data-url="rentit.app/">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-enlace">Cerrar sesión</span><span class="wf-marca">1</span>
-            </span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-marca">1</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
-          <div class="wf-contenido"><div class="wf-caja">La página en la que estaba, o la inicial si entró directamente en /login</div></div>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Hola, ana</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-caja">La página en la que estaba, o la inicial si entró directamente en /login <span class="wf-marca">2</span></div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Hola, ana</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-caja">La página en la que estaba</div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>La cabecera ya es la de una persona con sesión iniciada.</li>
+        <li>La cabecera ya es la de una persona con sesión iniciada. «Cerrar sesión» está dentro de «Mi perfil» (US-01.3).</li>
+        <li>Vuelve, por ejemplo, a la búsqueda (<code>/buscar?q=taladro</code>), a la ficha desde la que pulsó «Alquilar» o a la página privada que intentaba abrir (<code>/perfil</code>).</li>
       </ol>
     </section>
   </body>
