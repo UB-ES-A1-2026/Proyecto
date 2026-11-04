@@ -15,7 +15,7 @@ import {
 // Botón «Filtros», panel y filtros activos de la página de resultados (US-03.02, #118).
 // Lee y escribe los filtros en la URL, y la página vuelve a pedir GET /api/objetos cuando cambian
 // sus parámetros. En escritorio el panel siempre se ve a un lado de los resultados y el botón no
-// sale; en móvil, el botón lo abre y lo cierra (lo decide el CSS, como el menú de la cabecera).
+// sale; en móvil, el botón lo abre y lo cierra (lo decide el CSS).
 export function SearchFilters() {
   const panelId = useId();
   const [searchParams, setSearchParams] = useSearchParams();
