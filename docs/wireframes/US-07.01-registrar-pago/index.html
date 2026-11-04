@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-07.01 Registrar un pago · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-07.01 Registrar un pago</h1>
+      <p class="wf-historia">
+        Como <strong>usuario</strong>, quiero <strong>registrar el pago</strong> para <strong>poder confirmar el alquiler del
+        objeto</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #72 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Generado con
+        asistencia de IA (Claude) – pendiente de revisar por el equipo en el Sprint Planning
+      </p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-entrada">
+      <h2><span class="wf-paso">1</span>Punto de entrada: Mis solicitudes <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-boton wf-secundario">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto"><strong>Enviadas</strong></p>
+            <span class="wf-boton wf-secundario wf-ancho">▾ Taladro percutor Bosch · 10–12 nov. 2026 · Aceptada</span>
+            <div class="wf-tarjeta">
+              <p class="wf-texto">Importe del alquiler: 18,00 € · Propietario: ana</p>
+              <span class="wf-boton">Pagar</span><span class="wf-marca">1</span>
+            </div>
+            <p class="wf-texto"></p>
+            <span class="wf-boton wf-secundario wf-ancho">▾ Bicicleta de paseo · 20–21 nov. 2026 · Pendiente</span>
+            <div class="wf-tarjeta">
+              <p class="wf-texto">Importe del alquiler: 16,00 € · Propietario: bruno <span class="wf-marca">2</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 1: «Pagar» solo aparece en una solicitud «Aceptada» de «Enviadas». Lleva a la pantalla de pago.</li>
+        <li>Solicitud no aceptada: no aparece «Pagar». La API también lo rechaza si se intenta.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Pagar»</p>
+
+    <section class="wf-pantalla" data-captura="2-pantalla-pago">
+      <h2><span class="wf-paso">2</span>Pantalla de pago <code>/mis-solicitudes/:id/pagar</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes/5ac9…/pagar">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-boton wf-secundario">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado">
+              <h3 class="wf-h1">Pagar el alquiler <span class="wf-marca">1</span></h3>
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>Taladro percutor Bosch</strong></p>
+                <p class="wf-texto">Del 10/11/2026 al 12/11/2026</p>
+                <p class="wf-texto">Precio del alquiler: 18,00 € <span class="wf-marca">2</span></p>
+                <p class="wf-texto">Fianza: 40,00 €</p>
+                <p class="wf-texto"><strong>Importe total: 58,00 €</strong></p>
+              </div>
+              <p class="wf-texto"></p>
+              <div class="wf-campo">
+                <label>Método de pago <span class="wf-marca">3</span></label>
+                <div class="wf-input"><strong>● Visa de prueba 4242 (aprobada)</strong></div>
+              </div>
+              <div class="wf-campo"><div class="wf-input">○ Visa de prueba 0002 (rechazada)</div></div>
+              <div class="wf-campo"><div class="wf-input">○ Visa de prueba 9995 (sin fondos)</div></div>
+              <p class="wf-ayuda">Pago simulado: no se mueve dinero real.</p>
+              <p class="wf-texto"></p>
+              <span class="wf-boton wf-ancho">Pagar</span><span class="wf-marca">4</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Ruta propuesta. Sin sesión, lleva al login. No se define «Cancelar»: se sale con la cabecera.</li>
+        <li>Criterio 2: objeto, fechas, precio del alquiler, fianza e importe total. Si el modo es rider, se añade el coste de la entrega (US-05.01).</li>
+        <li>
+          Criterio 3: método de pago disponible. Las opciones son las de la pasarela simulada propuesta en el ADR 0003
+          (decisión 3): no se teclea ningún número de tarjeta.
+        </li>
+        <li>Criterio 3: confirma el pago.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Pagar»</p>
+
+    <section class="wf-pantalla" data-captura="3-procesando">
+      <h2><span class="wf-paso">3</span>Procesando el pago <code>/mis-solicitudes/:id/pagar</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes/5ac9…/pagar">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado">
+              <h3 class="wf-h1">Pagar el alquiler</h3>
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>Importe total: 58,00 €</strong></p>
+              </div>
+              <p class="wf-texto"></p>
+              <div class="wf-campo">
+                <label>Método de pago</label>
+                <div class="wf-input"><strong>● Visa de prueba 4242 (aprobada)</strong></div>
+              </div>
+              <span class="wf-boton wf-desactivado wf-ancho">Pagar</span><span class="wf-marca">1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Mientras se procesa, el botón está desactivado.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Si el pago no es válido o se rechaza</p>
+
+    <section class="wf-pantalla" data-captura="4-pago-rechazado">
+      <h2><span class="wf-paso">4</span>Error: pago rechazado <code>/mis-solicitudes/:id/pagar</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes/5ac9…/pagar">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado">
+              <h3 class="wf-h1">Pagar el alquiler</h3>
+              <p class="wf-aviso">La tarjeta ha sido rechazada. <span class="wf-marca">1</span></p>
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>Importe total: 58,00 €</strong></p>
+              </div>
+              <p class="wf-texto"></p>
+              <div class="wf-campo">
+                <label>Método de pago</label>
+                <div class="wf-input"><strong>● Visa de prueba 0002 (rechazada)</strong></div>
+              </div>
+              <span class="wf-boton wf-ancho">Pagar</span><span class="wf-marca">2</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 5: el mensaje viene de la API. La reserva no se marca como pagada y sigue «Aceptada».</li>
+        <li>Sigue en esta pantalla, con el botón activo, y puede elegir otro método y volver a pagar.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Desde la pantalla 3: el pago es válido y queda registrado</p>
+
+    <section class="wf-pantalla" data-captura="5-destino-pagado">
+      <h2><span class="wf-paso">5</span>Destino: Mis solicitudes, reserva pagada <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-boton wf-secundario">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-aviso">El pago se ha registrado. <span class="wf-marca">1</span></p>
+            <p class="wf-texto"><strong>Enviadas</strong></p>
+            <span class="wf-boton wf-secundario wf-ancho">▾ Taladro percutor Bosch · 10–12 nov. 2026 · Pagado</span>
+            <div class="wf-tarjeta">
+              <p class="wf-texto">Importe del alquiler: 18,00 € · Propietario: ana <span class="wf-marca">2</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El flujo pide un mensaje de que el pago se ha registrado; el texto exacto es una propuesta.</li>
+        <li>
+          Criterios 4 y 6: la reserva muestra «Pagado» y ya no aparece «Pagar». Si se vuelve a abrir la URL de pago o se
+          repite la petición, no se vuelve a pedir ni a cobrar: la API lo rechaza.
+        </li>
+      </ol>
+    </section>
+  </body>
+</html>

@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-10.01 Rider acepta entregas disponibles · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-10.01 Rider acepta entregas disponibles</h1>
+      <p class="wf-historia">
+        Como <strong>rider</strong>, quiero <strong>ver las entregas disponibles cerca de mí y aceptar una</strong> para
+        <strong>ganar dinero</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #78 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Generado con
+        asistencia de IA (Claude) – pendiente de revisar por el equipo en el Sprint Planning
+      </p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-entrada">
+      <h2><span class="wf-paso">1</span>Punto de entrada: cualquier página con sesión de rider <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Entregas</span><span class="wf-marca">1</span>
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-boton wf-secundario">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Rentit</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-caja">Buscador y objetos cercanos</div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Solo con el rol de rider. Sin ese rol no se ve «Entregas», y la API rechaza <code>/entregas</code>.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Entregas»</p>
+
+    <section class="wf-pantalla" data-captura="2-lista">
+      <h2><span class="wf-paso">2</span>Entregas disponibles <code>/entregas</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/entregas">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Entregas</span>
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-boton wf-secundario">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Entregas disponibles <span class="wf-marca">1</span></h3>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>Taladro percutor Bosch</strong></p>
+              <p class="wf-texto">Origen: Gràcia · Destino: Eixample <span class="wf-marca">2</span></p>
+              <p class="wf-texto">Franja horaria: Lo antes posible · Pago: 3,50 € <span class="wf-marca">3</span></p>
+              <span class="wf-boton">Aceptar</span><span class="wf-marca">4</span>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>Tienda de campaña</strong></p>
+              <p class="wf-texto">Origen: Sants · Destino: Les Corts</p>
+              <p class="wf-texto">Franja horaria: Hoy, 18:00 – 20:00 · Pago: 4,20 €</p>
+              <span class="wf-boton">Aceptar</span>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Entregas disponibles</h3>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>Taladro percutor Bosch</strong></p>
+              <p class="wf-texto">Origen: Gràcia<br />Destino: Eixample</p>
+              <p class="wf-texto">Franja horaria: Lo antes posible<br />Pago: 3,50 €</p>
+              <span class="wf-boton wf-ancho">Aceptar</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 1: solo reservas Confirmadas con modo rider y sin rider asignado.</li>
+        <li>Hasta aceptar, la ubicación se muestra por barrio.</li>
+        <li>Criterio 2: cada entrega muestra origen, destino, franja horaria y pago. Los importes son ejemplos.</li>
+        <li>Criterio 3: asigna la entrega a este rider y la retira de la lista de los demás.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Si no hay ninguna entrega disponible</p>
+
+    <section class="wf-pantalla" data-captura="3-sin-entregas">
+      <h2><span class="wf-paso">3</span>Lista vacía <code>/entregas</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/entregas">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Entregas</span>
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-boton wf-secundario">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Entregas disponibles</h3>
+            <p class="wf-texto">No hay ninguna entrega disponible. <span class="wf-marca">1</span></p>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El flujo pide este mensaje, pero no da el texto exacto: es una propuesta.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Desde la pantalla 2: clic en «Aceptar» cuando otro rider la acaba de aceptar</p>
+
+    <section class="wf-pantalla" data-captura="4-ya-asignada">
+      <h2><span class="wf-paso">4</span>Aviso: ya asignada <code>/entregas</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/entregas">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Entregas</span>
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-boton wf-secundario">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Entregas disponibles</h3>
+            <p class="wf-aviso">Ya asignada: otro rider ha aceptado esta entrega antes que tú. <span class="wf-marca">1</span></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>Tienda de campaña</strong></p>
+              <p class="wf-texto">Origen: Sants · Destino: Les Corts</p>
+              <p class="wf-texto">Franja horaria: Hoy, 18:00 – 20:00 · Pago: 4,20 €</p>
+              <span class="wf-boton">Aceptar</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 4: si dos riders aceptan a la vez, el segundo recibe el aviso y sigue en la lista, que ya no incluye esa entrega.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Desde la pantalla 2: clic en «Aceptar» y la entrega queda asignada a este rider</p>
+
+    <section class="wf-pantalla" data-captura="5-destino-seguimiento">
+      <h2><span class="wf-paso">5</span>Destino: seguimiento de la entrega <code>/entregas/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/entregas/71be…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Entregas</span>
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-boton wf-secundario">Cerrar sesión</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Entrega de Taladro percutor Bosch</h3>
+            <p class="wf-texto">Origen: Calle del Sol, 8, 2.º 1.ª · Destino: Calle Mayor, 30, 1.º 2.ª <span class="wf-marca">1</span></p>
+            <p class="wf-texto">Franja horaria: Lo antes posible · Pago: 3,50 €</p>
+            <div class="wf-caja">Estados de la entrega y botón para avanzar (US-05.02) <span class="wf-marca">2</span></div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Una vez aceptada, la dirección completa sustituye al barrio.</li>
+        <li>Pantalla de US-05.02. La ruta es una propuesta, compartida con esa historia.</li>
+      </ol>
+    </section>
+  </body>
+</html>
