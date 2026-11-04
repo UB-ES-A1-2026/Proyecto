@@ -11,6 +11,7 @@ import {
   createItemPhoto,
   findItemForPhotos,
   findItemPhotos,
+  findPhotosOfItems,
   findPhotoByKey,
 } from '../repositories/itemPhotoRepository.js';
 import {
@@ -226,4 +227,25 @@ export async function listItemPhotos(itemId: string): Promise<ItemPhotoView[]> {
       url: await createViewUrl(key),
     })),
   );
+}
+
+// URL de la primera foto de cada objeto, para la búsqueda. Sin almacenamiento configurado, vacío.
+export async function listFirstPhotoUrls(
+  itemIds: string[],
+): Promise<Map<string, string>> {
+  if (!isStorageConfigured() || itemIds.length === 0) {
+    return new Map();
+  }
+
+  const firstKeys = new Map<string, string>();
+  for (const { itemId, key } of await findPhotosOfItems(itemIds)) {
+    if (!firstKeys.has(itemId)) firstKeys.set(itemId, key);
+  }
+
+  const urls = await Promise.all(
+    [...firstKeys].map(
+      async ([itemId, key]) => [itemId, await createViewUrl(key)] as const,
+    ),
+  );
+  return new Map(urls);
 }
