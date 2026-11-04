@@ -1,12 +1,16 @@
 // Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 18/10/2026
 // Datos de desarrollo y de demo (#98). Se puede ejecutar varias veces: actualiza en lugar de duplicar.
-import bcrypt from 'bcrypt';
+// Desde #97 también crea los objetos de ejemplo de demoData.ts. NUNCA contra producción: la
+// contraseña está en el repo (docs/despliegue.md). Para producción está seed-demo.ts.
 import { PrismaClient, UserRole } from '@prisma/client';
+import {
+  DEV_PASSWORD,
+  upsertDemoItems,
+  upsertDemoReservations,
+  upsertUsers,
+} from './demoSeed.js';
 
 const prisma = new PrismaClient();
-
-// Contraseña común de las cuentas de prueba. Solo para local y demos: no es un secreto.
-const DEMO_PASSWORD = 'Rentit2026';
 
 const demoUsers = [
   { username: 'ana', email: 'ana@rentit.test', role: UserRole.user },
@@ -16,17 +20,21 @@ const demoUsers = [
 
 async function main(): Promise<void> {
   const rounds = Number(process.env.BCRYPT_ROUNDS ?? '10');
-  const passwordHash = await bcrypt.hash(DEMO_PASSWORD, rounds);
+  const [anaId, brunoId] = await upsertUsers(
+    prisma,
+    demoUsers,
+    DEV_PASSWORD,
+    rounds,
+  );
 
-  for (const user of demoUsers) {
-    await prisma.user.upsert({
-      where: { email: user.email },
-      update: { username: user.username, role: user.role, passwordHash },
-      create: { ...user, passwordHash },
-    });
-  }
+  // Los objetos son de ana y bruno; admin no publica nada.
+  const items = await upsertDemoItems(prisma, [anaId, brunoId, anaId]);
+  // Las solicitudes son entre ana (0) y bruno (1).
+  const reservations = await upsertDemoReservations(prisma, [anaId, brunoId]);
 
-  console.info(`Seed completado: ${demoUsers.length} usuarios de prueba`);
+  console.info(
+    `Seed completado: ${demoUsers.length} usuarios de prueba, ${items} objetos y ${reservations} solicitudes`,
+  );
 }
 
 main()

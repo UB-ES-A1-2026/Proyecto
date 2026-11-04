@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-02.01 Publicar un objeto · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-02.01 Publicar un objeto</h1>
+      <p class="wf-historia">
+        Como <strong>propietario</strong>, quiero <strong>publicar un objeto</strong> para
+        <strong>que otros usuarios puedan solicitar alquilarlo</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #50 · Wireframe de baja fidelidad · Actualizado con asistencia de IA (Claude) tras el rediseño (#258),
+        pendiente de revisar por el equipo
+      </p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-entrada">
+      <h2><span class="wf-paso">1</span>Punto de entrada: Mis objetos <code>/mis-objetos</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-objetos">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <h3 class="wf-h1">Mis objetos</h3>
+                <p class="wf-texto">Los objetos que tienes publicados para alquilar.</p>
+              </div>
+              <div><span class="wf-boton">Publicar un objeto</span><span class="wf-marca">1</span></div>
+            </div>
+            <div class="wf-chips">
+              <span class="wf-chip wf-activo">Todos · 1</span>
+              <span class="wf-chip">Publicados · 1</span>
+              <span class="wf-chip">Pausados · 0</span>
+              <span class="wf-chip">Retirados · 0</span>
+            </div>
+            <div class="wf-tarjeta">
+              <div class="wf-columnas">
+                <div class="wf-rejilla">
+                  <div class="wf-imagen" aria-label="Foto del objeto"></div>
+                  <p class="wf-texto"><strong>Proyector Full HD</strong> <span class="wf-chip">Publicado</span><br />12,00 € / día<br />Visible en las búsquedas</p>
+                </div>
+                <div class="wf-fila">
+                  <span class="wf-boton wf-secundario">Editar</span>
+                  <span class="wf-boton wf-secundario">Pausar</span>
+                  <span class="wf-enlace">Retirar anuncio</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis objetos</h3>
+            <p class="wf-texto">Los objetos que tienes publicados para alquilar.</p>
+            <p class="wf-texto"><span class="wf-boton">Publicar un objeto</span></p>
+            <div class="wf-chips">
+              <span class="wf-chip wf-activo">Todos · 1</span>
+              <span class="wf-chip">Publicados · 1</span>
+              <span class="wf-chip">Pausados · 0</span>
+              <span class="wf-chip">Retirados · 0</span>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          «Publicar un objeto» lleva a <code>/objetos/nuevo</code>. También se llega desde «Mi perfil» (junto a «¿Tienes
+          algo que no usas?») y desde el inicio (debajo del buscador). Sin sesión, la ruta lleva al login y, al entrar,
+          vuelve al formulario.
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Pulsar «Publicar un objeto»</p>
+
+    <section class="wf-pantalla" data-captura="2-formulario">
+      <h2><span class="wf-paso">2</span>Formulario vacío <code>/objetos/nuevo</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/nuevo">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Publicar un objeto</h3>
+            <p class="wf-texto">Cuéntale a tu barrio qué ofreces y empieza a recibir solicitudes.</p>
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Datos del objeto</strong></p>
+                  <div class="wf-campo">
+                    <label>Nombre <span class="wf-marca">1</span></label>
+                    <div class="wf-input"></div>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Descripción</label>
+                    <div class="wf-input"><span>&nbsp;<br />&nbsp;<br />&nbsp;</span></div>
+                  </div>
+                  <div class="wf-rejilla">
+                    <div class="wf-campo">
+                      <label>Categoría <span class="wf-marca">2</span></label>
+                      <div class="wf-input">Elige una categoría <span>▾</span></div>
+                    </div>
+                    <div class="wf-campo">
+                      <label>Barrio <span class="wf-marca">3</span></label>
+                      <div class="wf-input"></div>
+                    </div>
+                  </div>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Precio</strong></p>
+                  <div class="wf-rejilla">
+                    <div class="wf-campo">
+                      <label>Precio por día (€) <span class="wf-marca">4</span></label>
+                      <div class="wf-input"></div>
+                    </div>
+                    <div class="wf-campo">
+                      <label>Fianza (€)</label>
+                      <div class="wf-input"></div>
+                      <p class="wf-ayuda">Déjalo vacío si no pides fianza</p>
+                    </div>
+                  </div>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Fotos</strong> <span class="wf-marca">5</span></p>
+                  <div class="wf-caja">
+                    <div><strong>Fotografías</strong><br />Arrastra tus fotos aquí o pulsa para elegirlas</div>
+                  </div>
+                  <p class="wf-ayuda">Hasta 5 fotos JPG, PNG o WebP, de 5 MB como máximo</p>
+                </div>
+              </div>
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Disponibilidad</strong> <span class="wf-marca">6</span></p>
+                  <div class="wf-campo"><div class="wf-input">Disponible ya <input type="radio" name="disponibilidad" checked /></div></div>
+                  <div class="wf-input">Pausado (no aparece en las búsquedas) <input type="radio" name="disponibilidad" /></div>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Formas de entrega</strong> <span class="wf-marca">7</span></p>
+                  <div class="wf-campo"><div class="wf-input">Entrega a domicilio <input type="checkbox" /></div></div>
+                  <div class="wf-campo"><div class="wf-input">Entrega con rider <input type="checkbox" /></div></div>
+                  <div class="wf-input">Punto de recogida <input type="checkbox" /></div>
+                </div>
+                <p class="wf-texto"></p>
+                <span class="wf-boton wf-ancho">Publicar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Publicar un objeto</h3>
+            <p class="wf-texto">Cuéntale a tu barrio qué ofreces y empieza a recibir solicitudes.</p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>Datos del objeto</strong></p>
+              <div class="wf-campo"><label>Nombre</label><div class="wf-input"></div></div>
+              <div class="wf-campo"><label>Descripción</label><div class="wf-input"><span>&nbsp;<br />&nbsp;<br />&nbsp;</span></div></div>
+              <div class="wf-campo"><label>Categoría</label><div class="wf-input">Elige una categoría <span>▾</span></div></div>
+              <div class="wf-campo"><label>Barrio</label><div class="wf-input"></div></div>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>Precio</strong></p>
+              <div class="wf-campo"><label>Precio por día (€)</label><div class="wf-input"></div></div>
+              <div class="wf-campo"><label>Fianza (€)</label><div class="wf-input"></div><p class="wf-ayuda">Déjalo vacío si no pides fianza</p></div>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>Fotos</strong></p>
+              <div class="wf-caja"><div><strong>Fotografías</strong><br />Arrastra tus fotos aquí o pulsa para elegirlas</div></div>
+              <p class="wf-ayuda">Hasta 5 fotos JPG, PNG o WebP, de 5 MB como máximo</p>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>Disponibilidad</strong></p>
+              <div class="wf-campo"><div class="wf-input">Disponible ya <input type="radio" name="disponibilidad-movil" checked /></div></div>
+              <div class="wf-input">Pausado (no aparece en las búsquedas) <input type="radio" name="disponibilidad-movil" /></div>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>Formas de entrega</strong></p>
+              <div class="wf-campo"><div class="wf-input">Entrega a domicilio <input type="checkbox" /></div></div>
+              <div class="wf-campo"><div class="wf-input">Entrega con rider <input type="checkbox" /></div></div>
+              <div class="wf-input">Punto de recogida <input type="checkbox" /></div>
+            </div>
+            <p class="wf-texto"></p>
+            <span class="wf-boton wf-ancho">Publicar</span>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Nombre obligatorio, de 100 caracteres como máximo. Descripción obligatoria, de 2000 caracteres como máximo.</li>
+        <li>Categoría obligatoria; las opciones se cargan de <code>GET /api/categorias</code>: Camping y viajes, Deporte, Electrónica, Fiestas y eventos, Herramientas y bricolaje, Hogar y jardín, Infantil y Otros. Si no cargan: «No se han podido cargar las categorías.».</li>
+        <li>Barrio obligatorio, de 100 caracteres como máximo. Va con los datos del objeto.</li>
+        <li>El precio debe ser mayor que 0; acepta coma o punto y hasta 2 decimales. La fianza debe ser 0 o más; vacía equivale a 0.</li>
+        <li>Sin fotos solo se ve esta zona: son opcionales. Se pulsa o se arrastran encima. Se redimensionan en el navegador antes de subirlas (ADR 0002).</li>
+        <li>Opciones en tarjetas. «Disponible ya» viene marcada.</li>
+        <li>Se pueden marcar varias o ninguna.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Pulsar «Publicar» con datos incorrectos</p>
+
+    <section class="wf-pantalla" data-captura="3-errores">
+      <h2><span class="wf-paso">3</span>Formulario con errores <code>/objetos/nuevo</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/nuevo">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Publicar un objeto</h3>
+            <p class="wf-texto">Cuéntale a tu barrio qué ofreces y empieza a recibir solicitudes.</p>
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Datos del objeto</strong></p>
+                  <div class="wf-campo">
+                    <label>Nombre <span class="wf-marca">1</span></label>
+                    <div class="wf-input wf-con-error"></div>
+                    <p class="wf-error">El campo "nombre" no es correcto, revísalo.</p>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Descripción</label>
+                    <div class="wf-input wf-con-error"><span>&nbsp;<br />&nbsp;<br />&nbsp;</span></div>
+                    <p class="wf-error">El campo "descripción" no es correcto, revísalo.</p>
+                  </div>
+                  <div class="wf-rejilla">
+                    <div class="wf-campo">
+                      <label>Categoría</label>
+                      <div class="wf-input wf-con-error">Elige una categoría <span>▾</span></div>
+                      <p class="wf-error">El campo "categoría" no es correcto, revísalo.</p>
+                    </div>
+                    <div class="wf-campo">
+                      <label>Barrio</label>
+                      <div class="wf-input wf-con-error"></div>
+                      <p class="wf-error">El campo "barrio" no es correcto, revísalo.</p>
+                    </div>
+                  </div>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Precio</strong></p>
+                  <div class="wf-rejilla">
+                    <div class="wf-campo">
+                      <label>Precio por día (€)</label>
+                      <div class="wf-input wf-con-error"></div>
+                      <p class="wf-error">El campo "precio" no es correcto, revísalo.</p>
+                    </div>
+                    <div class="wf-campo">
+                      <label>Fianza (€) <span class="wf-marca">2</span></label>
+                      <div class="wf-input"></div>
+                      <p class="wf-ayuda">Déjalo vacío si no pides fianza</p>
+                    </div>
+                  </div>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Fotos</strong> <span class="wf-marca">3</span></p>
+                  <div class="wf-caja">
+                    <div><strong>Fotografías</strong><br />Arrastra tus fotos aquí o pulsa para elegirlas</div>
+                  </div>
+                  <p class="wf-ayuda">Hasta 5 fotos JPG, PNG o WebP, de 5 MB como máximo</p>
+                </div>
+              </div>
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Disponibilidad</strong></p>
+                  <div class="wf-campo"><div class="wf-input">Disponible ya <input type="radio" name="disponibilidad-error" checked /></div></div>
+                  <div class="wf-input">Pausado (no aparece en las búsquedas) <input type="radio" name="disponibilidad-error" /></div>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Formas de entrega</strong></p>
+                  <div class="wf-campo"><div class="wf-input">Entrega a domicilio <input type="checkbox" /></div></div>
+                  <div class="wf-campo"><div class="wf-input">Entrega con rider <input type="checkbox" /></div></div>
+                  <div class="wf-input">Punto de recogida <input type="checkbox" /></div>
+                </div>
+                <p class="wf-texto"></p>
+                <span class="wf-boton wf-ancho">Publicar <span class="wf-marca">4</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Los errores salen debajo de su campo, con borde de error, y el foco va al primero. Cada error desaparece al editar su campo.</li>
+        <li>La fianza vacía es válida. Con otro valor incorrecto: «El campo "fianza" no es correcto, revísalo.».</li>
+        <li>Con un archivo que no es JPG, PNG o WebP, o con más de 5 fotos: «El campo "fotografías" no es correcto, revísalo.» y la zona queda marcada.</li>
+        <li>
+          No se publica nada. Si falla la API, arriba del formulario: «No hemos podido publicar el objeto. Inténtalo de
+          nuevo más tarde.» o «No se puede conectar con el servidor. Inténtalo más tarde.».
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Corregir los datos y elegir o arrastrar fotos</p>
+
+    <section class="wf-pantalla" data-captura="4-fotos">
+      <h2><span class="wf-paso">4</span>Formulario relleno y con fotos <code>/objetos/nuevo</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/nuevo">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Publicar un objeto</h3>
+            <p class="wf-texto">Cuéntale a tu barrio qué ofreces y empieza a recibir solicitudes.</p>
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Datos del objeto</strong></p>
+                  <div class="wf-campo"><label>Nombre</label><div class="wf-input">Lijadora orbital</div></div>
+                  <div class="wf-campo"><label>Descripción</label><div class="wf-input">Lijadora orbital con 10 lijas de grano variado.</div></div>
+                  <div class="wf-rejilla">
+                    <div class="wf-campo"><label>Categoría</label><div class="wf-input">Herramientas y bricolaje <span>▾</span></div></div>
+                    <div class="wf-campo"><label>Barrio</label><div class="wf-input">Sants</div></div>
+                  </div>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Precio</strong></p>
+                  <div class="wf-rejilla">
+                    <div class="wf-campo"><label>Precio por día (€)</label><div class="wf-input">7,50</div></div>
+                    <div class="wf-campo"><label>Fianza (€)</label><div class="wf-input">20</div><p class="wf-ayuda">Déjalo vacío si no pides fianza</p></div>
+                  </div>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Fotos</strong></p>
+                  <div class="wf-caja">
+                    <div><strong>Fotografías</strong><br />Arrastra tus fotos aquí o pulsa para elegirlas</div>
+                  </div>
+                  <p class="wf-ayuda">Hasta 5 fotos JPG, PNG o WebP, de 5 MB como máximo</p>
+                  <p class="wf-ayuda">2 de 5 fotos <span class="wf-marca">1</span></p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <div>
+                      <div class="wf-imagen" aria-label="Vista previa de fotografía 1"></div>
+                      <span class="wf-boton wf-secundario">× Quitar</span><span class="wf-marca">2</span>
+                    </div>
+                    <div>
+                      <div class="wf-imagen" aria-label="Vista previa de fotografía 2"></div>
+                      <span class="wf-boton wf-secundario">× Quitar</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Disponibilidad</strong></p>
+                  <div class="wf-campo"><div class="wf-input">Disponible ya <input type="radio" name="disponibilidad-fotos" checked /></div></div>
+                  <div class="wf-input">Pausado (no aparece en las búsquedas) <input type="radio" name="disponibilidad-fotos" /></div>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Formas de entrega</strong></p>
+                  <div class="wf-campo"><div class="wf-input">Entrega a domicilio <input type="checkbox" checked /></div></div>
+                  <div class="wf-campo"><div class="wf-input">Entrega con rider <input type="checkbox" /></div></div>
+                  <div class="wf-input">Punto de recogida <input type="checkbox" /></div>
+                </div>
+                <p class="wf-texto"></p>
+                <span class="wf-boton wf-ancho">Publicar <span class="wf-marca">3</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El contador sale con la primera foto y se marca como error si pasan de 5. Un archivo que no es imagen sale como tarjeta con su nombre y da error al pulsar «Publicar».</li>
+        <li>Cada foto se puede quitar antes de publicar.</li>
+        <li>Mientras se envía, el botón dice «Publicando…» y está desactivado. Los datos van a <code>POST /api/objetos</code> (#14) y las fotos se suben después, una a una (#106).</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Se crea el anuncio, pero falla alguna foto</p>
+
+    <section class="wf-pantalla" data-captura="5-foto-fallida">
+      <h2><span class="wf-paso">5</span>Publicado sin alguna foto <code>/objetos/nuevo</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/nuevo">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <p class="wf-aviso">El anuncio se ha publicado, pero alguna foto no se ha podido subir. <span class="wf-enlace">Ver el anuncio</span><span class="wf-marca">1</span></p>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El aviso sustituye al formulario. «Ver el anuncio» lleva a la ficha, que ya existe.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Se publica todo bien, o pulsar «Ver el anuncio»</p>
+
+    <section class="wf-pantalla" data-captura="6-destino">
+      <h2><span class="wf-paso">6</span>Destino: ficha del objeto <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/:id">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-caja">Este objeto no tiene fotos. <span class="wf-marca">1</span></div>
+                <p class="wf-texto"></p>
+                <h3 class="wf-h1">Lijadora orbital</h3>
+                <p class="wf-texto">Sants <span class="wf-chip">Herramientas y bricolaje</span></p>
+                <p class="wf-texto"><strong>Descripción</strong><br />Lijadora orbital con 10 lijas de grano variado.</p>
+                <p class="wf-texto"><strong>Formas de entrega</strong><br />Entrega a domicilio</p>
+                <p class="wf-texto">Publicado por ana</p>
+              </div>
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>7,50 € / día</strong> <span class="wf-chip">Disponible</span><span class="wf-marca">2</span></p>
+                <p class="wf-texto">Fianza: 20,00 €</p>
+                <p class="wf-aviso">Este anuncio es tuyo. <span class="wf-marca">3</span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Con fotos, aquí va la galería. La ficha es la de US-03.03.</li>
+        <li>Si se eligió «Pausado», dice «Pausado: no aparece en las búsquedas».</li>
+        <li>El anuncio queda a nombre de quien lo publica, que no puede alquilarlo. Para los demás, este panel lleva las fechas.</li>
+      </ol>
+    </section>
+  </body>
+</html>

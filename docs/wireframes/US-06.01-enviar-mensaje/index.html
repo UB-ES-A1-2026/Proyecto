@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-06.01 Enviar un mensaje · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-06.01 Enviar un mensaje</h1>
+      <p class="wf-historia">
+        Como <strong>usuario</strong>, quiero <strong>enviar un mensaje al usuario con el que tengo que hacer la
+        transacción</strong> para <strong>poder resolver dudas y coordinar el alquiler</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #69 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Generado con
+        asistencia de IA (Claude) – pendiente de revisar por el equipo en el Sprint Planning
+      </p>
+      <p class="wf-meta">Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo</p>
+      <p class="wf-meta">Maqueta de Figma · Marco «Ficha»: «Envia un missatge» en la caja del propietario coincide con el punto de entrada A.</p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-entrada-ficha">
+      <h2><span class="wf-paso">1</span>Punto de entrada A: ficha de un objeto <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/:id">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-imagen"></div>
+                <h3 class="wf-h1">Taladro percutor Bosch</h3>
+                <h4>Descripción</h4>
+                <div class="wf-lineas"><span></span><span></span></div>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Publicado por ana</strong><span class="wf-boton wf-secundario">Enviar mensaje</span><span class="wf-marca">1</span></div>
+                </div>
+              </div>
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>6,00 €</strong> / día <span class="wf-chip">Disponible</span></p>
+                <h4>Elige las fechas</h4>
+                <div class="wf-caja">Fechas y calendario (US-04.01)</div>
+                <p class="wf-texto"></p>
+                <span class="wf-boton wf-desactivado wf-ancho">Solicitar alquiler</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 1: abre la conversación con el propietario. Sin sesión, lleva al login y después vuelve.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">O bien, desde una reserva</p>
+
+    <section class="wf-pantalla" data-captura="2-entrada-reserva">
+      <h2><span class="wf-paso">2</span>Punto de entrada B: detalle de una reserva <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Aceptada</span><span>▴</span></div>
+                  <p class="wf-ayuda">8–10 dic. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
+                    <p class="wf-texto">Fechas: Del 8 de diciembre de 2026 al 10 de diciembre de 2026</p>
+                    <p class="wf-texto">Importe total: 18,00 €</p>
+                    <p class="wf-texto">Estado: Aceptada</p>
+                    <p class="wf-texto">Propietario: ana</p>
+                    <p class="wf-texto">Enviada el 1 de diciembre de 2026</p>
+                  </div>
+                  <p class="wf-texto"></p>
+                  <span class="wf-boton wf-secundario">Enviar mensaje</span><span class="wf-marca">1</span>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">9 nov. 2026</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 1: abre la conversación con la otra persona de la reserva.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Enviar mensaje» (desde la ficha o desde la reserva)</p>
+
+    <section class="wf-pantalla" data-captura="3-conversacion">
+      <h2><span class="wf-paso">3</span>Conversación <code>/mensajes/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mensajes/:id">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Conversación con ana</h3>
+            <p class="wf-texto">Taladro percutor Bosch</p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>ana</strong> · 1 dic. 2026, 18:02 <span class="wf-marca">1</span><br />¿A qué hora te iría bien recogerlo?</p>
+              <p class="wf-texto"><strong>bruno</strong> · 1 dic. 2026, 18:10<br />Sobre las cinco de la tarde.</p>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-campo">
+              <label>Mensaje <span class="wf-marca">2</span></label>
+              <div class="wf-input">¿Incluye las brocas?</div>
+            </div>
+            <span class="wf-boton">Enviar</span><span class="wf-marca">3</span>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterios 2 y 5: muestra los mensajes enviados y recibidos, cada uno con su autor y su fecha de envío.</li>
+        <li>Criterio 3: campo donde se escribe el mensaje.</li>
+        <li>Con el campo vacío, «Enviar» no hace nada.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Si al pulsar «Enviar» falla el envío</p>
+
+    <section class="wf-pantalla" data-captura="4-error-envio">
+      <h2><span class="wf-paso">4</span>Error: no se ha enviado el mensaje <code>/mensajes/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mensajes/:id">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Conversación con ana</h3>
+            <p class="wf-texto">Taladro percutor Bosch</p>
+            <div class="wf-tarjeta">
+              <div class="wf-lineas"><span></span><span></span></div>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-campo">
+              <label>Mensaje</label>
+              <div class="wf-input wf-con-error">¿Incluye las brocas?</div>
+              <p class="wf-error">No hemos podido enviar el mensaje. Inténtalo de nuevo. <span class="wf-marca">1</span></p>
+            </div>
+            <span class="wf-boton">Enviar</span>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Texto propuesto. El texto escrito se conserva para volver a enviarlo.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Si quien abre la conversación no participa en ella</p>
+
+    <section class="wf-pantalla" data-captura="5-sin-acceso">
+      <h2><span class="wf-paso">5</span>Conversación ajena <code>/mensajes/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mensajes/:id">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">No hemos encontrado esta conversación</h3>
+            <p class="wf-texto">No se muestra ningún mensaje. <span class="wf-marca">1</span></p>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 6: los mensajes solo los consultan quienes participan. Título propuesto, el mismo que en US-06.02.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Enviar» y el envío funciona (desde la pantalla 3)</p>
+
+    <section class="wf-pantalla" data-captura="6-destino">
+      <h2><span class="wf-paso">6</span>Destino: el mensaje aparece al final <code>/mensajes/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mensajes/:id">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Conversación con ana</h3>
+            <p class="wf-texto">Taladro percutor Bosch</p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>ana</strong> · 1 dic. 2026, 18:02<br />¿A qué hora te iría bien recogerlo?</p>
+              <p class="wf-texto"><strong>bruno</strong> · 1 dic. 2026, 18:10<br />Sobre las cinco de la tarde.</p>
+              <p class="wf-texto"><strong>bruno</strong> · 1 dic. 2026, 18:12 <span class="wf-marca">1</span><br />¿Incluye las brocas?</p>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-campo">
+              <label>Mensaje</label>
+              <div class="wf-input"></div>
+            </div>
+            <span class="wf-boton">Enviar</span>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 4: sigue en la conversación y su mensaje aparece al final. La otra persona lo ve al abrirla.</li>
+      </ol>
+    </section>
+  </body>
+</html>

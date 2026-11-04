@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-06.03 Notificaciones in-app y por email · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-06.03 Notificaciones in-app y por email</h1>
+      <p class="wf-historia">
+        Como <strong>usuario</strong>, quiero <strong>recibir notificaciones in-app y por email de los cambios de
+        estado</strong> para <strong>no perderme nada</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #71 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Generado con
+        asistencia de IA (Claude) – pendiente de revisar por el equipo en el Sprint Planning
+      </p>
+      <p class="wf-meta">Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo</p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-entrada">
+      <h2><span class="wf-paso">1</span>Punto de entrada: cualquier página con sesión <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-boton wf-secundario">Campana · 3</span><span class="wf-marca">1</span>
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Hola, bruno</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-caja">Buscador, categorías, novedades y cómo funciona</div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 1: icono de campana en la cabecera con el contador de no leídas. En el dibujo, «Campana · 3» representa el icono con el número.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en la campana</p>
+
+    <section class="wf-pantalla" data-captura="2-lista">
+      <h2><span class="wf-paso">2</span>Lista de notificaciones <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-boton wf-secundario">Campana · 3</span>
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-tarjeta">
+              <h4>Notificaciones <span class="wf-marca">1</span></h4>
+              <div class="wf-fila">
+                <button type="button" class="wf-boton wf-ancho">No leída · Han aceptado tu solicitud de Taladro percutor Bosch · hoy, 10:20</button>
+                <button type="button" class="wf-boton wf-ancho">No leída · Se ha entregado Tienda de campaña · ayer, 17:45</button>
+                <button type="button" class="wf-boton wf-ancho">No leída · Se ha devuelto Bicicleta de paseo · 28 nov. 2026, 12:05</button>
+                <button type="button" class="wf-boton wf-secundario wf-ancho">Leída · Has recibido una solicitud de Escalera plegable · 25 nov. 2026, 09:30</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>De la más reciente a la más antigua. Se abre sobre la pantalla donde está el usuario, sin cambiar de página. Textos de ejemplo.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Lo que ve un usuario que todavía no tiene notificaciones</p>
+
+    <section class="wf-pantalla" data-captura="3-vacia">
+      <h2><span class="wf-paso">3</span>Lista vacía <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-boton wf-secundario">Campana</span><span class="wf-marca">1</span>
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-tarjeta">
+              <h4>Notificaciones</h4>
+              <p class="wf-texto">No tienes notificaciones.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Sin no leídas, la campana se ve sin número (propuesto).</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Otra entrada: al aceptarse una reserva, al entregarse y al devolverse, también llega un correo</p>
+
+    <section class="wf-pantalla" data-captura="4-correo">
+      <h2><span class="wf-paso">4</span>Correo de cambio de estado <code>correo electrónico</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="correo electrónico del usuario">
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <p class="wf-texto"><strong>Asunto:</strong> Han aceptado tu solicitud <span class="wf-marca">1</span></p>
+              <p class="wf-texto">Han aceptado tu solicitud de Taladro percutor Bosch, del 8 al 10 de diciembre de 2026.</p>
+              <span class="wf-boton wf-ancho">Ver en Rentit <span class="wf-marca">2</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 2: correo al aceptar la reserva, al entregar y al devolver. Asunto y cuerpo propuestos. Si falla el envío del correo, la notificación se ve igualmente en la aplicación.</li>
+        <li>Lleva a la misma pantalla que la notificación, pasando por el login si no tiene sesión. Texto del botón propuesto.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en una notificación (pantalla 2) o en el enlace del correo (pantalla 4)</p>
+
+    <section class="wf-pantalla" data-captura="5-destino">
+      <h2><span class="wf-paso">5</span>Destino: pantalla relacionada <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-boton wf-secundario">Campana · 2</span><span class="wf-marca">1</span>
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Aceptada</span><span class="wf-marca">2</span><span>▾</span></div>
+                  <p class="wf-ayuda">8–10 dic. 2026</p>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">9 nov. 2026</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>La notificación pulsada se marca como leída y el contador baja de 3 a 2.</li>
+        <li>Va a la pantalla relacionada con la notificación; en este ejemplo, «Mis solicitudes».</li>
+      </ol>
+    </section>
+  </body>
+</html>

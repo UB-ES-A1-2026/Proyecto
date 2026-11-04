@@ -1,0 +1,237 @@
+/* Calendario de fechas del alquiler (US-04.01). Este archivo se carga antes que styles.css. */
+.calendar {
+  margin-bottom: var(--space-md);
+}
+
+/* Los dos campos, siempre en paralelo: en móvil apilados dejarían el panel demasiado alto. */
+.rental-request .rental-dates {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* En pantallas bajas el panel no cabe entero: pegado arriba, el botón quedaría fuera de la vista. */
+@media (max-height: 780px) {
+  .card.rental-panel:has(.calendar) {
+    position: static;
+  }
+}
+
+.calendar-header {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-xs);
+}
+
+.calendar-month {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.calendar-month::first-letter {
+  text-transform: uppercase;
+}
+
+.calendar-nav {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  color: var(--color-text);
+  background: none;
+  border: none;
+  border-radius: calc(var(--radius) - 4px);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.calendar-nav:hover:not(:disabled) {
+  background-color: var(--color-primary-soft);
+}
+
+.calendar-nav:disabled {
+  color: var(--color-border-soft);
+  cursor: default;
+}
+
+.calendar-grid {
+  width: 100%;
+  border-spacing: 0 2px;
+  border-collapse: separate;
+  table-layout: fixed;
+}
+
+.calendar-grid th {
+  height: 1.75rem;
+  padding: 0;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+/* La franja del rango va detrás del botón, en cada celda: así se ve continua de lado a lado. */
+.calendar-cell {
+  position: relative;
+  padding: 0;
+  isolation: isolate;
+}
+
+.calendar-cell:focus-within {
+  z-index: 1;
+}
+
+.calendar-cell::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: '';
+  background-color: var(--color-primary-soft);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.calendar-cell:first-child::before,
+.calendar-cell:empty + .calendar-cell::before {
+  border-top-left-radius: calc(var(--radius) - 4px);
+  border-bottom-left-radius: calc(var(--radius) - 4px);
+}
+
+.calendar-cell:last-child::before,
+.calendar-cell:has(+ .calendar-cell:empty)::before {
+  border-top-right-radius: calc(var(--radius) - 4px);
+  border-bottom-right-radius: calc(var(--radius) - 4px);
+}
+
+.calendar-cell.is-in-range::before,
+.calendar-cell.is-range-start::before,
+.calendar-cell.is-range-end::before {
+  opacity: 1;
+}
+
+.calendar-cell.is-range-start::before {
+  left: 50%;
+}
+
+.calendar-cell.is-range-end::before {
+  right: 50%;
+}
+
+.calendar-day {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 2.25rem;
+  padding: 0;
+  font: inherit;
+  font-size: var(--font-size-small);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+  background-color: transparent;
+  border: none;
+  border-radius: calc(var(--radius) - 4px);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.calendar-day:hover:not(:disabled) {
+  background-color: var(--color-primary-soft);
+}
+
+.is-in-range > .calendar-day:hover:not(:disabled),
+.is-range-end > .calendar-day:hover:not(:disabled, .is-selected) {
+  box-shadow: inset 0 0 0 var(--border-width) var(--color-primary);
+}
+
+.calendar-day:disabled {
+  color: var(--color-border);
+  cursor: default;
+}
+
+.calendar-day.is-selected,
+.calendar-day.is-selected:hover:not(:disabled) {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-on-primary);
+  background-color: var(--color-primary);
+}
+
+.calendar-day.is-selected:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+
+.calendar-day:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+/* Hoy: un punto pequeño, que toma el color del texto. */
+.calendar-day.is-today {
+  font-weight: var(--font-weight-medium);
+}
+
+.calendar-day.is-today::after {
+  position: absolute;
+  bottom: 0.25rem;
+  left: 50%;
+  width: 0.25rem;
+  height: 0.25rem;
+  content: '';
+  background-color: currentcolor;
+  border-radius: var(--radius-small);
+  transform: translateX(-50%);
+}
+
+.calendar-weeks[data-direction='next'] {
+  animation: calendar-next var(--duration) var(--ease-out);
+}
+
+.calendar-weeks[data-direction='previous'] {
+  animation: calendar-previous var(--duration) var(--ease-out);
+}
+
+@keyframes calendar-next {
+  from {
+    opacity: 0;
+    transform: translateX(0.5rem);
+  }
+}
+
+@keyframes calendar-previous {
+  from {
+    opacity: 0;
+    transform: translateX(-0.5rem);
+  }
+}
+
+/* Mismo corte que el panel de la ficha: con una columna, días más altos para el dedo. */
+@media (max-width: 900px) {
+  .calendar-day,
+  .calendar-nav {
+    height: 2.75rem;
+  }
+
+  .calendar-nav {
+    width: 2.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calendar-weeks[data-direction] {
+    animation: none;
+  }
+
+  .calendar-cell::before,
+  .calendar-day,
+  .calendar-nav {
+    transition: none;
+  }
+}

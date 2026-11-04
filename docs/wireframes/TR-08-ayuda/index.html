@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>TR-08 Página de ayuda · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>TR-08 Página de ayuda</h1>
+      <p class="wf-historia">
+        Como <strong>usuario</strong>, quiero <strong>una página de ayuda</strong> para <strong>saber cómo se usa cada
+        parte de Rentit</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #89 · Wireframe de baja fidelidad · Actualizado con asistencia de IA (Claude) tras el rediseño (#258),
+        pendiente de revisar por el equipo
+      </p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-entrada">
+      <h2><span class="wf-paso">1</span>Punto de entrada: cualquier página <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span><span class="wf-icono-ayuda" title="Ayuda">?</span><span class="wf-marca">1</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Lo que necesitas, a la vuelta de la esquina</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-caja">Resto de la página inicial</div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Lo que necesitas, a la vuelta de la esquina</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-caja">Resto de la página inicial</div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Iniciar sesión</span><span>Crear cuenta</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Icono de ayuda, sin texto, en la esquina superior derecha de todas las páginas, con y sin sesión. También en el móvil, donde no está en la barra inferior. Al pasar el ratón y en los lectores de pantalla se llama «Ayuda».</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en el icono de ayuda</p>
+
+    <section class="wf-pantalla" data-captura="2-ayuda">
+      <h2><span class="wf-paso">2</span>Página de ayuda <code>/ayuda</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/ayuda">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Ayuda</h3>
+            <p class="wf-texto">Cómo usar Rentit, paso a paso. <span class="wf-marca">1</span></p>
+            <div class="wf-columnas wf-panel-izquierda">
+              <div class="wf-tarjeta">
+                <strong>En esta página</strong> <span class="wf-marca">2</span>
+                <p class="wf-ayuda"><span class="wf-enlace">Crear una cuenta</span></p>
+                <p class="wf-ayuda"><span class="wf-enlace">Iniciar sesión</span></p>
+                <p class="wf-ayuda"><span class="wf-enlace">Ver tu perfil</span></p>
+                <p class="wf-ayuda"><span class="wf-enlace">Cerrar sesión</span></p>
+                <p class="wf-ayuda"><span class="wf-enlace">Buscar un objeto</span></p>
+                <p class="wf-ayuda"><span class="wf-enlace">Filtrar los resultados</span></p>
+                <p class="wf-ayuda"><span class="wf-enlace">Ver la ficha de un objeto</span></p>
+                <p class="wf-ayuda"><span class="wf-enlace">Solicitar un alquiler</span></p>
+                <p class="wf-ayuda"><span class="wf-enlace">Consultar tus solicitudes</span></p>
+                <p class="wf-ayuda"><span class="wf-enlace">Aceptar o rechazar una solicitud</span></p>
+                <p class="wf-ayuda"><span class="wf-enlace">Publicar un objeto</span></p>
+                <p class="wf-ayuda"><span class="wf-enlace">Editar un objeto</span></p>
+                <p class="wf-ayuda"><span class="wf-enlace">Pausar o reanudar un objeto</span></p>
+                <p class="wf-ayuda"><span class="wf-enlace">Retirar un objeto</span></p>
+              </div>
+              <div>
+                <div class="wf-tarjeta">
+                  <strong>Crear una cuenta</strong> <span class="wf-marca">3</span>
+                  <ol>
+                    <li>Pulsa «<span class="wf-enlace">Crear cuenta</span>» en el menú.</li>
+                    <li>Escribe un nombre de usuario (de 3 a 30 caracteres: letras sin acentos, números, «.», «_» o «-»), tu correo electrónico y una contraseña de al menos 8 caracteres.</li>
+                    <li>Pulsa «Crear cuenta». Entrarás directamente con tu sesión iniciada.</li>
+                  </ol>
+                  <p class="wf-aviso">Si un dato no es válido, verás el error debajo del campo. Con «Mostrar» puedes ver la contraseña que has escrito. <span class="wf-marca">4</span></p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta"><strong>Iniciar sesión</strong><div class="wf-lineas"><span></span><span></span><span></span></div></div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta"><strong>Ver tu perfil</strong><div class="wf-lineas"><span></span><span></span></div></div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta"><strong>Cerrar sesión</strong><div class="wf-lineas"><span></span><span></span></div></div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta"><strong>Buscar un objeto</strong><div class="wf-lineas"><span></span><span></span><span></span></div></div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <strong>Filtrar los resultados</strong>
+                  <ol>
+                    <li>En los resultados de la búsqueda, usa el panel de filtros. En el móvil, ábrelo con el botón «Filtros».</li>
+                    <li>Elige una categoría, un precio máximo por día, un barrio o varios a la vez.</li>
+                    <li>Pulsa «Aplicar filtros». Solo verás los objetos que cumplen todo, y cada filtro activo aparece sobre los resultados.</li>
+                    <li>Para quitar un filtro, pulsa su ✕. Para quitarlos todos, pulsa «Limpiar filtros» y volverás a los resultados de tu búsqueda.</li>
+                  </ol>
+                  <p class="wf-aviso">El precio máximo tiene que ser mayor que 0. Si no es válido, verás el error debajo del campo y el filtro no se aplica.</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <strong>Ver la ficha de un objeto</strong>
+                  <ol>
+                    <li>En los resultados de la búsqueda, pulsa el nombre del objeto.</li>
+                    <li>En su ficha verás las fotos, el precio por día, la fianza, si está disponible, la descripción, la categoría, el barrio, las formas de entrega y quién lo publica.</li>
+                    <li>Para pedirlo, usa el panel de alquiler de la ficha. Si no has iniciado sesión, pulsa «Alquilar»: primero se te pedirá que lo hagas y después volverás a la ficha.</li>
+                  </ol>
+                  <p class="wf-aviso">De quien publica el objeto solo se ve su nombre de usuario. Si el objeto es tuyo, verás «Este anuncio es tuyo.» y no podrás alquilarlo.</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <strong>Solicitar un alquiler</strong>
+                  <ol>
+                    <li>Con la sesión iniciada, abre la ficha del objeto.</li>
+                    <li>Elige la fecha de inicio y la fecha de fin en el panel de alquiler. Rentit comprueba si el objeto está libre esos días.</li>
+                    <li>Pulsa «Solicitar alquiler», revisa las fechas y el importe, y pulsa «Confirmar».</li>
+                    <li>Irás a «Mis solicitudes», donde verás tu solicitud como «Pendiente» hasta que responda el propietario.</li>
+                  </ol>
+                  <p class="wf-aviso">Con «Volver» puedes cambiar las fechas antes de confirmar. No puedes alquilar un objeto que has publicado tú.</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-caja">Consultar tus solicitudes · Aceptar o rechazar una solicitud · Publicar un objeto · Editar un objeto · Pausar o reanudar un objeto · Retirar un objeto: cada una en su tarjeta, con sus pasos</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Ayuda</h3>
+            <p class="wf-texto">Cómo usar Rentit, paso a paso.</p>
+            <div class="wf-tarjeta">
+              <strong>En esta página</strong> <span class="wf-marca">5</span>
+              <p class="wf-ayuda"><span class="wf-enlace">Crear una cuenta</span></p>
+              <p class="wf-ayuda"><span class="wf-enlace">Iniciar sesión</span></p>
+              <p class="wf-ayuda"><span class="wf-enlace">Ver tu perfil</span></p>
+              <p class="wf-ayuda">… hasta las 14 secciones</p>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta">
+              <strong>Crear una cuenta</strong>
+              <div class="wf-lineas"><span></span><span></span><span></span></div>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Iniciar sesión</span><span>Crear cuenta</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Página pública: se ve sin sesión. Solo texto, sin llamadas a la API.</li>
+        <li>Índice lateral con un enlace a cada sección (<code>/ayuda#crear-cuenta</code>…). En escritorio se queda fijo al bajar por la página.</li>
+        <li>Una tarjeta por flujo entregado, con pasos numerados y los textos reales de los botones. Aquí se copian enteras las de crear una cuenta, filtrar, ver la ficha y solicitar un alquiler. Solo se añade un flujo cuando ya está en <code>develop</code>.</li>
+        <li>Debajo de los pasos, algunas tarjetas llevan una nota con errores o avisos.</li>
+        <li>En el móvil, una sola columna: el índice va arriba, entero, y las tarjetas debajo.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Crear una cuenta» del índice</p>
+
+    <section class="wf-pantalla" data-captura="3-seccion">
+      <h2><span class="wf-paso">3</span>Destino: la sección elegida <code>/ayuda#crear-cuenta</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/ayuda#crear-cuenta">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas wf-panel-izquierda">
+              <div class="wf-tarjeta">
+                <strong>En esta página</strong>
+                <p class="wf-ayuda"><span class="wf-enlace">Crear una cuenta</span></p>
+                <p class="wf-ayuda"><span class="wf-enlace">Iniciar sesión</span></p>
+                <p class="wf-ayuda"><span class="wf-enlace">Ver tu perfil</span></p>
+                <p class="wf-ayuda">…</p>
+              </div>
+              <div class="wf-tarjeta">
+                <strong>Crear una cuenta</strong>
+                <ol>
+                  <li>Pulsa «<span class="wf-enlace">Crear cuenta</span>» en el menú. <span class="wf-marca">1</span></li>
+                  <li>Escribe un nombre de usuario (de 3 a 30 caracteres: letras sin acentos, números, «.», «_» o «-»), tu correo electrónico y una contraseña de al menos 8 caracteres.</li>
+                  <li>Pulsa «Crear cuenta». Entrarás directamente con tu sesión iniciada.</li>
+                </ol>
+                <p class="wf-aviso">Si un dato no es válido, verás el error debajo del campo. Con «Mostrar» puedes ver la contraseña que has escrito.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>La página baja hasta la sección. Algunos pasos enlazan con la pantalla de la que hablan (aquí, a <code>/registro</code>).</li>
+      </ol>
+    </section>
+  </body>
+</html>

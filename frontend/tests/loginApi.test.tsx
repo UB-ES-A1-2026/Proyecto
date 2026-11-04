@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderRoute } from './renderRoute';
@@ -118,5 +118,54 @@ describe('login conectado con la API (US-01.2, #27)', () => {
     expect(screen.getByRole('button', { name: 'Iniciando sesión…' })).toBeDisabled();
     resolveLogin(Response.json(LOGIN_RESPONSE));
     await waitFor(() => expect(localStorage.getItem(SESSION_KEY)).not.toBeNull());
+  });
+});
+
+describe('«Iniciar sesión» de la cabecera vuelve a la página en la que estaba (#224)', () => {
+  function mockApi() {
+    return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (String(input).endsWith('/auth/login')) return Response.json(LOGIN_RESPONSE);
+      // La página de resultados también pide las categorías para el panel de filtros (#118)
+      if (String(input).endsWith('/categorias')) return Response.json([]);
+      return Response.json({ items: [], total: 0, page: 1, pageSize: 12 });
+    });
+  }
+
+  async function clickHeaderLogin() {
+    const nav = within(screen.getByRole('navigation', { name: 'Principal' }));
+    await userEvent.setup().click(nav.getByRole('link', { name: 'Iniciar sesión' }));
+    await screen.findByRole('heading', { name: 'Iniciar sesión' });
+  }
+
+  it('vuelve a la página con su búsqueda', async () => {
+    mockApi();
+    const { router } = renderRoute('/buscar?q=taladro');
+
+    await clickHeaderLogin();
+    await submitLogin();
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/buscar'));
+    expect(router.state.location.search).toBe('?q=taladro');
+  });
+
+  it('desde el registro va a la página inicial', async () => {
+    mockApi();
+    const { router } = renderRoute('/registro');
+
+    await clickHeaderLogin();
+    await submitLogin();
+
+    await waitFor(() => expect(localStorage.getItem(SESSION_KEY)).not.toBeNull());
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'));
+  });
+
+  it('si ya está en el login conserva la página a la que tenía que volver', async () => {
+    mockApi();
+    const { router } = renderRoute({ pathname: '/login', state: { from: '/perfil' } });
+
+    await clickHeaderLogin();
+    await submitLogin();
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/perfil'));
   });
 });

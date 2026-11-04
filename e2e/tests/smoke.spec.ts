@@ -46,6 +46,7 @@ test.describe('Smoke', { tag: '@smoke' }, () => {
     await expect(page.getByRole('heading', { name: `Hola, ${user.username}` })).toBeVisible();
 
     // Cierre de sesión
+    await page.goto('/perfil');
     await page.getByRole('button', { name: 'Cerrar sesión' }).click();
     await expect(page).toHaveURL('/login');
 

@@ -1,0 +1,54 @@
+# Despliegue del backend en Render (#96) con un deploy hook, en cada push a main.
+# Así Render no necesita la app de GitHub instalada en la organización (lo tendría que aprobar
+# el dueño de la org): el servicio se crea desde la URL del repo público (docs/despliegue.md).
+# Mientras no exista el secreto RENDER_DEPLOY_HOOK_URL, el job avisa y termina en verde.
+# Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 25/10/2026
+name: Despliegue del backend
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Render
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      API_URL: ${{ vars.API_URL }}
+    steps:
+      - name: Lanzar el despliegue en Render
+        id: hook
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "::notice::Falta el secreto RENDER_DEPLOY_HOOK_URL (ver docs/despliegue.md): no se despliega."
+            echo "lanzado=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL" > /dev/null
+          echo "lanzado=true" >> "$GITHUB_OUTPUT"
+
+      # Render tarda unos minutos (build + migraciones); se espera a que /api/health responda.
+      # Solo si la variable del repo API_URL (p. ej. https://rentit-api.onrender.com/api) existe.
+      - name: Esperar a que la API responda
+        if: steps.hook.outputs.lanzado == 'true' && env.API_URL != ''
+        run: |
+          sleep 60
+          for i in $(seq 1 40); do
+            if curl -fsS "$API_URL/health" > /dev/null; then
+              echo "### Backend desplegado: $API_URL/health responde" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::La API no responde tras el despliegue. Revisa los logs en Render."
+          exit 1

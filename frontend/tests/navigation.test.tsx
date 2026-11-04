@@ -31,15 +31,42 @@ describe('layout y navegación (#21)', () => {
     expect(mainNav().queryByRole('button', { name: 'Cerrar sesión' })).not.toBeInTheDocument();
   });
 
-  it('con sesión la cabecera enlaza al perfil y permite cerrar sesión', () => {
+  it('con sesión la cabecera enlaza al perfil y no muestra «Cerrar sesión», que está en el perfil', () => {
     localStorage.setItem('rentit.session', JSON.stringify(SESSION));
 
     renderRoute('/');
 
     expect(mainNav().getByRole('link', { name: 'Mi perfil' })).toHaveAttribute('href', '/perfil');
-    expect(mainNav().getByRole('button', { name: 'Cerrar sesión' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cerrar sesión' })).not.toBeInTheDocument();
     expect(mainNav().queryByRole('link', { name: 'Iniciar sesión' })).not.toBeInTheDocument();
     expect(mainNav().queryByRole('link', { name: 'Crear cuenta' })).not.toBeInTheDocument();
+  });
+
+  it('el enlace «Mis solicitudes» solo aparece con sesión', () => {
+    const { unmount } = renderRoute('/');
+    expect(mainNav().queryByRole('link', { name: 'Mis solicitudes' })).not.toBeInTheDocument();
+    unmount();
+
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    renderRoute('/');
+
+    expect(mainNav().getByRole('link', { name: 'Mis solicitudes' })).toHaveAttribute(
+      'href',
+      '/mis-solicitudes',
+    );
+  });
+
+  it('navega a mis solicitudes con sesión', async () => {
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ sent: [], received: [] }));
+    const { router } = renderRoute('/');
+
+    await userEvent.setup().click(mainNav().getByRole('link', { name: 'Mis solicitudes' }));
+
+    expect(router.state.location.pathname).toBe('/mis-solicitudes');
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Mis solicitudes' }),
+    ).toBeInTheDocument();
   });
 
   it('navega entre login y registro desde la cabecera', async () => {
@@ -83,5 +110,21 @@ describe('layout y navegación (#21)', () => {
     renderRoute('/registro');
 
     expect(screen.getByRole('link', { name: 'Rentit' })).toHaveAttribute('href', '/');
+  });
+
+  it('sin sesión no muestra el enlace para publicar un objeto', () => {
+    renderRoute('/');
+
+    expect(mainNav().queryByRole('link', { name: 'Publicar objeto' })).not.toBeInTheDocument();
+  });
+
+  it('con sesión muestra las secciones sin «Publicar objeto», que está en «Mis objetos»', () => {
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    renderRoute('/');
+
+    const links = mainNav()
+      .getAllByRole('link')
+      .map((link) => link.textContent);
+    expect(links).toEqual(['Inicio', 'Mis objetos', 'Mis solicitudes', 'Mi perfil']);
   });
 });

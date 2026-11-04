@@ -1,6 +1,6 @@
 // Generado con asistencia de IA (Claude) – revisado por Max Jaume, 18/10/2026 y 19/10/2026
 import { useRef, useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { PasswordInput } from '../components/PasswordInput';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
@@ -107,8 +107,12 @@ export function RegisterPage() {
   }
 
   return (
-    <section className="auth-card">
-      <h1>Crear cuenta</h1>
+    <section className="auth-card card">
+      <header className="auth-card-header">
+        <img className="auth-logo" src="/favicon.svg" alt="" width={56} height={56} />
+        <h1>Crear cuenta</h1>
+        <p className="auth-tagline">Únete a tu barrio y alquila sin complicaciones.</p>
+      </header>
       {formError && (
         <p role="alert" className="form-error">
           {formError}
@@ -117,20 +121,22 @@ export function RegisterPage() {
       <form onSubmit={handleSubmit} noValidate>
         <div className="form-field">
           <label htmlFor="register-username">Nombre de usuario</label>
-          <input
-            id="register-username"
-            ref={usernameRef}
-            type="text"
-            name="username"
-            autoComplete="username"
-            value={username}
-            onChange={(event) => {
-              setUsername(event.target.value);
-              clearError('username');
-            }}
-            aria-invalid={errors.username ? true : undefined}
-            aria-describedby={describedBy('username', 'register-username-hint')}
-          />
+          <div className="auth-input">
+            <input
+              id="register-username"
+              ref={usernameRef}
+              type="text"
+              name="username"
+              autoComplete="username"
+              value={username}
+              onChange={(event) => {
+                setUsername(event.target.value);
+                clearError('username');
+              }}
+              aria-invalid={errors.username ? true : undefined}
+              aria-describedby={describedBy('username', 'register-username-hint')}
+            />
+          </div>
           <p id="register-username-hint" className="field-hint">
             Entre 3 y 30 caracteres: letras sin acentos, números, «.», «_» o «-».
           </p>
@@ -143,20 +149,22 @@ export function RegisterPage() {
 
         <div className="form-field">
           <label htmlFor="register-email">Correo electrónico</label>
-          <input
-            id="register-email"
-            ref={emailRef}
-            type="email"
-            name="email"
-            autoComplete="email"
-            value={email}
-            onChange={(event) => {
-              setEmail(event.target.value);
-              clearError('email');
-            }}
-            aria-invalid={errors.email ? true : undefined}
-            aria-describedby={describedBy('email')}
-          />
+          <div className="auth-input">
+            <input
+              id="register-email"
+              ref={emailRef}
+              type="email"
+              name="email"
+              autoComplete="email"
+              value={email}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                clearError('email');
+              }}
+              aria-invalid={errors.email ? true : undefined}
+              aria-describedby={describedBy('email')}
+            />
+          </div>
           {errors.email && (
             <p id="register-email-error" className="field-error">
               {errors.email}
@@ -166,19 +174,21 @@ export function RegisterPage() {
 
         <div className="form-field">
           <label htmlFor="register-password">Contraseña</label>
-          <PasswordInput
-            id="register-password"
-            ref={passwordRef}
-            name="password"
-            autoComplete="new-password"
-            value={password}
-            onChange={(event) => {
-              setPassword(event.target.value);
-              clearError('password');
-            }}
-            aria-invalid={errors.password ? true : undefined}
-            aria-describedby={describedBy('password', 'register-password-hint')}
-          />
+          <div className="auth-input">
+            <PasswordInput
+              id="register-password"
+              ref={passwordRef}
+              name="password"
+              autoComplete="new-password"
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                clearError('password');
+              }}
+              aria-invalid={errors.password ? true : undefined}
+              aria-describedby={describedBy('password', 'register-password-hint')}
+            />
+          </div>
           <p id="register-password-hint" className="field-hint">
             Mínimo 8 caracteres. Máximo 72 (las letras con acento cuentan como 2).
           </p>
@@ -193,6 +203,9 @@ export function RegisterPage() {
           {submitting ? 'Creando cuenta…' : 'Crear cuenta'}
         </button>
       </form>
+      <p className="auth-switch">
+        ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
+      </p>
     </section>
   );
 }

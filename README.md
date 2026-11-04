@@ -1,10 +1,12 @@
 # Rentit
 
+[![CI](https://github.com/UB-ES-A1-2026/Proyecto/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/UB-ES-A1-2026/Proyecto/actions/workflows/ci.yml)
+
 Aplicación web para **alquilar objetos de uso puntual** que no compensa comprar para usarlos una sola vez. Los propietarios publican sus objetos y otros usuarios los solicitan por unos días, con modos de entrega, pago con fianza, valoraciones y chat.
 
 > Proyecto de la asignatura **Ingeniería del Software**.
 
-- **Demo / producción:** pendiente (se despliega a partir del Sprint 1).
+- **Demo / producción:** https://rentit-eosin.vercel.app (API: https://rentit-api-gfkc.onrender.com/api/health). Se actualiza en cada release a `main`; cómo está montado en [docs/despliegue.md](docs/despliegue.md). La primera petición puede tardar ~1 min: el backend gratuito de Render se duerme.
 - **Tablero kanban:** https://github.com/orgs/UB-ES-A1-2026/projects/4/views/1
 - **Backlog (épicas y user stories):** Trello del equipo (pide acceso a cualquier miembro).
 
@@ -31,12 +33,12 @@ Aplicación web para **alquilar objetos de uso puntual** que no compensa comprar
 
 | Miembro | Rol en S0 | Rol en S1 | Rol en S2 | Rol en S3 |
 |---|---|---|---|---|
-| Danyal | BE |   |   |   |
-| Marc | BE |   |   |   |
-| Max | FE |   |   |   |
-| Alex | FE |   |   |   |
-| Kai | DevOps |   |   |   |
-| Francesc | QA |   |   |   |
+| Danyal | BE | FE | QA+FE | BE |
+| Marc | BE | DevOps+BE | FE | QA+FE |
+| Max | FE | BE | DevOps+BE | FE |
+| Alex | FE | QA+FE | BE | DevOps+BE |
+| Kai | DevOps | BE | FE | BE |
+| Francesc | QA | FE | BE | FE |
 
 ---
 
@@ -142,7 +144,7 @@ cd backend
 cp .env.example .env
 npm install
 npm run db:migrate     # aplica las migraciones
-npm run db:seed        # carga los usuarios de prueba
+npm run db:seed        # carga los usuarios de prueba y objetos de ejemplo
 npm run dev            # http://localhost:3000
 ```
 
@@ -168,6 +170,8 @@ Los crea `npm run db:seed` (y también `npm run db:reset`). Todos tienen la cont
 | `bruno@rentit.test` | usuario |
 | `admin@rentit.test` | administrador |
 
+El seed también crea 12 objetos de ejemplo de `ana` y `bruno` (`backend/prisma/demoData.ts`), uno de ellos pausado. En producción no se usa este seed: ver «Datos de demo» en [docs/despliegue.md](docs/despliegue.md).
+
 ### Otros comandos útiles (en `backend/`)
 
 | Comando | Para qué |
@@ -190,6 +194,7 @@ Cada carpeta tiene su `.env.example`; cópialo a `.env` (que nunca se sube al re
 | `DIRECT_URL` | URL de PostgreSQL para las migraciones (en producción, el *session pooler* de Supabase) | igual que `DATABASE_URL` |
 | `CORS_ORIGINS` | Orígenes permitidos, separados por comas | `http://localhost:5173` |
 | `BCRYPT_ROUNDS` | Coste de bcrypt (entre 4 y 31) | `10` |
+| `S3_BUCKET` y el resto de `S3_*` | Bucket de las fotos de los objetos (ADR 0002). **Opcionales**: sin ellas la API arranca igual y la subida de fotos responde `503` | ver `backend/.env.example` |
 
 Los tests del backend usan `backend/.env.test`, que apunta a la BD `rentit_test`.
 
@@ -224,6 +229,18 @@ URL base en local: `http://localhost:3000/api`. Todas las peticiones y respuesta
 | `POST` | `/auth/login` | Público | Inicia sesión |
 | `POST` | `/auth/logout` | Privado | Cierra la sesión actual |
 | `GET` | `/usuarios/me` | Privado | Devuelve el perfil del usuario |
+| `GET` | `/usuarios/me/objetos` | Privado | Devuelve los objetos del usuario |
+| `PATCH` | `/objetos/:id` | Privado | Edita un objeto (solo su propietario) |
+| `GET` | `/usuarios/me/reservas` | Privado | Devuelve las solicitudes enviadas y recibidas |
+| `POST` | `/reservas` | Privado | Solicita el alquiler de un objeto |
+| `GET` | `/reservas/disponibilidad` | Privado | Comprueba si un objeto está libre en unas fechas |
+| `POST` | `/objetos/:id/pausar` | Privado | Pausa un objeto publicado (solo su propietario) |
+| `POST` | `/objetos/:id/reanudar` | Privado | Reanuda un objeto pausado (solo su propietario) |
+| `POST` | `/objetos/:id/retirar` | Privado | Retira un objeto (solo su propietario y sin reservas activas) |
+| `POST` | `/reservas/:id/aceptar` | Privado (propietario) | Acepta una solicitud pendiente |
+| `POST` | `/reservas/:id/rechazar` | Privado (propietario) | Rechaza una solicitud pendiente |
+| `POST` | `/objetos/:id/fotos/subida` | Privado (propietario) | Da una URL para subir una foto del objeto |
+| `POST` | `/objetos/:id/fotos` | Privado (propietario) | Confirma una foto subida y la guarda |
 
 ### `GET /health`
 
@@ -309,6 +326,234 @@ Respuesta `200`:
 
 `401` si el token falta, no es válido o ha caducado.
 
+### `GET /usuarios/me/objetos` (privado)
+
+Devuelve los objetos del usuario en cualquier estado, del más nuevo al más antiguo. Si no tiene ninguno, la lista va vacía.
+
+Respuesta `200`:
+
+```json
+[
+  {
+    "id": "8b0e…",
+    "title": "Taladro percutor",
+    "dailyPrice": "5.50",
+    "neighborhood": "Gràcia",
+    "status": "published",
+    "photo": null
+  }
+]
+```
+
+`status` puede ser `published`, `paused` o `withdrawn`. `photo` es la URL de la primera foto, o `null` si no tiene. `401` si el token falta, no es válido o ha caducado.
+
+### `PATCH /objetos/:id` (privado)
+
+Edita un objeto. Solo puede hacerlo su propietario. Hay que enviar los cuatro campos.
+
+Cuerpo:
+
+```json
+{ "title": "Taladro percutor", "description": "Con maletín y brocas.", "dailyPrice": 7.5, "deposit": 40 }
+```
+
+| Campo | Reglas |
+|---|---|
+| `title` | De 1 a 100 caracteres |
+| `description` | De 1 a 2000 caracteres |
+| `dailyPrice` | Mayor que 0, con hasta 2 decimales |
+| `deposit` | 0 o más, con hasta 2 decimales |
+
+Respuesta `200`: el objeto con los importes como texto (`"7.50"`), su categoría, sus fotos y el `id` y el `username` del propietario.
+
+| Código | Cuándo | `field` |
+|---|---|---|
+| `400` | Algún campo no cumple las reglas | `title`, `description`, `dailyPrice` o `deposit` |
+| `401` | No hay sesión | — |
+| `403` | El objeto no es tuyo | — |
+| `404` | El objeto no existe | — |
+| `409` | El objeto está retirado | — |
+
+### `GET /usuarios/me/reservas` (privado)
+
+Devuelve las solicitudes que ha hecho el usuario (`sent`) y las que han recibido sus objetos (`received`), de la más nueva a la más antigua y en cualquier estado. Si no hay ninguna, las listas van vacías.
+
+Respuesta `200`:
+
+```json
+{
+  "sent": [
+    {
+      "id": "4f1a…",
+      "item": { "id": "8b0e…", "title": "Taladro percutor" },
+      "startDate": "2026-12-04",
+      "endDate": "2026-12-06",
+      "totalPrice": "16.50",
+      "status": "pending",
+      "renter": { "id": "2c9d…", "username": "bruno" },
+      "owner": { "id": "7a3e…", "username": "ana" },
+      "createdAt": "2026-11-02T10:00:00.000Z"
+    }
+  ],
+  "received": []
+}
+```
+
+`status` puede ser `pending`, `accepted`, `rejected`, `cancelled`, `paid`, `in_progress` o `finished`. `401` si el token falta, no es válido o ha caducado.
+
+### `POST /reservas` (privado)
+
+Solicita el alquiler de un objeto. El importe lo calcula el backend: precio por día × días, contando el primer y el último día.
+
+Cuerpo:
+
+```json
+{ "itemId": "8b0e…", "startDate": "2026-12-04", "endDate": "2026-12-06" }
+```
+
+Respuesta `201`:
+
+```json
+{
+  "id": "4f1a…",
+  "item": { "id": "8b0e…", "title": "Taladro percutor" },
+  "startDate": "2026-12-04",
+  "endDate": "2026-12-06",
+  "totalPrice": "16.50",
+  "status": "pending",
+  "renter": { "id": "2c9d…", "username": "bruno" },
+  "owner": { "id": "7a3e…", "username": "ana" },
+  "createdAt": "2026-11-02T10:00:00.000Z"
+}
+```
+
+| Código | Cuándo | `field` |
+|---|---|---|
+| `400` | Falta un campo o tiene un formato incorrecto, la fecha de inicio es anterior a hoy, la de fin es anterior a la de inicio o el importe es demasiado alto | `itemId`, `startDate` o `endDate` |
+| `401` | No hay sesión | — |
+| `403` | El objeto es tuyo | — |
+| `404` | El objeto no existe o no está publicado | — |
+| `409` | Las fechas se solapan con una reserva aceptada, pagada o en curso (las pendientes no ocupan fechas) | `startDate` |
+| `409` | Ya tienes una solicitud pendiente de ese objeto con las mismas fechas | — |
+
+### `GET /reservas/disponibilidad` (privado)
+
+Comprueba si un objeto está libre en unas fechas, antes de solicitarlo. Las fechas ocupadas son las de reservas aceptadas, pagadas o en curso; las pendientes no ocupan. Es solo informativo: `POST /reservas` lo vuelve a comprobar al crear la solicitud.
+
+Parámetros de la URL: `itemId`, `startDate` y `endDate`, por ejemplo `?itemId=8b0e…&startDate=2026-12-04&endDate=2026-12-06`.
+
+Respuesta `200`:
+
+```json
+{ "available": true }
+```
+
+| Código | Cuándo | `field` |
+|---|---|---|
+| `400` | Falta un parámetro o tiene un formato incorrecto, la fecha de inicio es anterior a hoy o la de fin es anterior a la de inicio | `itemId`, `startDate` o `endDate` |
+| `401` | No hay sesión | — |
+| `404` | El objeto no existe o no está publicado | — |
+
+### `POST /reservas/:id/aceptar` y `POST /reservas/:id/rechazar` (privados, solo el propietario)
+
+Sin cuerpo. Una solicitud solo se puede responder una vez, aunque lleguen dos peticiones a la vez.
+
+Respuesta `200`, la reserva actualizada:
+
+```json
+{
+  "id": "…",
+  "item": { "id": "…", "title": "Taladro percutor" },
+  "startDate": "2026-12-04",
+  "endDate": "2026-12-06",
+  "totalPrice": "15.00",
+  "status": "accepted",
+  "renter": { "id": "…", "username": "bruno" },
+  "owner": { "id": "…", "username": "ana" },
+  "createdAt": "2026-11-02T10:00:00.000Z"
+}
+```
+
+| Código | Cuándo |
+|---|---|
+| `401` | Sin sesión |
+| `403` | El objeto es de otra persona |
+| `404` | La solicitud no existe |
+| `409` | La solicitud ya no está pendiente |
+| `409` | Solo al aceptar: las fechas se solapan con otra reserva aceptada, pagada o en curso (`field`: `startDate`). La solicitud sigue pendiente, así que aún se puede rechazar |
+
+### `POST /objetos/:id/pausar` y `POST /objetos/:id/reanudar` (privados)
+
+Pausan un objeto publicado o reanudan uno pausado, sin cuerpo. Un objeto pausado no sale en la búsqueda ni admite solicitudes nuevas, pero conserva sus reservas y sigue en «Mis objetos».
+
+Respuesta `200`:
+
+```json
+{
+  "id": "8b0e…",
+  "title": "Taladro percutor",
+  "dailyPrice": "5.50",
+  "neighborhood": "Gràcia",
+  "status": "paused"
+}
+```
+
+| Código | Cuándo |
+|---|---|
+| `401` | No hay sesión |
+| `403` | El objeto no es tuyo |
+| `404` | El objeto no existe |
+| `409` | El objeto no está en el estado necesario: solo se pausa uno publicado y solo se reanuda uno pausado |
+
+### `POST /objetos/:id/retirar` (privado)
+
+Retira un objeto, sin cuerpo. No se borra: pasa a `withdrawn`, deja de estar disponible para los demás y sigue en «Mis objetos».
+
+Respuesta `200`:
+
+```json
+{
+  "id": "8b0e…",
+  "title": "Taladro percutor",
+  "dailyPrice": "5.50",
+  "neighborhood": "Gràcia",
+  "status": "withdrawn"
+}
+```
+
+| Código | Cuándo |
+|---|---|
+| `401` | No hay sesión |
+| `403` | El objeto no es tuyo |
+| `404` | El objeto no existe |
+| `409` | Ya está retirado o tiene alguna reserva activa: pendiente, aceptada, pagada o en curso. Las pendientes hay que rechazarlas antes |
+### Fotos de un objeto (privado, solo el propietario)
+
+La foto no pasa por nuestro servidor: se sube directamente al bucket con una URL temporal ([ADR 0002](docs/adr/0002-almacenamiento-imagenes.md)). Son tres pasos:
+
+1. `POST /objetos/:id/fotos/subida` con el tipo y el tamaño de la foto:
+
+   ```json
+   { "contentType": "image/webp", "size": 183204 }
+   ```
+
+   Respuesta `201`: `{ "key": "objetos/<id>/<uuid>.webp", "uploadUrl": "https://…", "expiresIn": 300 }`.
+2. El navegador hace `PUT <uploadUrl>` con la foto como cuerpo y la cabecera `Content-Type` **igual** a la que ha pedido (la URL caduca en 5 minutos).
+3. `POST /objetos/:id/fotos` con `{ "key": "<la clave del paso 1>" }`. El backend comprueba el fichero subido y, si es válido, guarda solo la clave. Respuesta `201`: `{ "id": "…", "key": "…", "order": 1, "url": "https://…" }`. `url` sirve para enseñarla y caduca en 1 hora.
+
+Reglas: solo **JPG, PNG o WebP**, **5 MB como máximo** y **5 fotos por objeto**. El tipo se comprueba también con los primeros bytes del fichero, así que no se puede colar otro tipo de fichero renombrado.
+
+| Código | Cuándo | `field` |
+|---|---|---|
+| `400` | Tipo no permitido o tamaño incorrecto (paso 1) | `contentType` o `size` |
+| `400` | Clave incorrecta, foto no subida o fichero no válido (paso 3; el fichero se borra) | `key` |
+| `403` | El objeto es de otra persona | — |
+| `404` | El objeto no existe | — |
+| `409` | El objeto ya tiene 5 fotos, está retirado o la foto ya estaba guardada | — o `key` |
+| `503` | El almacenamiento de fotos no está configurado en ese servidor | — |
+
+La ficha y la edición devuelven las fotos del objeto con `listItemPhotos(itemId)`, y la búsqueda, la primera de cada objeto con `listFirstPhotoUrls(itemIds)`, las dos en `backend/src/services/photoService.ts`. Sin almacenamiento configurado no fallan: la ficha devuelve `photos: []` y la búsqueda, `photo: null`.
+
 ### Probarlo desde la terminal
 
 ```bash
@@ -377,6 +622,18 @@ Los tests se ejecutan **uno a uno** (`workers: 1` en `playwright.config.ts`): va
 
 La estrategia de pruebas, las convenciones para escribir tests e2e y los casos de prueba de aceptación de cada user story están en [docs/testing.md](docs/testing.md).
 
+### Tests en el CI (GitHub Actions)
+
+El workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (#19) se ejecuta en cada PR hacia `develop`, `main` y las ramas `feature/`, y en cada push a `develop` y `main`. Tiene tres jobs:
+
+| Job | Qué hace |
+|---|---|
+| **Backend** | `npm ci`, `prisma generate`, lint, tests (con un PostgreSQL temporal) y build |
+| **Frontend** | `npm ci`, lint, tests y build |
+| **E2E** | Si los dos anteriores pasan: BD temporal con migraciones y seed, backend compilado, build del frontend y todos los tests de Playwright en Chromium |
+
+Si el PR está en rojo, abre el job que falla en la pestaña *Checks* del PR. Si fallan los e2e, el informe de Playwright queda como artefacto (`informe-playwright`) en la ejecución.
+
 - Por defecto apuntan al frontend en `http://localhost:5173` y a la API en `http://localhost:3000/api`. Para otro entorno: `BASE_URL=<url del frontend> API_URL=<url de la API> npx playwright test`.
 - El test de registro con datos válidos crea un usuario nuevo en cada ejecución; para dejar la BD limpia, usa `npm run db:reset` en `backend/`.
 
@@ -406,7 +663,7 @@ Si has tocado algo que se ve en la interfaz o cambia un flujo de usuario, ejecut
 
 ## Ramas, commits y PR
 
-Usamos **GitFlow**: cada tarea va en una rama `feature/<nº issue>-<descripcion>` que sale de `develop` y vuelve a `develop` mediante un PR revisado por otra persona. `main` solo recibe la versión de cada demo. Las reglas completas, el formato de los commits y la **Definition of Done** están en [CONTRIBUTING.md](CONTRIBUTING.md).
+Usamos **GitFlow**: cada historia de usuario va en una rama `feature/<nº historia>-<descripcion>` que sale de `develop`, y cada una de sus tareas en una rama `task/<nº tarea>-<descripcion>` que vuelve a la rama de la historia mediante un PR revisado por otra persona. Cuando la historia está completa, se hace *rebase* sobre `develop`, se pasan los tests y entra en `develop` con un *merge commit* (nunca con *squash*). Así `develop` solo tiene historias completas y siempre compila. `main` solo recibe la versión de cada demo. Las reglas completas, el formato de los commits y la **Definition of Done** están en [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
@@ -428,6 +685,7 @@ Más detalle en [docs/arquitectura.md](docs/arquitectura.md#4-despliegue).
 | [docs/adr/0001-stack.md](docs/adr/0001-stack.md) | Elección del stack y configuración que hay que respetar |
 | [docs/arquitectura.md](docs/arquitectura.md) | Capas, flujo de autenticación, estructura de carpetas y despliegue |
 | [docs/modelo-datos.md](docs/modelo-datos.md) | Tablas y campos de la base de datos |
+| [docs/guia-estilo.md](docs/guia-estilo.md) | Logo, colores, tipografía, componentes comunes y contraste |
 | [docs/testing.md](docs/testing.md) | Estrategia de pruebas, convenciones e2e y casos de prueba de aceptación |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | GitFlow, commits, PRs y Definition of Done |
 | [AGENTS.md](AGENTS.md) | Normas para trabajar con agentes de IA |

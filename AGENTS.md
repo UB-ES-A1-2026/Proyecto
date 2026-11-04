@@ -21,7 +21,7 @@ Rentit es un "Airbnb de objetos" de barrio: alquiler entre vecinos con entrega, 
 - Variables, funciones y archivos de código en **inglés** (`camelCase` para variables y funciones, `PascalCase` para componentes y tipos).
 - Tablas y columnas de la BD **en español y `snake_case`**, exactamente como en `docs/modelo-datos.md` (`usuario`, `sesion`, `password_hash`…).
 - Comentarios, textos de la interfaz y mensajes de error para el usuario **en español**.
-- Usamos **GitFlow** (ver `CONTRIBUTING.md`): el trabajo de cada tarea va en `feature/<nº issue>-<descripcion>`, que sale de `develop` y vuelve a `develop` por PR. Commits con el formato `tipo(ámbito): descripción (#issue)`.
+- Usamos **GitFlow** (ver `CONTRIBUTING.md`): cada historia de usuario va en `feature/<nº historia>-<descripcion>`, que sale de `develop`; cada tarea va en `task/<nº tarea>-<descripcion>`, que sale de la rama de su historia y vuelve a ella por PR. La historia completa entra en `develop` tras un *rebase* y los tests. Todo se integra con *merge commit*, **nunca con squash**. Commits con el formato `tipo(ámbito): descripción (#issue)`; como no hay squash, cada commit tiene que compilar.
 - Backend en capas: `routes → middlewares → controllers → services → repositories`. Cada capa solo llama a la siguiente: los controllers no usan Prisma y los services no conocen `req` ni `res`.
 - El frontend llama a la API solo desde `frontend/src/services/`, nunca con `fetch` suelto dentro de los componentes.
 
@@ -33,6 +33,20 @@ Rentit es un "Airbnb de objetos" de barrio: alquiler entre vecinos con entrega, 
 - **Rutas privadas:** middleware `requireAuth`, que deja `req.auth = { userId, sessionId }`.
 - **Contraseñas:** `bcrypt`, con el coste definido en `src/config/` (`BCRYPT_ROUNDS`).
 - **Tests con BD:** siempre contra `rentit_test` (`backend/.env.test`), nunca contra `rentit`. Llama a `resetDb()` de `tests/helpers/db.ts` antes de cada test.
+
+## Frontend: wireframe antes de programar (#162)
+Norma del profesor desde el Sprint 1. Detalle, plantilla y piezas en [docs/wireframes/README.md](docs/wireframes/README.md).
+- **Antes de crear o cambiar una pantalla** de una historia, comprueba si existe `docs/wireframes/US-XX.YY-<nombre>/`. Si no existe, **lo primero que haces es el wireframe**, no los componentes: copia `docs/wireframes/_plantilla/`, rellénalo con los textos reales de los criterios de aceptación y genera los PNG con `cd e2e && npm run wireframes -- US-XX.YY-<nombre>`.
+- El flujo empieza en la pantalla **desde la que llega el usuario** y acaba en **a dónde va al terminar**, con los estados de error, vacío y carga que pidan los criterios.
+- **Abre los PNG y revísalos** (nada cortado ni solapado). Después **para y enseña `flujo.png` a la persona** para que lo valide antes de programar. Si la historia no tiene criterios suficientes para dibujar el flujo (por ejemplo, no dice desde dónde se llega), pregunta en lugar de inventarlo.
+- Usa solo las clases de `docs/wireframes/wireframe.css`. Nada de estilos de la marca ni librerías nuevas.
+- Si la implementación cambia la pantalla, actualiza el wireframe y vuelve a generar los PNG en el mismo PR.
+- **Norma fija para todas las demos:** ninguna historia con pantalla llega a la demo sin su wireframe. Las de los Sprints 2 y 3 ya tienen uno propuesto en `docs/wireframes/`: al empezar cada historia, repásalo con la persona y actualízalo antes de programar.
+
+## Historias de usuario
+Cuando redactes o revises una historia (issue o Trello), usa la plantilla `.github/ISSUE_TEMPLATE/historia-de-usuario.md`. Además del «Como… quiero… para…», tiene que decir **desde qué pantalla y con qué acción llega el usuario**, el flujo paso a paso, a dónde va al terminar y criterios de aceptación comprobables, incluidos los errores.
+
+**Norma fija para todas las demos (tarjetas de Trello):** antes de cada demo, cada tarjeta de historia del sprint tiene en la descripción «Cómo llega el usuario», «Flujo», «Al terminar», los errores y el wireframe, además de la lista «Acceptance criteria». Solo va a «Done Sprint N» lo que ya está en `develop`, con sus criterios marcados y sin marcar los que aún no se cumplan. La tarjeta US-01.1 se deja como está a propósito, para mostrar cómo han mejorado las tarjetas.
 
 ## Restricciones permanentes
 - **No añadas dependencias nuevas** a ningún `package.json` sin que la tarea lo diga explícitamente.

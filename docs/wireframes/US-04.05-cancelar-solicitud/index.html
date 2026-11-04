@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-04.05 Cancelar una solicitud · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-04.05 Cancelar una solicitud</h1>
+      <p class="wf-historia">
+        Como <strong>arrendatario</strong>, quiero <strong>cancelar una solicitud</strong> para
+        <strong>no pagar si cambian mis planes</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #64 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Generado con
+        asistencia de IA (Claude) – pendiente de revisar por el equipo en el Sprint Planning
+      </p>
+      <p class="wf-meta">Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo</p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-entrada">
+      <h2><span class="wf-paso">1</span>Punto de entrada: cualquier página con sesión <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-marca">1</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Hola, bruno</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-caja">Buscador, categorías, novedades y cómo funciona</div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El arrendatario pulsa «Mis solicitudes» en la cabecera y llega a <code>/mis-solicitudes</code> (US-04.02).</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Mis solicitudes» y, en «Enviadas», clic en una solicitud pendiente o aceptada</p>
+
+    <section class="wf-pantalla" data-captura="2-solicitud-desplegada">
+      <h2><span class="wf-paso">2</span>Solicitud enviada, desplegada <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Bicicleta de paseo</strong><span class="wf-chip">Pendiente</span><span>▴</span></div>
+                  <p class="wf-ayuda">5–7 dic. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Bicicleta de paseo</span></p>
+                    <p class="wf-texto">Fechas: Del 5 de diciembre de 2026 al 7 de diciembre de 2026</p>
+                    <p class="wf-texto">Importe total: 24,00 €</p>
+                    <p class="wf-texto">Estado: Pendiente</p>
+                    <p class="wf-texto">Propietario: ana</p>
+                    <p class="wf-texto">Enviada el 28 de noviembre de 2026</p>
+                  </div>
+                  <p class="wf-texto"></p>
+                  <span class="wf-boton wf-secundario">Cancelar solicitud</span><span class="wf-marca">1</span>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">1</span><span class="wf-marca">2</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">8–10 dic. 2026</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Solo se ve en las solicitudes enviadas en estado Pendiente o Aceptada.</li>
+        <li>Las recibidas no tienen este botón: solo quien pidió la solicitud la puede cancelar, y la API rechaza a cualquier otra persona.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Cancelar solicitud» (solicitud sin rider asignado)</p>
+
+    <section class="wf-pantalla" data-captura="3-confirmar">
+      <h2><span class="wf-paso">3</span>Ventana de confirmación <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <h3 class="wf-h1">Cancelar solicitud</h3>
+              <p class="wf-texto">Bicicleta de paseo · Del 5 al 7 de diciembre de 2026</p>
+              <p class="wf-texto">La cancelación es gratuita. <span class="wf-marca">1</span></p>
+              <div class="wf-fila">
+                <span class="wf-boton">Confirmar</span>
+                <span class="wf-boton wf-secundario">Volver</span><span class="wf-marca">2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Supuesto de la historia: es gratis mientras la solicitud está Pendiente. El texto de la ventana es propuesto.</li>
+        <li>«Volver» cierra la ventana y la solicitud no cambia.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Variante: la solicitud ya tiene rider asignado</p>
+
+    <section class="wf-pantalla" data-captura="4-confirmar-con-rider">
+      <h2><span class="wf-paso">4</span>Ventana de confirmación con cargo de entrega <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <h3 class="wf-h1">Cancelar solicitud</h3>
+              <p class="wf-texto">Tienda de campaña · Del 12 al 14 de diciembre de 2026</p>
+              <p class="wf-aviso">Esta solicitud ya tiene rider asignado: se te cobrará el coste de la entrega. <span class="wf-marca">1</span></p>
+              <div class="wf-fila">
+                <span class="wf-boton">Confirmar</span><span class="wf-marca">2</span>
+                <span class="wf-boton wf-secundario">Volver</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 2 (texto propuesto): el aviso solo sale si hay rider asignado.</li>
+        <li>Al confirmar se registra el cargo de entrega y el rider recibe una notificación, además del propietario.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Si al pulsar «Confirmar» la solicitud ya no se puede cancelar</p>
+
+    <section class="wf-pantalla" data-captura="5-error">
+      <h2><span class="wf-paso">5</span>Error: la solicitud ya no se puede cancelar <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Bicicleta de paseo</strong><span class="wf-chip">Pendiente</span><span>▴</span></div>
+                  <p class="wf-ayuda">5–7 dic. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Bicicleta de paseo</span></p>
+                    <p class="wf-texto">Fechas: Del 5 de diciembre de 2026 al 7 de diciembre de 2026</p>
+                    <p class="wf-texto">Importe total: 24,00 €</p>
+                    <p class="wf-texto">Estado: Pendiente<span class="wf-marca">2</span></p>
+                    <p class="wf-texto">Propietario: ana</p>
+                    <p class="wf-texto">Enviada el 28 de noviembre de 2026</p>
+                  </div>
+                  <p class="wf-aviso">Motivo que devuelve la API. <span class="wf-marca">1</span></p>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">8–10 dic. 2026</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Se muestra el motivo; la historia no fija los textos. Cada motivo lo define la API.</li>
+        <li>La solicitud no cambia.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Confirmar» (pantalla 3 o 4) y la cancelación se realiza</p>
+
+    <section class="wf-pantalla" data-captura="6-destino">
+      <h2><span class="wf-paso">6</span>Destino: solicitud cancelada <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Bicicleta de paseo</strong><span class="wf-chip">Cancelada</span><span>▴</span></div>
+                  <p class="wf-ayuda">5–7 dic. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Bicicleta de paseo</span></p>
+                    <p class="wf-texto">Fechas: Del 5 de diciembre de 2026 al 7 de diciembre de 2026</p>
+                    <p class="wf-texto">Importe total: 24,00 €</p>
+                    <p class="wf-texto">Estado: Cancelada<span class="wf-marca">1</span></p>
+                    <p class="wf-texto">Propietario: ana<span class="wf-marca">2</span></p>
+                    <p class="wf-texto">Enviada el 28 de noviembre de 2026</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">8–10 dic. 2026</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 1: la solicitud pasa a Cancelada, desaparece «Cancelar solicitud» y las fechas quedan libres para otras personas.</li>
+        <li>Criterio 3: el propietario recibe una notificación (US-06.03), y también el rider si lo había.</li>
+      </ol>
+    </section>
+  </body>
+</html>

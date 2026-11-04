@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-09.01 Abrir una incidencia · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-09.01 Abrir una incidencia</h1>
+      <p class="wf-historia">
+        Como <strong>usuario</strong>, quiero <strong>abrir una incidencia (daño, retraso, no devolución)</strong> para
+        <strong>que la plataforma medie</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #76 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Generado con
+        asistencia de IA (Claude) – pendiente de revisar por el equipo en el Sprint Planning
+      </p>
+      <p class="wf-meta">Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo</p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-entrada">
+      <h2><span class="wf-paso">1</span>Punto de entrada: cualquier página con sesión <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-marca">1</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Hola, bruno</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-caja">Buscador, categorías, novedades y cómo funciona</div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Arrendatario o propietario: pulsa «Mis solicitudes» y llega a <code>/mis-solicitudes</code> (US-04.02).</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Mis solicitudes» y clic en su reserva para desplegarla</p>
+
+    <section class="wf-pantalla" data-captura="2-reserva">
+      <h2><span class="wf-paso">2</span>Reserva desplegada <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">En curso</span><span>▴</span></div>
+                  <p class="wf-ayuda">8–10 dic. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
+                    <p class="wf-texto">Fechas: Del 8 de diciembre de 2026 al 10 de diciembre de 2026</p>
+                    <p class="wf-texto">Importe total: 18,00 €</p>
+                    <p class="wf-texto">Estado: En curso</p>
+                    <p class="wf-texto">Propietario: ana</p>
+                    <p class="wf-texto">Enviada el 1 de diciembre de 2026</p>
+                  </div>
+                  <p class="wf-texto"></p>
+                  <span class="wf-boton wf-secundario">Abrir incidencia</span><span class="wf-marca">1</span>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">9 nov. 2026</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Solo las personas de esa reserva lo pueden abrir, tanto en «Enviadas» como en «Recibidas». Si la reserva ya tiene una incidencia abierta, no aparece el botón y la API lo rechaza.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Abrir incidencia»</p>
+
+    <section class="wf-pantalla" data-captura="3-formulario">
+      <h2><span class="wf-paso">3</span>Formulario de incidencia <code>/reservas/:id/incidencia</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/reservas/:id/incidencia">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <h3 class="wf-h1">Abrir incidencia</h3>
+              <p class="wf-texto">Taladro percutor Bosch · Del 8 al 10 de diciembre de 2026</p>
+              <div class="wf-campo">
+                <label>Tipo <span class="wf-marca">1</span></label>
+                <div class="wf-fila">
+                  <span class="wf-boton">Daño</span>
+                  <span class="wf-boton wf-secundario">Retraso</span>
+                  <span class="wf-boton wf-secundario">No devolución</span>
+                </div>
+              </div>
+              <div class="wf-campo">
+                <label>Describe lo ocurrido</label>
+                <div class="wf-input">El taladro se ha entregado con el portabrocas roto.</div>
+              </div>
+              <span class="wf-boton wf-ancho">Abrir incidencia</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El tipo y la descripción son obligatorios. Se elige un solo tipo: daño, retraso o no devolución.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Abrir incidencia» con campos vacíos</p>
+
+    <section class="wf-pantalla" data-captura="4-errores">
+      <h2><span class="wf-paso">4</span>Errores: campos obligatorios vacíos <code>/reservas/:id/incidencia</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/reservas/:id/incidencia">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <h3 class="wf-h1">Abrir incidencia</h3>
+              <p class="wf-texto">Taladro percutor Bosch · Del 8 al 10 de diciembre de 2026</p>
+              <div class="wf-campo">
+                <label>Tipo</label>
+                <div class="wf-fila">
+                  <span class="wf-boton wf-secundario">Daño</span>
+                  <span class="wf-boton wf-secundario">Retraso</span>
+                  <span class="wf-boton wf-secundario">No devolución</span>
+                </div>
+                <p class="wf-error">Elige el tipo de incidencia. <span class="wf-marca">1</span></p>
+              </div>
+              <div class="wf-campo">
+                <label>Describe lo ocurrido</label>
+                <div class="wf-input wf-con-error"></div>
+                <p class="wf-error">Describe lo ocurrido.</p>
+              </div>
+              <span class="wf-boton wf-ancho">Abrir incidencia</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>No se abre la incidencia y el error sale en cada campo. Textos propuestos.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Abrir incidencia» con el formulario correcto</p>
+
+    <section class="wf-pantalla" data-captura="5-destino">
+      <h2><span class="wf-paso">5</span>Destino: la reserva con la incidencia abierta <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">En curso</span><span>▴</span></div>
+                  <p class="wf-ayuda">8–10 dic. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
+                    <p class="wf-texto">Fechas: Del 8 de diciembre de 2026 al 10 de diciembre de 2026</p>
+                    <p class="wf-texto">Importe total: 18,00 €</p>
+                    <p class="wf-texto">Estado: En curso</p>
+                    <p class="wf-texto">Propietario: ana</p>
+                    <p class="wf-texto">Enviada el 1 de diciembre de 2026</p>
+                  </div>
+                  <p class="wf-texto"></p>
+                  <p class="wf-aviso">Incidencia abierta · Daño <span class="wf-marca">1</span></p>
+                  <p class="wf-texto">Fianza: Retenida <span class="wf-marca">2</span></p>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">9 nov. 2026</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Vuelve a la reserva. «Abrir incidencia» ya no aparece: una incidencia abierta por reserva como máximo. La otra persona de la reserva también la ve.</li>
+        <li>Criterio 1: al abrirla, la fianza pasa a Retenida. Criterio 2: la incidencia aparece en el panel del admin con las fotos de check-in y check-out (dibujado en US-11.01).</li>
+      </ol>
+    </section>
+  </body>
+</html>

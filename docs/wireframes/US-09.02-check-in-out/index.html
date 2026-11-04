@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-09.02 Check-in / check-out con fotos del estado · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-09.02 Check-in / check-out con fotos del estado</h1>
+      <p class="wf-historia">
+        Como <strong>propietario</strong>, quiero <strong>un check-in y check-out con fotos del estado del artículo</strong>
+        para <strong>tener pruebas si hay daños</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #77 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Generado con
+        asistencia de IA (Claude) – pendiente de revisar por el equipo en el Sprint Planning
+      </p>
+      <p class="wf-meta">Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo</p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-entrada">
+      <h2><span class="wf-paso">1</span>Punto de entrada: cualquier página con sesión <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-marca">1</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Hola, ana</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-caja">Buscador, categorías, novedades y cómo funciona</div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Propietario o arrendatario: pulsa «Mis solicitudes» y llega a <code>/mis-solicitudes</code> (US-04.02).</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Mis solicitudes» y clic en la reserva para desplegarla</p>
+
+    <section class="wf-pantalla" data-captura="2-reserva">
+      <h2><span class="wf-paso">2</span>Reserva desplegada, en el momento de la entrega <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Altavoz Bluetooth JBL</strong><span class="wf-chip">Rechazada</span><span>▾</span></div>
+                  <p class="wf-ayuda">7–8 nov. 2026</p>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pagada</span><span>▴</span></div>
+                  <p class="wf-ayuda">8–10 dic. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
+                    <p class="wf-texto">Fechas: Del 8 de diciembre de 2026 al 10 de diciembre de 2026</p>
+                    <p class="wf-texto">Importe total: 18,00 €</p>
+                    <p class="wf-texto">Estado: Pagada</p>
+                    <p class="wf-texto">Solicitada por: bruno</p>
+                    <p class="wf-texto">Enviada el 1 de diciembre de 2026</p>
+                  </div>
+                  <p class="wf-texto"></p>
+                  <span class="wf-boton">Check-in</span><span class="wf-marca">1</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>«Check-in» en la entrega y «Check-out» en la devolución. La pantalla siguiente es igual para las dos fases.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Check-in»</p>
+
+    <section class="wf-pantalla" data-captura="3-subir-fotos">
+      <h2><span class="wf-paso">3</span>Subir fotos del estado <code>/reservas/:id/check-in</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/reservas/:id/check-in">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <h3 class="wf-h1">Check-in</h3>
+              <p class="wf-texto">Taladro percutor Bosch · Del 8 al 10 de diciembre de 2026</p>
+              <div class="wf-campo">
+                <label>Fotos del estado del objeto <span class="wf-marca">1</span></label>
+                <span class="wf-boton wf-secundario wf-ancho">Subir fotos</span>
+              </div>
+              <span class="wf-boton wf-ancho">Confirmar</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Las fotos son obligatorias en la entrega y en la devolución.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Confirmar» sin fotos</p>
+
+    <section class="wf-pantalla" data-captura="4-sin-fotos">
+      <h2><span class="wf-paso">4</span>Error: sin fotos <code>/reservas/:id/check-in</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/reservas/:id/check-in">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <h3 class="wf-h1">Check-in</h3>
+              <p class="wf-texto">Taladro percutor Bosch · Del 8 al 10 de diciembre de 2026</p>
+              <div class="wf-campo">
+                <label>Fotos del estado del objeto</label>
+                <span class="wf-boton wf-secundario wf-ancho">Subir fotos</span>
+                <p class="wf-error">Sube al menos una foto para confirmar. <span class="wf-marca">1</span></p>
+              </div>
+              <span class="wf-boton wf-ancho">Confirmar</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>No se puede confirmar y se indica. Texto propuesto.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Subir fotos» y falla la subida de una</p>
+
+    <section class="wf-pantalla" data-captura="5-revisar-fotos">
+      <h2><span class="wf-paso">5</span>Revisar las fotos, con una subida fallida <code>/reservas/:id/check-in</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/reservas/:id/check-in">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <h3 class="wf-h1">Check-in</h3>
+              <p class="wf-texto">Taladro percutor Bosch · Del 8 al 10 de diciembre de 2026</p>
+              <div class="wf-campo">
+                <label>Fotos del estado del objeto <span class="wf-marca">1</span></label>
+                <div class="wf-rejilla">
+                  <div class="wf-imagen"></div>
+                  <div class="wf-imagen"></div>
+                </div>
+                <p class="wf-error">No se ha podido subir «taladro3.jpg». <span class="wf-marca">2</span></p>
+                <p class="wf-texto"></p>
+                <span class="wf-boton wf-secundario">Reintentar</span>
+              </div>
+              <span class="wf-boton wf-ancho">Confirmar <span class="wf-marca">3</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El usuario revisa aquí las fotos subidas antes de confirmar.</li>
+        <li>Se indica qué foto ha fallado y se puede reintentar. Texto propuesto.</li>
+        <li>Al confirmar, las fotos quedan bloqueadas: ya no se pueden editar.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Reintentar» hasta que la foto se suba y clic en «Confirmar»</p>
+
+    <section class="wf-pantalla" data-captura="6-destino">
+      <h2><span class="wf-paso">6</span>Destino: la reserva con las fotos del check-in <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Altavoz Bluetooth JBL</strong><span class="wf-chip">Rechazada</span><span>▾</span></div>
+                  <p class="wf-ayuda">7–8 nov. 2026</p>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pagada</span><span>▴</span></div>
+                  <p class="wf-ayuda">8–10 dic. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
+                    <p class="wf-texto">Fechas: Del 8 de diciembre de 2026 al 10 de diciembre de 2026</p>
+                    <p class="wf-texto">Importe total: 18,00 €</p>
+                    <p class="wf-texto">Estado: Pagada</p>
+                    <p class="wf-texto">Solicitada por: bruno</p>
+                    <p class="wf-texto">Enviada el 1 de diciembre de 2026</p>
+                  </div>
+                  <h4>Check-in <span class="wf-marca">1</span></h4>
+                  <div class="wf-rejilla">
+                    <div><div class="wf-imagen"></div><p class="wf-ayuda">8 dic. 2026, 10:15</p></div>
+                    <div><div class="wf-imagen"></div><p class="wf-ayuda">8 dic. 2026, 10:15</p></div>
+                    <div><div class="wf-imagen"></div><p class="wf-ayuda">8 dic. 2026, 10:16</p></div>
+                  </div>
+                  <p class="wf-texto"></p>
+                  <span class="wf-boton">Check-out</span><span class="wf-marca">2</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterios 1 y 2: las dos partes de la reserva ven las fotos con su fecha y hora, y ya no se pueden editar. Nadie más puede verlas. La historia no dice si el check-in cambia el estado: se dibuja «Pagada» hasta que se decida.</li>
+        <li>«Check-out» se usa en la devolución: se repite el mismo flujo y sus fotos salen en otro apartado debajo.</li>
+      </ol>
+    </section>
+  </body>
+</html>

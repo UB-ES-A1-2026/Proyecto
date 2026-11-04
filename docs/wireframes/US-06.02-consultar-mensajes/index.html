@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-06.02 Consultar mensajes · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-06.02 Consultar mensajes</h1>
+      <p class="wf-historia">
+        Como <strong>usuario</strong>, quiero <strong>consultar mis conversaciones</strong> para
+        <strong>poder revisar la información de los alquileres</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #70 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Generado con
+        asistencia de IA (Claude) – pendiente de revisar por el equipo en el Sprint Planning
+      </p>
+      <p class="wf-meta">Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo</p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-entrada">
+      <h2><span class="wf-paso">1</span>Punto de entrada: cualquier página con sesión <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mensajes</span><span class="wf-marca">1</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Hola, bruno</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-caja">Buscador, categorías, novedades y cómo funciona</div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 1: con sesión, la cabecera tiene el enlace nuevo «Mensajes», que lleva a <code>/mensajes</code>.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Mensajes»</p>
+
+    <section class="wf-pantalla" data-captura="2-lista">
+      <h2><span class="wf-paso">2</span>Lista de conversaciones <code>/mensajes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mensajes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mensajes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mensajes <span class="wf-marca">2</span></h3>
+            <div class="wf-fila">
+              <button type="button" class="wf-boton wf-secundario wf-ancho">▸ ana · Taladro percutor Bosch <span class="wf-marca">1</span></button>
+              <button type="button" class="wf-boton wf-secundario wf-ancho">▸ bruno · Reserva de Bicicleta de paseo, 5–7 dic. 2026</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 2: cada conversación muestra el otro usuario y el objeto o la reserva relacionada.</li>
+        <li>Criterio 5: solo salen las conversaciones de la cuenta con sesión.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Lo que ve un usuario que todavía no tiene conversaciones</p>
+
+    <section class="wf-pantalla" data-captura="3-vacia">
+      <h2><span class="wf-paso">3</span>Lista vacía <code>/mensajes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mensajes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mensajes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mensajes</h3>
+            <p class="wf-texto">Todavía no tienes conversaciones.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <p class="wf-flecha">Si intenta abrir la URL de una conversación ajena</p>
+
+    <section class="wf-pantalla" data-captura="4-ajena">
+      <h2><span class="wf-paso">4</span>Conversación ajena <code>/mensajes/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mensajes/:id">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mensajes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">No hemos encontrado esta conversación</h3>
+            <p class="wf-texto">No se muestra ningún mensaje. <span class="wf-marca">1</span></p>
+            <span class="wf-enlace">Volver a Mensajes</span>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 5: no se muestra y se indica que no existe, para no revelar que la conversación es de otra persona. Título propuesto.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Desde la lista (pantalla 2), clic en una conversación</p>
+
+    <section class="wf-pantalla" data-captura="5-destino">
+      <h2><span class="wf-paso">5</span>Destino: mensajes de la conversación <code>/mensajes/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mensajes/:id">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mensajes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <span class="wf-enlace">Volver a Mensajes</span><span class="wf-marca">1</span>
+            <h3 class="wf-h1">Conversación con ana</h3>
+            <p class="wf-texto">Taladro percutor Bosch</p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>ana</strong> · 1 dic. 2026, 18:02 <span class="wf-marca">2</span><br />¿A qué hora te iría bien recogerlo?</p>
+              <p class="wf-texto"><strong>bruno</strong> · 1 dic. 2026, 18:10<br />Sobre las cinco de la tarde.</p>
+              <p class="wf-texto"><strong>bruno</strong> · 1 dic. 2026, 18:12<br />¿Incluye las brocas?</p>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-caja">Campo de mensaje y botón «Enviar» (US-06.01) <span class="wf-marca">3</span></div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Vuelve a la lista de conversaciones.</li>
+        <li>Criterios 3 y 4: los mensajes, ordenados del más antiguo al más reciente.</li>
+        <li>Desde aquí puede responder; la pantalla de envío está en el wireframe de US-06.01.</li>
+      </ol>
+    </section>
+  </body>
+</html>

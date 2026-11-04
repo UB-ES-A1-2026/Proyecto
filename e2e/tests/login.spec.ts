@@ -9,6 +9,7 @@ import { test, expect, type Page } from '@playwright/test';
 const LOGIN_PATH = '/login';
 const HOME_PATH = '/';
 const PROFILE_PATH = '/perfil'; // página privada: sin sesión redirige al login
+const SEARCH_PATH = '/buscar?q=taladro'; // página pública con búsqueda (#224)
 
 const EMAIL_LABEL = 'Correo electrónico';
 const PASSWORD_LABEL = 'Contraseña';
@@ -27,15 +28,14 @@ async function fillAndSubmit(page: Page, email: string, password: string) {
   await page.getByRole('button', { name: SUBMIT_BUTTON }).click();
 }
 
-// La cabecera solo muestra «Mi perfil» y «Cerrar sesión» con la sesión iniciada
+// La cabecera solo muestra «Mi perfil» con la sesión iniciada
 async function expectLoggedIn(page: Page) {
-  await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Mi perfil' })).toBeVisible();
 }
 
 async function expectLoggedOut(page: Page) {
   await expect(page).toHaveURL(LOGIN_PATH);
-  await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Mi perfil' })).toHaveCount(0);
 }
 
 test.describe('US-01.2 Inicio de sesión', () => {
@@ -70,6 +70,19 @@ test.describe('US-01.2 Inicio de sesión', () => {
 
     await expect(page).toHaveURL(HOME_PATH);
     await expect(page.getByRole('heading', { name: `Hola, ${USER.username}` })).toBeVisible();
+    await expectLoggedIn(page);
+  });
+
+  test('desde la cabecera, con una búsqueda en pantalla, vuelve a esa búsqueda', async ({ page }) => {
+    await page.goto(SEARCH_PATH);
+    await page
+      .getByRole('navigation', { name: 'Principal' })
+      .getByRole('link', { name: 'Iniciar sesión' })
+      .click();
+
+    await fillAndSubmit(page, USER.email, USER.password);
+
+    await expect(page).toHaveURL(SEARCH_PATH);
     await expectLoggedIn(page);
   });
 

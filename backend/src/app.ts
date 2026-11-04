@@ -1,4 +1,4 @@
-// Generado con asistencia de IA – revisado por <nombre>, <fecha>
+// Generado con asistencia de IA – revisado por Danyal, 18/10/2026
 import express from 'express';
 import { apiRoutes } from './routes/index.js';
 import { corsMiddleware } from './middlewares/corsMiddleware.js';

@@ -1,0 +1,249 @@
+<!doctype html>
+<!-- Dibujado a partir de lo que ya está implementado en task/111 (#111), como el de US-02.02. -->
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-02.03 Retirar un objeto · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-02.03 Retirar un objeto</h1>
+      <p class="wf-historia">
+        Como <strong>usuario propietario</strong>, quiero <strong>retirar un objeto</strong> para que
+        <strong>otros usuarios no puedan solicitar su alquiler</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #52 · Tarea #111 · Dibujado a partir de lo implementado · Actualizado con asistencia de IA (Claude) tras el
+        rediseño (#258), pendiente de revisar por el equipo
+      </p>
+      <p class="wf-meta">Maqueta de Figma · Marco «Mis objetos»: coincide el botón «Retirar anuncio» de cada objeto. La maqueta no dibuja la ventana de confirmación.</p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-mis-objetos">
+      <h2><span class="wf-paso">1</span>Punto de entrada: lista de mis objetos <code>/mis-objetos</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-objetos">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span><span class="wf-marca">1</span>
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <h3 class="wf-h1">Mis objetos</h3>
+                <p class="wf-texto">Los objetos que tienes publicados para alquilar.</p>
+              </div>
+              <div><span class="wf-boton">Publicar un objeto</span></div>
+            </div>
+            <div class="wf-chips">
+              <span class="wf-chip wf-activo">Todos · 3</span>
+              <span class="wf-chip">Publicados · 1</span>
+              <span class="wf-chip">Pausados · 1</span>
+              <span class="wf-chip">Retirados · 1</span>
+            </div>
+            <div class="wf-tarjeta">
+              <div class="wf-columnas">
+                <div class="wf-rejilla">
+                  <div class="wf-imagen" aria-label="Foto del objeto"></div>
+                  <p class="wf-texto"><strong>Taladro percutor Bosch</strong> <span class="wf-chip">Publicado</span><br />6,00 € / día<br />Visible en las búsquedas</p>
+                </div>
+                <div class="wf-fila">
+                  <span class="wf-boton wf-secundario">Editar</span>
+                  <span class="wf-boton wf-secundario">Pausar</span>
+                  <span class="wf-enlace">Retirar anuncio</span><span class="wf-marca">2</span>
+                </div>
+              </div>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta">
+              <div class="wf-columnas">
+                <div class="wf-rejilla">
+                  <div class="wf-imagen" aria-label="Sin foto"></div>
+                  <p class="wf-texto"><strong>Tienda de campaña para 4 personas</strong> <span class="wf-chip">Pausado</span><br />8,00 € / día<br />No aparece en las búsquedas hasta que lo reanudes</p>
+                </div>
+                <div class="wf-fila">
+                  <span class="wf-boton wf-secundario">Editar</span>
+                  <span class="wf-boton wf-secundario">Reanudar</span>
+                  <span class="wf-enlace">Retirar anuncio</span>
+                </div>
+              </div>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta">
+              <div class="wf-columnas">
+                <div class="wf-rejilla">
+                  <div class="wf-imagen" aria-label="Sin foto"></div>
+                  <p class="wf-texto"><strong>Cortacésped eléctrico</strong> <span class="wf-chip">Retirado</span><br />9,00 € / día<br />Ya no se puede alquilar</p>
+                </div>
+                <div><span class="wf-marca">3</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis objetos</h3>
+            <p class="wf-texto">Los objetos que tienes publicados para alquilar.</p>
+            <p class="wf-texto"><span class="wf-boton">Publicar un objeto</span></p>
+            <div class="wf-chips">
+              <span class="wf-chip wf-activo">Todos · 3</span>
+              <span class="wf-chip">Publicados · 1</span>
+              <span class="wf-chip">Pausados · 1</span>
+              <span class="wf-chip">Retirados · 1</span>
+            </div>
+            <div class="wf-tarjeta">
+              <div class="wf-fila">
+                <div class="wf-caja">Foto</div>
+                <p class="wf-texto"><strong>Taladro percutor<br />Bosch</strong><br /><span class="wf-chip">Publicado</span><br />6,00 € / día<br />Visible en las<br />búsquedas</p>
+              </div>
+              <div class="wf-fila">
+                <span class="wf-boton wf-secundario">Editar</span>
+                <span class="wf-boton wf-secundario">Pausar</span>
+              </div>
+              <p class="wf-texto"></p>
+              <p class="wf-texto"><span class="wf-enlace">Retirar anuncio</span></p>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Se llega desde «Mis objetos» en la cabecera o, en el móvil, en la barra inferior (con sesión; sin sesión, la ruta lleva al login).</li>
+        <li>Criterio 1: cada objeto publicado o pausado tiene «Retirar anuncio», como enlace discreto en el color de error porque es una acción destructiva. Abre la ventana de confirmación.</li>
+        <li>Criterio 4: en la lista solo salen los objetos del usuario. Los retirados no tienen botones: retirar es definitivo.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Retirar anuncio»</p>
+
+    <section class="wf-pantalla" data-captura="2-confirmar">
+      <h2><span class="wf-paso">2</span>Ventana «Retirar anuncio» <code>/mis-objetos</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-objetos">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-ventana">
+              <div class="wf-nav">
+                <h3 class="wf-h1">Retirar anuncio <span class="wf-marca">1</span></h3>
+                <span class="wf-boton wf-secundario">×</span>
+              </div>
+              <div class="wf-ventana-cuerpo">
+                <p class="wf-texto">
+                  <span class="wf-icono-ayuda">!</span> <strong>¿Seguro que quieres retirar «Taladro percutor Bosch»?</strong><span class="wf-marca">2</span>
+                  <br />Dejará de aparecer para los demás usuarios y nadie podrá solicitar su alquiler. Esta acción no se puede deshacer.
+                </p>
+              </div>
+              <div class="wf-ventana-botones">
+                <span class="wf-boton wf-ancho">Retirar anuncio</span><span class="wf-marca">3</span>
+                <span class="wf-boton wf-secundario wf-ancho">Cancelar</span><span class="wf-marca">4</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Ventana sobre la lista. «×», la tecla Esc o un clic fuera la cierran igual que «Cancelar».</li>
+        <li>Icono de aviso junto a la pregunta, que lleva el nombre del anuncio.</li>
+        <li>Criterio 2: confirma con <code>POST /api/objetos/:id/retirar</code> (#110). Mientras tanto dice «Retirando…» y está desactivado.</li>
+        <li>Criterio 3: cancelar cierra la ventana sin llamar a la API; el anuncio sigue como estaba.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">La API no deja retirarlo</p>
+
+    <section class="wf-pantalla" data-captura="3-error">
+      <h2><span class="wf-paso">3</span>Ventana con error <code>/mis-objetos</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-objetos">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-ventana">
+              <div class="wf-nav">
+                <h3 class="wf-h1">Retirar anuncio</h3>
+                <span class="wf-boton wf-secundario">×</span>
+              </div>
+              <div class="wf-ventana-cuerpo">
+                <p class="wf-aviso">No puedes retirar un objeto con reservas activas. <span class="wf-marca">1</span></p>
+                <p class="wf-texto">
+                  <span class="wf-icono-ayuda">!</span> <strong>¿Seguro que quieres retirar «Taladro percutor Bosch»?</strong>
+                  <br />Dejará de aparecer para los demás usuarios y nadie podrá solicitar su alquiler. Esta acción no se puede deshacer.
+                </p>
+              </div>
+              <div class="wf-ventana-botones">
+                <span class="wf-boton wf-ancho">Retirar anuncio</span>
+                <span class="wf-boton wf-secundario wf-ancho">Cancelar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          El mensaje de la API sale arriba de la ventana y el anuncio no cambia: 409 «No puedes retirar un objeto con
+          reservas activas.» o «Este objeto ya está retirado.», 403 «Solo el propietario puede retirar este objeto.»
+          (criterio 4) y 404 «No hemos encontrado este objeto.». Con la sesión caducada (401) se va al login.
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Se confirma y la API lo retira</p>
+
+    <section class="wf-pantalla" data-captura="4-retirado">
+      <h2><span class="wf-paso">4</span>Destino: lista con el anuncio retirado <code>/mis-objetos</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-objetos">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <h3 class="wf-h1">Mis objetos</h3>
+                <p class="wf-texto">Los objetos que tienes publicados para alquilar.</p>
+              </div>
+              <div><span class="wf-boton">Publicar un objeto</span></div>
+            </div>
+            <p class="wf-aviso">El anuncio se ha retirado. <span class="wf-marca">1</span></p>
+            <div class="wf-chips">
+              <span class="wf-chip wf-activo">Todos · 3</span>
+              <span class="wf-chip">Publicados · 0</span>
+              <span class="wf-chip">Pausados · 1</span>
+              <span class="wf-chip">Retirados · 2</span><span class="wf-marca">2</span>
+            </div>
+            <div class="wf-tarjeta">
+              <div class="wf-columnas">
+                <div class="wf-rejilla">
+                  <div class="wf-imagen" aria-label="Foto del objeto"></div>
+                  <p class="wf-texto"><strong>Taladro percutor Bosch</strong> <span class="wf-chip">Retirado</span><br />6,00 € / día<br />Ya no se puede alquilar</p>
+                </div>
+                <div><span class="wf-marca">3</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Se cierra la ventana y sale el aviso, sin volver a cargar la lista.</li>
+        <li>Los números de los filtros se actualizan y la fila se ve también en «Retirados».</li>
+        <li>Criterio 2: la fila se queda como «Retirado», sin botones. Para los demás usuarios deja de aparecer en las búsquedas y su ficha dice «No hemos encontrado este objeto».</li>
+      </ol>
+    </section>
+  </body>
+</html>

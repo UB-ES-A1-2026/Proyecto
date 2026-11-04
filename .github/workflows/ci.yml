@@ -1,0 +1,161 @@
+# CI de Rentit (#19, TR-03): lint, tests y build del backend y del frontend, y los tests e2e,
+# en cada PR hacia develop, main y las ramas de historia (feature/**, estrategia de #160).
+# Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 25/10/2026
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main, 'feature/**']
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+# Si se sube otro commit al mismo PR, se cancela la ejecución anterior.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+    # Los tests de API usan una BD real (ADR 0001, «PostgreSQL en el CI»), con los mismos datos
+    # de conexión que backend/.env.test.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: rentit
+          POSTGRES_PASSWORD: rentit
+          POSTGRES_DB: rentit_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U rentit -d rentit_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run lint
+      # globalSetup aplica las migraciones a rentit_test antes de los tests.
+      - run: npm test
+      - run: npm run build
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      # No necesitan BD: los tests simulan la API.
+      - run: npm test
+      - run: npm run build
+
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Solo si el backend y el frontend compilan y pasan sus tests.
+    needs: [backend, frontend]
+    # BD temporal del CI: nunca la de producción (ADR 0001, «Las previews usan…»).
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: rentit
+          POSTGRES_PASSWORD: rentit
+          POSTGRES_DB: rentit
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U rentit -d rentit"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+            e2e/package-lock.json
+
+      - name: Backend con migraciones y seed
+        working-directory: backend
+        run: |
+          cp .env.example .env
+          npm ci
+          npm run build
+          npm run db:deploy
+          npm run db:seed
+          npm start > ../backend.log 2>&1 &
+
+      # Build de producción servido con vite preview en el puerto 5173, el que espera Playwright
+      # y el que acepta CORS_ORIGINS en .env.example.
+      - name: Frontend (build + preview)
+        working-directory: frontend
+        run: |
+          cp .env.example .env
+          npm ci
+          npm run build
+          npx vite preview --port 5173 --strictPort > ../frontend.log 2>&1 &
+
+      - name: Esperar a que respondan la API y la web
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000/api/health > /dev/null && curl -sf http://localhost:5173 > /dev/null; then
+              echo "API y web en marcha"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "No arrancan la API o la web"
+          cat backend.log frontend.log
+          exit 1
+
+      - name: Tests e2e (Chromium)
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npx playwright test
+
+      - name: Logs de los servidores
+        if: failure()
+        run: cat backend.log frontend.log
+
+      - name: Informe de Playwright
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: informe-playwright
+          path: e2e/playwright-report/
+          retention-days: 7

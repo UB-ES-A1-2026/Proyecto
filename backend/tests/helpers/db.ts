@@ -20,6 +20,10 @@ function assertTestDatabase(): void {
   }
 }
 
+// Tablas que no se vacían: el historial de Prisma y los datos de referencia que crean las
+// migraciones (las categorías existen también en producción y los tests cuentan con ellas).
+export const PRESERVED_TABLES = ['_prisma_migrations', 'categoria'] as const;
+
 export async function resetDb(): Promise<void> {
   assertTestDatabase();
 
@@ -27,14 +31,18 @@ export async function resetDb(): Promise<void> {
     SELECT tablename
     FROM pg_tables
     WHERE schemaname = 'public'
-      AND tablename <> '_prisma_migrations'
   `;
 
-  if (tables.length === 0) {
+  const tablesToEmpty = tables.filter(
+    ({ tablename }) =>
+      !(PRESERVED_TABLES as readonly string[]).includes(tablename),
+  );
+
+  if (tablesToEmpty.length === 0) {
     return;
   }
 
-  const quotedTables = tables
+  const quotedTables = tablesToEmpty
     .map(({ tablename }) => `"${tablename.replaceAll('"', '""')}"`)
     .join(', ');
 
