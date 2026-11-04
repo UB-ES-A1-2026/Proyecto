@@ -13,7 +13,7 @@
         <strong>saber el estado de cada una</strong>.
       </p>
       <p class="wf-meta">
-        Issue #61 · Wireframe de baja fidelidad · Generado con asistencia de IA (Claude/Copilot) – revisado por Danyal, 01/11/2026
+        Issue #61 · Wireframe de baja fidelidad · Generado con asistencia de IA (Claude/Copilot) – Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo
       </p>
     </header>
 
@@ -24,156 +24,512 @@
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
               <span class="wf-enlace">Mis solicitudes</span><span class="wf-marca">1</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-enlace">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
-            <h3 class="wf-h1">Hola, ana</h3>
+            <h3 class="wf-h1">Hola, bruno</h3>
             <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-campo">
+              <label>¿Qué quieres alquilar?</label>
+              <div class="wf-input">Por ejemplo, taladro</div>
+            </div>
+            <div class="wf-fila"><span class="wf-boton">Buscar</span><span class="wf-boton wf-secundario">Publicar un objeto</span></div>
+            <p class="wf-texto"></p>
+            <div class="wf-caja">Explora por categoría, Novedades y Cómo funciona</div>
           </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Hola, bruno</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-input">Por ejemplo, taladro</div>
+            <p class="wf-texto"></p>
+            <div class="wf-caja">Publicar un objeto, categorías y novedades</div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>El enlace «Mis solicitudes» de la cabecera está marcado y lleva a <code>/mis-solicitudes</code>.</li>
+        <li>«Mis solicitudes» está en la cabecera y, en el móvil, en la barra inferior. Lleva a <code>/mis-solicitudes</code>. Sin sesión, esa ruta lleva a <code>/login</code>.</li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Clic en «Mis solicitudes»</p>
+    <p class="wf-flecha">O bien, desde la ficha de un objeto, al terminar de solicitarlo (US-04.01)</p>
 
-    <section class="wf-pantalla" data-captura="2-lista">
-      <h2><span class="wf-paso">2</span>Lista de solicitudes <code>/mis-solicitudes</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
-          <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-enlace">Cerrar sesión</span>
-            </span>
-          </nav>
-          <div class="wf-contenido">
-            <h3 class="wf-h1">Mis solicitudes</h3>
-            <h4>Enviadas</h4>
-            <button type="button" class="wf-boton wf-secundario wf-ancho">
-              ▸ Bicicleta de paseo · 5–7 nov. 2026 · Pendiente
-            </button>
-            <h4>Recibidas</h4>
-            <div class="wf-fila">
-              <button type="button" class="wf-boton wf-secundario wf-ancho">
-                ▸ Taladro percutor Bosch · 8–10 nov. 2026 · Pendiente
-              </button>
-              <button type="button" class="wf-boton wf-secundario wf-ancho">
-                ▸ Tienda de campaña · 1–3 nov. 2026 · Aceptada
-              </button>
-              <button type="button" class="wf-boton wf-secundario wf-ancho">
-                ▸ Escalera plegable · 12–13 nov. 2026 · Rechazada
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas" start="2">
-        <li>Los datos vienen de <code>GET /api/usuarios/me/reservas</code> (#123).</li>
-        <li>«Enviadas» son las solicitudes que he pedido yo; «Recibidas», las de mis objetos.</li>
-        <li>Los estados posibles son Pendiente, Aceptada, Rechazada, Cancelada, Pagada, En curso y Finalizada.</li>
-        <li>De la otra persona solo se muestra el nombre de usuario.</li>
-        <li>Mientras carga, se ve «Cargando tus solicitudes…».</li>
-        <li>Las solicitudes se crean desde la ficha del objeto (US-04.01).</li>
-        <li>Sin sesión, <code>/mis-solicitudes</code> lleva a <code>/login</code>.</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Clic en la fila «Taladro percutor Bosch»</p>
-
-    <section class="wf-pantalla" data-captura="3-detalle">
-      <h2><span class="wf-paso">3</span>Detalle de una solicitud recibida <code>/mis-solicitudes</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
-          <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-enlace">Cerrar sesión</span>
-            </span>
-          </nav>
-          <div class="wf-contenido">
-            <h3 class="wf-h1">Mis solicitudes</h3>
-            <h4>Enviadas</h4>
-            <button type="button" class="wf-boton wf-secundario wf-ancho">
-              ▸ Bicicleta de paseo · 5–7 nov. 2026 · Pendiente
-            </button>
-            <h4>Recibidas</h4>
-            <button type="button" class="wf-boton wf-secundario wf-ancho">
-              ▸ Taladro percutor Bosch · 8–10 nov. 2026 · Pendiente
-            </button>
-            <div class="wf-tarjeta">
-              <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
-              <p class="wf-texto">Fechas: Del 8 de noviembre de 2026 al 10 de noviembre de 2026</p>
-              <p class="wf-texto">Importe total: 15,00 €</p>
-              <p class="wf-texto">Estado: Pendiente</p>
-              <p class="wf-texto">Solicitada por: bruno</p>
-              <p class="wf-texto">Enviada el 31 de octubre de 2026</p>
-              <div class="wf-caja">Botones «Aceptar» y «Rechazar» (US-04.03 y US-04.04, #126)</div>
-            </div>
-            <button type="button" class="wf-boton wf-secundario wf-ancho">
-              ▸ Tienda de campaña · 1–3 nov. 2026 · Aceptada
-            </button>
-            <button type="button" class="wf-boton wf-secundario wf-ancho">
-              ▸ Escalera plegable · 12–13 nov. 2026 · Rechazada
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <p class="wf-flecha">Lo que ve un usuario que todavía no tiene solicitudes</p>
-
-    <section class="wf-pantalla" data-captura="4-vacia">
-      <h2><span class="wf-paso">4</span>Lista vacía <code>/mis-solicitudes</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
-          <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-enlace">Cerrar sesión</span>
-            </span>
-          </nav>
-          <div class="wf-contenido">
-            <h3 class="wf-h1">Mis solicitudes</h3>
-            <h4>Enviadas</h4>
-            <p class="wf-texto">No tienes solicitudes abiertas</p>
-            <h4>Recibidas</h4>
-            <p class="wf-texto">Todavía no has recibido solicitudes.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <p class="wf-flecha">Desde el detalle (pantalla 3), clic en el nombre del objeto</p>
-
-    <section class="wf-pantalla" data-captura="5-destino">
-      <h2><span class="wf-paso">5</span>Destino: ficha del objeto <code>/objetos/:id</code></h2>
+    <section class="wf-pantalla" data-captura="2-entrada-solicitud">
+      <h2><span class="wf-paso">2</span>Otra entrada: confirmar una solicitud en la ficha <code>/objetos/:id</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/objetos/:id">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
               <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-enlace">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
-            <div class="wf-caja">Ficha del objeto (US-03.03, otra historia)</div>
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-imagen"></div>
+                <h3 class="wf-h1">Carro de la compra plegable</h3>
+                <p class="wf-texto">Gràcia · Otros</p>
+                <h4>Descripción</h4>
+                <div class="wf-lineas"><span></span><span></span></div>
+                <h4>Formas de entrega</h4>
+                <div class="wf-chips"><span class="wf-chip">Punto de recogida</span></div>
+                <div class="wf-tarjeta"><strong>Publicado por ana</strong></div>
+              </div>
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>2,00 €</strong> / día <span class="wf-chip">Disponible</span></p>
+                <p class="wf-ayuda">Sin fianza</p>
+                <h4>Revisa tu solicitud</h4>
+                <p class="wf-texto"><strong>Carro de la compra plegable</strong><br />2,00 € / día</p>
+                <p class="wf-texto">Desde<br />domingo, 10 de marzo de 2030</p>
+                <p class="wf-texto">Hasta<br />martes, 12 de marzo de 2030</p>
+                <p class="wf-texto">Importe del alquiler (3 días)<br /><strong>6,00 €</strong></p>
+                <div class="wf-fila"><span class="wf-boton wf-secundario">Volver</span><span class="wf-boton">Confirmar</span><span class="wf-marca">1</span></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      <ol class="wf-notas">
+        <li>Es el final del flujo de US-04.01. «Confirmar» crea la solicitud y lleva a <code>/mis-solicitudes</code>, con la nueva la primera de «Enviadas» y en estado «Pendiente».</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Mis solicitudes» (pantalla 1) o en «Confirmar» (pantalla 2)</p>
+
+    <section class="wf-pantalla" data-captura="3-carga">
+      <h2><span class="wf-paso">3</span>Cargando <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <strong class="wf-enlace">Mis solicitudes</strong>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes<span class="wf-marca">1</span></h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-lineas"><span></span></div>
+                <div class="wf-caja"></div>
+                <p class="wf-texto"></p>
+                <div class="wf-caja"></div>
+                <p class="wf-texto"></p>
+                <div class="wf-caja"></div>
+              </div>
+              <div>
+                <div class="wf-lineas"><span></span></div>
+                <div class="wf-caja"></div>
+                <p class="wf-texto"></p>
+                <div class="wf-caja"></div>
+                <p class="wf-texto"></p>
+                <div class="wf-caja"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Mientras carga, cada columna enseña huecos grises sin texto. «Cargando tus solicitudes…» no se ve: solo lo leen los lectores de pantalla.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Llegan los datos</p>
+
+    <section class="wf-pantalla" data-captura="4-lista">
+      <h2><span class="wf-paso">4</span>Lista de solicitudes <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <strong class="wf-enlace">Mis solicitudes</strong>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">3</span><span class="wf-marca">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Escalera de aluminio de 3 peldaños</strong><span class="wf-chip">Aceptada</span><span class="wf-marca">2</span><span>▾</span></div>
+                  <p class="wf-ayuda">18–19 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Carro de la compra plegable</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">14–15 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">11–13 nov. 2026</p>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">2</span><span class="wf-marca">4</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Altavoz Bluetooth JBL</strong><span class="wf-chip">Rechazada</span><span>▾</span></div>
+                  <p class="wf-ayuda">7–8 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">9 nov. 2026<span class="wf-marca">3</span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div>
+              <h4>Enviadas <span class="wf-chip">3</span></h4>
+              <div class="wf-tarjeta">
+                <strong>Escalera de aluminio de 3 peldaños</strong>
+                <p class="wf-ayuda">18–19 nov. 2026</p>
+                <div class="wf-fila"><span class="wf-chip">Aceptada</span><span>▾</span></div>
+              </div>
+              <p class="wf-texto"></p>
+              <div class="wf-tarjeta">
+                <strong>Carro de la compra plegable</strong>
+                <p class="wf-ayuda">14–15 nov. 2026</p>
+                <div class="wf-fila"><span class="wf-chip">Pendiente</span><span>▾</span></div>
+              </div>
+              <p class="wf-texto"></p>
+              <div class="wf-tarjeta">
+                <strong>Taladro percutor Bosch</strong>
+                <p class="wf-ayuda">11–13 nov. 2026</p>
+                <div class="wf-fila"><span class="wf-chip">Pendiente</span><span>▾</span></div>
+              </div>
+            </div>
+            <p class="wf-texto"></p>
+            <div>
+              <h4>Recibidas <span class="wf-chip">2</span></h4>
+              <div class="wf-tarjeta">
+                <strong>Altavoz Bluetooth JBL</strong>
+                <p class="wf-ayuda">7–8 nov. 2026</p>
+                <div class="wf-fila"><span class="wf-chip">Rechazada</span><span>▾</span></div>
+              </div>
+              <p class="wf-texto"></p>
+              <div class="wf-tarjeta">
+                <strong>Proyector Full HD</strong>
+                <p class="wf-ayuda">9 nov. 2026</p>
+                <div class="wf-fila"><span class="wf-chip">Pendiente</span><span>▾</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Los datos vienen de <code>GET /api/usuarios/me/reservas</code> (#123). «Enviadas» son las que he pedido yo; el número es cuántas hay. En el móvil, una columna debajo de otra y el estado bajo las fechas.</li>
+        <li>Los estados posibles son Pendiente, Aceptada, Rechazada, Cancelada, Pagada, En curso y Finalizada.</li>
+        <li>Un rango de un solo día se ve con una sola fecha. Si no, «18–19 nov. 2026» o, entre meses, «30 nov. 2026–2 dic. 2026».</li>
+        <li>«Recibidas» son las de mis objetos. En las dos columnas salen de la más nueva a la más antigua.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Escalera de aluminio de 3 peldaños»</p>
+
+    <section class="wf-pantalla" data-captura="5-detalle-enviada">
+      <h2><span class="wf-paso">5</span>Detalle de una solicitud enviada <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <strong class="wf-enlace">Mis solicitudes</strong>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">3</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Escalera de aluminio de 3 peldaños</strong><span class="wf-marca">1</span><span class="wf-chip">Aceptada</span><span>▴</span></div>
+                  <p class="wf-ayuda">18–19 nov. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Escalera de aluminio de 3 peldaños</span></p>
+                    <p class="wf-texto">Fechas: Del 18 de noviembre de 2026 al 19 de noviembre de 2026</p>
+                    <p class="wf-texto">Importe total: 6,00 €</p>
+                    <p class="wf-texto">Estado: Aceptada</p>
+                    <p class="wf-texto">Propietario: ana<span class="wf-marca">2</span></p>
+                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
+                  </div>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Carro de la compra plegable</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">14–15 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">11–13 nov. 2026</p>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">2</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Altavoz Bluetooth JBL</strong><span class="wf-chip">Rechazada</span><span>▾</span></div>
+                  <p class="wf-ayuda">7–8 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">9 nov. 2026</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <h4>Enviadas <span class="wf-chip">3</span></h4>
+            <div class="wf-tarjeta">
+              <strong>Escalera de aluminio de 3 peldaños</strong>
+              <p class="wf-ayuda">18–19 nov. 2026</p>
+              <div class="wf-fila"><span class="wf-chip">Aceptada</span><span>▴</span></div>
+              <p class="wf-texto"></p>
+              <div class="wf-rejilla">
+                <p class="wf-texto">Objeto: <span class="wf-enlace">Escalera de aluminio de 3 peldaños</span></p>
+                <p class="wf-texto">Fechas: Del 18 de noviembre de 2026 al 19 de noviembre de 2026</p>
+                <p class="wf-texto">Importe total: 6,00 €</p>
+                <p class="wf-texto">Estado: Aceptada</p>
+                <p class="wf-texto">Propietario: ana</p>
+                <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
+              </div>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>La tarjeta se despliega en la misma página. Se cierra con otro clic y puede haber varias abiertas a la vez. Las enviadas no llevan botones.</li>
+        <li>De la otra persona solo se muestra el nombre de usuario.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Con la sesión de ana: clic en «Proyector Full HD» y en «Carro de la compra plegable»</p>
+
+    <section class="wf-pantalla" data-captura="6-detalle-recibida">
+      <h2><span class="wf-paso">6</span>Detalle de una solicitud recibida <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <strong class="wf-enlace">Mis solicitudes</strong>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">2</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Altavoz Bluetooth JBL</strong><span class="wf-chip">Rechazada</span><span>▾</span></div>
+                  <p class="wf-ayuda">7–8 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▴</span></div>
+                  <p class="wf-ayuda">9 nov. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Proyector Full HD</span></p>
+                    <p class="wf-texto">Fechas: Del 9 de noviembre de 2026 al 9 de noviembre de 2026<span class="wf-marca">3</span></p>
+                    <p class="wf-texto">Importe total: 12,00 €</p>
+                    <p class="wf-texto">Estado: Pendiente</p>
+                    <p class="wf-texto">Propietario: bruno</p>
+                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">3</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Escalera de aluminio de 3 peldaños</strong><span class="wf-chip">Aceptada</span><span>▾</span></div>
+                  <p class="wf-ayuda">18–19 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Carro de la compra plegable</strong><span class="wf-chip">Pendiente</span><span>▴</span></div>
+                  <p class="wf-ayuda">14–15 nov. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Carro de la compra plegable</span></p>
+                    <p class="wf-texto">Fechas: Del 14 de noviembre de 2026 al 15 de noviembre de 2026</p>
+                    <p class="wf-texto">Importe total: 4,00 €</p>
+                    <p class="wf-texto">Estado: Pendiente</p>
+                    <p class="wf-texto">Solicitada por: bruno<span class="wf-marca">1</span></p>
+                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
+                  </div>
+                  <div class="wf-fila"><span class="wf-boton">Aceptar</span><span class="wf-boton wf-secundario">Rechazar</span><span class="wf-marca">2</span></div>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">11–13 nov. 2026</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <h4>Recibidas <span class="wf-chip">3</span></h4>
+            <div class="wf-tarjeta">
+              <strong>Carro de la compra plegable</strong>
+              <p class="wf-ayuda">14–15 nov. 2026</p>
+              <div class="wf-fila"><span class="wf-chip">Pendiente</span><span>▴</span></div>
+              <p class="wf-texto"></p>
+              <div class="wf-rejilla">
+                <p class="wf-texto">Objeto: <span class="wf-enlace">Carro de la compra plegable</span></p>
+                <p class="wf-texto">Fechas: Del 14 de noviembre de 2026 al 15 de noviembre de 2026</p>
+                <p class="wf-texto">Importe total: 4,00 €</p>
+                <p class="wf-texto">Estado: Pendiente</p>
+                <p class="wf-texto">Solicitada por: bruno</p>
+                <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
+              </div>
+              <div class="wf-fila"><span class="wf-boton">Aceptar</span><span class="wf-boton wf-secundario">Rechazar</span></div>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>En las recibidas, «Solicitada por» en lugar de «Propietario».</li>
+        <li>Solo en las recibidas «Pendiente»: «Aceptar» y «Rechazar» (US-04.03 y US-04.04, en su propio wireframe).</li>
+        <li>En el detalle, un solo día se escribe con las dos fechas: «Del 9 de noviembre de 2026 al 9 de noviembre de 2026».</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Lo que ve un usuario que todavía no tiene solicitudes</p>
+
+    <section class="wf-pantalla" data-captura="7-vacia">
+      <h2><span class="wf-paso">7</span>Lista vacía <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <strong class="wf-enlace">Mis solicitudes</strong>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes<span class="wf-marca">1</span></h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">0</span></h4>
+                <div class="wf-tarjeta"><p class="wf-texto">No tienes solicitudes abiertas</p></div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">0</span></h4>
+                <div class="wf-tarjeta"><p class="wf-texto">Todavía no has recibido solicitudes.</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Cada columna tiene su mensaje y puede estar vacía sin que lo esté la otra.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Si falla la carga</p>
+
+    <section class="wf-pantalla" data-captura="8-error">
+      <h2><span class="wf-paso">8</span>Error al cargar <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <strong class="wf-enlace">Mis solicitudes</strong>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <p class="wf-error">No hemos podido cargar tus solicitudes. Inténtalo de nuevo más tarde. <span class="wf-marca">1</span></p>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El mensaje sustituye a las dos columnas. Sin conexión, dice «No se puede conectar con el servidor. Inténtalo más tarde.».</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Desde el detalle (pantalla 5 o 6), clic en el nombre del objeto</p>
+
+    <section class="wf-pantalla" data-captura="9-destino">
+      <h2><span class="wf-paso">9</span>Destino: ficha del objeto <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/:id">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-imagen"></div>
+                <h3 class="wf-h1">Escalera de aluminio de 3 peldaños<span class="wf-marca">1</span></h3>
+                <p class="wf-texto">Gràcia · Otros</p>
+                <h4>Descripción</h4>
+                <div class="wf-lineas"><span></span><span></span></div>
+                <h4>Formas de entrega</h4>
+                <div class="wf-chips"><span class="wf-chip">Punto de recogida</span></div>
+                <div class="wf-tarjeta"><strong>Publicado por ana</strong></div>
+              </div>
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>2,00 €</strong> / día</p>
+                <h4>Elige las fechas</h4>
+                <div class="wf-caja">Fechas y calendario (US-04.01)</div>
+                <p class="wf-texto"></p>
+                <span class="wf-boton wf-desactivado wf-ancho">Solicitar alquiler</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Ficha del objeto (US-03.03). Es una salida opcional: si no pulsa el enlace, el usuario sigue en «Mis solicitudes».</li>
+      </ol>
     </section>
   </body>
 </html>
