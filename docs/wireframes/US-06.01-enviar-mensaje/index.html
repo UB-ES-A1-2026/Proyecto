@@ -16,6 +16,7 @@
         Issue #69 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Generado con
         asistencia de IA (Claude) – pendiente de revisar por el equipo en el Sprint Planning
       </p>
+      <p class="wf-meta">Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo</p>
       <p class="wf-meta">Maqueta de Figma · Marco «Ficha»: «Envia un missatge» en la caja del propietario coincide con el punto de entrada A.</p>
     </header>
 
@@ -28,18 +29,26 @@
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span>
               <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
-            <h3 class="wf-h1">Taladro percutor Bosch</h3>
-            <div class="wf-imagen"></div>
-            <p class="wf-texto">5,50 € / día · Propietario: ana</p>
-            <div class="wf-lineas"><span></span><span></span></div>
-            <div class="wf-fila">
-              <span class="wf-boton">Alquilar</span>
-              <span class="wf-boton wf-secundario">Enviar mensaje</span><span class="wf-marca">1</span>
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-imagen"></div>
+                <h3 class="wf-h1">Taladro percutor Bosch</h3>
+                <h4>Descripción</h4>
+                <div class="wf-lineas"><span></span><span></span></div>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Publicado por ana</strong><span class="wf-boton wf-secundario">Enviar mensaje</span><span class="wf-marca">1</span></div>
+                </div>
+              </div>
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>6,00 €</strong> / día <span class="wf-chip">Disponible</span></p>
+                <h4>Elige las fechas</h4>
+                <div class="wf-caja">Fechas y calendario (US-04.01)</div>
+                <p class="wf-texto"></p>
+                <span class="wf-boton wf-desactivado wf-ancho">Solicitar alquiler</span>
+              </div>
             </div>
           </div>
         </div>
@@ -60,20 +69,37 @@
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span>
               <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Mis solicitudes</h3>
-            <h4>Enviadas</h4>
-            <button type="button" class="wf-boton wf-secundario wf-ancho">▸ Taladro percutor Bosch · 8–10 dic. 2026 · Aceptada</button>
-            <div class="wf-tarjeta">
-              <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
-              <p class="wf-texto">Estado: Aceptada</p>
-              <p class="wf-texto">Propietario: ana</p>
-              <div class="wf-lineas"><span></span><span></span></div>
-              <span class="wf-boton wf-secundario">Enviar mensaje</span><span class="wf-marca">1</span>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Aceptada</span><span>▴</span></div>
+                  <p class="wf-ayuda">8–10 dic. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
+                    <p class="wf-texto">Fechas: Del 8 de diciembre de 2026 al 10 de diciembre de 2026</p>
+                    <p class="wf-texto">Importe total: 18,00 €</p>
+                    <p class="wf-texto">Estado: Aceptada</p>
+                    <p class="wf-texto">Propietario: ana</p>
+                    <p class="wf-texto">Enviada el 1 de diciembre de 2026</p>
+                  </div>
+                  <p class="wf-texto"></p>
+                  <span class="wf-boton wf-secundario">Enviar mensaje</span><span class="wf-marca">1</span>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">9 nov. 2026</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -94,9 +120,7 @@
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span>
               <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Conversación con ana</h3>
@@ -132,9 +156,7 @@
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span>
               <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Conversación con ana</h3>
@@ -168,9 +190,7 @@
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span>
               <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">No hemos encontrado esta conversación</h3>
@@ -194,9 +214,7 @@
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span>
               <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Conversación con ana</h3>
