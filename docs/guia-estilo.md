@@ -4,6 +4,8 @@ Cómo se ve Rentit y cómo mantenerlo coherente al añadir pantallas (TR-09, #15
 
 > Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 03/11/2026. Paleta y logo de la maqueta de Figma de Francesc (#157) aplicados por Danyal, 03/11/2026 (#158).
 
+**Maqueta:** [Rentit en Figma](https://www.figma.com/design/C6S1Lj9UBkEW0FxZP8chpV/Sin-t%C3%ADtulo?node-id=0-1) (home con búsqueda, ficha de objeto y login, #157).
+
 ## La norma
 
 Toda la identidad está en el bloque `:root` de [`frontend/src/styles.css`](../frontend/src/styles.css). **Fuera de ese bloque no se escriben colores a mano**: siempre `var(--color-…)`. Un test lo comprueba (`frontend/tests/contrast.test.ts`), junto con el contraste de la paleta.
