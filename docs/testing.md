@@ -181,7 +181,7 @@ Solicitudes del seed (`DEMO_RESERVATIONS` en `backend/prisma/demoData.ts`, #210)
 |---|---|---|---|---|---|
 | CP-MSO-01 | 1. La lista muestra objeto, fechas y estado | Sesión de bruno | 1. Pulsar «Mis solicitudes» en la cabecera | En «Enviadas» sale la escalera, con sus fechas y «Aceptada» | `mis-solicitudes.spec.ts` · criterio 1 |
 | CP-MSO-02 | 2. Estados «Pendiente», «Aceptada» y «Rechazada» | Sesión de ana | 1. Ir a «Mis solicitudes» | Proyector «Pendiente» y altavoz «Rechazada» en «Enviadas», y escalera «Aceptada» en «Recibidas» | `mis-solicitudes.spec.ts` · criterio 2 |
-| CP-MSO-03 | 3. Abrir el detalle | Sesión de ana | 1. Pulsar la solicitud del proyector | Se despliega con el enlace al objeto, «Fechas: Del … al …», «Importe total: 12,00 €», «Estado: Pendiente» y «Propietario: bruno» | `mis-solicitudes.spec.ts` · criterio 3 |
+| CP-MSO-03 | 3. Abrir el detalle | Sesión de ana | 1. Pulsar la solicitud del proyector | Se despliega con el enlace al objeto, «Fecha: …» (es de un solo día), «Importe total: 12,00 €», «Estado: Pendiente» y «Propietario: bruno» | `mis-solicitudes.spec.ts` · criterio 3 |
 | CP-MSO-04 | 4. Sin solicitudes | Usuario recién registrado | 1. Ir a «Mis solicitudes» | «No tienes solicitudes abiertas» en «Enviadas» y «Todavía no has recibido solicitudes.» en «Recibidas» | `mis-solicitudes.spec.ts` · criterio 4 |
 | CP-MSO-05 | (Recibidas) El propietario ve las que le llegan | Sesión de ana | 1. Abrir la solicitud de la escalera en «Recibidas» | Sale «Solicitada por: bruno», y la escalera no aparece en «Enviadas» | `mis-solicitudes.spec.ts` · recibidas |
 | CP-MSO-06 | (Acceso) Sin sesión | Sin sesión | 1. Ir a `/mis-solicitudes` | Se redirige a `/login` | `mis-solicitudes.spec.ts` · acceso |

@@ -83,7 +83,7 @@ test.describe('US-04.02 Consultar mis solicitudes', () => {
       'href',
       /^\/objetos\/[0-9a-f-]{36}$/,
     );
-    await expect(detail.getByText(/^Fechas: Del \d{1,2} de \w+ de \d{4} al/)).toBeVisible();
+    await expect(detail.getByText(/^Fecha: \d{1,2} de \w+ de \d{4}$/)).toBeVisible();
     // 12 €/día × 1 día
     await expect(detail.getByText(/^Importe total: 12,00\s€$/)).toBeVisible();
     await expect(detail.getByText('Estado: Pendiente')).toBeVisible();

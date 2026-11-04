@@ -30,8 +30,10 @@ describe('cálculos del alquiler (US-04.01, #121)', () => {
     expect(calculateTotalPrice(12.5, 0)).toBe(0);
   });
 
-  it('da la fecha de hoy en formato AAAA-MM-DD', () => {
-    expect(todayIso(new Date(2026, 0, 5, 23, 30))).toBe('2026-01-05');
+  it('da la fecha de hoy en España en formato AAAA-MM-DD', () => {
+    expect(todayIso(new Date('2026-01-05T22:30:00Z'))).toBe('2026-01-05');
+    // A las 23:30 UTC, en España ya es el día siguiente
+    expect(todayIso(new Date('2026-01-05T23:30:00Z'))).toBe('2026-01-06');
   });
 
   it('no da error mientras falta alguna fecha', () => {
