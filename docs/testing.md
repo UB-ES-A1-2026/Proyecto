@@ -162,7 +162,7 @@ Se llega a la ficha desde la búsqueda de `taladro` (US-03.01): «Taladro percut
 
 ### US-02.02 Editar un objeto (#51) · S1-T33 (#171)
 
-Se edita la «Hidrolimpiadora Kärcher» de ana (8 €/día, fianza 50 €), que no usa ningún otro e2e. Cada test la deja como estaba al terminar. Del criterio 2, la disponibilidad se cambia con «Pausar» y «Reanudar» en «Mis objetos» (US-02.04), igual que «Disponible ya» o «Pausado» al publicar. Añadir fotos llega cuando entre la subida de US-02.01. Borrar fotos queda para el Sprint 2 (decisión de Marc, 03/11).
+Se edita la «Hidrolimpiadora Kärcher» de ana (8 €/día, fianza 50 €), que no usa ningún otro e2e. Cada test la deja como estaba al terminar. Del criterio 2, la disponibilidad se cambia con «Pausar» y «Reanudar» en «Mis objetos» (US-02.04), igual que «Disponible ya» o «Pausado» al publicar. Añadir fotos se comprueba en los unitarios (`editItem.test.tsx`). Borrar fotos queda para el Sprint 2 (decisión de Marc, 03/11).
 
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
