@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
-import { getItem, updateItem, type ItemDetail } from '../services/itemService';
+import { getItemDetail, updateItem, type ItemDetail } from '../services/itemService';
 import { ACCEPTED_PHOTO_TYPES, uploadItemPhoto } from '../services/photoService';
 import { Modal } from './Modal';
 
@@ -83,7 +83,7 @@ export function EditItemDialog({ id, onClose, onSaved }: EditItemDialogProps) {
     if (!token) return;
     let ignore = false;
 
-    getItem(token, id)
+    getItemDetail(id, token)
       .then((data) => {
         if (!ignore) setItem(data);
       })
