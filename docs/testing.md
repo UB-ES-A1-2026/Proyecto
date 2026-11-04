@@ -251,6 +251,20 @@ Solicitudes del seed (#210). bruno ha pedido a ana el carro (pendiente: se recha
 | CP-REC-03 | 3. Una rechazada no se puede volver a aceptar ni rechazar | Sesión de bruno | 1. Abrir el altavoz (rechazada) en «Recibidas» 2. Llamar a la API de aceptar y de rechazar | No hay botones. La API responde `409` y sigue «Rechazada» | `rechazar-solicitud.spec.ts` · criterio 3 |
 | CP-REC-04 | (Permisos) Solo el propietario rechaza | — | 1. `POST /api/reservas/<id del proyector>/rechazar` con el token de ana | `403`, y la solicitud sigue «Pendiente» | `rechazar-solicitud.spec.ts` · permisos |
 
+### US-03.02 Filtrar objetos (#57) · S1-T36 (#174)
+
+Objetos del seed (`backend/prisma/demoData.ts`). En Deporte están la bicicleta (10 €/día) y la tabla de paddle (15 €). Hasta 4 €/día hay tres objetos publicados. En Sant Andreu, cuatro.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-FIL-01 | 1. Se abren los filtros desde la búsqueda | Página de resultados | 1. Pulsar «Filtros» | Se ven «Categoría», «Precio máximo (€/día)» y «Barrio» | `filtrar-objetos.spec.ts` · criterio 1 |
+| CP-FIL-02 | 2-3. Filtrar por categoría | Seed cargado | 1. Elegir «Deporte» 2. «Aplicar filtros» | Solo salen la bicicleta y la tabla de paddle, las dos de «Deporte» | `filtrar-objetos.spec.ts` · criterios 2 y 3 |
+| CP-FIL-03 | 2-3. Filtrar por precio máximo | Seed cargado | 1. Precio máximo `4` 2. «Aplicar filtros» | Solo salen objetos de 4 €/día o menos, incluido el de 4 € | `filtrar-objetos.spec.ts` · criterios 2 y 3 |
+| CP-FIL-04 | 2-3. Filtrar por ubicación | Seed cargado | 1. Barrio `sant andreu` 2. «Aplicar filtros» | Salen los 4 objetos de Sant Andreu y ninguno de otro barrio | `filtrar-objetos.spec.ts` · criterios 2 y 3 |
+| CP-FIL-05 | 4. Varios filtros a la vez | Seed cargado | 1. «Deporte» y precio máximo `10` 2. «Aplicar filtros» 3. Quitar el chip «Hasta 10 €/día» | En el paso 2 solo sale la bicicleta y el botón dice «Filtros (2)». En el 3 vuelve la tabla de paddle y se mantiene la categoría | `filtrar-objetos.spec.ts` · criterio 4 |
+| CP-FIL-06 | 5. Limpiar filtros | `/buscar?q=taladro` con precio máximo `2` (sin resultados) | 1. Pulsar «Limpiar filtros» | Se vuelve a `/buscar?q=taladro` y sale otra vez el taladro | `filtrar-objetos.spec.ts` · criterio 5 |
+| CP-FIL-07 | (Validación) Precio máximo no válido | — | 1. Precio máximo `-5` 2. «Aplicar filtros» | No cambia la URL. Bajo el campo sale «El campo "precio máximo" no es correcto, revísalo.» | `filtrar-objetos.spec.ts` · validación |
+
 ## 5. Pendiente
 
 - **Smoke test en el CI:** el workflow de GitHub Actions que arranca PostgreSQL, el backend y el frontend y ejecuta `npm run test:smoke`. Se coordina con el CI general (#19, Kai). En el CI conviene servir el frontend compilado (`npm run build` + `npm run preview`) en lugar de `npm run dev`, para evitar la espera de la primera carga de Vite.
