@@ -147,6 +147,55 @@ describe('SearchPage', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('al limpiar los filtros sin texto muestra todos los objetos, no la ayuda', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(async () => Response.json(SEARCH_RESPONSE));
+    const user = userEvent.setup();
+    const { router } = renderRoute('/buscar?maxPrice=10');
+
+    await screen.findByText('Taladro percutor');
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+
+    await waitFor(() => expect(router.state.location.search).toBe('?q='));
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenLastCalledWith(
+        'http://localhost:3000/api/objetos',
+        expect.any(Object),
+      ),
+    );
+    expect(await screen.findByText('Taladro percutor')).toBeInTheDocument();
+    expect(screen.queryByText('Escribe qué quieres alquilar y pulsa «Buscar».')).toBeNull();
+  });
+
+  it('no manda a la API un precio no válido escrito a mano en la URL', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(Response.json(SEARCH_RESPONSE));
+
+    renderRoute('/buscar?q=taladro&maxPrice=abc');
+
+    await screen.findByText('Taladro percutor');
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:3000/api/objetos?q=taladro',
+      expect.any(Object),
+    );
+  });
+
+  it('normaliza la coma del precio de la URL antes de pedirlo a la API', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(Response.json(SEARCH_RESPONSE));
+
+    renderRoute('/buscar?q=taladro&maxPrice=4,5');
+
+    await screen.findByText('Taladro percutor');
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:3000/api/objetos?q=taladro&maxPrice=4.5',
+      expect.any(Object),
+    );
+  });
+
   it('muestra el botón «Filtros» junto a la búsqueda (US-03.02, #118)', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json(SEARCH_RESPONSE));
 

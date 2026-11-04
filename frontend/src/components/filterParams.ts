@@ -12,9 +12,11 @@ export const FILTER_KEYS = ['categoryId', 'maxPrice', 'neighborhood'] as const;
 export type FilterKey = (typeof FILTER_KEYS)[number];
 
 export const MAX_PRICE_ERROR = 'El campo "precio máximo" no es correcto, revísalo.';
+export const MAX_NEIGHBORHOOD_LENGTH = 100;
 
 // Una URL escrita a mano puede traer valores no válidos (?maxPrice=abc): se ignoran en lugar
-// de mostrarlos como filtro activo y mandarlos a la API, que respondería 400.
+// de mostrarlos como filtro activo y mandarlos a la API, que respondería 400. La página de
+// resultados pide a la API lo que devuelve esta función, no lo que trae la URL.
 export function readFilters(params: URLSearchParams): SearchFilters {
   const filters: SearchFilters = {};
   for (const key of FILTER_KEYS) {
@@ -22,7 +24,7 @@ export function readFilters(params: URLSearchParams): SearchFilters {
     if (!value) continue;
     if (key === 'maxPrice') {
       if (isValidMaxPrice(value)) filters.maxPrice = normalizeMaxPrice(value);
-    } else {
+    } else if (key !== 'neighborhood' || value.length <= MAX_NEIGHBORHOOD_LENGTH) {
       filters[key] = value;
     }
   }
@@ -39,6 +41,12 @@ export function writeFilters(params: URLSearchParams, filters: SearchFilters): U
     else next.delete(key);
   }
   next.delete('page');
+  // Sin texto ni filtros, «?q=» hace que la página siga mostrando todos los objetos (criterio 5
+  // de US-03.02) en lugar de la ayuda de «/buscar».
+  if (!next.get('q')?.trim()) {
+    if (FILTER_KEYS.some((key) => next.has(key))) next.delete('q');
+    else next.set('q', '');
+  }
   return next;
 }
 
@@ -46,11 +54,12 @@ export function countActiveFilters(filters: SearchFilters): number {
   return FILTER_KEYS.filter((key) => filters[key]).length;
 }
 
-// Precio máximo: vacío (sin límite) o un número mayor que 0, con punto o coma decimal.
+// Precio máximo: vacío (sin límite) o un número mayor que 0, de hasta 8 cifras enteras y 2
+// decimales, con punto o coma decimal.
 export function isValidMaxPrice(value: string): boolean {
   const trimmed = value.trim();
   if (trimmed === '') return true;
-  if (!/^\d+([.,]\d{1,2})?$/.test(trimmed)) return false;
+  if (!/^\d{1,8}([.,]\d{1,2})?$/.test(trimmed)) return false;
   return Number(trimmed.replace(',', '.')) > 0;
 }
 

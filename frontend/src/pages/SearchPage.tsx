@@ -15,13 +15,13 @@ export function SearchPage() {
   const urlParams = new URLSearchParams(location.search);
   const q = urlParams.get('q') ?? '';
   const pageParam = urlParams.get('page') ?? '';
-  const categoryId = urlParams.get('categoryId') ?? '';
-  const maxPrice = urlParams.get('maxPrice') ?? '';
-  const neighborhood = urlParams.get('neighborhood') ?? '';
+  const filters = readFilters(urlParams);
+  const categoryId = filters.categoryId ?? '';
+  const maxPrice = filters.maxPrice ?? '';
+  const neighborhood = filters.neighborhood ?? '';
   const page = Math.max(1, Number.parseInt(pageParam, 10) || 1);
-  const hasCriteria = Boolean(
-    q.trim() || categoryId.trim() || maxPrice.trim() || neighborhood.trim(),
-  );
+  // «?q=» vacío viene de limpiar los filtros sin texto: se muestran todos los objetos.
+  const hasCriteria = urlParams.has('q') || countActiveFilters(filters) > 0;
 
   const [result, setResult] = useState<{ search: string; data: SearchResponse } | null>(null);
   const [errorState, setErrorState] = useState<{ search: string; message: string } | null>(null);
@@ -96,7 +96,7 @@ export function SearchPage() {
             </p>
           ) : response && response.items.length === 0 ? (
             // Si hay filtros, la causa son ellos: se ofrece quitarlos (US-03.02, #118)
-            countActiveFilters(readFilters(urlParams)) > 0 ? (
+            countActiveFilters(filters) > 0 ? (
               <NoResultsWithFilters />
             ) : (
               <p>
