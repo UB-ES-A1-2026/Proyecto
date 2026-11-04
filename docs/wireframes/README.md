@@ -53,6 +53,30 @@ Los wireframes son **HTML con unos estilos comunes** que se convierten en PNG co
 
 Si hace falta una pieza nueva, se añade a `wireframe.css` (en su propio commit) en lugar de poner estilos sueltos en un wireframe, para que todos se parezcan.
 
+## Relación con la maqueta de Figma
+
+La [maqueta de Figma](https://www.figma.com/design/C6S1Lj9UBkEW0FxZP8chpV/Rentit?node-id=0-1) (#157, en catalán) y estos wireframes no son lo mismo: **la maqueta define cómo se ve Rentit y el wireframe define cómo funciona cada historia**. Si no coinciden, mandan los criterios de aceptación y el wireframe, y la maqueta manda en la identidad visual ([guía de estilo](../guia-estilo.md)). Los wireframes no se redibujan con el aspecto de la maqueta, porque son de baja fidelidad.
+
+Comparados el 04/11/2026. Cada wireframe de la tabla lo recuerda en una nota debajo de su título.
+
+| Marco de Figma | Wireframes | Qué coincide | Qué hace distinto la maqueta |
+|---|---|---|---|
+| «Home» y «Home2» | [US-03.01](US-03.01-buscar-objetos/), [US-03.02](US-03.02-filtrar-objetos/) | Resultados en tarjetas con foto, precio y barrio | Cuadrícula en la home, buscador en la cabecera, botón en cada tarjeta y panel lateral fijo con más filtros |
+| «Ficha» (dos variantes) | [US-03.03](US-03.03-ver-objeto/), [US-04.01](US-04.01-solicitar-alquiler/), [US-05.01](US-05.01-modo-entrega/), [US-06.01](US-06.01-enviar-mensaje/), [US-01.4](US-01.4-perfil-publico/), [US-08.01](US-08.01-valorar-alquiler/) | Fotos, precio, fianza, descripción, propietario y mensaje al propietario | Reúne en una pantalla lo que las historias reparten: calendario, importe, forma de recibirlo y valoraciones |
+| «Log in» | [US-01.2](US-01.2-login/) | Tarjeta centrada con correo, contraseña y botón | «Recorda’m», «He oblidat la contrasenya» y enlace a registrarse |
+| «Mis objetos» | [US-02.02](US-02.02-editar-objeto/), [US-02.03](US-02.03-retirar-objeto/), [US-02.04](US-02.04-pausar-objeto/) | Filtros por estado, «Publicar un objeto» y botones de cada objeto | Nada relevante |
+
+**Cabecera:** la maqueta tiene logo, buscador, «Log in» y un icono de calendario. La web y los wireframes llevan el logo y enlaces de texto, con el buscador en la página.
+
+**Para decidir en el Sprint Planning:**
+- Si los filtros de la maqueta que no tienen historia (fechas, distancia, valoración, sin fianza) entran en el backlog.
+- Si solicitar y elegir la entrega (US-04.01 y US-05.01) se quedan en pantallas aparte o pasan al lateral de la ficha.
+- Si «Recorda’m» y «He oblidat la contrasenya» pasan a ser historias.
+- Dónde se enseñan las valoraciones en la ficha: US-08.01 y US-08.02 solo dibujan cómo se valora.
+- Qué es el icono de calendario de la cabecera. La maqueta no lo aclara.
+
+Las demás historias con wireframe no tienen marco en la maqueta: siguen la paleta de la guía de estilo cuando se programan.
+
 ## Ejemplo
 
 [`US-01.1-registro/`](US-01.1-registro/): el registro del Sprint 0, dibujado después a partir de lo que se implementó, para que se vea el resultado. Va de la página inicial sin sesión (punto de entrada) al formulario, sus errores y la página inicial con la sesión iniciada (destino).

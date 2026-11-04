@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-01.2 Inicio de sesión · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-01.2 Inicio de sesión</h1>
+      <p class="wf-historia">Como <strong>usuario</strong>, quiero <strong>iniciar sesión</strong> para <strong>acceder a mi cuenta</strong>.</p>
+      <p class="wf-meta">Issue #46 · Wireframe de baja fidelidad, dibujado a partir de lo implementado en el Sprint 0 · Generado con asistencia de IA (Claude), pendiente de revisar por el equipo</p>
+      <p class="wf-meta">Maqueta de Figma · Marco «Log in»: coinciden la tarjeta centrada, el correo, la contraseña y el botón. La maqueta añade «Recorda’m», «He oblidat la contrasenya» y un enlace a registrarse, que no están en los criterios.</p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-entrada">
+      <h2><span class="wf-paso">1</span>Punto de entrada: cualquier página sin sesión <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Ayuda</span>
+              <span class="wf-enlace">Iniciar sesión</span><span class="wf-marca">1</span>
+              <span class="wf-enlace">Crear cuenta</span>
+            </span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-campo">
+              <label>¿Qué quieres alquilar?</label>
+              <div class="wf-input">Por ejemplo, taladro</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El enlace «Iniciar sesión» está en la cabecera mientras no hay sesión. También se llega al pulsar «Alquilar» o al abrir una página privada sin sesión.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Iniciar sesión»</p>
+
+    <section class="wf-pantalla" data-captura="2-formulario">
+      <h2><span class="wf-paso">2</span>Formulario <code>/login</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/login">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Ayuda</span><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span></span>
+          </nav>
+          <div class="wf-contenido wf-centrado">
+            <div class="wf-tarjeta">
+              <h3 class="wf-h1">Iniciar sesión</h3>
+              <div class="wf-campo"><label>Correo electrónico</label><div class="wf-input">ana@ejemplo.com</div></div>
+              <div class="wf-campo">
+                <label>Contraseña</label>
+                <div class="wf-input">•••••••• <span class="wf-boton wf-secundario">Mostrar <span class="wf-marca">1</span></span></div>
+              </div>
+              <span class="wf-boton wf-ancho">Iniciar sesión <span class="wf-marca">2</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>«Mostrar» enseña la contraseña y pasa a decir «Ocultar».</li>
+        <li>Mientras se envía, el botón dice «Iniciando sesión…» y está desactivado.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Pulsar «Iniciar sesión» con un dato incorrecto</p>
+
+    <section class="wf-pantalla" data-captura="3-error">
+      <h2><span class="wf-paso">3</span>Error en un campo <code>/login</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/login">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Ayuda</span><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span></span>
+          </nav>
+          <div class="wf-contenido wf-centrado">
+            <div class="wf-tarjeta">
+              <h3 class="wf-h1">Iniciar sesión</h3>
+              <div class="wf-campo">
+                <label>Correo electrónico</label>
+                <div class="wf-input wf-con-error">ana@</div>
+                <p class="wf-error">El campo "correo electrónico" no es correcto, revísalo. <span class="wf-marca">1</span></p>
+              </div>
+              <div class="wf-campo"><label>Contraseña</label><div class="wf-input">•••••••• <span class="wf-boton wf-secundario">Mostrar</span></div></div>
+              <span class="wf-boton wf-ancho">Iniciar sesión</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El error sale debajo del campo, con el formato «El campo "X" no es correcto, revísalo.», y el cursor va a ese campo. Con la contraseña vacía pasa lo mismo.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Pulsar «Iniciar sesión» con los datos correctos</p>
+
+    <section class="wf-pantalla" data-captura="4-destino">
+      <h2><span class="wf-paso">4</span>Destino: la página en la que estaba</h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mi perfil</span>
+              <span class="wf-enlace">Cerrar sesión</span><span class="wf-marca">1</span>
+            </span>
+          </nav>
+          <div class="wf-contenido"><div class="wf-caja">La página en la que estaba, o la inicial si entró directamente en /login</div></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>La cabecera ya es la de una persona con sesión iniciada.</li>
+      </ol>
+    </section>
+  </body>
+</html>

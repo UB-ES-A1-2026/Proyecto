@@ -53,6 +53,7 @@ body {
 
 .wf-doc .wf-meta {
   margin: 0;
+  max-width: 900px;
   font-size: 13px;
   color: var(--gris);
 }
