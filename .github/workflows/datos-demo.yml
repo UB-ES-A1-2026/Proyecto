@@ -34,7 +34,9 @@ jobs:
       DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
       DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}
     steps:
+      # Antes del checkout todavía no existe la carpeta backend/ de los defaults.
       - name: Comprobar los secretos
+        working-directory: .
         run: |
           for name in DATABASE_URL DIRECT_URL DEMO_PASSWORD; do
             if [ -z "${!name}" ]; then
