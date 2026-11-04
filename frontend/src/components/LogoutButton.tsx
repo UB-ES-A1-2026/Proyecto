@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Icon } from './Icon';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../context/useAuth';
 import { logout } from '../services/authService';
@@ -27,6 +28,7 @@ export function LogoutButton() {
 
   return (
     <button type="button" className="button-link" onClick={handleLogout} disabled={loggingOut}>
+      <Icon name="logout" />
       Cerrar sesión
     </button>
   );

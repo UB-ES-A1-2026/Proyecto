@@ -1,0 +1,229 @@
+/* Inicio, búsqueda, filtros y ayuda. Zona «discover». */
+
+.home {
+  margin: var(--space-xl) auto;
+  text-align: center;
+}
+
+.home-tagline {
+  font-size: var(--font-size-tagline);
+}
+
+.home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  justify-content: center;
+  margin-top: var(--space-lg);
+}
+
+.home-actions > * {
+  width: auto;
+  min-width: 10rem;
+}
+
+/* US-03.01 Buscar objetos (#115) */
+.search-bar {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--space-md);
+  align-items: end;
+  max-width: var(--content-max-width);
+  margin: var(--space-lg) auto;
+  text-align: left;
+}
+
+.search-field {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.search-bar > .button-primary {
+  width: auto;
+}
+
+@media (max-width: 479px) {
+  .search-bar {
+    flex-wrap: wrap;
+  }
+
+  .search-field {
+    flex-basis: 100%;
+  }
+}
+
+.search-field label {
+  font-weight: var(--font-weight-medium);
+}
+
+.search-field input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.search-page {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+}
+
+.search-page > .search-bar {
+  margin-top: 0;
+}
+
+.search-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: var(--space-md);
+  margin: var(--space-lg) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.search-result-card {
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.search-result-card img,
+.search-result-photo-placeholder {
+  display: flex;
+  width: 100%;
+  min-height: 8rem;
+  align-items: center;
+  justify-content: center;
+  object-fit: cover;
+  background-color: var(--color-divider);
+}
+
+.search-result-card h2 {
+  font-size: 1.125rem;
+}
+
+.search-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  align-items: center;
+  justify-content: center;
+  margin: var(--space-lg) 0;
+}
+
+/* Página de ayuda (#89) */
+.help {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.help-intro {
+  color: var(--color-text-muted);
+}
+
+.help-index {
+  margin: var(--space-lg) 0;
+  padding: var(--space-md) var(--space-lg);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.help-index h2 {
+  margin-top: 0;
+  font-size: var(--font-size-tagline);
+}
+
+.help section {
+  scroll-margin-top: var(--space-md);
+}
+
+.help-note {
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+/* Filtros de la búsqueda (#118) */
+.search-filters {
+  margin: var(--space-md) 0;
+}
+
+.filters-panel {
+  margin-top: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.filters-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0 var(--space-md);
+}
+
+.form-field select {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  background-color: var(--color-background);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.filters-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.filters-actions > *,
+.filters-toggle {
+  width: auto;
+  padding-inline: var(--space-lg);
+}
+
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+  margin: var(--space-md) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.filter-chip {
+  padding: var(--space-xs) var(--space-md);
+  font: inherit;
+  font-size: var(--font-size-small);
+  color: var(--color-text);
+  background-color: var(--color-primary-soft);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.link-button {
+  padding: 0;
+  font: inherit;
+  color: var(--color-primary);
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.filters-empty {
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+@media (max-width: 600px) {
+  .filters-actions > * {
+    width: 100%;
+  }
+}
