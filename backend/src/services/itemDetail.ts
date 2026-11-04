@@ -1,17 +1,8 @@
 // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 01/11/2026
-import type { Prisma } from '@prisma/client';
+import type { ItemWithDetail } from '../repositories/detailIncludes.js';
 
 // Representación pública de un objeto: la devuelven POST /api/objetos (#14) y
 // GET /api/objetos/:id (#119). Del propietario solo salen id y username, nunca el correo.
-
-export const itemDetailInclude = {
-  category: { select: { id: true, name: true } },
-  owner: { select: { id: true, username: true } },
-} satisfies Prisma.ItemInclude;
-
-export type ItemWithDetail = Prisma.ItemGetPayload<{
-  include: typeof itemDetailInclude;
-}>;
 
 export interface ItemPhotoDto {
   id: string;

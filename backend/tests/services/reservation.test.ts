@@ -1,9 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { prisma } from '../../src/repositories/prisma.js';
-import {
-  reservationDetailInclude,
-  toReservationDetail,
-} from '../../src/services/reservation.js';
+import { reservationDetailInclude } from '../../src/repositories/detailIncludes.js';
+import { toReservationDetail } from '../../src/services/reservation.js';
 import { resetDb } from '../helpers/db.js';
 import { createTestItem } from '../helpers/items.js';
 import { createTestReservation } from '../helpers/reservations.js';

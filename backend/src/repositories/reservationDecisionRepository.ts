@@ -1,7 +1,7 @@
 // Aceptar y rechazar solicitudes (US-04.03 y US-04.04, #125).
 // Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 02/11/2026
 import type { ReservationStatus } from '@prisma/client';
-import { reservationDetailInclude } from '../services/reservation.js';
+import { reservationDetailInclude } from './detailIncludes.js';
 import { prisma } from './prisma.js';
 
 export type AcceptOutcome = 'accepted' | 'not_pending' | 'overlapping';

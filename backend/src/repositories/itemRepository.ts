@@ -1,4 +1,4 @@
-import { itemDetailInclude } from '../services/itemDetail.js';
+import { itemDetailInclude } from './detailIncludes.js';
 import { prisma } from './prisma.js';
 
 export function findCategoryById(id: string) {

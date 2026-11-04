@@ -58,10 +58,6 @@ export function getMyItems(token: string): Promise<MyItem[]> {
   return apiRequest<MyItem[]>('/usuarios/me/objetos', { token });
 }
 
-export function getItem(token: string, id: string): Promise<ItemDetail> {
-  return apiRequest<ItemDetail>(`/objetos/${encodeURIComponent(id)}`, { token });
-}
-
 export function updateItem(token: string, id: string, changes: ItemChanges): Promise<ItemDetail> {
   return apiRequest<ItemDetail>(`/objetos/${encodeURIComponent(id)}`, {
     method: 'PATCH',

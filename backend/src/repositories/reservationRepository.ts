@@ -1,6 +1,6 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
 import type { Prisma, ReservationStatus } from '@prisma/client';
-import { reservationDetailInclude } from '../services/reservation.js';
+import { reservationDetailInclude } from './detailIncludes.js';
 import { prisma } from './prisma.js';
 
 // Datos del objeto que hacen falta para validar una solicitud y calcular su importe.
