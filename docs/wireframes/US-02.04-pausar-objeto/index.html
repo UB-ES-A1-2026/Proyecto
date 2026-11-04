@@ -14,9 +14,10 @@
         <strong>deje de aparecer temporalmente sin tener que eliminarlo</strong>.
       </p>
       <p class="wf-meta">
-        Issue #53 · Tarea #113 · Dibujado a partir de lo implementado · Generado con asistencia de IA (Claude) –
-        revisado por Francesc Curto, 03/11/2026
+        Issue #53 · Tarea #113 · Dibujado a partir de lo implementado · Actualizado con asistencia de IA (Claude) tras el
+        rediseño (#258), pendiente de revisar por el equipo
       </p>
+      <p class="wf-meta">Maqueta de Figma · Marco «Mis objetos»: coinciden los botones «Pausar» y «Reanudar» y la etiqueta de estado.</p>
     </header>
 
     <section class="wf-pantalla" data-captura="1-mis-objetos">
@@ -27,77 +28,179 @@
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span><span class="wf-marca">1</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
-            <h3 class="wf-h1">Mis objetos</h3>
-            <p class="wf-texto">Los objetos que tienes publicados para alquilar.</p>
+            <div class="wf-columnas">
+              <div>
+                <h3 class="wf-h1">Mis objetos</h3>
+                <p class="wf-texto">Los objetos que tienes publicados para alquilar.</p>
+              </div>
+              <div><span class="wf-boton">Publicar un objeto</span></div>
+            </div>
+            <div class="wf-chips">
+              <span class="wf-chip wf-activo">Todos · 3</span>
+              <span class="wf-chip">Publicados · 1</span>
+              <span class="wf-chip">Pausados · 1</span>
+              <span class="wf-chip">Retirados · 1</span><span class="wf-marca">2</span>
+            </div>
             <div class="wf-tarjeta">
-              <div class="wf-fila">
-                <p class="wf-texto"><strong>Taladro percutor Bosch</strong> · Publicado<br />5,50 € / día · Visible en las búsquedas</p>
-                <span class="wf-boton wf-secundario">Editar</span>
-                <span class="wf-boton">Pausar</span><span class="wf-marca">2</span>
+              <div class="wf-columnas">
+                <div class="wf-rejilla">
+                  <div class="wf-imagen" aria-label="Foto del objeto"></div>
+                  <p class="wf-texto"><strong>Taladro percutor Bosch</strong> <span class="wf-chip">Publicado</span><br />6,00 € / día<br />Visible en las búsquedas</p>
+                </div>
+                <div class="wf-fila">
+                  <span class="wf-boton wf-secundario">Editar</span>
+                  <span class="wf-boton">Pausar</span><span class="wf-marca">3</span>
+                  <span class="wf-enlace">Retirar anuncio</span>
+                </div>
               </div>
             </div>
             <p class="wf-texto"></p>
             <div class="wf-tarjeta">
-              <div class="wf-fila">
-                <p class="wf-texto"><strong>Bicicleta de paseo</strong> · Pausado<br />8,00 € / día · No aparece en las búsquedas hasta que lo reanudes</p>
-                <span class="wf-boton wf-secundario">Editar</span>
-                <span class="wf-boton">Reanudar</span><span class="wf-marca">3</span>
+              <div class="wf-columnas">
+                <div class="wf-rejilla">
+                  <div class="wf-imagen" aria-label="Sin foto"></div>
+                  <p class="wf-texto"><strong>Tienda de campaña para 4 personas</strong> <span class="wf-chip">Pausado</span><br />8,00 € / día<br />No aparece en las búsquedas hasta que lo reanudes</p>
+                </div>
+                <div class="wf-fila">
+                  <span class="wf-boton wf-secundario">Editar</span>
+                  <span class="wf-boton">Reanudar</span><span class="wf-marca">4</span>
+                  <span class="wf-enlace">Retirar anuncio</span>
+                </div>
               </div>
             </div>
             <p class="wf-texto"></p>
             <div class="wf-tarjeta">
-              <p class="wf-texto"><strong>Tienda de campaña</strong> · Retirado<br />12,00 € / día · Ya no se puede alquilar <span class="wf-marca">4</span></p>
+              <div class="wf-columnas">
+                <div class="wf-rejilla">
+                  <div class="wf-imagen" aria-label="Sin foto"></div>
+                  <p class="wf-texto"><strong>Cortacésped eléctrico</strong> <span class="wf-chip">Retirado</span><br />9,00 € / día<br />Ya no se puede alquilar</p>
+                </div>
+                <div><span class="wf-marca">5</span></div>
+              </div>
             </div>
           </div>
         </div>
         <div class="wf-movil">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Mis objetos</h3>
+            <p class="wf-texto">Los objetos que tienes publicados para alquilar.</p>
+            <p class="wf-texto"><span class="wf-boton">Publicar un objeto</span></p>
+            <div class="wf-chips">
+              <span class="wf-chip wf-activo">Todos · 3</span>
+              <span class="wf-chip">Publicados · 1</span>
+              <span class="wf-chip">Pausados · 1</span>
+              <span class="wf-chip">Retirados · 1</span>
+            </div>
             <div class="wf-tarjeta">
-              <p class="wf-texto"><strong>Taladro percutor Bosch</strong><br />Publicado · 5,50 € / día</p>
-              <span class="wf-boton wf-secundario wf-ancho">Editar</span>
+              <div class="wf-fila">
+                <div class="wf-caja">Foto</div>
+                <p class="wf-texto"><strong>Taladro percutor<br />Bosch</strong><br /><span class="wf-chip">Publicado</span><br />6,00 € / día<br />Visible en las<br />búsquedas</p>
+              </div>
+              <div class="wf-fila">
+                <span class="wf-boton wf-secundario">Editar</span>
+                <span class="wf-boton">Pausar</span>
+              </div>
               <p class="wf-texto"></p>
-              <span class="wf-boton wf-ancho">Pausar</span>
+              <p class="wf-texto"><span class="wf-enlace">Retirar anuncio</span></p>
             </div>
           </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Se llega desde el enlace «Mis objetos» de la cabecera (con sesión; sin sesión, la ruta lleva al login).</li>
+        <li>Se llega desde «Mis objetos» en la cabecera o, en el móvil, en la barra inferior (con sesión; sin sesión, la ruta lleva al login).</li>
+        <li>Filtros por estado con el número de objetos de cada uno. Pulsar uno deja solo esos objetos.</li>
         <li>Cada objeto publicado tiene «Pausar». No pide confirmación: se puede deshacer con «Reanudar».</li>
         <li>Cada objeto pausado tiene «Reanudar», que lo vuelve a publicar.</li>
         <li>Los retirados no tienen botones: retirar es definitivo.</li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Clic en «Pausar»</p>
+    <p class="wf-flecha">Pulsar un filtro sin objetos</p>
 
-    <section class="wf-pantalla" data-captura="2-pausando">
-      <h2><span class="wf-paso">2</span>Mientras se pausa <code>/mis-objetos</code></h2>
+    <section class="wf-pantalla" data-captura="2-filtro-vacio">
+      <h2><span class="wf-paso">2</span>Filtro sin objetos <code>/mis-objetos</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-objetos">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
           <div class="wf-contenido">
-            <h3 class="wf-h1">Mis objetos</h3>
+            <div class="wf-columnas">
+              <div>
+                <h3 class="wf-h1">Mis objetos</h3>
+                <p class="wf-texto">Los objetos que tienes publicados para alquilar.</p>
+              </div>
+              <div><span class="wf-boton">Publicar un objeto</span></div>
+            </div>
+            <div class="wf-chips">
+              <span class="wf-chip">Todos · 8</span>
+              <span class="wf-chip">Publicados · 7</span>
+              <span class="wf-chip">Pausados · 1</span>
+              <span class="wf-chip wf-activo">Retirados · 0</span>
+            </div>
             <div class="wf-tarjeta">
-              <div class="wf-fila">
-                <p class="wf-texto"><strong>Taladro percutor Bosch</strong> · Publicado<br />5,50 € / día · Visible en las búsquedas</p>
-                <span class="wf-boton wf-secundario">Editar</span>
-                <span class="wf-boton wf-desactivado">Pausando…</span><span class="wf-marca">1</span>
+              <p class="wf-texto">No tienes objetos en este estado. <span class="wf-marca">1</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Los filtros siguen a la vista para cambiar de estado. Sin ningún objeto en la lista, los filtros no salen (US-02.02).</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Volver a «Todos» y clic en «Pausar»</p>
+
+    <section class="wf-pantalla" data-captura="3-pausando">
+      <h2><span class="wf-paso">3</span>Mientras se pausa <code>/mis-objetos</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-objetos">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-chips">
+              <span class="wf-chip wf-activo">Todos · 3</span>
+              <span class="wf-chip">Publicados · 1</span>
+              <span class="wf-chip">Pausados · 1</span>
+              <span class="wf-chip">Retirados · 1</span>
+            </div>
+            <div class="wf-tarjeta">
+              <div class="wf-columnas">
+                <div class="wf-rejilla">
+                  <div class="wf-imagen" aria-label="Foto del objeto"></div>
+                  <p class="wf-texto"><strong>Taladro percutor Bosch</strong> <span class="wf-chip">Publicado</span><br />6,00 € / día<br />Visible en las búsquedas</p>
+                </div>
+                <div class="wf-fila">
+                  <span class="wf-boton wf-secundario">Editar</span>
+                  <span class="wf-boton wf-desactivado">Pausando…</span><span class="wf-marca">1</span>
+                  <span class="wf-enlace">Retirar anuncio</span>
+                </div>
               </div>
             </div>
             <p class="wf-texto"></p>
             <div class="wf-tarjeta">
-              <div class="wf-fila">
-                <p class="wf-texto"><strong>Bicicleta de paseo</strong> · Pausado<br />8,00 € / día · No aparece en las búsquedas hasta que lo reanudes</p>
-                <span class="wf-boton wf-secundario">Editar</span>
-                <span class="wf-boton wf-desactivado">Reanudar</span>
+              <div class="wf-columnas">
+                <div class="wf-rejilla">
+                  <div class="wf-imagen" aria-label="Sin foto"></div>
+                  <p class="wf-texto"><strong>Tienda de campaña para 4 personas</strong> <span class="wf-chip">Pausado</span><br />8,00 € / día<br />No aparece en las búsquedas hasta que lo reanudes</p>
+                </div>
+                <div class="wf-fila">
+                  <span class="wf-boton wf-secundario">Editar</span>
+                  <span class="wf-boton wf-desactivado">Reanudar</span>
+                  <span class="wf-enlace">Retirar anuncio</span>
+                </div>
               </div>
             </div>
           </div>
@@ -106,26 +209,50 @@
       <ol class="wf-notas">
         <li>
           Llama a <code>POST /api/objetos/:id/pausar</code> (o <code>/reanudar</code>, #112). Mientras tanto, el
-          botón dice «Pausando…» («Reanudando…») y todos los de Pausar / Reanudar están desactivados.
+          botón dice «Pausando…» («Reanudando…») y todos los de Pausar y Reanudar están desactivados. «Editar» y
+          «Retirar anuncio» siguen activos.
         </li>
       </ol>
     </section>
 
     <p class="wf-flecha">La API no deja cambiarlo</p>
 
-    <section class="wf-pantalla" data-captura="3-error">
-      <h2><span class="wf-paso">3</span>Error al pausar o reanudar <code>/mis-objetos</code></h2>
+    <section class="wf-pantalla" data-captura="4-error">
+      <h2><span class="wf-paso">4</span>Error al pausar o reanudar <code>/mis-objetos</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-objetos">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
           <div class="wf-contenido">
-            <h3 class="wf-h1">Mis objetos</h3>
+            <div class="wf-columnas">
+              <div>
+                <h3 class="wf-h1">Mis objetos</h3>
+                <p class="wf-texto">Los objetos que tienes publicados para alquilar.</p>
+              </div>
+              <div><span class="wf-boton">Publicar un objeto</span></div>
+            </div>
             <p class="wf-aviso">Solo se puede pausar un objeto publicado. <span class="wf-marca">1</span></p>
+            <div class="wf-chips">
+              <span class="wf-chip wf-activo">Todos · 3</span>
+              <span class="wf-chip">Publicados · 1</span>
+              <span class="wf-chip">Pausados · 1</span>
+              <span class="wf-chip">Retirados · 1</span>
+            </div>
             <div class="wf-tarjeta">
-              <div class="wf-fila">
-                <p class="wf-texto"><strong>Taladro percutor Bosch</strong> · Publicado<br />5,50 € / día · Visible en las búsquedas</p>
-                <span class="wf-boton wf-secundario">Editar</span>
-                <span class="wf-boton">Pausar</span>
+              <div class="wf-columnas">
+                <div class="wf-rejilla">
+                  <div class="wf-imagen" aria-label="Foto del objeto"></div>
+                  <p class="wf-texto"><strong>Taladro percutor Bosch</strong> <span class="wf-chip">Publicado</span><br />6,00 € / día<br />Visible en las búsquedas</p>
+                </div>
+                <div class="wf-fila">
+                  <span class="wf-boton wf-secundario">Editar</span>
+                  <span class="wf-boton">Pausar</span>
+                  <span class="wf-enlace">Retirar anuncio</span>
+                </div>
               </div>
             </div>
           </div>
@@ -133,7 +260,7 @@
       </div>
       <ol class="wf-notas">
         <li>
-          El mensaje de la API sale arriba de la lista y la fila no cambia: 409 «Solo se puede pausar un objeto
+          El mensaje de la API sale encima de los filtros y la fila no cambia: 409 «Solo se puede pausar un objeto
           publicado.» o «Solo se puede reanudar un objeto pausado.», 403 «Solo el propietario puede cambiar el estado
           de este objeto.» y 404 «No hemos encontrado este objeto.». Con la sesión caducada (401) se va al login.
         </li>
@@ -142,35 +269,51 @@
 
     <p class="wf-flecha">La API lo pausa</p>
 
-    <section class="wf-pantalla" data-captura="4-pausado">
-      <h2><span class="wf-paso">4</span>Destino: lista con el anuncio pausado <code>/mis-objetos</code></h2>
+    <section class="wf-pantalla" data-captura="5-pausado">
+      <h2><span class="wf-paso">5</span>Destino: lista con el anuncio pausado <code>/mis-objetos</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-objetos">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
-            <h3 class="wf-h1">Mis objetos</h3>
+            <div class="wf-columnas">
+              <div>
+                <h3 class="wf-h1">Mis objetos</h3>
+                <p class="wf-texto">Los objetos que tienes publicados para alquilar.</p>
+              </div>
+              <div><span class="wf-boton">Publicar un objeto</span></div>
+            </div>
             <p class="wf-aviso">
               El anuncio se ha pausado: no aparecerá en las búsquedas hasta que lo reanudes. <span class="wf-marca">1</span>
             </p>
+            <div class="wf-chips">
+              <span class="wf-chip wf-activo">Todos · 3</span>
+              <span class="wf-chip">Publicados · 0</span>
+              <span class="wf-chip">Pausados · 2</span>
+              <span class="wf-chip">Retirados · 1</span>
+            </div>
             <div class="wf-tarjeta">
-              <div class="wf-fila">
-                <p class="wf-texto"><strong>Taladro percutor Bosch</strong> · Pausado<br />5,50 € / día · No aparece en las búsquedas hasta que lo reanudes <span class="wf-marca">2</span></p>
-                <span class="wf-boton wf-secundario">Editar</span>
-                <span class="wf-boton">Reanudar</span><span class="wf-marca">3</span>
+              <div class="wf-columnas">
+                <div class="wf-rejilla">
+                  <div class="wf-imagen" aria-label="Foto del objeto"></div>
+                  <p class="wf-texto"><strong>Taladro percutor Bosch</strong> <span class="wf-chip">Pausado</span><span class="wf-marca">2</span><br />6,00 € / día<br />No aparece en las búsquedas hasta que lo reanudes</p>
+                </div>
+                <div class="wf-fila">
+                  <span class="wf-boton wf-secundario">Editar</span>
+                  <span class="wf-boton">Reanudar</span><span class="wf-marca">3</span>
+                  <span class="wf-enlace">Retirar anuncio</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Sale el aviso y la fila se actualiza sin volver a cargar la lista.</li>
+        <li>Sale el aviso, y la fila y los números de los filtros se actualizan sin volver a cargar la lista.</li>
         <li>
           Criterio: el objeto pausado no aparece en la búsqueda, pero sigue en «Mis objetos» (también en el filtro
           «Pausados»).

@@ -13,241 +13,914 @@
         <strong>poder alquilarlos</strong>.
       </p>
       <p class="wf-meta">
-        Issue #60 · Tarea #121 · Wireframe de baja fidelidad · Generado con asistencia de IA (Claude) –
-        revisado por Francesc Curto, 03/11/2026
+        Issue #60 · Tarea #121 · Wireframe de baja fidelidad · Actualizado con asistencia de IA (Claude) tras
+        el rediseño (#258), pendiente de revisar por el equipo
+      </p>
+      <p class="wf-meta">
+        Maqueta de Figma · Marco «Ficha»: como en la maqueta, calendario, importe y botón de solicitar van en
+        el lateral de la ficha, sin pantalla aparte.
       </p>
     </header>
-
-    <section class="wf-pantalla" data-captura="1-detalle-objeto">
-      <h2><span class="wf-paso">1</span>Punto de entrada: detalle del objeto <code>/objetos/:id</code></h2>
+    <section class="wf-pantalla" data-captura="1-ficha-sin-fechas">
+      <h2>
+        <span class="wf-paso">1</span>Punto de entrada: panel de la ficha, sin fechas
+        <code>/objetos/:id</code>
+      </h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…">
           <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span
+              ><span class="wf-enlace">Mi perfil</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
           </nav>
           <div class="wf-contenido">
-            <h3 class="wf-h1">Taladro percutor Bosch</h3>
-            <div class="wf-rejilla">
-              <div class="wf-imagen"></div>
+            <div class="wf-columnas">
               <div>
-                <p class="wf-texto">6,00 € / día · Fianza: 40,00 €</p>
-                <p class="wf-texto">Disponible</p>
-                <div class="wf-lineas"><span></span><span></span><span></span></div>
-                <p class="wf-texto">Publicado por ana</p>
-                <span class="wf-boton">Alquilar</span><span class="wf-marca">1</span>
+                <div class="wf-imagen"></div>
+                <p class="wf-ayuda">Fotos del objeto</p>
+                <h3 class="wf-h1">Carro de la compra plegable <span class="wf-marca">1</span></h3>
+                <div class="wf-chips">
+                  <span class="wf-chip">Gràcia</span><span class="wf-chip">Otros</span>
+                </div>
+                <p class="wf-texto"><strong>Descripción</strong></p>
+                <p class="wf-texto">
+                  Carro de 6 ruedas para subir escaleras, con bolsa isotérmica de 40 litros.
+                </p>
+                <p class="wf-texto"><strong>Formas de entrega</strong></p>
+                <div class="wf-chips"><span class="wf-chip">Punto de recogida</span></div>
+                <div class="wf-tarjeta"><p class="wf-texto">Publicado por ana</p></div>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>
-          Página de detalle de #15 (US-03.03). «Alquilar» lleva a <code>/objetos/:id/solicitar</code>. Sin sesión
-          lleva antes a <code>/login</code>; en un objeto propio no aparece («Este anuncio es tuyo.»).
-        </li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Clic en «Alquilar»</p>
-
-    <section class="wf-pantalla" data-captura="2-elegir-fechas">
-      <h2><span class="wf-paso">2</span>Solicitar alquiler, sin fechas <code>/objetos/:id/solicitar</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…/solicitar">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
-          <div class="wf-contenido">
-            <div class="wf-centrado">
-              <h3 class="wf-h1">Solicitar alquiler <span class="wf-marca">1</span></h3>
-              <p class="wf-texto">Taladro percutor Bosch · 6,00 € / día</p>
-              <div class="wf-campo">
-                <label>Fecha de inicio <span class="wf-marca">2</span></label>
-                <div class="wf-input">dd/mm/aaaa</div>
-              </div>
-              <div class="wf-campo">
-                <label>Fecha de fin</label>
-                <div class="wf-input">dd/mm/aaaa</div>
-              </div>
-              <p class="wf-texto">Elige las fechas para ver el precio.</p>
-              <div class="wf-fila">
-                <span class="wf-boton wf-secundario">Cancelar</span><span class="wf-marca">3</span>
-                <span class="wf-boton wf-desactivado">Solicitar alquiler</span>
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto">
+                    <strong>2,00 €</strong> / día <span class="wf-chip">Disponible</span>
+                  </p>
+                  <p class="wf-texto">Sin fianza</p>
+                  <hr />
+                  <p class="wf-texto"><strong>Elige las fechas</strong></p>
+                  <div class="wf-fila">
+                    <div class="wf-campo">
+                      <label>Fecha de inicio <span class="wf-marca">2</span></label>
+                      <div class="wf-input">dd/mm/aaaa</div>
+                    </div>
+                    <div class="wf-campo">
+                      <label>Fecha de fin </label>
+                      <div class="wf-input">dd/mm/aaaa</div>
+                    </div>
+                  </div>
+                  <div class="wf-calendario">
+                    <span class="wf-cal-mes"
+                      ><span>‹</span><span>Noviembre de 2026 <span class="wf-marca">3</span></span
+                      ><span>›</span></span
+                    ><span class="wf-cal-cabecera">L</span><span class="wf-cal-cabecera">M</span
+                    ><span class="wf-cal-cabecera">X</span><span class="wf-cal-cabecera">J</span
+                    ><span class="wf-cal-cabecera">V</span><span class="wf-cal-cabecera">S</span
+                    ><span class="wf-cal-cabecera">D</span><span></span><span></span><span></span><span></span
+                    ><span></span><span></span><span class="wf-cal-pasado">1</span
+                    ><span class="wf-cal-pasado">2</span><span class="wf-cal-pasado">3</span><span>4</span
+                    ><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span
+                    ><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span
+                    ><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span
+                    ><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span
+                    ><span>29</span><span>30</span>
+                  </div>
+                  <p class="wf-texto">Elige las fechas para ver el precio.</p>
+                  <span class="wf-boton wf-ancho wf-desactivado"
+                    >Solicitar alquiler <span class="wf-marca">4</span></span
+                  >
+                </div>
               </div>
             </div>
           </div>
         </div>
         <div class="wf-movil">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span>
+          </nav>
           <div class="wf-contenido">
-            <h3 class="wf-h1">Solicitar alquiler</h3>
-            <p class="wf-texto">Taladro percutor Bosch · 6,00 € / día</p>
-            <div class="wf-campo"><label>Fecha de inicio</label><div class="wf-input">dd/mm/aaaa</div></div>
-            <div class="wf-campo"><label>Fecha de fin</label><div class="wf-input">dd/mm/aaaa</div></div>
-            <p class="wf-texto">Elige las fechas para ver el precio.</p>
-            <div class="wf-fila">
-              <span class="wf-boton wf-secundario">Cancelar</span>
-              <span class="wf-boton wf-desactivado">Solicitar alquiler</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>
-          Ruta privada: sin sesión, <code>PrivateRoute</code> lleva al login. Mientras se carga el objeto se ve
-          «Cargando el objeto…»; si no existe o no está publicado, «No hemos encontrado este objeto.» con un enlace
-          a la página inicial.
-        </li>
-        <li>Selector de fecha nativo (<code>&lt;input type="date"&gt;</code>): no deja elegir días anteriores a hoy.</li>
-        <li>«Cancelar» vuelve al detalle del objeto sin enviar nada.</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Elige las dos fechas</p>
-
-    <section class="wf-pantalla" data-captura="3-fechas-con-precio">
-      <h2><span class="wf-paso">3</span>Fechas elegidas y precio del periodo <code>/objetos/:id/solicitar</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…/solicitar">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
-          <div class="wf-contenido">
-            <div class="wf-centrado">
-              <h3 class="wf-h1">Solicitar alquiler</h3>
-              <p class="wf-texto">Taladro percutor Bosch · 6,00 € / día</p>
-              <div class="wf-campo">
-                <label>Fecha de inicio</label>
-                <div class="wf-input">10/11/2026</div>
-              </div>
-              <div class="wf-campo">
-                <label>Fecha de fin</label>
-                <div class="wf-input">12/11/2026</div>
-              </div>
-              <p class="wf-texto">3 días × 6,00 € = <strong>18,00 €</strong> <span class="wf-marca">1</span></p>
+            <h3 class="wf-h1">Carro de la compra plegable</h3>
+            <div class="wf-chips"><span class="wf-chip">Gràcia</span><span class="wf-chip">Otros</span></div>
+            <div class="wf-imagen"></div>
+            <p class="wf-ayuda">Fotos del objeto</p>
+            <p></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>2,00 €</strong> / día <span class="wf-chip">Disponible</span></p>
+              <p class="wf-texto">Sin fianza</p>
+              <hr />
+              <p class="wf-texto"><strong>Elige las fechas</strong></p>
               <div class="wf-fila">
-                <span class="wf-boton wf-secundario">Cancelar</span>
-                <span class="wf-boton">Solicitar alquiler</span><span class="wf-marca">2</span>
+                <div class="wf-campo">
+                  <label>Fecha de inicio </label>
+                  <div class="wf-input">dd/mm/aaaa</div>
+                </div>
+                <div class="wf-campo">
+                  <label>Fecha de fin </label>
+                  <div class="wf-input">dd/mm/aaaa</div>
+                </div>
               </div>
+              <div class="wf-calendario">
+                <span class="wf-cal-mes"><span>‹</span><span>Noviembre de 2026 </span><span>›</span></span
+                ><span class="wf-cal-cabecera">L</span><span class="wf-cal-cabecera">M</span
+                ><span class="wf-cal-cabecera">X</span><span class="wf-cal-cabecera">J</span
+                ><span class="wf-cal-cabecera">V</span><span class="wf-cal-cabecera">S</span
+                ><span class="wf-cal-cabecera">D</span><span></span><span></span><span></span><span></span
+                ><span></span><span></span><span class="wf-cal-pasado">1</span
+                ><span class="wf-cal-pasado">2</span><span class="wf-cal-pasado">3</span><span>4</span
+                ><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span
+                ><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span
+                ><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span
+                ><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span
+                ><span>29</span><span>30</span>
+              </div>
+              <p class="wf-texto">Elige las fechas para ver el precio.</p>
+              <span class="wf-boton wf-ancho wf-desactivado">Solicitar alquiler </span>
             </div>
+            <p></p>
+            <p class="wf-texto"><strong>Descripción</strong></p>
+            <p class="wf-texto">Carro de 6 ruedas para subir escaleras, con bolsa isotérmica de 40 litros.</p>
+            <p class="wf-texto"><strong>Formas de entrega</strong></p>
+            <div class="wf-chips"><span class="wf-chip">Punto de recogida</span></div>
+            <div class="wf-tarjeta"><p class="wf-texto">Publicado por ana</p></div>
+          </div>
+          <div class="wf-barra-inferior">
+            <span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
         <li>
-          Criterio 2. Precio = días × precio por día, contando el primer y el último día (del 10 al 12 son 3), igual
-          que el backend (#120). Sin la fianza, que se paga en US-07.01.
+          Con sesión, en un objeto que no es tuyo, las fechas ya están en la ficha. Sin sesión sale
+          «Alquilar», que pasa por el login y vuelve aquí. En un objeto propio sale «Este anuncio es tuyo.».
+          <code>/objetos/:id/solicitar</code> redirige a esta ficha.
         </li>
-        <li>Criterio 3. Al pulsar todavía no se envía nada: se pasa al resumen.</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">La fecha de fin es anterior a la de inicio</p>
-
-    <section class="wf-pantalla" data-captura="4-fechas-no-validas">
-      <h2><span class="wf-paso">4</span>Fechas no válidas <code>/objetos/:id/solicitar</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…/solicitar">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
-          <div class="wf-contenido">
-            <div class="wf-centrado">
-              <h3 class="wf-h1">Solicitar alquiler</h3>
-              <p class="wf-texto">Taladro percutor Bosch · 6,00 € / día</p>
-              <div class="wf-campo">
-                <label>Fecha de inicio</label>
-                <div class="wf-input">12/11/2026</div>
-              </div>
-              <div class="wf-campo">
-                <label>Fecha de fin <span class="wf-marca">1</span></label>
-                <div class="wf-input wf-con-error">10/11/2026</div>
-                <p class="wf-error">La fecha de fin no puede ser anterior a la fecha de inicio.</p>
-              </div>
-              <div class="wf-fila">
-                <span class="wf-boton wf-secundario">Cancelar</span>
-                <span class="wf-boton wf-desactivado">Solicitar alquiler</span><span class="wf-marca">2</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
         <li>
-          Criterio 1. Los mismos mensajes que el backend: «La fecha de fin no puede ser anterior a la fecha de
-          inicio.» y, debajo de la fecha de inicio, «La fecha de inicio no puede ser anterior a hoy.».
+          Dos campos de texto <code>dd/mm/aaaa</code>. Las barras se ponen solas al escribir y, al salir del
+          campo, «1/3/2030» pasa a «01/03/2030».
         </li>
-        <li>Con un error no se calcula el precio y el botón sigue desactivado. El error desaparece al cambiar la fecha.</li>
+        <li>
+          Calendario propio de la web. Los días pasados están desactivados y hoy va marcado. «Mes anterior»
+          está desactivado en el mes actual. El primer clic pone el inicio y el segundo, el fin.
+        </li>
+        <li>Desactivado hasta que las dos fechas son válidas y están libres (criterio 3).</li>
       </ol>
     </section>
-
-    <p class="wf-flecha">Desde la pantalla 3: clic en «Solicitar alquiler»</p>
-
-    <section class="wf-pantalla" data-captura="5-resumen">
-      <h2><span class="wf-paso">5</span>Resumen antes de enviar <code>/objetos/:id/solicitar</code></h2>
+    <p class="wf-flecha">Escribir 10/03/2030 y 12/03/2030, o pulsarlas en el calendario</p>
+    <section class="wf-pantalla" data-captura="2-comprobando">
+      <h2><span class="wf-paso">2</span>Comprobando las fechas <code>/objetos/:id</code></h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…/solicitar">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span
+              ><span class="wf-enlace">Mi perfil</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
           <div class="wf-contenido">
-            <div class="wf-centrado">
-              <h3 class="wf-h1">Revisa tu solicitud</h3>
-              <div class="wf-rejilla">
+            <div class="wf-columnas">
+              <div>
                 <div class="wf-imagen"></div>
-                <p class="wf-texto"><strong>Taladro percutor Bosch</strong><br />6,00 € / día <span class="wf-marca">1</span></p>
+                <p class="wf-ayuda">Fotos del objeto</p>
+                <h3 class="wf-h1">Carro de la compra plegable</h3>
+                <div class="wf-chips">
+                  <span class="wf-chip">Gràcia</span><span class="wf-chip">Otros</span>
+                </div>
+                <p class="wf-texto"><strong>Descripción</strong></p>
+                <p class="wf-texto">
+                  Carro de 6 ruedas para subir escaleras, con bolsa isotérmica de 40 litros.
+                </p>
+                <p class="wf-texto"><strong>Formas de entrega</strong></p>
+                <div class="wf-chips"><span class="wf-chip">Punto de recogida</span></div>
+                <div class="wf-tarjeta"><p class="wf-texto">Publicado por ana</p></div>
               </div>
-              <p class="wf-texto">Desde: martes, 10 de noviembre de 2026</p>
-              <p class="wf-texto">Hasta: jueves, 12 de noviembre de 2026</p>
-              <p class="wf-texto">Importe del alquiler (3 días): <strong>18,00 €</strong></p>
-              <div class="wf-fila">
-                <span class="wf-boton wf-secundario">Volver</span><span class="wf-marca">2</span>
-                <span class="wf-boton">Confirmar</span><span class="wf-marca">3</span>
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto">
+                    <strong>2,00 €</strong> / día <span class="wf-chip">Disponible</span>
+                  </p>
+                  <p class="wf-texto">Sin fianza</p>
+                  <hr />
+                  <p class="wf-texto"><strong>Elige las fechas</strong></p>
+                  <div class="wf-fila">
+                    <div class="wf-campo">
+                      <label>Fecha de inicio </label>
+                      <div class="wf-input">10/03/2030</div>
+                    </div>
+                    <div class="wf-campo">
+                      <label>Fecha de fin </label>
+                      <div class="wf-input">12/03/2030</div>
+                    </div>
+                  </div>
+                  <div class="wf-calendario">
+                    <span class="wf-cal-mes"><span>‹</span><span>Marzo de 2030 </span><span>›</span></span
+                    ><span class="wf-cal-cabecera">L</span><span class="wf-cal-cabecera">M</span
+                    ><span class="wf-cal-cabecera">X</span><span class="wf-cal-cabecera">J</span
+                    ><span class="wf-cal-cabecera">V</span><span class="wf-cal-cabecera">S</span
+                    ><span class="wf-cal-cabecera">D</span><span></span><span></span><span></span><span></span
+                    ><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span
+                    ><span>7</span><span>8</span><span>9</span><span class="wf-cal-elegido">10</span
+                    ><span class="wf-cal-rango">11</span><span class="wf-cal-elegido">12</span><span>13</span
+                    ><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span
+                    ><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span
+                    ><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span
+                    ><span>31</span>
+                  </div>
+                  <p class="wf-texto">3 días × 2,00 € = <strong>6,00 €</strong></p>
+                  <p class="wf-texto">Comprobando disponibilidad… <span class="wf-marca">1</span></p>
+                  <span class="wf-boton wf-ancho wf-desactivado">Solicitar alquiler </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Criterio 4: resumen del objeto (foto principal si tiene, título y precio por día), las fechas y el importe.</li>
-        <li>«Volver» regresa a la pantalla 3 con las fechas que había.</li>
         <li>
-          «Confirmar» envía <code>POST /api/reservas</code>; mientras tanto dice «Enviando…» y los dos botones se
-          desactivan. Errores, siempre con el mensaje de la API: si las fechas se solapan con otra reserva (409)
-          vuelve a la pantalla 3; si ya tienes una solicitud igual pendiente (409), es tu objeto (403) o ya no está
-          publicado (404), se queda aquí. Si la sesión ha caducado (401), al login.
+          Con las dos fechas válidas se pregunta a la API. El precio ya se ve y el botón sigue desactivado
+          hasta tener la respuesta. Si falla: «Ha ocurrido un error inesperado.» o el mensaje de la API.
         </li>
       </ol>
     </section>
-
-    <p class="wf-flecha">Clic en «Confirmar» → la solicitud se crea con el estado «Pendiente»</p>
-
-    <section class="wf-pantalla" data-captura="6-mis-solicitudes">
-      <h2><span class="wf-paso">6</span>Destino: Mis solicitudes <code>/mis-solicitudes</code></h2>
+    <p class="wf-flecha">Las fechas están libres</p>
+    <section class="wf-pantalla" data-captura="3-fechas-disponibles">
+      <h2><span class="wf-paso">3</span>Fechas disponibles y precio <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span
+              ><span class="wf-enlace">Mi perfil</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-imagen"></div>
+                <p class="wf-ayuda">Fotos del objeto</p>
+                <h3 class="wf-h1">Carro de la compra plegable</h3>
+                <div class="wf-chips">
+                  <span class="wf-chip">Gràcia</span><span class="wf-chip">Otros</span>
+                </div>
+                <p class="wf-texto"><strong>Descripción</strong></p>
+                <p class="wf-texto">
+                  Carro de 6 ruedas para subir escaleras, con bolsa isotérmica de 40 litros.
+                </p>
+                <p class="wf-texto"><strong>Formas de entrega</strong></p>
+                <div class="wf-chips"><span class="wf-chip">Punto de recogida</span></div>
+                <div class="wf-tarjeta"><p class="wf-texto">Publicado por ana</p></div>
+              </div>
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto">
+                    <strong>2,00 €</strong> / día <span class="wf-chip">Disponible</span>
+                  </p>
+                  <p class="wf-texto">Sin fianza</p>
+                  <hr />
+                  <p class="wf-texto"><strong>Elige las fechas</strong></p>
+                  <div class="wf-fila">
+                    <div class="wf-campo">
+                      <label>Fecha de inicio </label>
+                      <div class="wf-input">10/03/2030</div>
+                    </div>
+                    <div class="wf-campo">
+                      <label>Fecha de fin </label>
+                      <div class="wf-input">12/03/2030</div>
+                    </div>
+                  </div>
+                  <div class="wf-calendario">
+                    <span class="wf-cal-mes"><span>‹</span><span>Marzo de 2030 </span><span>›</span></span
+                    ><span class="wf-cal-cabecera">L</span><span class="wf-cal-cabecera">M</span
+                    ><span class="wf-cal-cabecera">X</span><span class="wf-cal-cabecera">J</span
+                    ><span class="wf-cal-cabecera">V</span><span class="wf-cal-cabecera">S</span
+                    ><span class="wf-cal-cabecera">D</span><span></span><span></span><span></span><span></span
+                    ><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span
+                    ><span>7</span><span>8</span><span>9</span><span class="wf-cal-elegido">10</span
+                    ><span class="wf-cal-rango">11</span><span class="wf-cal-elegido">12</span><span>13</span
+                    ><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span
+                    ><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span
+                    ><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span
+                    ><span>31</span>
+                  </div>
+                  <p class="wf-texto">
+                    3 días × 2,00 € = <strong>6,00 €</strong> <span class="wf-marca">1</span>
+                  </p>
+                  <p class="wf-texto">Fechas disponibles</p>
+                  <span class="wf-boton wf-ancho">Solicitar alquiler <span class="wf-marca">2</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Carro de la compra plegable</h3>
+            <div class="wf-chips"><span class="wf-chip">Gràcia</span><span class="wf-chip">Otros</span></div>
+            <div class="wf-imagen"></div>
+            <p class="wf-ayuda">Fotos del objeto</p>
+            <p></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>2,00 €</strong> / día <span class="wf-chip">Disponible</span></p>
+              <p class="wf-texto">Sin fianza</p>
+              <hr />
+              <p class="wf-texto"><strong>Elige las fechas</strong></p>
+              <div class="wf-fila">
+                <div class="wf-campo">
+                  <label>Fecha de inicio </label>
+                  <div class="wf-input">10/03/2030</div>
+                </div>
+                <div class="wf-campo">
+                  <label>Fecha de fin </label>
+                  <div class="wf-input">12/03/2030</div>
+                </div>
+              </div>
+              <div class="wf-calendario">
+                <span class="wf-cal-mes"><span>‹</span><span>Marzo de 2030 </span><span>›</span></span
+                ><span class="wf-cal-cabecera">L</span><span class="wf-cal-cabecera">M</span
+                ><span class="wf-cal-cabecera">X</span><span class="wf-cal-cabecera">J</span
+                ><span class="wf-cal-cabecera">V</span><span class="wf-cal-cabecera">S</span
+                ><span class="wf-cal-cabecera">D</span><span></span><span></span><span></span><span></span
+                ><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span
+                ><span>7</span><span>8</span><span>9</span><span class="wf-cal-elegido">10</span
+                ><span class="wf-cal-rango">11</span><span class="wf-cal-elegido">12</span><span>13</span
+                ><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span
+                ><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span
+                ><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span>
+              </div>
+              <p class="wf-texto">3 días × 2,00 € = <strong>6,00 €</strong></p>
+              <p class="wf-texto">Fechas disponibles</p>
+              <span class="wf-boton wf-ancho">Solicitar alquiler </span>
+            </div>
+            <p></p>
+            <p class="wf-texto"><strong>Descripción</strong></p>
+            <p class="wf-texto">Carro de 6 ruedas para subir escaleras, con bolsa isotérmica de 40 litros.</p>
+            <p class="wf-texto"><strong>Formas de entrega</strong></p>
+            <div class="wf-chips"><span class="wf-chip">Punto de recogida</span></div>
+            <div class="wf-tarjeta"><p class="wf-texto">Publicado por ana</p></div>
+          </div>
+          <div class="wf-barra-inferior">
+            <span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Criterio 2. Días × precio por día, contando el primer y el último día: del 10 al 12 son 3 días. La
+          fianza no se suma aquí.
+        </li>
+        <li>Criterio 3. Al pulsar todavía no se envía nada: se pasa al resumen, en el mismo panel.</li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Una fecha es pasada o no existe</p>
+    <section class="wf-pantalla" data-captura="4-fechas-no-validas">
+      <h2><span class="wf-paso">4</span>Fecha pasada o que no existe <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span
+              ><span class="wf-enlace">Mi perfil</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-imagen"></div>
+                <p class="wf-ayuda">Fotos del objeto</p>
+                <h3 class="wf-h1">Carro de la compra plegable</h3>
+                <div class="wf-chips">
+                  <span class="wf-chip">Gràcia</span><span class="wf-chip">Otros</span>
+                </div>
+                <p class="wf-texto"><strong>Descripción</strong></p>
+                <p class="wf-texto">
+                  Carro de 6 ruedas para subir escaleras, con bolsa isotérmica de 40 litros.
+                </p>
+                <p class="wf-texto"><strong>Formas de entrega</strong></p>
+                <div class="wf-chips"><span class="wf-chip">Punto de recogida</span></div>
+                <div class="wf-tarjeta"><p class="wf-texto">Publicado por ana</p></div>
+              </div>
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto">
+                    <strong>2,00 €</strong> / día <span class="wf-chip">Disponible</span>
+                  </p>
+                  <p class="wf-texto">Sin fianza</p>
+                  <hr />
+                  <p class="wf-texto"><strong>Elige las fechas</strong></p>
+                  <div class="wf-campo">
+                    <label>Fecha de inicio <span class="wf-marca">1</span></label>
+                    <div class="wf-input wf-con-error">01/01/2020</div>
+                    <p class="wf-error">La fecha de inicio no puede ser anterior a hoy.</p>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Fecha de fin </label>
+                    <div class="wf-input wf-con-error">31/02/2030</div>
+                    <p class="wf-error">Esa fecha no existe.</p>
+                  </div>
+                  <div class="wf-calendario">
+                    <span class="wf-cal-mes"><span>‹</span><span>Noviembre de 2026 </span><span>›</span></span
+                    ><span class="wf-cal-cabecera">L</span><span class="wf-cal-cabecera">M</span
+                    ><span class="wf-cal-cabecera">X</span><span class="wf-cal-cabecera">J</span
+                    ><span class="wf-cal-cabecera">V</span><span class="wf-cal-cabecera">S</span
+                    ><span class="wf-cal-cabecera">D</span><span></span><span></span><span></span><span></span
+                    ><span></span><span></span><span class="wf-cal-pasado">1</span
+                    ><span class="wf-cal-pasado">2</span><span class="wf-cal-pasado">3</span><span>4</span
+                    ><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span
+                    ><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span
+                    ><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span
+                    ><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span
+                    ><span>29</span><span>30</span>
+                  </div>
+                  <p class="wf-texto">Elige las fechas para ver el precio.</p>
+                  <span class="wf-boton wf-ancho wf-desactivado"
+                    >Solicitar alquiler <span class="wf-marca">2</span></span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Debajo de cada campo y solo con la fecha completa: mientras se escribe no hay error. Desaparece al
+          cambiar la fecha.
+        </li>
+        <li>Con un error no se calcula el precio, no se pregunta a la API y el botón sigue desactivado.</li>
+      </ol>
+    </section>
+    <p class="wf-flecha">La fecha de fin es anterior a la de inicio</p>
+    <section class="wf-pantalla" data-captura="5-fin-anterior">
+      <h2><span class="wf-paso">5</span>Fin anterior al inicio <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span
+              ><span class="wf-enlace">Mi perfil</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-imagen"></div>
+                <p class="wf-ayuda">Fotos del objeto</p>
+                <h3 class="wf-h1">Carro de la compra plegable</h3>
+                <div class="wf-chips">
+                  <span class="wf-chip">Gràcia</span><span class="wf-chip">Otros</span>
+                </div>
+                <p class="wf-texto"><strong>Descripción</strong></p>
+                <p class="wf-texto">
+                  Carro de 6 ruedas para subir escaleras, con bolsa isotérmica de 40 litros.
+                </p>
+                <p class="wf-texto"><strong>Formas de entrega</strong></p>
+                <div class="wf-chips"><span class="wf-chip">Punto de recogida</span></div>
+                <div class="wf-tarjeta"><p class="wf-texto">Publicado por ana</p></div>
+              </div>
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto">
+                    <strong>2,00 €</strong> / día <span class="wf-chip">Disponible</span>
+                  </p>
+                  <p class="wf-texto">Sin fianza</p>
+                  <hr />
+                  <p class="wf-texto"><strong>Elige las fechas</strong></p>
+                  <div class="wf-campo">
+                    <label>Fecha de inicio </label>
+                    <div class="wf-input">12/03/2030</div>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Fecha de fin </label>
+                    <div class="wf-input wf-con-error">10/03/2030</div>
+                    <p class="wf-error">La fecha de fin no puede ser anterior a la fecha de inicio.</p>
+                  </div>
+                  <div class="wf-calendario">
+                    <span class="wf-cal-mes"><span>‹</span><span>Marzo de 2030 </span><span>›</span></span
+                    ><span class="wf-cal-cabecera">L</span><span class="wf-cal-cabecera">M</span
+                    ><span class="wf-cal-cabecera">X</span><span class="wf-cal-cabecera">J</span
+                    ><span class="wf-cal-cabecera">V</span><span class="wf-cal-cabecera">S</span
+                    ><span class="wf-cal-cabecera">D</span><span></span><span></span><span></span><span></span
+                    ><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span
+                    ><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span
+                    ><span class="wf-cal-elegido">12</span><span>13</span><span>14</span><span>15</span
+                    ><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span
+                    ><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span
+                    ><span>28</span><span>29</span><span>30</span><span>31</span>
+                  </div>
+                  <p class="wf-texto">Elige las fechas para ver el precio. <span class="wf-marca">1</span></p>
+                  <span class="wf-boton wf-ancho wf-desactivado">Solicitar alquiler </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Criterio 1. Solo se puede provocar escribiendo: en el calendario, un clic anterior al inicio empieza
+          de nuevo con esa fecha.
+        </li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Las fechas están ocupadas</p>
+    <section class="wf-pantalla" data-captura="6-no-disponible">
+      <h2><span class="wf-paso">6</span>Fechas no disponibles <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/7c1d…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span
+              ><span class="wf-enlace">Mi perfil</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-imagen"></div>
+                <p class="wf-ayuda">Fotos del objeto</p>
+                <h3 class="wf-h1">Escalera de aluminio de 3 peldaños</h3>
+                <div class="wf-chips">
+                  <span class="wf-chip">Gràcia</span><span class="wf-chip">Herramientas y bricolaje</span>
+                </div>
+                <p class="wf-texto"><strong>Descripción</strong></p>
+                <p class="wf-texto">Escalera plegable y ligera, aguanta hasta 150 kg. Cabe en el ascensor.</p>
+                <p class="wf-texto"><strong>Formas de entrega</strong></p>
+                <div class="wf-chips">
+                  <span class="wf-chip">Entrega a domicilio</span
+                  ><span class="wf-chip">Punto de recogida</span>
+                </div>
+                <div class="wf-tarjeta"><p class="wf-texto">Publicado por ana</p></div>
+              </div>
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto">
+                    <strong>3,00 €</strong> / día <span class="wf-chip">Disponible</span>
+                  </p>
+                  <p class="wf-texto">Fianza: 15,00 €</p>
+                  <hr />
+                  <p class="wf-texto"><strong>Elige las fechas</strong></p>
+                  <div class="wf-fila">
+                    <div class="wf-campo">
+                      <label>Fecha de inicio </label>
+                      <div class="wf-input">18/11/2026</div>
+                    </div>
+                    <div class="wf-campo">
+                      <label>Fecha de fin </label>
+                      <div class="wf-input">19/11/2026</div>
+                    </div>
+                  </div>
+                  <div class="wf-calendario">
+                    <span class="wf-cal-mes"><span>‹</span><span>Noviembre de 2026 </span><span>›</span></span
+                    ><span class="wf-cal-cabecera">L</span><span class="wf-cal-cabecera">M</span
+                    ><span class="wf-cal-cabecera">X</span><span class="wf-cal-cabecera">J</span
+                    ><span class="wf-cal-cabecera">V</span><span class="wf-cal-cabecera">S</span
+                    ><span class="wf-cal-cabecera">D</span><span></span><span></span><span></span><span></span
+                    ><span></span><span></span><span class="wf-cal-pasado">1</span
+                    ><span class="wf-cal-pasado">2</span><span class="wf-cal-pasado">3</span><span>4</span
+                    ><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span
+                    ><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span
+                    ><span>17</span><span class="wf-cal-elegido">18</span
+                    ><span class="wf-cal-elegido">19</span><span>20</span><span>21</span><span>22</span
+                    ><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span
+                    ><span>29</span><span>30</span>
+                  </div>
+                  <p class="wf-texto">2 días × 3,00 € = <strong>6,00 €</strong></p>
+                  <p class="wf-aviso">
+                    El objeto no está disponible en esas fechas. <span class="wf-marca">1</span>
+                  </p>
+                  <span class="wf-boton wf-ancho wf-desactivado">Solicitar alquiler </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Ocupan las fechas las reservas aceptadas, pagadas o en curso; las pendientes no. También se vuelve
+          aquí si alguien las ocupa justo antes de confirmar.
+        </li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Desde la pantalla 3: clic en «Solicitar alquiler»</p>
+    <section class="wf-pantalla" data-captura="7-resumen">
+      <h2><span class="wf-paso">7</span>Resumen antes de enviar <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span
+              ><span class="wf-enlace">Mi perfil</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-imagen"></div>
+                <p class="wf-ayuda">Fotos del objeto</p>
+                <h3 class="wf-h1">Carro de la compra plegable</h3>
+                <div class="wf-chips">
+                  <span class="wf-chip">Gràcia</span><span class="wf-chip">Otros</span>
+                </div>
+                <p class="wf-texto"><strong>Descripción</strong></p>
+                <p class="wf-texto">
+                  Carro de 6 ruedas para subir escaleras, con bolsa isotérmica de 40 litros.
+                </p>
+                <p class="wf-texto"><strong>Formas de entrega</strong></p>
+                <div class="wf-chips"><span class="wf-chip">Punto de recogida</span></div>
+                <div class="wf-tarjeta"><p class="wf-texto">Publicado por ana</p></div>
+              </div>
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto">
+                    <strong>2,00 €</strong> / día <span class="wf-chip">Disponible</span>
+                  </p>
+                  <p class="wf-texto">Sin fianza</p>
+                  <hr />
+                  <p class="wf-texto"><strong>Revisa tu solicitud</strong> <span class="wf-marca">1</span></p>
+                  <p class="wf-texto"><strong>Carro de la compra plegable</strong><br />2,00 € / día</p>
+                  <p class="wf-ayuda">Desde</p>
+                  <p class="wf-texto">domingo, 10 de marzo de 2030</p>
+                  <p class="wf-ayuda">Hasta</p>
+                  <p class="wf-texto">martes, 12 de marzo de 2030</p>
+                  <hr />
+                  <p class="wf-ayuda">Importe del alquiler (3 días)</p>
+                  <p class="wf-texto"><strong>6,00 €</strong></p>
+                  <div class="wf-fila">
+                    <span class="wf-boton wf-secundario">Volver </span
+                    ><span class="wf-boton">Confirmar <span class="wf-marca">2</span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Carro de la compra plegable</h3>
+            <div class="wf-chips"><span class="wf-chip">Gràcia</span><span class="wf-chip">Otros</span></div>
+            <div class="wf-imagen"></div>
+            <p class="wf-ayuda">Fotos del objeto</p>
+            <p></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>2,00 €</strong> / día <span class="wf-chip">Disponible</span></p>
+              <p class="wf-texto">Sin fianza</p>
+              <hr />
+              <p class="wf-texto"><strong>Revisa tu solicitud</strong></p>
+              <p class="wf-texto"><strong>Carro de la compra plegable</strong><br />2,00 € / día</p>
+              <p class="wf-ayuda">Desde</p>
+              <p class="wf-texto">domingo, 10 de marzo de 2030</p>
+              <p class="wf-ayuda">Hasta</p>
+              <p class="wf-texto">martes, 12 de marzo de 2030</p>
+              <hr />
+              <p class="wf-ayuda">Importe del alquiler (3 días)</p>
+              <p class="wf-texto"><strong>6,00 €</strong></p>
+              <div class="wf-fila">
+                <span class="wf-boton wf-secundario">Volver </span><span class="wf-boton">Confirmar </span>
+              </div>
+            </div>
+            <p></p>
+            <p class="wf-texto"><strong>Descripción</strong></p>
+            <p class="wf-texto">Carro de 6 ruedas para subir escaleras, con bolsa isotérmica de 40 litros.</p>
+            <p class="wf-texto"><strong>Formas de entrega</strong></p>
+            <div class="wf-chips"><span class="wf-chip">Punto de recogida</span></div>
+            <div class="wf-tarjeta"><p class="wf-texto">Publicado por ana</p></div>
+          </div>
+          <div class="wf-barra-inferior">
+            <span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Criterio 4. En el mismo panel y la misma URL: el objeto (con su foto principal si tiene), las fechas
+          y el importe.
+        </li>
+        <li>
+          «Volver» regresa a la pantalla 3 con las fechas que había. «Confirmar» envía
+          <code>POST /api/reservas</code>. Mientras tanto dice «Enviando…» y los dos botones se desactivan. Si
+          la sesión ha caducado, lleva al login y después vuelve a la ficha.
+        </li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Si ya tienes una solicitud pendiente igual</p>
+    <section class="wf-pantalla" data-captura="8-solicitud-repetida">
+      <h2><span class="wf-paso">8</span>Error al confirmar <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span
+              ><span class="wf-enlace">Mi perfil</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-imagen"></div>
+                <p class="wf-ayuda">Fotos del objeto</p>
+                <h3 class="wf-h1">Carro de la compra plegable</h3>
+                <div class="wf-chips">
+                  <span class="wf-chip">Gràcia</span><span class="wf-chip">Otros</span>
+                </div>
+                <p class="wf-texto"><strong>Descripción</strong></p>
+                <p class="wf-texto">
+                  Carro de 6 ruedas para subir escaleras, con bolsa isotérmica de 40 litros.
+                </p>
+                <p class="wf-texto"><strong>Formas de entrega</strong></p>
+                <div class="wf-chips"><span class="wf-chip">Punto de recogida</span></div>
+                <div class="wf-tarjeta"><p class="wf-texto">Publicado por ana</p></div>
+              </div>
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto">
+                    <strong>2,00 €</strong> / día <span class="wf-chip">Disponible</span>
+                  </p>
+                  <p class="wf-texto">Sin fianza</p>
+                  <hr />
+                  <p class="wf-texto"><strong>Revisa tu solicitud</strong></p>
+                  <p class="wf-aviso">
+                    Ya tienes una solicitud pendiente para estas fechas. <span class="wf-marca">1</span>
+                  </p>
+                  <p class="wf-texto"><strong>Carro de la compra plegable</strong><br />2,00 € / día</p>
+                  <p class="wf-ayuda">Desde</p>
+                  <p class="wf-texto">domingo, 10 de marzo de 2030</p>
+                  <p class="wf-ayuda">Hasta</p>
+                  <p class="wf-texto">martes, 12 de marzo de 2030</p>
+                  <hr />
+                  <p class="wf-ayuda">Importe del alquiler (3 días)</p>
+                  <p class="wf-texto"><strong>6,00 €</strong></p>
+                  <div class="wf-fila">
+                    <span class="wf-boton wf-secundario">Volver </span
+                    ><span class="wf-boton">Confirmar </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Se queda en el resumen con el mensaje de la API. Lo mismo con «No puedes alquilar tu propio
+          objeto.», «No hemos encontrado este objeto.» o «Ha ocurrido un error inesperado.».
+        </li>
+      </ol>
+    </section>
+    <p class="wf-flecha">
+      Desde la pantalla 7: clic en «Confirmar» → la solicitud se crea con el estado «Pendiente»
+    </p>
+    <section class="wf-pantalla" data-captura="9-mis-solicitudes">
+      <h2><span class="wf-paso">9</span>Destino: Mis solicitudes <code>/mis-solicitudes</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
           <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span
+              ><span class="wf-enlace">Mi perfil</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
           </nav>
           <div class="wf-contenido">
-            <h3 class="wf-h1">Mis solicitudes <span class="wf-marca">1</span></h3>
-            <p class="wf-texto"><strong>Enviadas</strong></p>
-            <div class="wf-tarjeta">
-              <p class="wf-texto"><strong>Taladro percutor Bosch</strong> · Pendiente</p>
-              <p class="wf-texto">Del 10/11/2026 al 12/11/2026 · 18,00 € · Propietario: ana</p>
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <p class="wf-texto">
+                  <strong>Enviadas</strong> <span class="wf-marca">1</span> <span class="wf-chip">4</span>
+                </p>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto">
+                    <strong>Carro de la compra plegable</strong> <span class="wf-chip">Pendiente</span>
+                  </p>
+                  <p class="wf-ayuda">10–12 mar. 2030 ⌄</p>
+                </div>
+                <p></p>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto">
+                    <strong>Escalera de aluminio de 3 peldaños</strong> <span class="wf-chip">Aceptada</span>
+                  </p>
+                  <p class="wf-ayuda">18–19 nov. 2026 ⌄</p>
+                </div>
+                <p></p>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto">
+                    <strong>Carro de la compra plegable</strong> <span class="wf-chip">Pendiente</span>
+                  </p>
+                  <p class="wf-ayuda">14–15 nov. 2026 ⌄</p>
+                </div>
+                <p></p>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto">
+                    <strong>Taladro percutor Bosch</strong> <span class="wf-chip">Pendiente</span>
+                  </p>
+                  <p class="wf-ayuda">11–13 nov. 2026 ⌄</p>
+                </div>
+                <p></p>
+              </div>
+              <div>
+                <p class="wf-texto"><strong>Recibidas</strong> <span class="wf-chip">2</span></p>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto">
+                    <strong>Altavoz Bluetooth JBL</strong> <span class="wf-chip">Rechazada</span>
+                  </p>
+                  <p class="wf-ayuda">7–8 nov. 2026 ⌄</p>
+                </div>
+                <p></p>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto">
+                    <strong>Proyector Full HD</strong> <span class="wf-chip">Pendiente</span>
+                  </p>
+                  <p class="wf-ayuda">9 nov. 2026 ⌄</p>
+                </div>
+                <p></p>
+              </div>
             </div>
-            <p class="wf-texto"></p>
-            <p class="wf-texto"><strong>Recibidas</strong></p>
-            <div class="wf-caja">Solicitudes que te han hecho a ti</div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <p class="wf-texto"><strong>Enviadas</strong> <span class="wf-chip">4</span></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto">
+                <strong>Carro de la compra plegable</strong> <span class="wf-chip">Pendiente</span>
+              </p>
+              <p class="wf-ayuda">10–12 mar. 2030 ⌄</p>
+            </div>
+            <p></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto">
+                <strong>Escalera de aluminio de 3 peldaños</strong> <span class="wf-chip">Aceptada</span>
+              </p>
+              <p class="wf-ayuda">18–19 nov. 2026 ⌄</p>
+            </div>
+            <p></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto">
+                <strong>Carro de la compra plegable</strong> <span class="wf-chip">Pendiente</span>
+              </p>
+              <p class="wf-ayuda">14–15 nov. 2026 ⌄</p>
+            </div>
+            <p></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto">
+                <strong>Taladro percutor Bosch</strong> <span class="wf-chip">Pendiente</span>
+              </p>
+              <p class="wf-ayuda">11–13 nov. 2026 ⌄</p>
+            </div>
+            <p></p>
+            <p class="wf-texto"><strong>Recibidas</strong> <span class="wf-chip">2</span></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto">
+                <strong>Altavoz Bluetooth JBL</strong> <span class="wf-chip">Rechazada</span>
+              </p>
+              <p class="wf-ayuda">7–8 nov. 2026 ⌄</p>
+            </div>
+            <p></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto">
+                <strong>Proyector Full HD</strong> <span class="wf-chip">Pendiente</span>
+              </p>
+              <p class="wf-ayuda">9 nov. 2026 ⌄</p>
+            </div>
+            <p></p>
+          </div>
+          <div class="wf-barra-inferior">
+            <span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
         <li>
-          Criterio 5. Pantalla de #124 (US-04.02). La solicitud nueva aparece en «Enviadas» con el estado
-          «Pendiente» hasta que el propietario la acepte o la rechace.
+          Criterio 5. La solicitud nueva sale la primera en «Enviadas», con el estado «Pendiente», hasta que
+          el propietario la acepte o la rechace. Pantalla de US-04.02.
         </li>
       </ol>
     </section>

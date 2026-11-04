@@ -16,6 +16,7 @@
         Issue #72 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Generado con
         asistencia de IA (Claude) – pendiente de revisar por el equipo en el Sprint Planning
       </p>
+      <p class="wf-meta">Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo</p>
     </header>
 
     <section class="wf-pantalla" data-captura="1-entrada">
@@ -27,22 +28,51 @@
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span>
               <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Mis solicitudes</h3>
-            <p class="wf-texto"><strong>Enviadas</strong></p>
-            <span class="wf-boton wf-secundario wf-ancho">▾ Taladro percutor Bosch · 10–12 nov. 2026 · Aceptada</span>
-            <div class="wf-tarjeta">
-              <p class="wf-texto">Importe del alquiler: 18,00 € · Propietario: ana</p>
-              <span class="wf-boton">Pagar</span><span class="wf-marca">1</span>
-            </div>
-            <p class="wf-texto"></p>
-            <span class="wf-boton wf-secundario wf-ancho">▾ Bicicleta de paseo · 20–21 nov. 2026 · Pendiente</span>
-            <div class="wf-tarjeta">
-              <p class="wf-texto">Importe del alquiler: 16,00 € · Propietario: bruno <span class="wf-marca">2</span></p>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">2</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Aceptada</span><span>▴</span></div>
+                  <p class="wf-ayuda">10–12 nov. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
+                    <p class="wf-texto">Fechas: Del 10 de noviembre de 2026 al 12 de noviembre de 2026</p>
+                    <p class="wf-texto">Importe total: 18,00 €</p>
+                    <p class="wf-texto">Estado: Aceptada</p>
+                    <p class="wf-texto">Propietario: ana</p>
+                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
+                  </div>
+                  <p class="wf-texto"></p>
+                  <span class="wf-boton">Pagar</span><span class="wf-marca">1</span>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Bicicleta de paseo</strong><span class="wf-chip">Pendiente</span><span>▴</span></div>
+                  <p class="wf-ayuda">20–21 nov. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Bicicleta de paseo</span></p>
+                    <p class="wf-texto">Fechas: Del 20 de noviembre de 2026 al 21 de noviembre de 2026</p>
+                    <p class="wf-texto">Importe total: 16,00 €</p>
+                    <p class="wf-texto">Estado: Pendiente</p>
+                    <p class="wf-texto">Propietario: bruno<span class="wf-marca">2</span></p>
+                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">9 nov. 2026</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -64,9 +94,7 @@
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span>
               <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <div class="wf-centrado">
@@ -109,7 +137,13 @@
       <h2><span class="wf-paso">3</span>Procesando el pago <code>/mis-solicitudes/:id/pagar</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes/5ac9…/pagar">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
           <div class="wf-contenido">
             <div class="wf-centrado">
               <h3 class="wf-h1">Pagar el alquiler</h3>
@@ -137,7 +171,13 @@
       <h2><span class="wf-paso">4</span>Error: pago rechazado <code>/mis-solicitudes/:id/pagar</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes/5ac9…/pagar">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
           <div class="wf-contenido">
             <div class="wf-centrado">
               <h3 class="wf-h1">Pagar el alquiler</h3>
@@ -172,17 +212,36 @@
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span>
               <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
             <p class="wf-aviso">El pago se ha registrado. <span class="wf-marca">1</span></p>
-            <p class="wf-texto"><strong>Enviadas</strong></p>
-            <span class="wf-boton wf-secundario wf-ancho">▾ Taladro percutor Bosch · 10–12 nov. 2026 · Pagado</span>
-            <div class="wf-tarjeta">
-              <p class="wf-texto">Importe del alquiler: 18,00 € · Propietario: ana <span class="wf-marca">2</span></p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pagado</span><span>▴</span></div>
+                  <p class="wf-ayuda">10–12 nov. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
+                    <p class="wf-texto">Fechas: Del 10 de noviembre de 2026 al 12 de noviembre de 2026</p>
+                    <p class="wf-texto">Importe total: 18,00 €</p>
+                    <p class="wf-texto">Estado: Pagado</p>
+                    <p class="wf-texto">Propietario: ana<span class="wf-marca">2</span></p>
+                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">9 nov. 2026</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

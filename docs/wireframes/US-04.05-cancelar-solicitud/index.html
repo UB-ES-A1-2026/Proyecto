@@ -16,6 +16,7 @@
         Issue #64 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Generado con
         asistencia de IA (Claude) – pendiente de revisar por el equipo en el Sprint Planning
       </p>
+      <p class="wf-meta">Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo</p>
     </header>
 
     <section class="wf-pantalla" data-captura="1-entrada">
@@ -27,14 +28,12 @@
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span>
               <span class="wf-enlace">Mis solicitudes</span><span class="wf-marca">1</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
-            <h3 class="wf-h1">Rentit</h3>
+            <h3 class="wf-h1">Hola, bruno</h3>
             <p class="wf-texto">Alquila objetos a tus vecinos.</p>
-            <div class="wf-caja">Buscador y objetos cercanos</div>
+            <div class="wf-caja">Buscador, categorías, novedades y cómo funciona</div>
           </div>
         </div>
       </div>
@@ -54,25 +53,38 @@
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span>
               <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Mis solicitudes</h3>
-            <h4>Enviadas</h4>
-            <button type="button" class="wf-boton wf-secundario wf-ancho">▸ Bicicleta de paseo · 5–7 dic. 2026 · Pendiente</button>
-            <div class="wf-tarjeta">
-              <p class="wf-texto">Objeto: <span class="wf-enlace">Bicicleta de paseo</span></p>
-              <p class="wf-texto">Fechas: Del 5 de diciembre de 2026 al 7 de diciembre de 2026</p>
-              <p class="wf-texto">Importe total: 24,00 €</p>
-              <p class="wf-texto">Estado: Pendiente</p>
-              <p class="wf-texto">Propietario: ana</p>
-              <p class="wf-texto">Enviada el 28 de noviembre de 2026</p>
-              <span class="wf-boton wf-secundario">Cancelar solicitud</span><span class="wf-marca">1</span>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Bicicleta de paseo</strong><span class="wf-chip">Pendiente</span><span>▴</span></div>
+                  <p class="wf-ayuda">5–7 dic. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Bicicleta de paseo</span></p>
+                    <p class="wf-texto">Fechas: Del 5 de diciembre de 2026 al 7 de diciembre de 2026</p>
+                    <p class="wf-texto">Importe total: 24,00 €</p>
+                    <p class="wf-texto">Estado: Pendiente</p>
+                    <p class="wf-texto">Propietario: ana</p>
+                    <p class="wf-texto">Enviada el 28 de noviembre de 2026</p>
+                  </div>
+                  <p class="wf-texto"></p>
+                  <span class="wf-boton wf-secundario">Cancelar solicitud</span><span class="wf-marca">1</span>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">1</span><span class="wf-marca">2</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">8–10 dic. 2026</p>
+                </div>
+              </div>
             </div>
-            <h4>Recibidas <span class="wf-marca">2</span></h4>
-            <button type="button" class="wf-boton wf-secundario wf-ancho">▸ Taladro percutor Bosch · 8–10 dic. 2026 · Pendiente</button>
           </div>
         </div>
       </div>
@@ -88,7 +100,13 @@
       <h2><span class="wf-paso">3</span>Ventana de confirmación <code>/mis-solicitudes</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
           <div class="wf-contenido">
             <div class="wf-centrado wf-tarjeta">
               <h3 class="wf-h1">Cancelar solicitud</h3>
@@ -114,7 +132,13 @@
       <h2><span class="wf-paso">4</span>Ventana de confirmación con cargo de entrega <code>/mis-solicitudes</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
           <div class="wf-contenido">
             <div class="wf-centrado wf-tarjeta">
               <h3 class="wf-h1">Cancelar solicitud</h3>
@@ -145,18 +169,36 @@
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span>
               <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Mis solicitudes</h3>
-            <h4>Enviadas</h4>
-            <button type="button" class="wf-boton wf-secundario wf-ancho">▸ Bicicleta de paseo · 5–7 dic. 2026 · Pendiente</button>
-            <div class="wf-tarjeta">
-              <p class="wf-aviso">Motivo que devuelve la API. <span class="wf-marca">1</span></p>
-              <p class="wf-texto">Estado: Pendiente <span class="wf-marca">2</span></p>
-              <div class="wf-lineas"><span></span><span></span></div>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Bicicleta de paseo</strong><span class="wf-chip">Pendiente</span><span>▴</span></div>
+                  <p class="wf-ayuda">5–7 dic. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Bicicleta de paseo</span></p>
+                    <p class="wf-texto">Fechas: Del 5 de diciembre de 2026 al 7 de diciembre de 2026</p>
+                    <p class="wf-texto">Importe total: 24,00 €</p>
+                    <p class="wf-texto">Estado: Pendiente<span class="wf-marca">2</span></p>
+                    <p class="wf-texto">Propietario: ana</p>
+                    <p class="wf-texto">Enviada el 28 de noviembre de 2026</p>
+                  </div>
+                  <p class="wf-aviso">Motivo que devuelve la API. <span class="wf-marca">1</span></p>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">8–10 dic. 2026</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -178,21 +220,35 @@
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span>
               <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Mis solicitudes</h3>
-            <h4>Enviadas</h4>
-            <button type="button" class="wf-boton wf-secundario wf-ancho">▸ Bicicleta de paseo · 5–7 dic. 2026 · Cancelada</button>
-            <div class="wf-tarjeta">
-              <p class="wf-texto">Objeto: <span class="wf-enlace">Bicicleta de paseo</span></p>
-              <p class="wf-texto">Fechas: Del 5 de diciembre de 2026 al 7 de diciembre de 2026</p>
-              <p class="wf-texto">Importe total: 24,00 €</p>
-              <p class="wf-texto">Estado: Cancelada <span class="wf-marca">1</span></p>
-              <p class="wf-texto">Propietario: ana <span class="wf-marca">2</span></p>
-              <p class="wf-texto">Enviada el 28 de noviembre de 2026</p>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Bicicleta de paseo</strong><span class="wf-chip">Cancelada</span><span>▴</span></div>
+                  <p class="wf-ayuda">5–7 dic. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Bicicleta de paseo</span></p>
+                    <p class="wf-texto">Fechas: Del 5 de diciembre de 2026 al 7 de diciembre de 2026</p>
+                    <p class="wf-texto">Importe total: 24,00 €</p>
+                    <p class="wf-texto">Estado: Cancelada<span class="wf-marca">1</span></p>
+                    <p class="wf-texto">Propietario: ana<span class="wf-marca">2</span></p>
+                    <p class="wf-texto">Enviada el 28 de noviembre de 2026</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">8–10 dic. 2026</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -13,180 +13,480 @@
         <strong>decidir si solicito alquilarlo</strong>.
       </p>
       <p class="wf-meta">
-        Issue #58 · Wireframe de baja fidelidad · Generado con asistencia de IA (Claude/Copilot) –
-        revisado por Danyal, 01/11/2026
+        Issue #58 · Wireframe de baja fidelidad · Actualizado con asistencia de IA (Claude) tras el rediseño
+        (#258), pendiente de revisar por el equipo
+      </p>
+      <p class="wf-meta">
+        Maqueta de Figma · Marco «Ficha» (dos variantes): coinciden las dos columnas con el panel lateral,
+        fotos, precio, fianza, calendario, descripción, formas de entrega y propietario. Valoraciones,
+        mensajes y elegir la forma de recibirlo llegan con sus historias.
       </p>
     </header>
-
     <section class="wf-pantalla" data-captura="1-resultados">
-      <h2><span class="wf-paso">1</span>Punto de entrada: resultados de búsqueda <code>/buscar?q=taladro</code></h2>
+      <h2>
+        <span class="wf-paso">1</span>Punto de entrada: resultados de búsqueda <code>/buscar?q=taladro</code>
+      </h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/buscar?q=taladro">
           <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-enlace">Cerrar sesión</span>
-            </span>
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
           </nav>
           <div class="wf-contenido">
-            <div class="wf-fila">
-              <div class="wf-campo">
-                <label>¿Qué quieres alquilar?</label>
-                <div class="wf-input">taladro</div>
+            <div class="wf-tarjeta">
+              <div class="wf-columnas">
+                <div class="wf-campo">
+                  <label>¿Qué quieres alquilar?</label>
+                  <div class="wf-input">taladro</div>
+                </div>
+                <div class="wf-campo"><label>&nbsp;</label><span class="wf-boton">Buscar</span></div>
               </div>
-              <span class="wf-boton">Buscar</span>
             </div>
-            <div class="wf-caja">Filtros (US-03.02, #118)</div>
-            <h3 class="wf-h1">Resultados para «taladro»</h3>
-            <p class="wf-texto">3 objetos encontrados</p>
-            <div class="wf-rejilla">
-              <article class="wf-tarjeta">
-                <div class="wf-imagen"></div>
-                <h4 class="wf-h1">Taladro percutor Bosch <span class="wf-marca">1</span></h4>
-                <p class="wf-texto">5,00 € / día</p>
-                <p class="wf-texto">Gràcia · Herramientas</p>
-              </article>
-              <article class="wf-tarjeta">
-                <div class="wf-imagen"></div>
-                <h4 class="wf-h1">Taladro inalámbrico</h4>
-                <p class="wf-texto">4,00 € / día</p>
-                <p class="wf-texto">Eixample · Herramientas</p>
-              </article>
-              <article class="wf-tarjeta">
-                <div class="wf-imagen"></div>
-                <h4 class="wf-h1">Taladro con cable</h4>
-                <p class="wf-texto">3,00 € / día</p>
-                <p class="wf-texto">Sants · Herramientas</p>
-              </article>
+            <p></p>
+            <div class="wf-columnas wf-panel-izquierda">
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Filtros</strong></p>
+                  <div class="wf-campo">
+                    <label>Categoría </label>
+                    <div class="wf-input">Todas ▾</div>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Precio máximo (€/día) </label>
+                    <div class="wf-input">&nbsp;</div>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Barrio </label>
+                    <div class="wf-input">Ej.: Gràcia</div>
+                  </div>
+                  <div class="wf-campo"><span class="wf-boton wf-ancho">Aplicar filtros </span></div>
+                  <span class="wf-boton wf-secundario wf-ancho">Limpiar filtros </span>
+                </div>
+              </div>
+              <div>
+                <h3 class="wf-h1">Resultados para «taladro»</h3>
+                <p class="wf-texto">1 objeto encontrado</p>
+                <div class="wf-rejilla">
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto">
+                      <strong>Taladro percutor Bosch</strong> <span class="wf-marca">1</span>
+                    </p>
+                    <p class="wf-texto">6,00 € / día</p>
+                    <p class="wf-texto">Gràcia · Herramientas y bricolaje</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Al pulsar la primera tarjeta, «Taladro percutor Bosch», se abre su ficha.</li>
+        <li>Al pulsar la tarjeta se abre su ficha. También se llega desde «Novedades» en el inicio.</li>
       </ol>
     </section>
-
     <p class="wf-flecha">Clic en «Taladro percutor Bosch»</p>
-
-    <section class="wf-pantalla" data-captura="2-ficha">
-      <h2><span class="wf-paso">2</span>Ficha del objeto <code>/objetos/:id</code></h2>
+    <section class="wf-pantalla" data-captura="2-cargando">
+      <h2><span class="wf-paso">2</span>Cargando la ficha <code>/objetos/:id</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/objetos/:id">
           <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-enlace">Cerrar sesión</span>
-            </span>
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
           </nav>
           <div class="wf-contenido">
-            <div class="wf-rejilla">
-              <div class="wf-imagen"></div>
-              <div class="wf-imagen"></div>
-              <div class="wf-imagen"></div>
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-imagen"></div>
+                <div class="wf-lineas"><span></span><span></span><span></span></div>
+              </div>
+              <div class="wf-tarjeta">
+                <div class="wf-lineas"><span></span><span></span></div>
+                <div class="wf-caja"><span class="wf-marca">1</span></div>
+              </div>
             </div>
-            <p class="wf-ayuda">
-              Fotos del objeto <span class="wf-marca">3</span><span class="wf-marca">4</span>
-            </p>
-            <h3 class="wf-h1">Taladro percutor Bosch <span class="wf-marca">1</span></h3>
-            <div class="wf-fila">
-              <p class="wf-texto">5,00 € / día</p>
-              <p class="wf-texto">Fianza: 20,00 € <span class="wf-marca">5</span></p>
-              <p class="wf-texto">Disponible <span class="wf-marca">6</span></p>
-            </div>
-            <div class="wf-lineas"><span></span><span></span><span></span></div>
-            <p class="wf-texto">Categoría: Herramientas y bricolaje</p>
-            <p class="wf-texto">Barrio: Gràcia</p>
-            <p class="wf-texto">Formas de entrega: Entrega a domicilio · Punto de recogida</p>
-            <p class="wf-texto">Publicado por ana <span class="wf-marca">2</span></p>
-            <span class="wf-boton">Alquilar <span class="wf-marca">8</span></span>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Los datos del objeto vienen de <code>GET /api/objetos/:id</code> (#119).</li>
-        <li>Del propietario solo se muestra el nombre de usuario; nunca el correo.</li>
-        <li>Si el objeto no tiene fotos, en la zona de fotos se muestra «Este objeto no tiene fotos.»</li>
-        <li>Mientras carga, se ve «Cargando el objeto…».</li>
-        <li>Si la fianza es 0, se muestra «Sin fianza».</li>
-        <li>Un objeto pausado solo lo ve su propietario, con «Pausado: no aparece en las búsquedas».</li>
-        <li>Sin sesión, «Alquilar» lleva a <code>/login</code>; después de iniciar sesión, se vuelve a la ficha.</li>
-        <li>Con sesión, «Alquilar» lleva a <code>/objetos/:id/solicitar</code>, destino de la solicitud de alquiler.</li>
+        <li>
+          Solo se ven las zonas vacías. El texto «Cargando el objeto…» es para lectores de pantalla. Si falla
+          la API: «No hemos podido cargar el objeto. Inténtalo de nuevo más tarde.»
+        </li>
       </ol>
     </section>
-
-    <p class="wf-flecha">La misma ficha, vista por su propietaria (ana)</p>
-
-    <section class="wf-pantalla" data-captura="3-ficha-propietario">
-      <h2><span class="wf-paso">3</span>Ficha vista por la propietaria <code>/objetos/:id</code></h2>
+    <p class="wf-flecha">Sin sesión, llega el objeto</p>
+    <section class="wf-pantalla" data-captura="3-ficha-sin-sesion">
+      <h2><span class="wf-paso">3</span>Ficha sin sesión <code>/objetos/:id</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/objetos/:id">
           <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-enlace">Cerrar sesión</span>
-            </span>
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
           </nav>
           <div class="wf-contenido">
-            <div class="wf-rejilla">
-              <div class="wf-imagen"></div>
-              <div class="wf-imagen"></div>
-              <div class="wf-imagen"></div>
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-imagen"></div>
+                <p class="wf-ayuda">Fotos del objeto <span class="wf-marca">2</span></p>
+                <h3 class="wf-h1">Taladro percutor Bosch <span class="wf-marca">1</span></h3>
+                <div class="wf-chips">
+                  <span class="wf-chip">Gràcia</span><span class="wf-chip">Herramientas y bricolaje</span>
+                </div>
+                <p class="wf-texto"><strong>Descripción</strong></p>
+                <p class="wf-texto">
+                  Taladro percutor de 750 W con maletín, brocas para madera, metal y pared. Ideal para colgar
+                  estanterías o cuadros.
+                </p>
+                <p class="wf-texto"><strong>Formas de entrega</strong></p>
+                <div class="wf-chips">
+                  <span class="wf-chip">Entrega a domicilio</span
+                  ><span class="wf-chip">Entrega con rider</span>
+                </div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto">Publicado por ana <span class="wf-marca">4</span></p>
+                </div>
+              </div>
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto">
+                    <strong>6,00 €</strong> / día <span class="wf-chip">Disponible</span>
+                    <span class="wf-marca">3</span>
+                  </p>
+                  <p class="wf-texto">Fianza: 40,00 €</p>
+                  <hr />
+                  <span class="wf-boton wf-ancho">Alquilar <span class="wf-marca">5</span></span>
+                  <p class="wf-ayuda">Inicia sesión para elegir las fechas.</p>
+                </div>
+              </div>
             </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span>
+          </nav>
+          <div class="wf-contenido">
             <h3 class="wf-h1">Taladro percutor Bosch</h3>
-            <div class="wf-fila">
-              <p class="wf-texto">5,00 € / día</p>
-              <p class="wf-texto">Fianza: 20,00 €</p>
-              <p class="wf-texto">Disponible</p>
+            <div class="wf-chips">
+              <span class="wf-chip">Gràcia</span><span class="wf-chip">Herramientas y bricolaje</span>
             </div>
-            <div class="wf-lineas"><span></span><span></span><span></span></div>
-            <p class="wf-texto">Categoría: Herramientas y bricolaje</p>
-            <p class="wf-texto">Barrio: Gràcia</p>
-            <p class="wf-texto">Formas de entrega: Entrega a domicilio · Punto de recogida</p>
-            <p class="wf-texto">Publicado por ana</p>
-            <p class="wf-aviso">Este anuncio es tuyo.</p>
+            <div class="wf-imagen"></div>
+            <p class="wf-ayuda">Fotos del objeto</p>
+            <p></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>6,00 €</strong> / día <span class="wf-chip">Disponible</span></p>
+              <p class="wf-texto">Fianza: 40,00 €</p>
+              <hr />
+              <span class="wf-boton wf-ancho">Alquilar </span>
+              <p class="wf-ayuda">Inicia sesión para elegir las fechas.</p>
+            </div>
+            <p></p>
+            <p class="wf-texto"><strong>Descripción</strong></p>
+            <p class="wf-texto">
+              Taladro percutor de 750 W con maletín, brocas para madera, metal y pared. Ideal para colgar
+              estanterías o cuadros.
+            </p>
+            <p class="wf-texto"><strong>Formas de entrega</strong></p>
+            <div class="wf-chips">
+              <span class="wf-chip">Entrega a domicilio</span><span class="wf-chip">Entrega con rider</span>
+            </div>
+            <div class="wf-tarjeta"><p class="wf-texto">Publicado por ana</p></div>
+          </div>
+          <div class="wf-barra-inferior">
+            <span>Inicio</span><span>Iniciar sesión</span><span>Crear cuenta</span>
           </div>
         </div>
       </div>
+      <ol class="wf-notas">
+        <li>
+          Datos de <code>GET /api/objetos/:id</code>. En escritorio van dos columnas, con el panel fijo a la
+          derecha. En el móvil, una: primero el título, luego las fotos y el panel.
+        </li>
+        <li>
+          Con varias fotos, debajo van las miniaturas, que cambian la foto principal. Sin fotos: «Este objeto
+          no tiene fotos.»
+        </li>
+        <li>Importes en euros con 2 decimales. Si la fianza es 0: «Sin fianza».</li>
+        <li>
+          Del propietario solo se muestra el nombre de usuario, nunca el correo. Sin formas de entrega: «a
+          convenir con el propietario».
+        </li>
+        <li>Lleva a <code>/login</code> y, al entrar, vuelve a esta ficha.</li>
+      </ol>
     </section>
-
-    <p class="wf-flecha">Si se abre un enlace a un objeto que no existe</p>
-
-    <section class="wf-pantalla" data-captura="4-no-encontrado">
-      <h2><span class="wf-paso">4</span>Objeto no encontrado <code>/objetos/&lt;id inexistente&gt;</code></h2>
+    <p class="wf-flecha">Clic en «Alquilar»</p>
+    <section class="wf-pantalla" data-captura="4-login">
+      <h2><span class="wf-paso">4</span>Iniciar sesión <code>/login</code></h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/objetos/&lt;id inexistente&gt;">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+        <div class="wf-escritorio" data-url="rentit.app/login">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado">
+              <h3 class="wf-h1">Iniciar sesión</h3>
+              <p class="wf-texto">Alquila lo que necesitas, cerca de casa.</p>
+              <div class="wf-campo">
+                <label>Correo electrónico</label>
+                <div class="wf-input">&nbsp;</div>
+              </div>
+              <div class="wf-campo">
+                <label>Contraseña</label>
+                <div class="wf-input"><span>&nbsp;</span><span>Mostrar</span></div>
+              </div>
+              <span class="wf-boton wf-ancho">Iniciar sesión <span class="wf-marca">1</span></span>
+              <p class="wf-texto">¿Aún no tienes cuenta? <span class="wf-enlace">Regístrate</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Al entrar vuelve a la ficha, ya con las fechas en el panel (pantalla 7). Detalle en US-01.2.</li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Si el anuncio es tuyo</p>
+    <section class="wf-pantalla" data-captura="5-ficha-propietario">
+      <h2><span class="wf-paso">5</span>Ficha vista por su propietaria <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/:id">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span
+              ><span class="wf-enlace">Mi perfil</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-imagen"></div>
+                <p class="wf-ayuda">Fotos del objeto</p>
+                <h3 class="wf-h1">Taladro percutor Bosch</h3>
+                <div class="wf-chips">
+                  <span class="wf-chip">Gràcia</span><span class="wf-chip">Herramientas y bricolaje</span>
+                </div>
+                <p class="wf-texto"><strong>Descripción</strong></p>
+                <p class="wf-texto">
+                  Taladro percutor de 750 W con maletín, brocas para madera, metal y pared. Ideal para colgar
+                  estanterías o cuadros.
+                </p>
+                <p class="wf-texto"><strong>Formas de entrega</strong></p>
+                <div class="wf-chips">
+                  <span class="wf-chip">Entrega a domicilio</span
+                  ><span class="wf-chip">Entrega con rider</span>
+                </div>
+                <div class="wf-tarjeta"><p class="wf-texto">Publicado por ana</p></div>
+              </div>
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto">
+                    <strong>6,00 €</strong> / día <span class="wf-chip">Disponible</span>
+                    <span class="wf-marca">2</span>
+                  </p>
+                  <p class="wf-texto">Fianza: 40,00 €</p>
+                  <hr />
+                  <p class="wf-aviso">Este anuncio es tuyo. <span class="wf-marca">1</span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Sin «Alquilar» ni fechas.</li>
+        <li>
+          Un objeto pausado solo lo ve su propietario, con «Pausado: no aparece en las búsquedas». Para los
+          demás es un objeto no encontrado (pantalla 6).
+        </li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Si el enlace no lleva a ningún objeto, o lo han retirado</p>
+    <section class="wf-pantalla" data-captura="6-no-encontrado">
+      <h2>
+        <span class="wf-paso">6</span>Objeto no encontrado
+        <code>/objetos/&amp;lt;id inexistente&amp;gt;</code>
+      </h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">No hemos encontrado este objeto</h3>
             <p class="wf-texto">Puede que se haya retirado o que el enlace no sea correcto.</p>
-            <span class="wf-enlace">Volver al inicio</span>
+            <span class="wf-boton wf-secundario">Volver al inicio <span class="wf-marca">1</span></span>
           </div>
         </div>
       </div>
+      <ol class="wf-notas">
+        <li>Lleva a la página inicial.</li>
+      </ol>
     </section>
-
-    <p class="wf-flecha">Desde la ficha (pantalla 2), clic en «Alquilar»</p>
-
-    <section class="wf-pantalla" data-captura="5-destino">
-      <h2><span class="wf-paso">5</span>Destino: solicitud de alquiler <code>/objetos/:id/solicitar</code></h2>
+    <p class="wf-flecha">Con sesión, en un objeto que no es tuyo</p>
+    <section class="wf-pantalla" data-captura="7-ficha-con-sesion">
+      <h2>
+        <span class="wf-paso">7</span>Destino: ficha con las fechas en el panel <code>/objetos/:id</code>
+      </h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/objetos/:id/solicitar">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/:id">
           <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-enlace">Cerrar sesión</span>
-            </span>
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span
+              ><span class="wf-enlace">Mi perfil</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
           </nav>
           <div class="wf-contenido">
-            <div class="wf-caja">Solicitud de alquiler (US-04.01, #121)</div>
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-imagen"></div>
+                <p class="wf-ayuda">Fotos del objeto</p>
+                <h3 class="wf-h1">Taladro percutor Bosch</h3>
+                <div class="wf-chips">
+                  <span class="wf-chip">Gràcia</span><span class="wf-chip">Herramientas y bricolaje</span>
+                </div>
+                <p class="wf-texto"><strong>Descripción</strong></p>
+                <p class="wf-texto">
+                  Taladro percutor de 750 W con maletín, brocas para madera, metal y pared. Ideal para colgar
+                  estanterías o cuadros.
+                </p>
+                <p class="wf-texto"><strong>Formas de entrega</strong></p>
+                <div class="wf-chips">
+                  <span class="wf-chip">Entrega a domicilio</span
+                  ><span class="wf-chip">Entrega con rider</span>
+                </div>
+                <div class="wf-tarjeta"><p class="wf-texto">Publicado por ana</p></div>
+              </div>
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto">
+                    <strong>6,00 €</strong> / día <span class="wf-chip">Disponible</span>
+                  </p>
+                  <p class="wf-texto">Fianza: 40,00 €</p>
+                  <hr />
+                  <p class="wf-texto"><strong>Elige las fechas</strong></p>
+                  <div class="wf-fila">
+                    <div class="wf-campo">
+                      <label>Fecha de inicio <span class="wf-marca">1</span></label>
+                      <div class="wf-input">dd/mm/aaaa</div>
+                    </div>
+                    <div class="wf-campo">
+                      <label>Fecha de fin </label>
+                      <div class="wf-input">dd/mm/aaaa</div>
+                    </div>
+                  </div>
+                  <div class="wf-calendario">
+                    <span class="wf-cal-mes"><span>‹</span><span>Noviembre de 2026 </span><span>›</span></span
+                    ><span class="wf-cal-cabecera">L</span><span class="wf-cal-cabecera">M</span
+                    ><span class="wf-cal-cabecera">X</span><span class="wf-cal-cabecera">J</span
+                    ><span class="wf-cal-cabecera">V</span><span class="wf-cal-cabecera">S</span
+                    ><span class="wf-cal-cabecera">D</span><span></span><span></span><span></span><span></span
+                    ><span></span><span></span><span class="wf-cal-pasado">1</span
+                    ><span class="wf-cal-pasado">2</span><span class="wf-cal-pasado">3</span><span>4</span
+                    ><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span
+                    ><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span
+                    ><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span
+                    ><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span
+                    ><span>29</span><span>30</span>
+                  </div>
+                  <p class="wf-texto">Elige las fechas para ver el precio.</p>
+                  <span class="wf-boton wf-ancho wf-desactivado"
+                    >Solicitar alquiler <span class="wf-marca">2</span></span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Taladro percutor Bosch</h3>
+            <div class="wf-chips">
+              <span class="wf-chip">Gràcia</span><span class="wf-chip">Herramientas y bricolaje</span>
+            </div>
+            <div class="wf-imagen"></div>
+            <p class="wf-ayuda">Fotos del objeto</p>
+            <p></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>6,00 €</strong> / día <span class="wf-chip">Disponible</span></p>
+              <p class="wf-texto">Fianza: 40,00 €</p>
+              <hr />
+              <p class="wf-texto"><strong>Elige las fechas</strong></p>
+              <div class="wf-fila">
+                <div class="wf-campo">
+                  <label>Fecha de inicio </label>
+                  <div class="wf-input">dd/mm/aaaa</div>
+                </div>
+                <div class="wf-campo">
+                  <label>Fecha de fin </label>
+                  <div class="wf-input">dd/mm/aaaa</div>
+                </div>
+              </div>
+              <div class="wf-calendario">
+                <span class="wf-cal-mes"><span>‹</span><span>Noviembre de 2026 </span><span>›</span></span
+                ><span class="wf-cal-cabecera">L</span><span class="wf-cal-cabecera">M</span
+                ><span class="wf-cal-cabecera">X</span><span class="wf-cal-cabecera">J</span
+                ><span class="wf-cal-cabecera">V</span><span class="wf-cal-cabecera">S</span
+                ><span class="wf-cal-cabecera">D</span><span></span><span></span><span></span><span></span
+                ><span></span><span></span><span class="wf-cal-pasado">1</span
+                ><span class="wf-cal-pasado">2</span><span class="wf-cal-pasado">3</span><span>4</span
+                ><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span
+                ><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span
+                ><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span
+                ><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span
+                ><span>29</span><span>30</span>
+              </div>
+              <p class="wf-texto">Elige las fechas para ver el precio.</p>
+              <span class="wf-boton wf-ancho wf-desactivado">Solicitar alquiler </span>
+            </div>
+            <p></p>
+            <p class="wf-texto"><strong>Descripción</strong></p>
+            <p class="wf-texto">
+              Taladro percutor de 750 W con maletín, brocas para madera, metal y pared. Ideal para colgar
+              estanterías o cuadros.
+            </p>
+            <p class="wf-texto"><strong>Formas de entrega</strong></p>
+            <div class="wf-chips">
+              <span class="wf-chip">Entrega a domicilio</span><span class="wf-chip">Entrega con rider</span>
+            </div>
+            <div class="wf-tarjeta"><p class="wf-texto">Publicado por ana</p></div>
+          </div>
+          <div class="wf-barra-inferior">
+            <span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span>
           </div>
         </div>
       </div>
+      <ol class="wf-notas">
+        <li>
+          Ya no hay botón «Alquilar»: la solicitud (US-04.01) empieza aquí mismo, sin cambiar de pantalla.
+        </li>
+        <li>
+          <code>/objetos/:id/solicitar</code> ya no es una pantalla: con o sin sesión redirige a esta ficha.
+        </li>
+      </ol>
     </section>
   </body>
 </html>

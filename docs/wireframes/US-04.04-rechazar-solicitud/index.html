@@ -13,40 +13,339 @@
         para <strong>confirmar si presto mi objeto</strong>.
       </p>
       <p class="wf-meta">
-        Issues #62 y #63 · Wireframe de baja fidelidad · Generado con asistencia de IA (Claude/Copilot) – revisado por
-        Danyal, 01/11/2026
+        Issues #62 y #63 · Wireframe de baja fidelidad · Generado con asistencia de IA (Claude/Copilot) – Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo
       </p>
     </header>
 
     <section class="wf-pantalla" data-captura="1-entrada">
-      <h2><span class="wf-paso">1</span>Solicitud recibida pendiente <code>/mis-solicitudes</code></h2>
+      <h2><span class="wf-paso">1</span>Punto de entrada: una solicitud recibida pendiente <code>/mis-solicitudes</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces">
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-enlace">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mis objetos</span>
+              <strong class="wf-enlace">Mis solicitudes</strong><span class="wf-marca">1</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Mis solicitudes</h3>
-            <h4>Recibidas</h4>
-            <div class="wf-tarjeta">
-              <div class="wf-fila">
-                <strong>Taladro percutor Bosch · 8–10 nov. 2026</strong>
-                <span>Pendiente</span>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">2</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Altavoz Bluetooth JBL</strong><span class="wf-chip">Rechazada</span><span>▾</span></div>
+                  <p class="wf-ayuda">7–8 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">9 nov. 2026</p>
+                </div>
               </div>
-              <div class="wf-tarjeta">
+              <div>
+                <h4>Recibidas <span class="wf-chip">3</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Escalera de aluminio de 3 peldaños</strong><span class="wf-chip">Aceptada</span><span>▾</span></div>
+                  <p class="wf-ayuda">18–19 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Carro de la compra plegable</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">14–15 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-marca">2</span><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">11–13 nov. 2026</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El propietario pulsa «Mis solicitudes» en la cabecera (US-04.02). Todas las pantallas son con la sesión de ana, propietaria del objeto; bruno es quien ha pedido el alquiler.</li>
+        <li>Se despliega con un clic en la tarjeta.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Taladro percutor Bosch»</p>
+
+    <section class="wf-pantalla" data-captura="2-detalle">
+      <h2><span class="wf-paso">2</span>Detalle con «Aceptar» y «Rechazar» <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <strong class="wf-enlace">Mis solicitudes</strong>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">2</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Altavoz Bluetooth JBL</strong><span class="wf-chip">Rechazada</span><span>▾</span></div>
+                  <p class="wf-ayuda">7–8 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">9 nov. 2026</p>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">3</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Escalera de aluminio de 3 peldaños</strong><span class="wf-chip">Aceptada</span><span>▾</span></div>
+                  <p class="wf-ayuda">18–19 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Carro de la compra plegable</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">14–15 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pendiente</span><span>▴</span></div>
+                  <p class="wf-ayuda">11–13 nov. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
+                    <p class="wf-texto">Fechas: Del 11 de noviembre de 2026 al 13 de noviembre de 2026</p>
+                    <p class="wf-texto">Importe total: 18,00 €</p>
+                    <p class="wf-texto">Estado: Pendiente</p>
+                    <p class="wf-texto">Solicitada por: bruno</p>
+                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
+                  </div>
+                  <div class="wf-fila"><span class="wf-boton">Aceptar</span><span class="wf-boton wf-secundario">Rechazar</span><span class="wf-marca">1</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <h4>Recibidas <span class="wf-chip">3</span></h4>
+            <div class="wf-tarjeta">
+              <strong>Taladro percutor Bosch</strong>
+              <p class="wf-ayuda">11–13 nov. 2026</p>
+              <div class="wf-fila"><span class="wf-chip">Pendiente</span><span>▴</span></div>
+              <p class="wf-texto"></p>
+              <div class="wf-rejilla">
                 <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
-                <p class="wf-texto">Fechas: Del 8 de noviembre de 2026 al 10 de noviembre de 2026</p>
-                <p class="wf-texto">Importe total: 15,00 €</p>
+                <p class="wf-texto">Fechas: Del 11 de noviembre de 2026 al 13 de noviembre de 2026</p>
+                <p class="wf-texto">Importe total: 18,00 €</p>
                 <p class="wf-texto">Estado: Pendiente</p>
                 <p class="wf-texto">Solicitada por: bruno</p>
-                <p class="wf-texto">Enviada el 31 de octubre de 2026</p>
-                <div class="wf-fila">
-                  <span class="wf-boton">Aceptar</span>
+                <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
+              </div>
+              <div class="wf-fila"><span class="wf-boton">Aceptar</span><span class="wf-boton wf-secundario">Rechazar</span></div>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Los botones solo aparecen en solicitudes recibidas en estado «Pendiente». No hay ventana de confirmación. «Aceptar» llama a <code>POST /api/reservas/:id/aceptar</code> y «Rechazar» a <code>POST /api/reservas/:id/rechazar</code> (#125). Solo el propietario del objeto puede responder.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Aceptar»</p>
+
+    <section class="wf-pantalla" data-captura="3-enviando">
+      <h2><span class="wf-paso">3</span>Enviando la respuesta <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <strong class="wf-enlace">Mis solicitudes</strong>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">2</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Altavoz Bluetooth JBL</strong><span class="wf-chip">Rechazada</span><span>▾</span></div>
+                  <p class="wf-ayuda">7–8 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">9 nov. 2026</p>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">3</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Escalera de aluminio de 3 peldaños</strong><span class="wf-chip">Aceptada</span><span>▾</span></div>
+                  <p class="wf-ayuda">18–19 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Carro de la compra plegable</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">14–15 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pendiente</span><span>▴</span></div>
+                  <p class="wf-ayuda">11–13 nov. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
+                    <p class="wf-texto">Fechas: Del 11 de noviembre de 2026 al 13 de noviembre de 2026</p>
+                    <p class="wf-texto">Importe total: 18,00 €</p>
+                    <p class="wf-texto">Estado: Pendiente</p>
+                    <p class="wf-texto">Solicitada por: bruno</p>
+                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
+                  </div>
+                  <div class="wf-fila"><span class="wf-boton wf-desactivado">Aceptando…</span><span class="wf-boton wf-desactivado">Rechazar</span><span class="wf-marca">1</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Los dos botones se desactivan y el pulsado cambia de texto: «Aceptando…» o «Rechazando…».</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Si la solicitud ya no estaba pendiente (por ejemplo, se respondió desde otra pestaña)</p>
+
+    <section class="wf-pantalla" data-captura="4-error-no-pendiente">
+      <h2><span class="wf-paso">4</span>Error: la solicitud ya no está pendiente <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <strong class="wf-enlace">Mis solicitudes</strong>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">2</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Altavoz Bluetooth JBL</strong><span class="wf-chip">Rechazada</span><span>▾</span></div>
+                  <p class="wf-ayuda">7–8 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">9 nov. 2026</p>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">3</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Escalera de aluminio de 3 peldaños</strong><span class="wf-chip">Aceptada</span><span>▾</span></div>
+                  <p class="wf-ayuda">18–19 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Carro de la compra plegable</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">14–15 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pendiente</span><span class="wf-marca">2</span><span>▴</span></div>
+                  <p class="wf-ayuda">11–13 nov. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
+                    <p class="wf-texto">Fechas: Del 11 de noviembre de 2026 al 13 de noviembre de 2026</p>
+                    <p class="wf-texto">Importe total: 18,00 €</p>
+                    <p class="wf-texto">Estado: Pendiente</p>
+                    <p class="wf-texto">Solicitada por: bruno</p>
+                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
+                  </div>
+                  <p class="wf-error">Esta solicitud ya no está pendiente. <span class="wf-marca">1</span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El error sale dentro del detalle y desaparecen los botones. Igual con «Solo el propietario del objeto puede responder a esta solicitud.» o si la solicitud ya no existe.</li>
+        <li>La tarjeta sigue diciendo «Pendiente» hasta que se recarga la página.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Solo al aceptar: si las fechas coinciden con otra reserva ya aceptada</p>
+
+    <section class="wf-pantalla" data-captura="5-error-solapada">
+      <h2><span class="wf-paso">5</span>Error: fechas ocupadas <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <strong class="wf-enlace">Mis solicitudes</strong>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">2</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Altavoz Bluetooth JBL</strong><span class="wf-chip">Rechazada</span><span>▾</span></div>
+                  <p class="wf-ayuda">7–8 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">9 nov. 2026</p>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">3</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Escalera de aluminio de 3 peldaños</strong><span class="wf-chip">Aceptada</span><span>▾</span></div>
+                  <p class="wf-ayuda">18–19 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Carro de la compra plegable</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">14–15 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pendiente</span><span>▴</span></div>
+                  <p class="wf-ayuda">11–13 nov. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
+                    <p class="wf-texto">Fechas: Del 11 de noviembre de 2026 al 13 de noviembre de 2026</p>
+                    <p class="wf-texto">Importe total: 18,00 €</p>
+                    <p class="wf-texto">Estado: Pendiente</p>
+                    <p class="wf-texto">Solicitada por: bruno</p>
+                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
+                  </div>
+                  <p class="wf-error">Las fechas de esta solicitud se solapan con otra reserva ya aceptada. <span class="wf-marca">1</span></p>
+                  <p class="wf-texto"></p>
                   <span class="wf-boton wf-secundario">Rechazar</span>
                 </div>
               </div>
@@ -55,132 +354,139 @@
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Los botones solo aparecen en solicitudes recibidas en estado «Pendiente».</li>
-        <li>No hay diálogo de confirmación. Mientras se envía la respuesta, los dos botones se desactivan y el pulsado muestra «Aceptando…» o «Rechazando…».</li>
-        <li>«Aceptar» llama a <code>POST /api/reservas/:id/aceptar</code> y «Rechazar» a <code>POST /api/reservas/:id/rechazar</code> (#125).</li>
-        <li>Solo el propietario del objeto puede responder. Una solicitud aceptada o rechazada ya no se puede volver a aceptar ni rechazar.</li>
-        <li>El usuario se queda en «Mis solicitudes»: el destino es esta misma pantalla con el estado actualizado.</li>
-        <li>Todas las pantallas son con la sesión de ana, propietaria del objeto; bruno es quien ha pedido el alquiler.</li>
+        <li>La solicitud sigue pendiente: ya no se puede aceptar, pero sí rechazar. Con otros fallos (sin conexión, error del servidor) sale el mensaje y los dos botones siguen para reintentar.</li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Clic en «Aceptar»</p>
+    <p class="wf-flecha">Desde la pantalla 3: la respuesta llega bien</p>
 
-    <section class="wf-pantalla" data-captura="2-aceptada">
-      <h2><span class="wf-paso">2</span>Solicitud aceptada <code>/mis-solicitudes</code></h2>
+    <section class="wf-pantalla" data-captura="6-aceptada">
+      <h2><span class="wf-paso">6</span>Destino: solicitud aceptada <code>/mis-solicitudes</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces">
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-enlace">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mis objetos</span>
+              <strong class="wf-enlace">Mis solicitudes</strong>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Mis solicitudes</h3>
-            <h4>Recibidas</h4>
-            <div class="wf-tarjeta">
-              <div class="wf-fila">
-                <strong>Taladro percutor Bosch · 8–10 nov. 2026</strong>
-                <span>Aceptada</span>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">2</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Altavoz Bluetooth JBL</strong><span class="wf-chip">Rechazada</span><span>▾</span></div>
+                  <p class="wf-ayuda">7–8 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">9 nov. 2026</p>
+                </div>
               </div>
-              <div class="wf-tarjeta">
-                <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
-                <p class="wf-texto">Fechas: Del 8 de noviembre de 2026 al 10 de noviembre de 2026</p>
-                <p class="wf-texto">Importe total: 15,00 €</p>
-                <p class="wf-texto">Estado: Aceptada</p>
-                <p class="wf-texto">Solicitada por: bruno</p>
-                <p class="wf-texto">Enviada el 31 de octubre de 2026</p>
-                <p class="wf-aviso">Has aceptado la solicitud.</p>
+              <div>
+                <h4>Recibidas <span class="wf-chip">3</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Escalera de aluminio de 3 peldaños</strong><span class="wf-chip">Aceptada</span><span>▾</span></div>
+                  <p class="wf-ayuda">18–19 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Carro de la compra plegable</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">14–15 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Aceptada</span><span class="wf-marca">2</span><span>▴</span></div>
+                  <p class="wf-ayuda">11–13 nov. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
+                    <p class="wf-texto">Fechas: Del 11 de noviembre de 2026 al 13 de noviembre de 2026</p>
+                    <p class="wf-texto">Importe total: 18,00 €</p>
+                    <p class="wf-texto">Estado: Aceptada</p>
+                    <p class="wf-texto">Solicitada por: bruno</p>
+                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
+                  </div>
+                  <p class="wf-aviso">Has aceptado la solicitud. <span class="wf-marca">1</span></p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>La solicitud queda en «Mis solicitudes» y muestra el estado actualizado; ya no hay botones para responder.</li>
+        <li>El usuario se queda en «Mis solicitudes», con la tarjeta abierta y sin botones. Una solicitud aceptada ya no se puede volver a aceptar ni rechazar.</li>
+        <li>La tarjeta pasa a «Aceptada» sin recargar. bruno la ve «Aceptada» en «Enviadas» la próxima vez que cargue la lista.</li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Si en lugar de aceptar pulsa «Rechazar»</p>
+    <p class="wf-flecha">Si en la pantalla 2 pulsa «Rechazar» (mientras se envía, dice «Rechazando…»)</p>
 
-    <section class="wf-pantalla" data-captura="3-rechazada">
-      <h2><span class="wf-paso">3</span>Solicitud rechazada <code>/mis-solicitudes</code></h2>
+    <section class="wf-pantalla" data-captura="7-rechazada">
+      <h2><span class="wf-paso">7</span>Destino: solicitud rechazada <code>/mis-solicitudes</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces">
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-enlace">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mis objetos</span>
+              <strong class="wf-enlace">Mis solicitudes</strong>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Mis solicitudes</h3>
-            <h4>Recibidas</h4>
-            <div class="wf-tarjeta">
-              <div class="wf-fila">
-                <strong>Taladro percutor Bosch · 8–10 nov. 2026</strong>
-                <span>Rechazada</span>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">2</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Altavoz Bluetooth JBL</strong><span class="wf-chip">Rechazada</span><span>▾</span></div>
+                  <p class="wf-ayuda">7–8 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">9 nov. 2026</p>
+                </div>
               </div>
-              <div class="wf-tarjeta">
-                <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
-                <p class="wf-texto">Fechas: Del 8 de noviembre de 2026 al 10 de noviembre de 2026</p>
-                <p class="wf-texto">Importe total: 15,00 €</p>
-                <p class="wf-texto">Estado: Rechazada</p>
-                <p class="wf-texto">Solicitada por: bruno</p>
-                <p class="wf-texto">Enviada el 31 de octubre de 2026</p>
-                <p class="wf-aviso">Has rechazado la solicitud.</p>
+              <div>
+                <h4>Recibidas <span class="wf-chip">3</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Escalera de aluminio de 3 peldaños</strong><span class="wf-chip">Aceptada</span><span>▾</span></div>
+                  <p class="wf-ayuda">18–19 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Carro de la compra plegable</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
+                  <p class="wf-ayuda">14–15 nov. 2026</p>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Rechazada</span><span class="wf-marca">2</span><span>▴</span></div>
+                  <p class="wf-ayuda">11–13 nov. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
+                    <p class="wf-texto">Fechas: Del 11 de noviembre de 2026 al 13 de noviembre de 2026</p>
+                    <p class="wf-texto">Importe total: 18,00 €</p>
+                    <p class="wf-texto">Estado: Rechazada</p>
+                    <p class="wf-texto">Solicitada por: bruno</p>
+                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
+                  </div>
+                  <p class="wf-aviso">Has rechazado la solicitud. <span class="wf-marca">1</span></p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>La solicitud queda en «Mis solicitudes» y muestra el estado actualizado; ya no hay botones para responder.</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Si la solicitud ya no estaba pendiente (por ejemplo, se respondió desde otra pestaña)</p>
-
-    <section class="wf-pantalla" data-captura="4-error">
-      <h2><span class="wf-paso">4</span>La solicitud ya no está pendiente <code>/mis-solicitudes</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
-          <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-enlace">Cerrar sesión</span>
-            </span>
-          </nav>
-          <div class="wf-contenido">
-            <h3 class="wf-h1">Mis solicitudes</h3>
-            <h4>Recibidas</h4>
-            <div class="wf-tarjeta">
-              <div class="wf-fila">
-                <strong>Taladro percutor Bosch · 8–10 nov. 2026</strong>
-                <span>Pendiente</span>
-              </div>
-              <div class="wf-tarjeta">
-                <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
-                <p class="wf-texto">Fechas: Del 8 de noviembre de 2026 al 10 de noviembre de 2026</p>
-                <p class="wf-texto">Importe total: 15,00 €</p>
-                <p class="wf-texto">Estado: Pendiente</p>
-                <p class="wf-texto">Solicitada por: bruno</p>
-                <p class="wf-texto">Enviada el 31 de octubre de 2026</p>
-                <p class="wf-error">Esta solicitud ya no está pendiente.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>Se muestra el error en «Mis solicitudes» sin botones de respuesta.</li>
+        <li>El usuario se queda en «Mis solicitudes», con la tarjeta abierta y sin botones. Una solicitud rechazada ya no se puede volver a aceptar ni rechazar, y no ocupa las fechas del objeto.</li>
+        <li>La tarjeta pasa a «Rechazada» sin recargar. bruno la ve «Rechazada» en «Enviadas» la próxima vez que cargue la lista.</li>
       </ol>
     </section>
   </body>

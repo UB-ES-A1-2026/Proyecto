@@ -16,6 +16,7 @@
         Issue #75 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Generado con
         asistencia de IA (Claude) – pendiente de revisar por el equipo en el Sprint Planning
       </p>
+      <p class="wf-meta">Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo</p>
     </header>
 
     <section class="wf-pantalla" data-captura="1-entrada">
@@ -27,17 +28,37 @@
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span>
               <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Mis solicitudes</h3>
-            <p class="wf-texto"><strong>Recibidas</strong></p>
-            <span class="wf-boton wf-secundario wf-ancho">▾ Taladro percutor Bosch · 10–12 nov. 2026 · Finalizada</span>
-            <div class="wf-tarjeta">
-              <p class="wf-texto">Importe total: 18,00 € · Solicitada por: bruno</p>
-              <span class="wf-boton">Valorar</span><span class="wf-marca">1</span>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Altavoz Bluetooth JBL</strong><span class="wf-chip">Rechazada</span><span>▾</span></div>
+                  <p class="wf-ayuda">7–8 nov. 2026</p>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Finalizada</span><span>▴</span></div>
+                  <p class="wf-ayuda">10–12 nov. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
+                    <p class="wf-texto">Fechas: Del 10 de noviembre de 2026 al 12 de noviembre de 2026</p>
+                    <p class="wf-texto">Importe total: 18,00 €</p>
+                    <p class="wf-texto">Estado: Finalizada</p>
+                    <p class="wf-texto">Solicitada por: bruno</p>
+                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
+                  </div>
+                  <p class="wf-texto"></p>
+                  <span class="wf-boton">Valorar</span><span class="wf-marca">1</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -61,9 +82,7 @@
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span>
               <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <div class="wf-centrado wf-tarjeta">
@@ -89,7 +108,7 @@
           </div>
         </div>
         <div class="wf-movil">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Valorar a bruno</h3>
             <p class="wf-texto">Taladro percutor Bosch · Del 10/11/2026 al 12/11/2026</p>
@@ -104,6 +123,7 @@
             </div>
             <span class="wf-boton wf-ancho">Publicar</span>
           </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
         </div>
       </div>
       <ol class="wf-notas">
@@ -119,7 +139,13 @@
       <h2><span class="wf-paso">3</span>Error: sin puntuación <code>/mis-solicitudes/:id/valorar</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes/5ac9…/valorar">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
           <div class="wf-contenido">
             <div class="wf-centrado wf-tarjeta">
               <h3 class="wf-h1">Valorar a bruno</h3>
@@ -156,7 +182,13 @@
       <h2><span class="wf-paso">4</span>Formulario relleno <code>/mis-solicitudes/:id/valorar</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes/5ac9…/valorar">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
           <div class="wf-contenido">
             <div class="wf-centrado wf-tarjeta">
               <h3 class="wf-h1">Valorar a bruno</h3>
@@ -197,17 +229,37 @@
             <span class="wf-enlaces">
               <span class="wf-enlace">Mis objetos</span>
               <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span>
-              <span class="wf-boton wf-secundario">Cerrar sesión</span>
-            </span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Mis solicitudes</h3>
-            <p class="wf-texto"><strong>Recibidas</strong></p>
-            <span class="wf-boton wf-secundario wf-ancho">▾ Taladro percutor Bosch · 10–12 nov. 2026 · Finalizada</span>
-            <div class="wf-tarjeta">
-              <p class="wf-texto">Importe total: 18,00 € · Solicitada por: bruno <span class="wf-marca">1</span></p>
-              <p class="wf-texto">Tu valoración: ★★★★★ · «Lo devolvió limpio y a tiempo.» <span class="wf-marca">2</span></p>
+            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Altavoz Bluetooth JBL</strong><span class="wf-chip">Rechazada</span><span>▾</span></div>
+                  <p class="wf-ayuda">7–8 nov. 2026</p>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Finalizada</span><span>▴</span></div>
+                  <p class="wf-ayuda">10–12 nov. 2026</p>
+                  <p class="wf-texto"></p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
+                    <p class="wf-texto">Fechas: Del 10 de noviembre de 2026 al 12 de noviembre de 2026</p>
+                    <p class="wf-texto">Importe total: 18,00 €</p>
+                    <p class="wf-texto">Estado: Finalizada</p>
+                    <p class="wf-texto">Solicitada por: bruno<span class="wf-marca">1</span></p>
+                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
+                  </div>
+                  <p class="wf-texto"></p>
+                  <p class="wf-texto">Tu valoración: ★★★★★ · «Lo devolvió limpio y a tiempo.» <span class="wf-marca">2</span></p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

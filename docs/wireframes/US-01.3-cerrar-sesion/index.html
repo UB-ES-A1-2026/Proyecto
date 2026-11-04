@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-01.3 Cerrar sesión · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-01.3 Cerrar sesión</h1>
+      <p class="wf-historia">
+        Como <strong>usuario registrado</strong>, quiero <strong>cerrar sesión</strong> para
+        <strong>que nadie más pueda usar mi cuenta desde este dispositivo</strong>.
+      </p>
+      <p class="wf-meta">Issue #47 · Wireframe de baja fidelidad, dibujado a partir de lo implementado · Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo</p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-entrada">
+      <h2><span class="wf-paso">1</span>Punto de entrada: cualquier página con sesión <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-marca">1</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Hola, ana</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-caja">Resto de la página inicial</div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>«Cerrar sesión» ya no está en la cabecera: se llega por «Mi perfil», que en el móvil está en la barra inferior.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Mi perfil»</p>
+
+    <section class="wf-pantalla" data-captura="2-mi-perfil">
+      <h2><span class="wf-paso">2</span>Mi perfil <code>/perfil</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/perfil">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mi perfil</h3>
+            <div class="wf-columnas wf-panel-izquierda">
+              <div>
+                <p class="wf-texto"><span class="wf-logo">A</span></p>
+                <p class="wf-texto"><strong>ana</strong></p>
+                <div class="wf-campo">Correo electrónico<br />ana@ejemplo.com</div>
+                <div class="wf-campo">Miembro desde<br />12 de octubre de 2026</div>
+                <span class="wf-boton wf-secundario">Cerrar sesión</span><span class="wf-marca">1</span>
+              </div>
+              <div>
+                <div class="wf-columnas">
+                  <div class="wf-tarjeta"><h3 class="wf-h1">4</h3><strong>Mis objetos</strong></div>
+                  <div class="wf-tarjeta"><h3 class="wf-h1">5</h3><strong>Mis solicitudes</strong></div>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta wf-fila">¿Tienes algo que no usas? <span class="wf-boton">Publicar un objeto</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mi perfil</h3>
+            <p class="wf-texto"><span class="wf-logo">A</span> <strong>ana</strong></p>
+            <div class="wf-campo">Correo electrónico<br />ana@ejemplo.com</div>
+            <div class="wf-campo">Miembro desde<br />12 de octubre de 2026</div>
+            <div class="wf-fila">
+              <div class="wf-tarjeta"><h3 class="wf-h1">4</h3><p class="wf-ayuda">Mis objetos</p></div>
+              <div class="wf-tarjeta"><h3 class="wf-h1">5</h3><p class="wf-ayuda">Mis solicitudes</p></div>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto">¿Tienes algo que no usas?</p>
+              <span class="wf-boton wf-ancho">Publicar un objeto</span>
+            </div>
+            <p class="wf-texto"></p>
+            <span class="wf-boton wf-secundario">Cerrar sesión</span><span class="wf-marca">2</span>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Cierra la sesión al momento, sin ventana de confirmación. Mientras tanto, el botón está desactivado y no cambia de texto.</li>
+        <li>En el móvil es lo último de la página, debajo de todo lo demás.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Cerrar sesión»: la API invalida la sesión y el token se borra del navegador</p>
+
+    <section class="wf-pantalla" data-captura="3-destino-login">
+      <h2><span class="wf-paso">3</span>Destino: inicio de sesión, ya sin sesión <code>/login</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/login">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span><span class="wf-marca">1</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <h3 class="wf-h1">Iniciar sesión</h3>
+              <p class="wf-texto">Alquila lo que necesitas, cerca de casa.</p>
+              <div class="wf-campo"><label>Correo electrónico</label><div class="wf-input"></div></div>
+              <div class="wf-campo"><label>Contraseña</label><div class="wf-input"><span></span><span class="wf-boton wf-secundario">Mostrar</span></div></div>
+              <span class="wf-boton wf-ancho">Iniciar sesión <span class="wf-marca">2</span></span>
+              <p class="wf-ayuda">¿Aún no tienes cuenta? <span class="wf-enlace">Regístrate</span></p>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <div class="wf-tarjeta">
+              <h3 class="wf-h1">Iniciar sesión</h3>
+              <p class="wf-texto">Alquila lo que necesitas, cerca de casa.</p>
+              <div class="wf-campo"><label>Correo electrónico</label><div class="wf-input"></div></div>
+              <div class="wf-campo"><label>Contraseña</label><div class="wf-input"><span></span><span class="wf-boton wf-secundario">Mostrar</span></div></div>
+              <span class="wf-boton wf-ancho">Iniciar sesión</span>
+              <p class="wf-ayuda">¿Aún no tienes cuenta? <span class="wf-enlace">Regístrate</span></p>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Iniciar sesión</span><span>Crear cuenta</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>La navegación ya es la de una persona sin sesión. Con el token anterior, la API responde 401. Las páginas privadas, también con «Atrás» o escribiendo la URL, llevan a <code>/login</code>. Si la API no responde o la sesión ya no era válida, la sesión se cierra igual en este navegador.</li>
+        <li>Al volver a entrar desde aquí se llega a la página inicial, no a la página privada en la que se estaba. Si después de cerrar sesión se intenta abrir una página privada, se vuelve a esa página (US-01.2).</li>
+      </ol>
+    </section>
+  </body>
+</html>

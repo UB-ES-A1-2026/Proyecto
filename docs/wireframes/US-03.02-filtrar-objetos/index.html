@@ -14,200 +14,650 @@
       </p>
       <p class="wf-meta">
         Issue #57 · Tarea #118 (panel de filtros) · API propuesta en #117 · Wireframe de baja fidelidad ·
-        Generado con asistencia de IA (Claude) – revisado por Alex Matos, 31/10/2026
+        Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo
+      </p>
+      <p class="wf-meta">
+        Maqueta de Figma · Marco «Home»: coincide el panel lateral fijo. La maqueta añade fechas, precio
+        mínimo, distancia, valoración, sin fianza y entrega a domicilio; la web tiene categoría, precio máximo
+        y barrio. El botón «Filtros» solo sale en el móvil.
       </p>
     </header>
-
     <section class="wf-pantalla" data-captura="1-resultados">
-      <h2><span class="wf-paso">1</span>Punto de entrada: resultados de búsqueda <code>/buscar?q=taladro</code></h2>
+      <h2><span class="wf-paso">1</span>Punto de entrada: resultados de búsqueda <code>/buscar?q=</code></h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/buscar?q=taladro">
+        <div class="wf-escritorio" data-url="rentit.app/buscar?q=">
           <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces"><span class="wf-enlace">Mi perfil</span><span class="wf-boton wf-secundario">Cerrar sesión</span></span>
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
           </nav>
           <div class="wf-contenido">
-            <div class="wf-fila">
-              <div class="wf-input" style="flex: 1">taladro</div>
-              <span class="wf-boton">Buscar</span>
-              <span class="wf-boton wf-secundario">Filtros <span class="wf-marca">1</span></span>
-            </div>
-            <p class="wf-texto" style="margin-top: 14px">12 objetos para «taladro» <span class="wf-marca">2</span></p>
-            <div class="wf-rejilla">
-              <div class="wf-tarjeta"><div class="wf-imagen"></div><p class="wf-texto">Taladro percutor · 5 €/día<br />Gràcia</p></div>
-              <div class="wf-tarjeta"><div class="wf-imagen"></div><p class="wf-texto">Taladro sin cable · 8 €/día<br />Sants</p></div>
-              <div class="wf-tarjeta"><div class="wf-imagen"></div><p class="wf-texto">Brocas y taladro · 12 €/día<br />Gràcia</p></div>
-              <div class="wf-tarjeta"><div class="wf-imagen"></div><p class="wf-texto">Taladro columna · 20 €/día<br />Eixample</p></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>Botón «Filtros» junto a la barra de búsqueda (criterio 1). Abre y cierra el panel. Es lo único que añade #118 a esta pantalla.</li>
-        <li>Página de resultados de #115 (Danyal): barra, contador y tarjetas. No se cambia; el panel se coloca encima.</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Clic en «Filtros»</p>
-
-    <section class="wf-pantalla" data-captura="2-panel-abierto">
-      <h2><span class="wf-paso">2</span>Panel de filtros abierto <code>/buscar?q=taladro</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/buscar?q=taladro">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-enlaces"><span class="wf-enlace">Mi perfil</span></span></nav>
-          <div class="wf-contenido">
-            <div class="wf-fila">
-              <div class="wf-input" style="flex: 1">taladro</div>
-              <span class="wf-boton">Buscar</span>
-              <span class="wf-boton">Filtros</span>
-            </div>
-            <div class="wf-tarjeta" style="margin-top: 14px">
-              <div class="wf-fila" style="align-items: start">
-                <div class="wf-campo" style="flex: 1">
-                  <label>Categoría <span class="wf-marca">1</span></label>
-                  <div class="wf-input">Herramientas y bricolaje ▾</div>
+            <div class="wf-tarjeta">
+              <div class="wf-columnas">
+                <div class="wf-campo">
+                  <label>¿Qué quieres alquilar?</label>
+                  <div class="wf-input">Por ejemplo, taladro</div>
                 </div>
-                <div class="wf-campo" style="flex: 1">
-                  <label>Precio máximo (€/día) <span class="wf-marca">2</span></label>
-                  <div class="wf-input">10</div>
-                </div>
-                <div class="wf-campo" style="flex: 1">
-                  <label>Barrio <span class="wf-marca">3</span></label>
-                  <div class="wf-input">Ej.: Gràcia</div>
-                </div>
-              </div>
-              <div class="wf-fila">
-                <span class="wf-boton">Aplicar filtros <span class="wf-marca">4</span></span>
-                <span class="wf-boton wf-secundario">Limpiar filtros</span>
+                <div class="wf-campo"><label>&nbsp;</label><span class="wf-boton">Buscar</span></div>
               </div>
             </div>
-            <div class="wf-caja" style="margin-top: 14px">Resultados (sin cambios hasta que se aplica)</div>
+            <p></p>
+            <div class="wf-columnas wf-panel-izquierda">
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Filtros</strong></p>
+                  <div class="wf-campo">
+                    <label>Categoría <span class="wf-marca">1</span></label>
+                    <div class="wf-input">Todas ▾</div>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Precio máximo (€/día) </label>
+                    <div class="wf-input">&nbsp;</div>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Barrio </label>
+                    <div class="wf-input">Ej.: Gràcia</div>
+                  </div>
+                  <div class="wf-campo"><span class="wf-boton wf-ancho">Aplicar filtros </span></div>
+                  <span class="wf-boton wf-secundario wf-ancho">Limpiar filtros </span>
+                </div>
+              </div>
+              <div>
+                <h3 class="wf-h1">Resultados</h3>
+                <p class="wf-texto">11 objetos encontrados</p>
+                <div class="wf-rejilla">
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto"><strong>Carro de la compra plegable</strong></p>
+                    <p class="wf-texto">2,00 € / día</p>
+                    <p class="wf-texto">Gràcia · Otros</p>
+                  </div>
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto"><strong>Tabla de paddle surf hinchable</strong></p>
+                    <p class="wf-texto">15,00 € / día</p>
+                    <p class="wf-texto">Sant Andreu · Deporte</p>
+                  </div>
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto"><strong>Silla de coche para bebé</strong></p>
+                    <p class="wf-texto">4,00 € / día</p>
+                    <p class="wf-texto">Sant Andreu · Infantil</p>
+                  </div>
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto"><strong>Hidrolimpiadora Kärcher</strong></p>
+                    <p class="wf-texto">8,00 € / día</p>
+                    <p class="wf-texto">Sant Andreu · Hogar y jardín</p>
+                  </div>
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto"><strong>Cortacésped eléctrico</strong></p>
+                    <p class="wf-texto">9,00 € / día</p>
+                    <p class="wf-texto">Sant Andreu · Hogar y jardín</p>
+                  </div>
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto"><strong>Máquina de palomitas</strong></p>
+                    <p class="wf-texto">7,00 € / día</p>
+                    <p class="wf-texto">Poblenou · Fiestas y eventos</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="wf-movil">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
-          <div class="wf-contenido">
-            <div class="wf-campo"><label>Categoría</label><div class="wf-input">Todas ▾</div></div>
-            <div class="wf-campo"><label>Precio máximo (€/día)</label><div class="wf-input">10</div></div>
-            <div class="wf-campo"><label>Barrio</label><div class="wf-input">Ej.: Gràcia</div></div>
-            <span class="wf-boton wf-ancho">Aplicar filtros</span>
-            <p></p>
-            <span class="wf-boton wf-secundario wf-ancho">Limpiar filtros <span class="wf-marca">5</span></span>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>Desplegable con «Todas» y las 8 categorías de la migración (#169), que vienen de <code>GET /api/categorias</code>.</li>
-        <li>Número mayor que 0, con decimales. Vacío = sin límite.</li>
-        <li>«Ubicación» del criterio 2 = barrio del objeto (<code>objeto.barrio</code>). Texto libre (vacío por defecto); busca los barrios que lo contienen.</li>
-        <li>Aplica todos los filtros rellenados a la vez (criterios 3 y 4): los pone en la URL (<code>&amp;categoryId=…&amp;maxPrice=10&amp;neighborhood=gràcia</code>) y vuelve a pedir <code>GET /api/objetos</code>.</li>
-        <li>En móvil, el panel ocupa toda la pantalla y los campos van uno debajo de otro.</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Elige «Herramientas y bricolaje», precio máximo 10 y pulsa «Aplicar filtros»</p>
-
-    <section class="wf-pantalla" data-captura="3-resultados-filtrados">
-      <h2><span class="wf-paso">3</span>Resultados filtrados <code>/buscar?q=taladro&amp;categoryId=…&amp;maxPrice=10</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/buscar?q=taladro&categoryId=…&maxPrice=10">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-enlaces"><span class="wf-enlace">Mi perfil</span></span></nav>
-          <div class="wf-contenido">
-            <div class="wf-fila">
-              <div class="wf-input" style="flex: 1">taladro</div>
-              <span class="wf-boton">Buscar</span>
-              <span class="wf-boton wf-secundario">Filtros (2) <span class="wf-marca">1</span></span>
-            </div>
-            <div class="wf-fila" style="margin-top: 14px">
-              <span class="wf-boton wf-secundario">Herramientas y bricolaje ✕</span>
-              <span class="wf-boton wf-secundario">Hasta 10 €/día ✕</span>
-              <span class="wf-enlace">Limpiar filtros</span><span class="wf-marca">2</span>
-            </div>
-            <p class="wf-texto" style="margin-top: 14px">2 objetos para «taladro»</p>
-            <div class="wf-rejilla">
-              <div class="wf-tarjeta"><div class="wf-imagen"></div><p class="wf-texto">Taladro percutor · 5 €/día<br />Gràcia</p></div>
-              <div class="wf-tarjeta"><div class="wf-imagen"></div><p class="wf-texto">Taladro sin cable · 8 €/día<br />Sants</p></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>El panel se cierra al aplicar. El botón indica cuántos filtros hay activos.</li>
-        <li>Un chip por filtro activo; la ✕ quita solo ese filtro. «Limpiar filtros» los quita todos (criterio 5).</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Precio máximo no válido (0, negativo o texto) y «Aplicar filtros»</p>
-
-    <section class="wf-pantalla" data-captura="4-error-precio">
-      <h2><span class="wf-paso">4</span>Error en un filtro <code>/buscar?q=taladro</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/buscar?q=taladro">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span>
+          </nav>
           <div class="wf-contenido">
             <div class="wf-tarjeta">
-              <div class="wf-fila" style="align-items: start">
-                <div class="wf-campo" style="flex: 1"><label>Categoría</label><div class="wf-input">Todas ▾</div></div>
-                <div class="wf-campo" style="flex: 1">
-                  <label>Precio máximo (€/día) <span class="wf-marca">1</span></label>
-                  <div class="wf-input wf-con-error">-5</div>
-                  <p class="wf-error">El campo "precio máximo" no es correcto, revísalo.</p>
-                </div>
-                <div class="wf-campo" style="flex: 1"><label>Barrio</label><div class="wf-input"></div></div>
+              <div class="wf-campo">
+                <label>¿Qué quieres alquilar?</label>
+                <div class="wf-input">Por ejemplo, taladro</div>
               </div>
-              <div class="wf-fila"><span class="wf-boton">Aplicar filtros</span><span class="wf-boton wf-secundario">Limpiar filtros</span></div>
+              <span class="wf-boton wf-ancho">Buscar</span>
+            </div>
+            <p></p>
+            <p>
+              <span class="wf-boton wf-secundario">Filtros <span class="wf-marca">2</span></span>
+            </p>
+            <h3 class="wf-h1">Resultados</h3>
+            <p class="wf-texto">11 objetos encontrados</p>
+            <div class="wf-tarjeta">
+              <div class="wf-imagen"></div>
+              <p class="wf-texto"><strong>Carro de la compra plegable</strong></p>
+              <p class="wf-texto">2,00 € / día</p>
+              <p class="wf-texto">Gràcia · Otros</p>
+            </div>
+            <p></p>
+            <div class="wf-caja">Las otras 10 tarjetas</div>
+          </div>
+          <div class="wf-barra-inferior">
+            <span>Inicio</span><span>Iniciar sesión</span><span>Crear cuenta</span>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          En escritorio el panel siempre se ve a la izquierda de los resultados, sin abrir nada, y no hay
+          botón «Filtros» (criterio 1). Se llega con cualquier búsqueda, con «Ver todos los objetos» o con una
+          categoría del inicio.
+        </li>
+        <li>
+          En el móvil el panel no cabe al lado: empieza cerrado y el botón «Filtros» lo abre y lo cierra.
+        </li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Elegir «Deporte» y precio máximo 10. En el móvil, antes, pulsar «Filtros»</p>
+    <section class="wf-pantalla" data-captura="2-panel-relleno">
+      <h2><span class="wf-paso">2</span>Panel relleno, antes de aplicar <code>/buscar?q=</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/buscar?q=">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-tarjeta">
+              <div class="wf-columnas">
+                <div class="wf-campo">
+                  <label>¿Qué quieres alquilar?</label>
+                  <div class="wf-input">Por ejemplo, taladro</div>
+                </div>
+                <div class="wf-campo"><label>&nbsp;</label><span class="wf-boton">Buscar</span></div>
+              </div>
+            </div>
+            <p></p>
+            <div class="wf-columnas wf-panel-izquierda">
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Filtros</strong></p>
+                  <div class="wf-campo">
+                    <label>Categoría <span class="wf-marca">1</span></label>
+                    <div class="wf-input">Deporte ▾</div>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Precio máximo (€/día) <span class="wf-marca">2</span></label>
+                    <div class="wf-input">10</div>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Barrio <span class="wf-marca">3</span></label>
+                    <div class="wf-input">Ej.: Gràcia</div>
+                  </div>
+                  <div class="wf-campo">
+                    <span class="wf-boton wf-ancho">Aplicar filtros <span class="wf-marca">4</span></span>
+                  </div>
+                  <span class="wf-boton wf-secundario wf-ancho">Limpiar filtros </span>
+                </div>
+              </div>
+              <div>
+                <h3 class="wf-h1">Resultados</h3>
+                <p class="wf-texto">11 objetos encontrados</p>
+                <div class="wf-rejilla">
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto"><strong>Carro de la compra plegable</strong></p>
+                    <p class="wf-texto">2,00 € / día</p>
+                    <p class="wf-texto">Gràcia · Otros</p>
+                  </div>
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto"><strong>Tabla de paddle surf hinchable</strong></p>
+                    <p class="wf-texto">15,00 € / día</p>
+                    <p class="wf-texto">Sant Andreu · Deporte</p>
+                  </div>
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto"><strong>Silla de coche para bebé</strong></p>
+                    <p class="wf-texto">4,00 € / día</p>
+                    <p class="wf-texto">Sant Andreu · Infantil</p>
+                  </div>
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto"><strong>Hidrolimpiadora Kärcher</strong></p>
+                    <p class="wf-texto">8,00 € / día</p>
+                    <p class="wf-texto">Sant Andreu · Hogar y jardín</p>
+                  </div>
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto"><strong>Cortacésped eléctrico</strong></p>
+                    <p class="wf-texto">9,00 € / día</p>
+                    <p class="wf-texto">Sant Andreu · Hogar y jardín</p>
+                  </div>
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto"><strong>Máquina de palomitas</strong></p>
+                    <p class="wf-texto">7,00 € / día</p>
+                    <p class="wf-texto">Poblenou · Fiestas y eventos</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-tarjeta">
+              <div class="wf-campo">
+                <label>¿Qué quieres alquilar?</label>
+                <div class="wf-input">Por ejemplo, taladro</div>
+              </div>
+              <span class="wf-boton wf-ancho">Buscar</span>
+            </div>
+            <p></p>
+            <p><span class="wf-boton wf-secundario">Filtros</span></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>Filtros</strong></p>
+              <div class="wf-campo">
+                <label>Categoría </label>
+                <div class="wf-input">Deporte ▾</div>
+              </div>
+              <div class="wf-campo">
+                <label>Precio máximo (€/día) </label>
+                <div class="wf-input">10</div>
+              </div>
+              <div class="wf-campo">
+                <label>Barrio </label>
+                <div class="wf-input">Ej.: Gràcia</div>
+              </div>
+              <div class="wf-campo"><span class="wf-boton wf-ancho">Aplicar filtros </span></div>
+              <span class="wf-boton wf-secundario wf-ancho">Limpiar filtros </span>
+            </div>
+            <p></p>
+            <h3 class="wf-h1">Resultados</h3>
+            <p class="wf-texto">11 objetos encontrados</p>
+            <div class="wf-caja">Las tarjetas siguen debajo del panel</div>
+          </div>
+          <div class="wf-barra-inferior">
+            <span>Inicio</span><span>Iniciar sesión</span><span>Crear cuenta</span>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          «Todas» o una de las 8 categorías, que vienen de <code>GET /api/categorias</code>. Si no se pueden
+          cargar: «No se han podido cargar las categorías.»
+        </li>
+        <li>
+          Opcional. Mayor que 0, con hasta 8 cifras enteras y 2 decimales, con coma o punto. Incluye los
+          objetos que cuestan justo ese precio.
+        </li>
+        <li>
+          Opcional, hasta 100 caracteres. Busca los barrios que contienen ese texto, sin distinguir
+          mayúsculas.
+        </li>
+        <li>
+          Aplica a la vez todos los filtros rellenados (criterios 3 y 4) y los pone en la URL. Se combinan con
+          el texto de la búsqueda. Hasta aplicar, los resultados no cambian.
+        </li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Clic en «Aplicar filtros»</p>
+    <section class="wf-pantalla" data-captura="3-resultados-filtrados">
+      <h2>
+        <span class="wf-paso">3</span>Resultados filtrados <code>/buscar?categoryId=…&amp;maxPrice=10</code>
+      </h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/buscar?categoryId=…&amp;maxPrice=10">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-tarjeta">
+              <div class="wf-columnas">
+                <div class="wf-campo">
+                  <label>¿Qué quieres alquilar?</label>
+                  <div class="wf-input">Por ejemplo, taladro</div>
+                </div>
+                <div class="wf-campo"><label>&nbsp;</label><span class="wf-boton">Buscar</span></div>
+              </div>
+            </div>
+            <p></p>
+            <div class="wf-columnas wf-panel-izquierda">
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Filtros</strong></p>
+                  <div class="wf-campo">
+                    <label>Categoría </label>
+                    <div class="wf-input">Deporte ▾</div>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Precio máximo (€/día) </label>
+                    <div class="wf-input">10</div>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Barrio </label>
+                    <div class="wf-input">Ej.: Gràcia</div>
+                  </div>
+                  <div class="wf-campo"><span class="wf-boton wf-ancho">Aplicar filtros </span></div>
+                  <span class="wf-boton wf-secundario wf-ancho">Limpiar filtros </span>
+                </div>
+                <p></p>
+                <div class="wf-chips">
+                  <span class="wf-chip">Deporte ✕</span><span class="wf-chip">Hasta 10 €/día ✕</span
+                  ><span class="wf-marca">1</span>
+                </div>
+              </div>
+              <div>
+                <h3 class="wf-h1">Resultados</h3>
+                <p class="wf-texto">1 objeto encontrado</p>
+                <div class="wf-rejilla">
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto"><strong>Bicicleta de montaña talla M</strong></p>
+                    <p class="wf-texto">10,00 € / día</p>
+                    <p class="wf-texto">Poblenou · Deporte</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-tarjeta">
+              <div class="wf-campo">
+                <label>¿Qué quieres alquilar?</label>
+                <div class="wf-input">Por ejemplo, taladro</div>
+              </div>
+              <span class="wf-boton wf-ancho">Buscar</span>
+            </div>
+            <p></p>
+            <p>
+              <span class="wf-boton wf-secundario">Filtros (2) <span class="wf-marca">2</span></span>
+            </p>
+            <div class="wf-chips">
+              <span class="wf-chip">Deporte ✕</span><span class="wf-chip">Hasta 10 €/día ✕</span
+              ><span class="wf-enlace">Limpiar filtros</span>
+            </div>
+            <h3 class="wf-h1">Resultados</h3>
+            <p class="wf-texto">1 objeto encontrado</p>
+            <div class="wf-tarjeta">
+              <div class="wf-imagen"></div>
+              <p class="wf-texto"><strong>Bicicleta de montaña talla M</strong></p>
+              <p class="wf-texto">10,00 € / día</p>
+              <p class="wf-texto">Poblenou · Deporte</p>
+            </div>
+          </div>
+          <div class="wf-barra-inferior">
+            <span>Inicio</span><span>Iniciar sesión</span><span>Crear cuenta</span>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Un chip por filtro activo, debajo del panel. La ✕ quita solo ese filtro, vacía su campo y vuelve a
+          buscar (criterio 4). Pulsar «Buscar» con otro texto quita todos los filtros.
+        </li>
+        <li>
+          En el móvil el panel se cierra al aplicar, el botón cuenta los filtros activos y junto a los chips
+          sale «Limpiar filtros».
+        </li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Precio máximo no válido (0, negativo o texto) y «Aplicar filtros»</p>
+    <section class="wf-pantalla" data-captura="4-error-precio">
+      <h2><span class="wf-paso">4</span>Error en el precio máximo <code>/buscar?q=</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/buscar?q=">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-tarjeta">
+              <div class="wf-columnas">
+                <div class="wf-campo">
+                  <label>¿Qué quieres alquilar?</label>
+                  <div class="wf-input">Por ejemplo, taladro</div>
+                </div>
+                <div class="wf-campo"><label>&nbsp;</label><span class="wf-boton">Buscar</span></div>
+              </div>
+            </div>
+            <p></p>
+            <div class="wf-columnas wf-panel-izquierda">
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Filtros</strong></p>
+                  <div class="wf-campo">
+                    <label>Categoría </label>
+                    <div class="wf-input">Todas ▾</div>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Precio máximo (€/día) <span class="wf-marca">1</span></label>
+                    <div class="wf-input wf-con-error">-5</div>
+                    <p class="wf-error">El campo "precio máximo" no es correcto, revísalo.</p>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Barrio </label>
+                    <div class="wf-input">Ej.: Gràcia</div>
+                  </div>
+                  <div class="wf-campo"><span class="wf-boton wf-ancho">Aplicar filtros </span></div>
+                  <span class="wf-boton wf-secundario wf-ancho">Limpiar filtros </span>
+                </div>
+              </div>
+              <div>
+                <h3 class="wf-h1">Resultados</h3>
+                <p class="wf-texto">11 objetos encontrados</p>
+                <div class="wf-caja">Las tarjetas no cambian</div>
+              </div>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Mismo formato de error que el resto de la app («El campo "X" no es correcto, revísalo.»). No se hace la petición y los resultados no cambian.</li>
+        <li>
+          No se busca, la URL no cambia y los resultados tampoco. El error desaparece al cambiar el campo.
+        </li>
       </ol>
     </section>
-
     <p class="wf-flecha">Los filtros no dejan ningún resultado</p>
-
     <section class="wf-pantalla" data-captura="5-sin-resultados">
-      <h2><span class="wf-paso">5</span>Sin resultados con filtros</h2>
+      <h2>
+        <span class="wf-paso">5</span>Sin resultados con filtros
+        <code>/buscar?categoryId=…&amp;maxPrice=2</code>
+      </h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/buscar?q=taladro&categoryId=…&maxPrice=2">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+        <div class="wf-escritorio" data-url="rentit.app/buscar?categoryId=…&amp;maxPrice=2">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
           <div class="wf-contenido">
-            <div class="wf-fila">
-              <span class="wf-boton wf-secundario">Deporte ✕</span>
-              <span class="wf-boton wf-secundario">Hasta 2 €/día ✕</span>
+            <div class="wf-tarjeta">
+              <div class="wf-columnas">
+                <div class="wf-campo">
+                  <label>¿Qué quieres alquilar?</label>
+                  <div class="wf-input">Por ejemplo, taladro</div>
+                </div>
+                <div class="wf-campo"><label>&nbsp;</label><span class="wf-boton">Buscar</span></div>
+              </div>
             </div>
-            <div class="wf-aviso" style="margin-top: 14px">
-              No hay objetos que cumplan estos filtros. <span class="wf-enlace">Limpiar filtros</span> <span class="wf-marca">1</span>
+            <p></p>
+            <div class="wf-columnas wf-panel-izquierda">
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Filtros</strong></p>
+                  <div class="wf-campo">
+                    <label>Categoría </label>
+                    <div class="wf-input">Deporte ▾</div>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Precio máximo (€/día) </label>
+                    <div class="wf-input">2</div>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Barrio </label>
+                    <div class="wf-input">Ej.: Gràcia</div>
+                  </div>
+                  <div class="wf-campo"><span class="wf-boton wf-ancho">Aplicar filtros </span></div>
+                  <span class="wf-boton wf-secundario wf-ancho">Limpiar filtros </span>
+                </div>
+                <p></p>
+                <div class="wf-chips">
+                  <span class="wf-chip">Deporte ✕</span><span class="wf-chip">Hasta 2 €/día ✕</span>
+                </div>
+              </div>
+              <div>
+                <h3 class="wf-h1">Resultados</h3>
+                <div class="wf-caja">
+                  <div>
+                    <p>No hay objetos que cumplan estos filtros.</p>
+                    <span class="wf-enlace">Limpiar filtros</span> <span class="wf-marca">1</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Distinto del mensaje de «sin resultados» de la búsqueda (#115): aquí la causa son los filtros, así que se ofrece quitarlos.</li>
+        <li>
+          Distinto del mensaje sin resultados de la búsqueda (US-03.01): aquí la causa son los filtros, así
+          que se ofrece quitarlos.
+        </li>
       </ol>
     </section>
-
     <p class="wf-flecha">Clic en «Limpiar filtros»</p>
-
     <section class="wf-pantalla" data-captura="6-filtros-limpios">
-      <h2><span class="wf-paso">6</span>Destino: vuelve a la búsqueda sin filtros <code>/buscar?q=taladro</code></h2>
+      <h2><span class="wf-paso">6</span>Destino: la búsqueda sin filtros <code>/buscar?q=</code></h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/buscar?q=taladro">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span></nav>
+        <div class="wf-escritorio" data-url="rentit.app/buscar?q=">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span
+            ><span class="wf-enlaces"
+              ><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
           <div class="wf-contenido">
-            <div class="wf-fila">
-              <div class="wf-input" style="flex: 1">taladro</div>
-              <span class="wf-boton">Buscar</span>
-              <span class="wf-boton wf-secundario">Filtros</span>
+            <div class="wf-tarjeta">
+              <div class="wf-columnas">
+                <div class="wf-campo">
+                  <label>¿Qué quieres alquilar?</label>
+                  <div class="wf-input">Por ejemplo, taladro</div>
+                </div>
+                <div class="wf-campo"><label>&nbsp;</label><span class="wf-boton">Buscar</span></div>
+              </div>
             </div>
-            <p class="wf-texto" style="margin-top: 14px">12 objetos para «taladro» <span class="wf-marca">1</span></p>
-            <div class="wf-caja">Las 12 tarjetas de la pantalla 1</div>
+            <p></p>
+            <div class="wf-columnas wf-panel-izquierda">
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Filtros</strong></p>
+                  <div class="wf-campo">
+                    <label>Categoría </label>
+                    <div class="wf-input">Todas ▾</div>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Precio máximo (€/día) </label>
+                    <div class="wf-input">&nbsp;</div>
+                  </div>
+                  <div class="wf-campo">
+                    <label>Barrio </label>
+                    <div class="wf-input">Ej.: Gràcia</div>
+                  </div>
+                  <div class="wf-campo"><span class="wf-boton wf-ancho">Aplicar filtros </span></div>
+                  <span class="wf-boton wf-secundario wf-ancho">Limpiar filtros </span>
+                </div>
+              </div>
+              <div>
+                <h3 class="wf-h1">Resultados <span class="wf-marca">1</span></h3>
+                <p class="wf-texto">11 objetos encontrados</p>
+                <div class="wf-rejilla">
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto"><strong>Carro de la compra plegable</strong></p>
+                    <p class="wf-texto">2,00 € / día</p>
+                    <p class="wf-texto">Gràcia · Otros</p>
+                  </div>
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto"><strong>Tabla de paddle surf hinchable</strong></p>
+                    <p class="wf-texto">15,00 € / día</p>
+                    <p class="wf-texto">Sant Andreu · Deporte</p>
+                  </div>
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto"><strong>Silla de coche para bebé</strong></p>
+                    <p class="wf-texto">4,00 € / día</p>
+                    <p class="wf-texto">Sant Andreu · Infantil</p>
+                  </div>
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto"><strong>Hidrolimpiadora Kärcher</strong></p>
+                    <p class="wf-texto">8,00 € / día</p>
+                    <p class="wf-texto">Sant Andreu · Hogar y jardín</p>
+                  </div>
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto"><strong>Cortacésped eléctrico</strong></p>
+                    <p class="wf-texto">9,00 € / día</p>
+                    <p class="wf-texto">Sant Andreu · Hogar y jardín</p>
+                  </div>
+                  <div class="wf-tarjeta">
+                    <div class="wf-imagen"></div>
+                    <p class="wf-texto"><strong>Máquina de palomitas</strong></p>
+                    <p class="wf-texto">7,00 € / día</p>
+                    <p class="wf-texto">Poblenou · Fiestas y eventos</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-tarjeta">
+              <div class="wf-campo">
+                <label>¿Qué quieres alquilar?</label>
+                <div class="wf-input">Por ejemplo, taladro</div>
+              </div>
+              <span class="wf-boton wf-ancho">Buscar</span>
+            </div>
+            <p></p>
+            <p><span class="wf-boton wf-secundario">Filtros</span></p>
+            <h3 class="wf-h1">Resultados</h3>
+            <p class="wf-texto">11 objetos encontrados</p>
+            <div class="wf-caja">Vuelven todas las tarjetas</div>
+          </div>
+          <div class="wf-barra-inferior">
+            <span>Inicio</span><span>Iniciar sesión</span><span>Crear cuenta</span>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Se quitan los filtros de la URL y se mantiene el texto buscado: vuelven todos los objetos disponibles de la búsqueda (criterio 5).</li>
+        <li>
+          Criterio 5. Quita los filtros de la URL, vacía los campos y mantiene el texto buscado: desde
+          <code>/buscar?q=taladro&amp;maxPrice=2</code> vuelve a <code>/buscar?q=taladro</code>. Sin texto, va
+          a <code>/buscar?q=</code> y salen todos los objetos.
+        </li>
       </ol>
     </section>
   </body>
