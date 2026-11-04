@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useAuth } from '../context/useAuth';
-import { Icon } from '../components/Icon';
+import { Icon, type IconName } from '../components/Icon';
 import { categoryIcon } from '../utils/categoryIcons';
 import { ItemCard, ItemGridSkeleton } from '../components/ItemCard';
 import { SearchBar } from '../components/SearchBar';
@@ -10,6 +10,15 @@ import { searchItems, type SearchItem } from '../services/searchService';
 
 const NEWEST_ITEMS_COUNT = 8;
 const MAX_CATEGORIES = 12;
+
+const HERO_ICONS: IconName[] = [
+  'build',
+  'directions_bike',
+  'celebration',
+  'photo_camera',
+  'yard',
+  'devices',
+];
 
 const STEPS: { title: string; text: string }[] = [
   {
@@ -86,6 +95,13 @@ export function HomePage() {
               </>
             )}
           </div>
+        </div>
+        <div className="home-hero-art" aria-hidden="true">
+          {HERO_ICONS.map((icon) => (
+            <span className="home-hero-tile" key={icon}>
+              <Icon name={icon} />
+            </span>
+          ))}
         </div>
       </section>
 
