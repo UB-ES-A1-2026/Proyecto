@@ -33,7 +33,7 @@ test('la página de ayuda se abre desde la cabecera sin iniciar sesión', async 
   await page.goto(HOME_PATH);
 
   await page
-    .getByRole('navigation', { name: 'Principal' })
+    .getByRole('banner')
     .getByRole('link', { name: 'Ayuda' })
     .click();
 

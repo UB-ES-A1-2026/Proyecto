@@ -197,6 +197,16 @@
   font-size: var(--font-size-section);
 }
 
+.profile-logout {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-xl);
+}
+
+.profile-logout .logout-button {
+  width: auto;
+}
+
 .profile-shortcuts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));

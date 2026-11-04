@@ -49,7 +49,7 @@ test.describe('US-01.1 Registro', () => {
     await expect(page).toHaveURL(HOME_PATH);
     // La sesión queda iniciada: la cabecera muestra el perfil y el botón de cerrar sesión
     await expect(page.getByRole('link', { name: 'Mi perfil' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Mi perfil' })).toBeVisible();
   });
 
   // Criterio 3a: falta algún dato obligatorio

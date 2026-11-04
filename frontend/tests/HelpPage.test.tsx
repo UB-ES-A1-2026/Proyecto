@@ -27,10 +27,6 @@ const SESSION = {
   user: { id: 'u1', username: 'ana', email: 'ana@rentit.test', role: 'user' },
 };
 
-function mainNav() {
-  return within(screen.getByRole('navigation', { name: 'Principal' }));
-}
-
 afterEach(() => localStorage.clear());
 
 describe('página de ayuda (#89)', () => {
@@ -76,7 +72,7 @@ describe('página de ayuda (#89)', () => {
     const user = userEvent.setup();
     const { router } = renderRoute('/');
 
-    await user.click(mainNav().getByRole('link', { name: 'Ayuda' }));
+    await user.click(screen.getByRole('link', { name: 'Ayuda' }));
 
     expect(router.state.location.pathname).toBe('/ayuda');
   });
@@ -86,6 +82,6 @@ describe('página de ayuda (#89)', () => {
 
     renderRoute('/');
 
-    expect(mainNav().getByRole('link', { name: 'Ayuda' })).toHaveAttribute('href', '/ayuda');
+    expect(screen.getByRole('link', { name: 'Ayuda' })).toHaveAttribute('href', '/ayuda');
   });
 });

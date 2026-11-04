@@ -20,7 +20,7 @@ async function login(page: Page, user: { email: string; password: string }) {
   await page.getByLabel('Correo electrónico').fill(user.email);
   await page.getByLabel('Contraseña', { exact: true }).fill(user.password);
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
-  await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Mi perfil' })).toBeVisible();
 }
 
 async function openMyReservations(page: Page) {
@@ -98,7 +98,7 @@ test.describe('US-04.02 Consultar mis solicitudes', () => {
     await page.getByLabel('Correo electrónico').fill(`usuario${id}@rentit.test`);
     await page.getByLabel('Contraseña', { exact: true }).fill(PASSWORD);
     await page.getByRole('button', { name: 'Crear cuenta' }).click();
-    await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Mi perfil' })).toBeVisible();
 
     await openMyReservations(page);
 

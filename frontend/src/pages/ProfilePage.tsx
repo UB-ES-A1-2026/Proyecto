@@ -2,6 +2,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { Icon, type IconName } from '../components/Icon';
+import { LogoutButton } from '../components/LogoutButton';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import { getMyItems } from '../services/itemService';
@@ -194,6 +195,10 @@ export function ProfilePage() {
           detail="Pon en alquiler lo que no usas"
           featured
         />
+      </div>
+
+      <div className="profile-logout">
+        <LogoutButton />
       </div>
     </section>
   );

@@ -31,13 +31,13 @@ describe('layout y navegación (#21)', () => {
     expect(mainNav().queryByRole('button', { name: 'Cerrar sesión' })).not.toBeInTheDocument();
   });
 
-  it('con sesión la cabecera enlaza al perfil y permite cerrar sesión', () => {
+  it('con sesión la cabecera enlaza al perfil y no muestra «Cerrar sesión», que está en el perfil', () => {
     localStorage.setItem('rentit.session', JSON.stringify(SESSION));
 
     renderRoute('/');
 
     expect(mainNav().getByRole('link', { name: 'Mi perfil' })).toHaveAttribute('href', '/perfil');
-    expect(mainNav().getByRole('button', { name: 'Cerrar sesión' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cerrar sesión' })).not.toBeInTheDocument();
     expect(mainNav().queryByRole('link', { name: 'Iniciar sesión' })).not.toBeInTheDocument();
     expect(mainNav().queryByRole('link', { name: 'Crear cuenta' })).not.toBeInTheDocument();
   });
@@ -125,12 +125,6 @@ describe('layout y navegación (#21)', () => {
     const links = mainNav()
       .getAllByRole('link')
       .map((link) => link.textContent);
-    expect(links).toEqual([
-      'Ayuda',
-      'Publicar objeto',
-      'Mis objetos',
-      'Mis solicitudes',
-      'Mi perfil',
-    ]);
+    expect(links).toEqual(['Publicar objeto', 'Mis objetos', 'Mis solicitudes', 'Mi perfil']);
   });
 });

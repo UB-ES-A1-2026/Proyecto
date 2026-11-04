@@ -28,7 +28,7 @@ async function login(page: Page, user: User) {
   await page.getByLabel('Correo electrónico').fill(user.email);
   await page.getByLabel('Contraseña', { exact: true }).fill(user.password);
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
-  await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Mi perfil' })).toBeVisible();
 }
 
 async function openMyItems(page: Page) {

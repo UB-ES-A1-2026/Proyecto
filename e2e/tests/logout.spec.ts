@@ -31,11 +31,12 @@ async function logIn(page: Page) {
   await page.getByLabel(PASSWORD_LABEL, { exact: true }).fill(USER.password);
   await page.getByRole('button', { name: SUBMIT_BUTTON }).click();
   await expect(page).toHaveURL(HOME_PATH);
-  await expect(page.getByRole('button', { name: LOGOUT_BUTTON })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Mi perfil' })).toBeVisible();
 }
 
 // Espera a que termine el logout (llamada a la API incluida): el botón lleva al login
 async function logOut(page: Page) {
+  await page.getByRole('link', { name: 'Mi perfil' }).click();
   await page.getByRole('button', { name: LOGOUT_BUTTON }).click();
   await expect(page).toHaveURL(LOGIN_PATH);
 }
@@ -55,7 +56,8 @@ test.describe('US-01.3 Cerrar sesión', () => {
   });
 
   // Criterio 1
-  test('el usuario con sesión iniciada ve un botón "Cerrar sesión"', async ({ page }) => {
+  test('el usuario con sesión iniciada ve un botón "Cerrar sesión" en su perfil', async ({ page }) => {
+    await page.getByRole('link', { name: 'Mi perfil' }).click();
     await expect(page.getByRole('button', { name: LOGOUT_BUTTON })).toBeVisible();
   });
 
@@ -99,13 +101,15 @@ test.describe('US-01.3 Cerrar sesión', () => {
     await expect(page).toHaveURL(PROFILE_PATH);
     await expect(page.getByText(USER.email)).toBeVisible();
 
-    await page.getByRole('link', { name: 'Rentit' }).click();
-    await expect(page).toHaveURL(HOME_PATH);
+    // El botón está en el perfil: antes de cerrar sesión se pasa por otra pantalla privada
+    await page.getByRole('link', { name: 'Mis objetos' }).first().click();
+    await expect(page.getByRole('heading', { name: 'Mis objetos' })).toBeVisible();
 
     await logOut(page);
-    await page.goBack(); // vuelve a /perfil en el historial
+    await page.goBack(); // vuelve a /mis-objetos en el historial
 
     await expect(page).toHaveURL(LOGIN_PATH);
+    await expect(page.getByRole('heading', { name: 'Mis objetos' })).toHaveCount(0);
     await expect(page.getByRole('heading', { name: 'Mi perfil' })).toHaveCount(0);
     await expect(page.getByText(USER.email)).toHaveCount(0);
     await expect(page.getByRole('button', { name: LOGOUT_BUTTON })).toHaveCount(0);

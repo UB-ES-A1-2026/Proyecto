@@ -51,7 +51,7 @@ const SECTIONS: HelpSection[] = [
   {
     id: 'cerrar-sesion',
     title: 'Cerrar sesión',
-    steps: ['Pulsa «Cerrar sesión» en la cabecera.', 'Volverás a la pantalla de inicio de sesión.'],
+    steps: ['En «Mi perfil», pulsa «Cerrar sesión».', 'Volverás a la pantalla de inicio de sesión.'],
     note: 'Después de cerrar sesión, nadie puede volver a entrar en tu cuenta desde ese navegador sin tu contraseña.',
   },
   {

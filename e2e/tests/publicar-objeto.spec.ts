@@ -34,7 +34,7 @@ async function login(page: Page, user: User) {
   await page.getByLabel("Contraseña", { exact: true }).fill(user.password);
   await page.getByRole("button", { name: "Iniciar sesión" }).click();
   await expect(
-    page.getByRole("button", { name: "Cerrar sesión" }),
+    page.getByRole("link", { name: "Mi perfil" }),
   ).toBeVisible();
 }
 
@@ -142,6 +142,7 @@ test.describe("US-02.01 Publicar un objeto", () => {
     await expect(page.getByText("Este anuncio es tuyo.")).toBeVisible();
 
     // Para bruno es un anuncio de otra persona: puede alquilarlo
+    await page.goto("/perfil");
     await page.getByRole("button", { name: "Cerrar sesión" }).click();
     await login(page, BRUNO);
     await page.goto(itemUrl);

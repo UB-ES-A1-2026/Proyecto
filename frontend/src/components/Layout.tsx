@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, NavLink, Outlet, ScrollRestoration, useLocation } from 'react-router';
 import { useAuth } from '../context/useAuth';
 import { Icon } from './Icon';
-import { LogoutButton } from './LogoutButton';
 
 // Layout base (#21): cabecera con la navegación entre login, registro, perfil y ayuda.
 export function Layout() {
@@ -39,11 +38,6 @@ export function Layout() {
             data-open={menuOpen}
             onClick={() => setMenuOpen(false)}
           >
-            {/* La ayuda (#89) se ve con y sin sesión. */}
-            <NavLink to="/ayuda" className="nav-link">
-              <Icon name="help" />
-              Ayuda
-            </NavLink>
             {session ? (
               <>
                 <NavLink to="/objetos/nuevo" className="nav-link">
@@ -62,7 +56,6 @@ export function Layout() {
                   <Icon name="person" />
                   Mi perfil
                 </NavLink>
-                <LogoutButton />
               </>
             ) : (
               <>
@@ -77,6 +70,10 @@ export function Layout() {
               </>
             )}
           </nav>
+          {/* La ayuda (#89) se ve con y sin sesión. */}
+          <NavLink to="/ayuda" className="nav-link nav-help" aria-label="Ayuda" title="Ayuda">
+            <Icon name="help" size="1.5rem" />
+          </NavLink>
         </div>
       </header>
       <main className="app-main">

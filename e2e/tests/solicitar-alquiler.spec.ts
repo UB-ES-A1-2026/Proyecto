@@ -38,7 +38,7 @@ async function login(page: Page, user: User) {
   await page.getByLabel('Correo electrónico').fill(user.email);
   await page.getByLabel('Contraseña', { exact: true }).fill(user.password);
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
-  await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Mi perfil' })).toBeVisible();
 }
 
 // Desde la búsqueda, abre la ficha del objeto: las fechas están en su panel lateral
@@ -178,6 +178,7 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
 
   // Permisos
   test('nadie puede solicitar su propio objeto', async ({ page, request }) => {
+    await page.goto('/perfil');
     await page.getByRole('button', { name: 'Cerrar sesión' }).click();
     await login(page, ANA);
     await page.goto('/buscar?q=cortacésped');
