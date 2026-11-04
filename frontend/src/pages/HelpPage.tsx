@@ -1,6 +1,7 @@
 // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 31/10/2026
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
+import { Icon } from '../components/Icon';
 
 type HelpSection = {
   id: string;
@@ -70,9 +71,9 @@ const SECTIONS: HelpSection[] = [
     id: 'filtrar',
     title: 'Filtrar los resultados',
     steps: [
-      'En los resultados de la búsqueda, pulsa «Filtros».',
+      'En los resultados de la búsqueda, usa el panel de filtros. En el móvil, ábrelo con el botón «Filtros».',
       'Elige una categoría, un precio máximo por día, un barrio o varios a la vez.',
-      'Pulsa «Aplicar filtros». Solo verás los objetos que cumplen todo, y cada filtro activo aparece debajo del botón.',
+      'Pulsa «Aplicar filtros». Solo verás los objetos que cumplen todo, y cada filtro activo aparece sobre los resultados.',
       'Para quitar un filtro, pulsa su ✕. Para quitarlos todos, pulsa «Limpiar filtros» y volverás a los resultados de tu búsqueda.',
     ],
     note: 'El precio máximo tiene que ser mayor que 0. Si no es válido, verás el error debajo del campo y el filtro no se aplica.',
@@ -83,16 +84,16 @@ const SECTIONS: HelpSection[] = [
     steps: [
       'En los resultados de la búsqueda, pulsa el nombre del objeto.',
       'En su ficha verás las fotos, el precio por día, la fianza, si está disponible, la descripción, la categoría, el barrio, las formas de entrega y quién lo publica.',
-      'Pulsa «Alquilar» para pedirlo. Si no has iniciado sesión, primero se te pedirá que lo hagas y después volverás a la ficha.',
+      'Para pedirlo, usa el panel de alquiler de la ficha. Si no has iniciado sesión, pulsa «Alquilar»: primero se te pedirá que lo hagas y después volverás a la ficha.',
     ],
-    note: 'De quien publica el objeto solo se ve su nombre de usuario. Si el objeto es tuyo, verás «Este anuncio es tuyo.» en lugar del botón «Alquilar».',
+    note: 'De quien publica el objeto solo se ve su nombre de usuario. Si el objeto es tuyo, verás «Este anuncio es tuyo.» y no podrás alquilarlo.',
   },
   {
     id: 'solicitar',
     title: 'Solicitar un alquiler',
     steps: [
-      'Con la sesión iniciada, pulsa «Alquilar» en la ficha del objeto.',
-      'Elige la fecha de inicio y la fecha de fin. Rentit comprueba si el objeto está libre esos días.',
+      'Con la sesión iniciada, abre la ficha del objeto.',
+      'Elige la fecha de inicio y la fecha de fin en el panel de alquiler. Rentit comprueba si el objeto está libre esos días.',
       'Pulsa «Solicitar alquiler», revisa las fechas y el importe, y pulsa «Confirmar».',
       'Irás a «Mis solicitudes», donde verás tu solicitud como «Pendiente» hasta que responda el propietario.',
     ],
@@ -170,31 +171,49 @@ const SECTIONS: HelpSection[] = [
 export function HelpPage() {
   return (
     <section className="help">
-      <h1>Ayuda</h1>
-      <p className="help-intro">Cómo usar Rentit, paso a paso.</p>
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Ayuda</h1>
+          <p className="page-subtitle">Cómo usar Rentit, paso a paso.</p>
+        </div>
+      </div>
 
-      <nav aria-label="En esta página" className="help-index">
-        <h2>En esta página</h2>
-        <ul>
-          {SECTIONS.map((section) => (
-            <li key={section.id}>
-              <a href={`#${section.id}`}>{section.title}</a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-
-      {SECTIONS.map((section) => (
-        <section key={section.id} id={section.id} aria-labelledby={`${section.id}-titulo`}>
-          <h2 id={`${section.id}-titulo`}>{section.title}</h2>
-          <ol>
-            {section.steps.map((step, index) => (
-              <li key={index}>{step}</li>
+      <div className="help-layout">
+        <nav aria-label="En esta página" className="card help-index">
+          <h2>En esta página</h2>
+          <ul>
+            {SECTIONS.map((section) => (
+              <li key={section.id}>
+                <a href={`#${section.id}`}>{section.title}</a>
+              </li>
             ))}
-          </ol>
-          {section.note && <p className="help-note">{section.note}</p>}
-        </section>
-      ))}
+          </ul>
+        </nav>
+
+        <div className="help-sections">
+          {SECTIONS.map((section) => (
+            <section
+              key={section.id}
+              id={section.id}
+              className="card help-section"
+              aria-labelledby={`${section.id}-titulo`}
+            >
+              <h2 id={`${section.id}-titulo`}>{section.title}</h2>
+              <ol>
+                {section.steps.map((step, index) => (
+                  <li key={index}>{step}</li>
+                ))}
+              </ol>
+              {section.note && (
+                <p className="help-note">
+                  <Icon name="info" />
+                  <span>{section.note}</span>
+                </p>
+              )}
+            </section>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }

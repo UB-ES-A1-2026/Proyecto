@@ -159,7 +159,7 @@ describe('pantalla «Mis objetos» (US-02.02, #109)', () => {
       'https://example.test/taladro.webp',
     );
     expect(rows[1].querySelector('.item-photo img')).toBeNull();
-    expect(rows[1].querySelector('.item-photo svg')).not.toBeNull();
+    expect(rows[1].querySelector('.item-photo .icon')).not.toBeNull();
   });
 
   it('si la sesión ya no es válida (401) la borra y vuelve al login', async () => {

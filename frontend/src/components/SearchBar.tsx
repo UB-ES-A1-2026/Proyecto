@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router';
+import { Icon } from './Icon';
 
 type SearchBarProps = {
   initialQuery?: string;
@@ -33,6 +34,7 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
         />
       </div>
       <button className="button-primary" type="submit">
+        <Icon name="search" />
         Buscar
       </button>
     </form>

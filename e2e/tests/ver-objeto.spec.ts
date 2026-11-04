@@ -74,14 +74,23 @@ test.describe('US-03.03 Ver un objeto', () => {
     await expect(page.getByRole('article')).not.toContainText('@rentit.test');
   });
 
-  // Criterio 4a: con sesión, «Alquilar» empieza la solicitud (US-04.01)
-  test('con sesión, «Alquilar» lleva a solicitar el alquiler', async ({ page }) => {
+  // Criterio 4a: con sesión, la solicitud (US-04.01) empieza en el panel de la propia ficha
+  test('con sesión, el panel de la ficha permite elegir las fechas del alquiler', async ({
+    page,
+  }) => {
     await login(page, RENTER);
     const itemUrl = await openItemFromSearch(page);
 
-    await page.getByRole('button', { name: 'Alquilar' }).click();
+    await expect(page.getByLabel('Fecha de inicio')).toBeVisible();
+    await expect(page.getByLabel('Fecha de fin')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Solicitar alquiler' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Alquilar' })).toHaveCount(0);
+    await expect(page).toHaveURL(itemUrl);
 
-    await expect(page).toHaveURL(`${itemUrl}/solicitar`);
+    // La antigua pantalla de solicitud lleva a la ficha, para no romper enlaces
+    await page.goto(`${itemUrl}/solicitar`);
+    await expect(page).toHaveURL(itemUrl);
+    await expect(page.getByLabel('Fecha de inicio')).toBeVisible();
   });
 
   // Criterio 4b: sin sesión, «Alquilar» pide iniciar sesión
@@ -93,7 +102,7 @@ test.describe('US-03.03 Ver un objeto', () => {
 
     await submitLogin(page, RENTER);
     await expect(page).toHaveURL(itemUrl);
-    await expect(page.getByRole('button', { name: 'Alquilar' })).toBeVisible();
+    await expect(page.getByLabel('Fecha de inicio')).toBeVisible();
   });
 
   // Criterio 4c: el propietario no puede alquilar su propio objeto
@@ -103,6 +112,7 @@ test.describe('US-03.03 Ver un objeto', () => {
 
     await expect(page.getByText('Este anuncio es tuyo.')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Alquilar' })).toHaveCount(0);
+    await expect(page.getByLabel('Fecha de inicio')).toHaveCount(0);
   });
 
   // Errores

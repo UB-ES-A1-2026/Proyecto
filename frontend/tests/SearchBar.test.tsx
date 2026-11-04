@@ -1,7 +1,17 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderRoute } from './renderRoute';
+
+function mockApi() {
+  return vi
+    .spyOn(globalThis, 'fetch')
+    .mockImplementation(async (input) =>
+      String(input).endsWith('/categorias')
+        ? Response.json([])
+        : Response.json({ items: [], page: 1, pageSize: 20, total: 0 }),
+    );
+}
 
 afterEach(() => {
   localStorage.clear();
@@ -9,10 +19,12 @@ afterEach(() => {
 });
 
 describe('SearchBar', () => {
-  it.each(['', '   '])('no navega cuando el campo contiene %j', async (value) => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch');
+  it.each(['', '   '])('no navega ni busca cuando el campo contiene %j', async (value) => {
+    const fetchMock = mockApi();
     const user = userEvent.setup();
     const { router } = renderRoute('/');
+    // La home pide las categorías y las novedades al abrirse: pulsar «Buscar» no añade nada.
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
 
     if (value) {
       await user.type(screen.getByRole('searchbox', { name: '¿Qué quieres alquilar?' }), value);
@@ -21,13 +33,11 @@ describe('SearchBar', () => {
 
     expect(router.state.location.pathname).toBe('/');
     expect(router.state.location.search).toBe('');
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it('recorta los extremos y navega con la búsqueda', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      Response.json({ items: [], page: 1, pageSize: 20, total: 0 }),
-    );
+    mockApi();
     const user = userEvent.setup();
     const { router } = renderRoute('/');
 

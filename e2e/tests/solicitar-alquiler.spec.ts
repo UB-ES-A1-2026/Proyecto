@@ -41,13 +41,13 @@ async function login(page: Page, user: User) {
   await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toBeVisible();
 }
 
-// Desde la búsqueda, abre la ficha del objeto y pulsa «Alquilar»
+// Desde la búsqueda, abre la ficha del objeto: las fechas están en su panel lateral
 async function startRequest(page: Page, title: string, query: string) {
   await page.goto(`/buscar?q=${encodeURIComponent(query)}`);
   await page.locator('.search-results').getByRole('link', { name: title }).click();
-  await page.getByRole('button', { name: 'Alquilar' }).click();
-  await expect(page).toHaveURL(/\/objetos\/[0-9a-f-]{36}\/solicitar$/);
-  await expect(page.getByRole('heading', { level: 1, name: 'Solicitar alquiler' })).toBeVisible();
+  await expect(page).toHaveURL(/\/objetos\/[0-9a-f-]{36}$/);
+  await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'Elige las fechas' })).toBeVisible();
 }
 
 async function fillDates(page: Page, start: string, end: string) {
@@ -137,15 +137,21 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
 
     await page.getByRole('button', { name: 'Solicitar alquiler' }).click();
 
+    // El resumen sale en el mismo panel, sin cambiar de pantalla
+    await expect(page).toHaveURL(/\/objetos\/[0-9a-f-]{36}$/);
+    const panel = page.getByRole('complementary', {
+      name: 'Alquiler de este objeto',
+    });
     await expect(
-      page.getByRole('heading', { level: 1, name: 'Revisa tu solicitud' }),
+      panel.getByRole('heading', { level: 2, name: 'Revisa tu solicitud' }),
     ).toBeVisible();
-    await expect(page.getByText(ITEM)).toBeVisible();
-    await expect(page.getByText('Desde')).toBeVisible();
-    await expect(page.getByText('Hasta')).toBeVisible();
-    await expect(page.getByText('Importe del alquiler (3 días)')).toBeVisible();
-    await expect(page.locator('.rental-total')).toHaveText(/27,00\s€/);
-    await expect(page.getByRole('button', { name: 'Confirmar' })).toBeVisible();
+    await expect(panel.getByText(ITEM)).toBeVisible();
+    await expect(panel.getByText('Desde')).toBeVisible();
+    await expect(panel.getByText('Hasta')).toBeVisible();
+    await expect(panel.getByText('Importe del alquiler (3 días)')).toBeVisible();
+    await expect(panel.locator('.rental-total')).toHaveText(/27,00\s€/);
+    await expect(panel.getByRole('button', { name: 'Volver' })).toBeVisible();
+    await expect(panel.getByRole('button', { name: 'Confirmar' })).toBeVisible();
     // Todavía no se ha creado nada
     expect(await sentCount(request, BRUNO)).toBe(before);
   });
@@ -179,6 +185,8 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
 
     await expect(page.getByText('Este anuncio es tuyo.')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Alquilar' })).toHaveCount(0);
+    await expect(page.getByLabel('Fecha de inicio')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Solicitar alquiler' })).toHaveCount(0);
 
     // Tampoco por la API
     const itemId = page.url().split('/').pop();

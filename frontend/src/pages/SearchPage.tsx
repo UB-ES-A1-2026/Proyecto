@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation, useSearchParams } from 'react-router';
+import { useLocation, useSearchParams } from 'react-router';
 import { countActiveFilters, readFilters } from '../components/filterParams';
+import { Icon } from '../components/Icon';
+import { ItemCard, ItemGridSkeleton } from '../components/ItemCard';
 import { NoResultsWithFilters, SearchFilters } from '../components/SearchFilters';
 import { SearchBar } from '../components/SearchBar';
 import { ApiError } from '../services/apiClient';
 import { searchItems, type SearchParams, type SearchResponse } from '../services/searchService';
-
-const priceFormatter = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 
 // Generado con asistencia de IA – revisado por Danyal, 31/10/2026
 export function SearchPage() {
@@ -78,84 +78,89 @@ export function SearchPage() {
   return (
     <section className="search-page">
       <SearchBar key={q} initialQuery={q} />
-      <SearchFilters />
 
-      {!hasCriteria ? (
-        <>
-          <h1>Buscar objetos</h1>
-          <p>Escribe qué quieres alquilar y pulsa «Buscar».</p>
-        </>
-      ) : (
-        <>
-          <h1>{q ? `Resultados para «${q}»` : 'Resultados'}</h1>
-          {loading ? (
-            <p role="status">Buscando…</p>
-          ) : error ? (
-            <p role="alert" className="form-error">
-              {error}
-            </p>
-          ) : response && response.items.length === 0 ? (
-            // Si hay filtros, la causa son ellos: se ofrece quitarlos (US-03.02, #118)
-            countActiveFilters(filters) > 0 ? (
-              <NoResultsWithFilters />
-            ) : (
-              <p>
-                {q
-                  ? `No hemos encontrado ningún objeto para «${q}».`
-                  : 'No hemos encontrado ningún objeto.'}
-              </p>
-            )
-          ) : response ? (
+      <div className="search-layout">
+        <SearchFilters />
+
+        <div className="search-content">
+          {!hasCriteria ? (
             <>
-              <p>
-                {response.total}{' '}
-                {response.total === 1 ? 'objeto encontrado' : 'objetos encontrados'}
-              </p>
-              <ul className="search-results">
-                {response.items.map((item) => (
-                  <li className="search-result-card" key={item.id}>
-                    {item.photo ? (
-                      <img src={item.photo} alt={item.title} />
-                    ) : (
-                      <div className="search-result-photo-placeholder">Sin foto</div>
-                    )}
-                    <h2>
-                      <Link to={`/objetos/${item.id}`}>{item.title}</Link>
-                    </h2>
-                    <p>{priceFormatter.format(Number(item.dailyPrice))} / día</p>
-                    <p>
-                      {item.neighborhood} · {item.category.name}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-              {response.total > response.pageSize && (
-                <nav aria-label="Paginación de resultados" className="search-pagination">
-                  <button
-                    className="button-secondary"
-                    type="button"
-                    disabled={page <= 1}
-                    onClick={() => navigateToPage(page - 1)}
-                  >
-                    Anterior
-                  </button>
-                  <span>
-                    Página {page} de {pageCount}
-                  </span>
-                  <button
-                    className="button-secondary"
-                    type="button"
-                    disabled={page >= pageCount}
-                    onClick={() => navigateToPage(page + 1)}
-                  >
-                    Siguiente
-                  </button>
-                </nav>
-              )}
+              <h1 className="page-title">Buscar objetos</h1>
+              <div className="card empty-state">
+                <Icon name="search" />
+                <p>Escribe qué quieres alquilar y pulsa «Buscar».</p>
+              </div>
             </>
-          ) : null}
-        </>
-      )}
+          ) : (
+            <>
+              <h1 className="page-title">{q ? `Resultados para «${q}»` : 'Resultados'}</h1>
+              {loading ? (
+                <>
+                  <p role="status" className="page-subtitle">
+                    Buscando…
+                  </p>
+                  <ItemGridSkeleton count={6} />
+                </>
+              ) : error ? (
+                <p role="alert" className="form-error">
+                  {error}
+                </p>
+              ) : response && response.items.length === 0 ? (
+                // Si hay filtros, la causa son ellos: se ofrece quitarlos (US-03.02, #118)
+                countActiveFilters(filters) > 0 ? (
+                  <NoResultsWithFilters />
+                ) : (
+                  <div className="card empty-state">
+                    <Icon name="search_off" />
+                    <p>
+                      {q
+                        ? `No hemos encontrado ningún objeto para «${q}».`
+                        : 'No hemos encontrado ningún objeto.'}
+                    </p>
+                  </div>
+                )
+              ) : response ? (
+                <>
+                  <p className="page-subtitle">
+                    {response.total}{' '}
+                    {response.total === 1 ? 'objeto encontrado' : 'objetos encontrados'}
+                  </p>
+                  <ul className="search-results item-grid stagger">
+                    {response.items.map((item) => (
+                      <ItemCard item={item} key={item.id} />
+                    ))}
+                  </ul>
+                  {response.total > response.pageSize && (
+                    <nav aria-label="Paginación de resultados" className="search-pagination">
+                      <button
+                        className="button-secondary"
+                        type="button"
+                        disabled={page <= 1}
+                        onClick={() => navigateToPage(page - 1)}
+                      >
+                        <Icon name="chevron_left" />
+                        Anterior
+                      </button>
+                      <span className="search-pagination-status">
+                        Página {page} de {pageCount}
+                      </span>
+                      <button
+                        className="button-secondary"
+                        type="button"
+                        disabled={page >= pageCount}
+                        onClick={() => navigateToPage(page + 1)}
+                      >
+                        Siguiente
+                        <Icon name="chevron_right" />
+                      </button>
+                    </nav>
+                  )}
+                </>
+              ) : null}
+            </>
+          )}
+        </div>
+      </div>
     </section>
   );
 }

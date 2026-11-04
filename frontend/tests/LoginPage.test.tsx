@@ -95,4 +95,14 @@ describe('formulario de inicio de sesión (US-01.2)', () => {
     await user.click(screen.getByRole('button', { name: 'Ocultar contraseña' }));
     expect(password).toHaveAttribute('type', 'password');
   });
+
+  it('enlaza con el registro, y el registro con el login', async () => {
+    const { user } = renderLogin();
+
+    await user.click(screen.getByRole('link', { name: 'Regístrate' }));
+    expect(screen.getByRole('heading', { level: 1, name: 'Crear cuenta' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('link', { name: 'Inicia sesión' }));
+    expect(screen.getByRole('heading', { level: 1, name: 'Iniciar sesión' })).toBeInTheDocument();
+  });
 });

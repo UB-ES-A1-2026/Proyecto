@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { EditItemDialog } from '../components/EditItemDialog';
+import { Icon, type IconName } from '../components/Icon';
 import { WithdrawItemDialog } from '../components/WithdrawItemDialog';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
@@ -25,6 +26,12 @@ const STATUS_HINTS: Record<ItemStatus, string> = {
   published: 'Visible en las búsquedas',
   paused: 'No aparece en las búsquedas hasta que lo reanudes',
   withdrawn: 'Ya no se puede alquilar',
+};
+
+const STATUS_STYLES: Record<ItemStatus, { badge: string; icon: IconName }> = {
+  published: { badge: 'badge-success', icon: 'check_circle' },
+  paused: { badge: 'badge-warning', icon: 'pause' },
+  withdrawn: { badge: 'badge-neutral', icon: 'do_not_disturb_on' },
 };
 
 type Filter = 'all' | ItemStatus;
@@ -173,36 +180,48 @@ export function MyItemsPage() {
           <h1 className="page-title">Mis objetos</h1>
           <p className="page-subtitle">Los objetos que tienes publicados para alquilar.</p>
         </div>
-        <Link to="/objetos/nuevo" className="button-publish">
-          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="M12 5v14M5 12h14"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-          </svg>
+        <Link to="/objetos/nuevo" className="button-primary my-items-publish">
+          <Icon name="add" />
           Publicar un objeto
         </Link>
       </div>
       {message && (
-        <p role="status" className="form-success">
+        <p role="status" className="form-success manage-notice">
+          <Icon name="check_circle" />
           {message}
         </p>
       )}
       {actionError && (
-        <p role="alert" className="form-error">
+        <p role="alert" className="form-error manage-notice">
+          <Icon name="error" />
           {actionError}
         </p>
       )}
       {error ? (
-        <p role="alert" className="form-error">
+        <p role="alert" className="form-error manage-notice">
+          <Icon name="error" />
           {error}
         </p>
       ) : !items ? (
-        <p>Cargando tus objetos…</p>
+        <>
+          <p className="manage-visually-hidden">Cargando tus objetos…</p>
+          <div className="item-list" aria-hidden="true">
+            {[0, 1, 2].map((placeholder) => (
+              <div key={placeholder} className="item-skeleton card">
+                <div className="item-photo skeleton" />
+                <div className="item-info">
+                  <div className="skeleton manage-skeleton-title" />
+                  <div className="skeleton manage-skeleton-line" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       ) : items.length === 0 ? (
-        <p>Todavía no has publicado ningún objeto.</p>
+        <div className="empty-state card manage-empty">
+          <Icon name="inventory_2" />
+          <p>Todavía no has publicado ningún objeto.</p>
+        </div>
       ) : (
         <>
           <div className="filter-chips" role="group" aria-label="Filtrar por estado">
@@ -219,47 +238,26 @@ export function MyItemsPage() {
             ))}
           </div>
           {visibleItems.length === 0 ? (
-            <p>No tienes objetos en este estado.</p>
+            <div className="empty-state card manage-empty">
+              <Icon name="filter_alt" />
+              <p>No tienes objetos en este estado.</p>
+            </div>
           ) : (
-            <ul className="item-list">
+            // Cambiar de filtro vuelve a montar la lista para repetir su animación de entrada.
+            <ul key={filter} className="item-list stagger">
               {visibleItems.map((item) => (
-                <li key={item.id} className="item-row">
+                <li key={item.id} className={`item-row card item-row-${item.status}`}>
                   <div className="item-photo" aria-hidden="true">
-                    {item.photo ? (
-                      <img src={item.photo} alt="" />
-                    ) : (
-                      <svg width="32" height="32" viewBox="0 0 24 24">
-                        <rect
-                          x="3"
-                          y="4"
-                          width="18"
-                          height="16"
-                          rx="2"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                        />
-                        <circle
-                          cx="9"
-                          cy="10"
-                          r="2"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                        />
-                        <path
-                          d="m4 18 5-5 4 4 3-3 4 4"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                        />
-                      </svg>
-                    )}
+                    {item.photo ? <img src={item.photo} alt="" /> : <Icon name="image" />}
                   </div>
                   <div className="item-info">
                     <div className="item-heading">
                       <h2 className="item-title">{item.title}</h2>
-                      <span className={`item-status item-status-${item.status}`}>
+                      <span
+                        key={item.status}
+                        className={`badge ${STATUS_STYLES[item.status].badge} item-status`}
+                      >
+                        <Icon name={STATUS_STYLES[item.status].icon} />
                         {STATUS_LABELS[item.status]}
                       </span>
                     </div>
@@ -268,54 +266,46 @@ export function MyItemsPage() {
                     </p>
                     <p className="item-hint">{STATUS_HINTS[item.status]}</p>
                   </div>
-                  <div className="item-actions">
-                    {/* Retirar es definitivo: un objeto retirado no se puede editar (409, #202)
-                        ni pausar, reanudar o volver a retirar. */}
-                    {item.status !== 'withdrawn' && (
-                      <>
-                        <button
-                          type="button"
-                          className="button-edit"
-                          aria-label={`Editar ${item.title}`}
-                          onClick={() => openEditor(item.id)}
-                        >
-                          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                            <path
-                              d="M4 20h4L19 9l-4-4L4 16v4Z"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                          Editar
-                        </button>
-                        <button
-                          type="button"
-                          className="button-pause"
-                          aria-label={`${item.status === 'paused' ? 'Reanudar' : 'Pausar'} ${item.title}`}
-                          disabled={togglingId !== null}
-                          onClick={() => togglePause(item)}
-                        >
-                          {togglingId === item.id
-                            ? item.status === 'paused'
-                              ? 'Reanudando…'
-                              : 'Pausando…'
-                            : item.status === 'paused'
-                              ? 'Reanudar'
-                              : 'Pausar'}
-                        </button>
-                        <button
-                          type="button"
-                          className="button-withdraw"
-                          aria-label={`Retirar anuncio ${item.title}`}
-                          onClick={() => openWithdraw(item)}
-                        >
-                          Retirar anuncio
-                        </button>
-                      </>
-                    )}
-                  </div>
+                  {/* Retirar es definitivo: un objeto retirado no se puede editar (409, #202)
+                      ni pausar, reanudar o volver a retirar. */}
+                  {item.status !== 'withdrawn' && (
+                    <div className="item-actions">
+                      <button
+                        type="button"
+                        className="button-secondary button-edit"
+                        aria-label={`Editar ${item.title}`}
+                        onClick={() => openEditor(item.id)}
+                      >
+                        <Icon name="edit" />
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        className="button-secondary"
+                        aria-label={`${item.status === 'paused' ? 'Reanudar' : 'Pausar'} ${item.title}`}
+                        disabled={togglingId !== null}
+                        onClick={() => togglePause(item)}
+                      >
+                        <Icon name={item.status === 'paused' ? 'play_arrow' : 'pause'} />
+                        {togglingId === item.id
+                          ? item.status === 'paused'
+                            ? 'Reanudando…'
+                            : 'Pausando…'
+                          : item.status === 'paused'
+                            ? 'Reanudar'
+                            : 'Pausar'}
+                      </button>
+                      <button
+                        type="button"
+                        className="button-quiet button-withdraw"
+                        aria-label={`Retirar anuncio ${item.title}`}
+                        onClick={() => openWithdraw(item)}
+                      >
+                        <Icon name="delete" />
+                        Retirar anuncio
+                      </button>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

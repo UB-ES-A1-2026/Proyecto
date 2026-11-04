@@ -7,6 +7,7 @@ import {
   rejectReservation,
   type DecidedReservation,
 } from '../services/reservationDecisionService';
+import { Icon } from './Icon';
 
 type Decision = 'accept' | 'reject';
 
@@ -66,7 +67,8 @@ export function ReservationDecision({
 
   if (completed !== null) {
     return (
-      <p className="reservation-decision-message" role="status">
+      <p className={`reservation-decision-message is-${completed}`} role="status">
+        <Icon name={completed === 'accept' ? 'check_circle' : 'cancel'} />
         {completed === 'accept' ? 'Has aceptado la solicitud.' : 'Has rechazado la solicitud.'}
       </p>
     );
@@ -75,7 +77,8 @@ export function ReservationDecision({
   return (
     <div className="reservation-decision">
       {error && (
-        <p className="form-error" role="alert">
+        <p className="form-error manage-notice" role="alert">
+          <Icon name="error" />
           {error}
         </p>
       )}
@@ -88,6 +91,7 @@ export function ReservationDecision({
               disabled={submitting !== null}
               onClick={() => void decide('accept')}
             >
+              <Icon name="check" />
               {submitting === 'accept' ? 'Aceptando…' : 'Aceptar'}
             </button>
           )}
@@ -97,6 +101,7 @@ export function ReservationDecision({
             disabled={submitting !== null}
             onClick={() => void decide('reject')}
           >
+            <Icon name="close" />
             {submitting === 'reject' ? 'Rechazando…' : 'Rechazar'}
           </button>
         </div>

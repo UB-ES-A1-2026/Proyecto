@@ -226,7 +226,7 @@ describe('ventana de edición de un objeto (US-02.02, #109)', () => {
 
   it.each([
     ['el botón «Cancelar»', 'Cancelar'],
-    ['la «×» de la cabecera', 'Cerrar ventana'],
+    ['el botón de cerrar de la cabecera', 'Cerrar ventana'],
   ])('%s cierra la ventana sin guardar y devuelve el foco a «Editar»', async (_, name) => {
     const fetchMock = mockItemApi();
     const { user, dialog, editButton } = await openForm();
@@ -256,6 +256,27 @@ describe('añadir fotos al editar (US-02.02, #51)', () => {
       order: 1,
       url: 'https://example.test/photo.webp',
     });
+    // jsdom no implementa las URL temporales de las miniaturas.
+    URL.createObjectURL = vi.fn((file: Blob | MediaSource) =>
+      file instanceof File ? `blob:${file.name}` : 'blob:foto',
+    );
+    URL.revokeObjectURL = vi.fn();
+  });
+
+  it('enseña la miniatura y el nombre de las fotos elegidas junto a las que ya tiene', async () => {
+    const photos = [{ id: 'p1', url: 'https://example.test/1' }];
+    mockItemApi({ onLoad: () => Response.json({ ...ITEM, photos }) });
+    const { dialog } = await openWithPhoto(jpeg('nueva.jpg'));
+
+    expect(within(dialog).getByRole('img', { name: 'Foto 1 de Taladro percutor' })).toHaveAttribute(
+      'src',
+      'https://example.test/1',
+    );
+    expect(within(dialog).getByRole('img', { name: 'Vista previa de nueva.jpg' })).toHaveAttribute(
+      'src',
+      'blob:nueva.jpg',
+    );
+    expect(within(dialog).getByText('nueva.jpg')).toBeInTheDocument();
   });
 
   it('guarda los cambios y después sube las fotos elegidas', async () => {
@@ -321,6 +342,8 @@ describe('añadir fotos al editar (US-02.02, #51)', () => {
     const { user, save, dialog } = await openWithPhoto(jpeg('nueva.jpg'));
 
     await user.click(within(dialog).getByRole('button', { name: 'Quitar nueva.jpg' }));
+    expect(within(dialog).queryByText('nueva.jpg')).not.toBeInTheDocument();
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:nueva.jpg');
     await user.click(save);
 
     await screen.findByRole('status');

@@ -1,64 +1,337 @@
 /* Ficha del objeto y solicitud de alquiler. Zona «item». */
 
-/* US-03.03 Ver un objeto (#15) */
-.item-detail,
-.item-not-found {
-  margin: var(--space-xl) auto;
-}
-
-.item-detail h1,
-.item-not-found h1 {
-  margin-top: 0;
-}
-
-.item-photos {
+/* US-03.03 Ver un objeto (#15): contenido a la izquierda y panel de alquiler fijo a la derecha */
+.item-detail {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-  gap: var(--space-md);
-  margin: 0 0 var(--space-lg);
+  grid-template-areas:
+    'gallery panel'
+    'heading panel'
+    'info panel';
+  grid-template-rows: auto auto 1fr;
+  grid-template-columns: minmax(0, 1fr) 24rem;
+  gap: var(--space-lg) var(--space-2xl);
+  overflow-wrap: anywhere;
+}
+
+.item-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.item-detail .item-heading {
+  grid-area: heading;
+}
+
+.item-detail .item-heading h1 {
+  margin: 0 0 var(--space-sm);
+  font-size: clamp(var(--font-size-section), 5vw, var(--font-size-title));
+}
+
+.item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-md);
+  align-items: center;
+}
+
+.item-neighborhood {
+  display: inline-flex;
+  gap: var(--space-xs);
+  align-items: center;
+  color: var(--color-text-muted);
+}
+
+/* Galería */
+.item-gallery {
+  grid-area: gallery;
+  min-width: 0;
+}
+
+.item-gallery-main {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-large);
+  box-shadow: var(--shadow-sm);
+}
+
+.item-gallery-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transform: scale(1.02);
+  transition:
+    opacity var(--duration-slow) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out);
+}
+
+.item-gallery-photo[data-active='true'] {
+  opacity: 1;
+  transform: none;
+}
+
+.item-gallery-thumbs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-sm);
+  margin: var(--space-sm) 0 0;
   padding: 0;
   list-style: none;
 }
 
-.item-photos img {
+.item-gallery-thumb {
   display: block;
   width: 100%;
   aspect-ratio: 4 / 3;
+  padding: 0;
+  overflow: hidden;
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-divider);
+  border-radius: var(--radius);
+  opacity: 0.75;
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.item-gallery-thumb:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.item-gallery-thumb:active {
+  transform: scale(0.97);
+}
+
+.item-gallery-thumb[aria-pressed='true'] {
+  border-color: var(--color-primary);
+  opacity: 1;
+}
+
+.item-gallery-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border: var(--border-width) solid var(--color-border);
+}
+
+.item-gallery-empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 16 / 9;
+  padding: var(--space-lg);
+  color: var(--color-primary);
+  text-align: center;
+  background: linear-gradient(135deg, var(--color-surface), var(--color-primary-soft));
+  border-radius: var(--radius-large);
+}
+
+.item-gallery-empty p {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+}
+
+/* Descripción, entrega y propietario */
+.item-detail .item-info {
+  grid-area: info;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  min-width: 0;
+}
+
+.item-section h2 {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--font-size-section);
+}
+
+.item-description {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.item-delivery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item-delivery li {
+  display: inline-flex;
+  gap: var(--space-sm);
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--color-background);
+  border: var(--border-width) solid var(--color-divider);
   border-radius: var(--radius);
 }
 
-.item-prices {
+.item-delivery .icon {
+  color: var(--color-primary);
+}
+
+.item-delivery span:not(.icon)::first-letter {
+  text-transform: uppercase;
+}
+
+.item-owner {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0 var(--space-lg);
+  gap: var(--space-md);
+  align-items: center;
+  padding: var(--space-md) var(--space-lg);
+}
+
+.item-owner p {
+  margin: 0;
   font-weight: var(--font-weight-medium);
 }
 
-.item-availability {
+.item-owner-avatar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  font-size: var(--font-size-section);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-on-primary);
+  background-color: var(--color-primary);
+  border-radius: var(--radius-pill);
+}
+
+/* Panel de alquiler. .card se define después de este archivo: por eso el selector doble. */
+.card.rental-panel {
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-lg));
+  grid-area: panel;
+  align-self: start;
+  min-width: 0;
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.rental-panel-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rental-panel-price {
+  margin: 0;
   color: var(--color-text-muted);
 }
 
-.item-metadata dt {
+.rental-panel-amount {
+  font-size: var(--font-size-title);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: var(--color-text);
+}
+
+.rental-panel-deposit,
+.rental-panel-note {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+  margin: var(--space-sm) 0 0;
+}
+
+.rental-panel-deposit {
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+.rental-panel-action {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: var(--border-width) solid var(--color-divider);
+}
+
+.rental-panel-note {
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
   font-weight: var(--font-weight-medium);
+  background-color: var(--color-surface);
+  border-radius: var(--radius);
 }
 
-.item-metadata dd {
-  margin: var(--space-xs) 0 var(--space-md);
-}
-
-.item-rent-button {
-  width: auto;
+.field-hint.rental-panel-hint {
+  margin-top: var(--space-sm);
+  text-align: center;
 }
 
 /* Selector de fechas y resumen de la solicitud de alquiler (US-04.01, #121) */
 .rental-request {
-  max-width: var(--form-max-width);
+  animation: fade-up var(--duration) var(--ease-out);
+}
+
+.rental-request h2 {
+  margin: 0 0 var(--space-md);
+  font-size: var(--font-size-tagline);
+  outline: none;
+}
+
+.rental-dates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0 var(--space-sm);
+}
+
+.rental-dates .form-field {
+  min-width: 0;
 }
 
 .rental-price {
   margin: 0 0 var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--color-surface);
+  border-radius: var(--radius);
+  animation: fade-in var(--duration) var(--ease-out);
+}
+
+.rental-price strong {
+  white-space: nowrap;
+}
+
+.rental-price.rental-checking,
+.rental-available {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
+  margin: 0 0 var(--space-md);
+  padding: 0;
+  font-size: var(--font-size-small);
+  background: none;
+}
+
+.rental-checking .icon {
+  animation: rental-pulse 1.2s ease-in-out infinite;
+}
+
+.rental-available {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-success);
+  animation: fade-down var(--duration) var(--ease-out);
 }
 
 .rental-actions {
@@ -78,8 +351,9 @@
 }
 
 .rental-item-photo {
-  width: 5rem;
-  height: 5rem;
+  flex-shrink: 0;
+  width: 4rem;
+  height: 4rem;
   object-fit: cover;
   border-radius: var(--radius);
 }
@@ -89,7 +363,12 @@
   font-weight: var(--font-weight-medium);
 }
 
+.rental-summary {
+  margin: 0 0 var(--space-lg);
+}
+
 .rental-summary dt {
+  font-size: var(--font-size-small);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-muted);
 }
@@ -98,7 +377,76 @@
   margin: var(--space-xs) 0 var(--space-md);
 }
 
-.rental-total {
-  font-size: var(--font-size-tagline);
+.rental-summary dt:last-of-type {
+  padding-top: var(--space-md);
+  border-top: var(--border-width) solid var(--color-divider);
+}
+
+.rental-summary .rental-total {
+  margin-bottom: 0;
+  font-size: var(--font-size-section);
   font-weight: var(--font-weight-bold);
+}
+
+/* Objeto no encontrado */
+.item-not-found h1 {
+  margin: 0;
+  font-size: var(--font-size-section);
+  color: var(--color-text);
+}
+
+.item-not-found p {
+  margin: 0 0 var(--space-md);
+}
+
+.item-not-found .button-secondary {
+  width: auto;
+}
+
+/* Carga */
+.item-skeleton-title {
+  width: 60%;
+  height: 2.25rem;
+  margin-bottom: var(--space-sm);
+}
+
+.item-skeleton-line {
+  width: 100%;
+  height: 1rem;
+  margin-bottom: var(--space-sm);
+}
+
+.item-skeleton-button {
+  width: 100%;
+  height: 2.75rem;
+  margin-top: var(--space-lg);
+}
+
+.skeleton.item-skeleton-gallery {
+  aspect-ratio: 3 / 2;
+  border-radius: var(--radius-large);
+}
+
+@keyframes rental-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* En pantallas estrechas, una sola columna con el panel debajo de la galería. */
+@media (max-width: 900px) {
+  .item-detail {
+    grid-template-areas:
+      'heading'
+      'gallery'
+      'panel'
+      'info';
+    grid-template-rows: none;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-lg);
+  }
+
+  .card.rental-panel {
+    position: static;
+  }
 }

@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderRoute } from './renderRoute';
@@ -46,6 +46,26 @@ describe('SearchPage', () => {
     expect(screen.getByText('1 objeto encontrado')).toBeInTheDocument();
   });
 
+  it('la tarjeta sin foto lo indica con un hueco, y la que tiene foto la muestra', async () => {
+    const photo = 'http://localhost:3000/uploads/foto.jpg';
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      Response.json({
+        ...SEARCH_RESPONSE,
+        total: 2,
+        items: [ITEM, { ...ITEM, id: 'item-2', title: 'Escalera', photo }],
+      }),
+    );
+
+    renderRoute('/buscar?q=a');
+
+    const cards = await screen.findAllByRole('listitem');
+    const withoutPhoto = cards.find((card) => card.textContent?.includes('Taladro percutor'))!;
+    const withPhoto = cards.find((card) => card.textContent?.includes('Escalera'))!;
+    expect(within(withoutPhoto).getByRole('img', { name: 'Sin foto' })).toBeInTheDocument();
+    expect(within(withPhoto).getByRole('img', { name: 'Escalera' })).toHaveAttribute('src', photo);
+    expect(within(withPhoto).queryByRole('img', { name: 'Sin foto' })).toBeNull();
+  });
+
   it('muestra el texto exacto cuando no hay resultados', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       Response.json({ items: [], page: 1, pageSize: 20, total: 0 }),
@@ -64,11 +84,13 @@ describe('SearchPage', () => {
       () => new Promise<Response>((resolve) => (resolveResponse = resolve)),
     );
 
-    renderRoute('/buscar?q=taladro');
+    const { container } = renderRoute('/buscar?q=taladro');
 
     expect(await screen.findByRole('status')).toHaveTextContent('Buscando…');
+    expect(container.querySelector('.skeleton')).toBeInTheDocument();
     resolveResponse(Response.json(SEARCH_RESPONSE));
     expect(await screen.findByText('Taladro percutor')).toBeInTheDocument();
+    expect(container.querySelector('.skeleton')).not.toBeInTheDocument();
   });
 
   it('muestra el mensaje ApiError como alerta', async () => {
@@ -155,7 +177,9 @@ describe('SearchPage', () => {
     const { router } = renderRoute('/buscar?maxPrice=10');
 
     await screen.findByText('Taladro percutor');
-    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+    // El panel también tiene este botón: aquí se usa el que está junto a los filtros activos.
+    const activeFilters = within(screen.getByRole('list', { name: 'Filtros activos' }));
+    await user.click(activeFilters.getByRole('button', { name: 'Limpiar filtros' }));
 
     await waitFor(() => expect(router.state.location.search).toBe('?q='));
     await waitFor(() =>
@@ -196,7 +220,7 @@ describe('SearchPage', () => {
     );
   });
 
-  it('muestra el botón «Filtros» junto a la búsqueda (US-03.02, #118)', async () => {
+  it('muestra el panel de filtros y su botón para móvil junto a los resultados (US-03.02, #118)', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json(SEARCH_RESPONSE));
 
     renderRoute('/buscar?q=taladro');
@@ -205,6 +229,8 @@ describe('SearchPage', () => {
       'aria-expanded',
       'false',
     );
+    expect(screen.getByRole('form', { name: 'Filtros' })).toBeInTheDocument();
+    expect(await screen.findByText('Taladro percutor')).toBeInTheDocument();
   });
 
   it('si los filtros no dejan resultados, ofrece quitarlos en lugar del mensaje normal', async () => {

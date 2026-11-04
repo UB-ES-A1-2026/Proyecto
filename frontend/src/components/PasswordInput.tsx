@@ -1,4 +1,5 @@
 import { useState, type ComponentProps } from 'react';
+import { Icon } from './Icon';
 
 type PasswordInputProps = Omit<ComponentProps<'input'>, 'type'>;
 
@@ -16,6 +17,7 @@ export function PasswordInput(props: PasswordInputProps) {
         onClick={() => setVisible((current) => !current)}
         aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
       >
+        <Icon name={visible ? 'visibility_off' : 'visibility'} size="1.125rem" />
         {visible ? 'Ocultar' : 'Mostrar'}
       </button>
     </div>

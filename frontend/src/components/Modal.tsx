@@ -1,5 +1,6 @@
 // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 03/11/2026
 import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { Icon } from './Icon';
 
 type ModalProps = {
   title: string;
@@ -51,10 +52,11 @@ export function Modal({ title, onClose, children }: ModalProps) {
             aria-label="Cerrar ventana"
             onClick={onClose}
           >
-            ×
+            <Icon name="close" size="1.375rem" />
           </button>
         </div>
-        {children}
+        {/* Si el contenido es alto hace scroll aquí: la cabecera se queda siempre a la vista. */}
+        <div className="modal-body">{children}</div>
       </div>
     </dialog>
   );

@@ -3,6 +3,7 @@ import { useEffect, useId, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { getCategories, type Category } from '../services/categoryService';
 import { FiltersPanel } from './FiltersPanel';
+import { Icon } from './Icon';
 import {
   countActiveFilters,
   readFilters,
@@ -12,8 +13,9 @@ import {
 } from './filterParams';
 
 // Botón «Filtros», panel y filtros activos de la página de resultados (US-03.02, #118).
-// Se coloca en la página de búsqueda (#115) debajo de la barra; lee y escribe los filtros
-// en la URL, y la página vuelve a pedir GET /api/objetos cuando cambian sus parámetros.
+// Lee y escribe los filtros en la URL, y la página vuelve a pedir GET /api/objetos cuando cambian
+// sus parámetros. En escritorio el panel siempre se ve a un lado de los resultados y el botón no
+// sale; en móvil, el botón lo abre y lo cierra (lo decide el CSS, como el menú de la cabecera).
 export function SearchFilters() {
   const panelId = useId();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -72,22 +74,19 @@ export function SearchFilters() {
         aria-controls={panelId}
         onClick={() => setOpen((value) => !value)}
       >
+        <Icon name="tune" />
         {activeCount > 0 ? `Filtros (${activeCount})` : 'Filtros'}
       </button>
 
-      {open && (
-        <FiltersPanel
-          // Si cambian los filtros de la URL (chips, «Atrás»), el panel empieza con los nuevos.
-          // Solo los filtros: si cambia la búsqueda con el panel abierto, no se pierde lo escrito.
-          key={JSON.stringify(filters)}
-          id={panelId}
-          categories={categories}
-          categoriesError={categoriesError}
-          initialFilters={filters}
-          onApply={applyFilters}
-          onClear={clearFilters}
-        />
-      )}
+      <FiltersPanel
+        id={panelId}
+        open={open}
+        categories={categories}
+        categoriesError={categoriesError}
+        initialFilters={filters}
+        onApply={applyFilters}
+        onClear={clearFilters}
+      />
 
       {chips.length > 0 && (
         <ul className="active-filters" aria-label="Filtros activos">
@@ -103,7 +102,7 @@ export function SearchFilters() {
               </button>
             </li>
           ))}
-          <li>
+          <li className="active-filters-clear">
             <button type="button" className="link-button" onClick={clearFilters}>
               Limpiar filtros
             </button>
@@ -122,8 +121,9 @@ export function NoResultsWithFilters() {
   if (countActiveFilters(readFilters(searchParams)) === 0) return null;
 
   return (
-    <p role="status" className="filters-empty">
-      No hay objetos que cumplan estos filtros.{' '}
+    <div role="status" className="card empty-state">
+      <Icon name="filter_alt" />
+      <p>No hay objetos que cumplan estos filtros.</p>
       <button
         type="button"
         className="link-button"
@@ -131,6 +131,6 @@ export function NoResultsWithFilters() {
       >
         Limpiar filtros
       </button>
-    </p>
+    </div>
   );
 }

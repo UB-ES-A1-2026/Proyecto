@@ -1,5 +1,5 @@
 // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 03/11/2026
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import { checkAvailability, requestRental, type Reservation } from '../services/rentalService';
@@ -12,6 +12,7 @@ import {
   validateRentalDates,
   type RentalDateErrors,
 } from '../utils/rental';
+import { Icon } from './Icon';
 
 export type RentalItem = {
   id: string;
@@ -22,8 +23,8 @@ export type RentalItem = {
 
 type RentalRequestProps = {
   item: RentalItem;
-  onCancel: () => void;
   onRequested: (reservation: Reservation) => void;
+  onSessionExpired: () => void;
 };
 
 // Mismo texto que el 409 de POST /reservas (#120).
@@ -33,9 +34,9 @@ const NOT_AVAILABLE_MESSAGE = 'El objeto no está disponible en esas fechas.';
 // ignora el de unas fechas anteriores si el usuario las cambia mientras se espera la respuesta.
 type AvailabilityResult = { datesKey: string } & ({ available: boolean } | { error: string });
 
-// Selector de fechas, resumen y confirmación de US-04.01 (#121). Lo muestra RentalRequestPage en
-// /objetos/:id/solicitar, a donde lleva «Alquilar» en la página de detalle (#15).
-export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProps) {
+// Selector de fechas, resumen y confirmación de US-04.01 (#121), dentro del panel lateral de la
+// ficha del objeto (#15).
+export function RentalRequest({ item, onRequested, onSessionExpired }: RentalRequestProps) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [apiErrors, setApiErrors] = useState<RentalDateErrors>({});
@@ -45,6 +46,8 @@ export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProp
   const [availability, setAvailability] = useState<AvailabilityResult | null>(null);
   const { session, clearSession } = useAuth();
   const token = session?.token;
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const previousStep = useRef(step);
 
   const today = todayIso();
   const errors = { ...validateRentalDates(startDate, endDate, today), ...apiErrors };
@@ -73,6 +76,7 @@ export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProp
         if (ignore) return;
         if (error instanceof ApiError && error.status === 401) {
           clearSession();
+          onSessionExpired();
         } else if (
           error instanceof ApiError &&
           (error.field === 'startDate' || error.field === 'endDate')
@@ -89,7 +93,14 @@ export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProp
     return () => {
       ignore = true;
     };
-  }, [datesKey, token, item.id, startDate, endDate, clearSession]);
+  }, [datesKey, token, item.id, startDate, endDate, clearSession, onSessionExpired]);
+
+  // El botón pulsado desaparece al cambiar de paso: el foco pasa al título del paso nuevo.
+  useEffect(() => {
+    if (previousStep.current === step) return;
+    previousStep.current = step;
+    headingRef.current?.focus({ preventScroll: true });
+  }, [step]);
 
   function changeDate(field: 'startDate' | 'endDate', value: string) {
     if (field === 'startDate') setStartDate(value);
@@ -121,9 +132,10 @@ export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProp
     } catch (error) {
       // Los botones se reactivan siempre, también si el componente sigue montado tras un 401.
       setSubmitting(false);
-      // Sesión caducada o revocada: al borrarla, PrivateRoute lleva al login.
+      // Sesión caducada o revocada: se borra y se vuelve al login.
       if (error instanceof ApiError && error.status === 401) {
         clearSession();
+        onSessionExpired();
         return;
       }
       // Errores de #120. Si el problema está en las fechas (409 por solape, con field), se vuelve
@@ -149,8 +161,10 @@ export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProp
 
   if (step === 'summary') {
     return (
-      <section className="rental-request" aria-labelledby="rental-title">
-        <h1 id="rental-title">Revisa tu solicitud</h1>
+      <section key="summary" className="rental-request" aria-labelledby="rental-title">
+        <h2 id="rental-title" ref={headingRef} tabIndex={-1}>
+          Revisa tu solicitud
+        </h2>
         {formError && (
           <p role="alert" className="form-error">
             {formError}
@@ -197,50 +211,51 @@ export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProp
   }
 
   return (
-    <section className="rental-request" aria-labelledby="rental-title">
-      <h1 id="rental-title">Solicitar alquiler</h1>
-      <p className="field-hint">
-        {item.title} · {formatPrice(item.pricePerDay)} / día
-      </p>
+    <section key="dates" className="rental-request" aria-labelledby="rental-title">
+      <h2 id="rental-title" ref={headingRef} tabIndex={-1}>
+        Elige las fechas
+      </h2>
       {formError && (
         <p role="alert" className="form-error">
           {formError}
         </p>
       )}
       <form onSubmit={handleDatesSubmit} noValidate>
-        <div className="form-field">
-          <label htmlFor="rental-start-date">Fecha de inicio</label>
-          <input
-            id="rental-start-date"
-            type="date"
-            min={today}
-            value={startDate}
-            onChange={(event) => changeDate('startDate', event.target.value)}
-            aria-invalid={errors.startDate ? true : undefined}
-            aria-describedby={errors.startDate ? 'rental-start-date-error' : undefined}
-          />
-          {errors.startDate && (
-            <p id="rental-start-date-error" className="field-error">
-              {errors.startDate}
-            </p>
-          )}
-        </div>
-        <div className="form-field">
-          <label htmlFor="rental-end-date">Fecha de fin</label>
-          <input
-            id="rental-end-date"
-            type="date"
-            min={startDate || today}
-            value={endDate}
-            onChange={(event) => changeDate('endDate', event.target.value)}
-            aria-invalid={errors.endDate ? true : undefined}
-            aria-describedby={errors.endDate ? 'rental-end-date-error' : undefined}
-          />
-          {errors.endDate && (
-            <p id="rental-end-date-error" className="field-error">
-              {errors.endDate}
-            </p>
-          )}
+        <div className="rental-dates">
+          <div className="form-field">
+            <label htmlFor="rental-start-date">Fecha de inicio</label>
+            <input
+              id="rental-start-date"
+              type="date"
+              min={today}
+              value={startDate}
+              onChange={(event) => changeDate('startDate', event.target.value)}
+              aria-invalid={errors.startDate ? true : undefined}
+              aria-describedby={errors.startDate ? 'rental-start-date-error' : undefined}
+            />
+            {errors.startDate && (
+              <p id="rental-start-date-error" className="field-error">
+                {errors.startDate}
+              </p>
+            )}
+          </div>
+          <div className="form-field">
+            <label htmlFor="rental-end-date">Fecha de fin</label>
+            <input
+              id="rental-end-date"
+              type="date"
+              min={startDate || today}
+              value={endDate}
+              onChange={(event) => changeDate('endDate', event.target.value)}
+              aria-invalid={errors.endDate ? true : undefined}
+              aria-describedby={errors.endDate ? 'rental-end-date-error' : undefined}
+            />
+            {errors.endDate && (
+              <p id="rental-end-date-error" className="field-error">
+                {errors.endDate}
+              </p>
+            )}
+          </div>
         </div>
         <p className="rental-price" aria-live="polite">
           {datesValid ? (
@@ -253,7 +268,16 @@ export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProp
           )}
         </p>
         {checkingAvailability && (
-          <p className="rental-price field-hint">Comprobando disponibilidad…</p>
+          <p className="rental-price rental-checking field-hint">
+            <Icon name="hourglass_top" size="1rem" />
+            Comprobando disponibilidad…
+          </p>
+        )}
+        {isAvailable && (
+          <p className="rental-available" role="status">
+            <Icon name="check_circle" size="1rem" />
+            Fechas disponibles
+          </p>
         )}
         {currentAvailability &&
           ('error' in currentAvailability || !currentAvailability.available) && (
@@ -262,9 +286,6 @@ export function RentalRequest({ item, onCancel, onRequested }: RentalRequestProp
             </p>
           )}
         <div className="rental-actions">
-          <button type="button" className="button-secondary" onClick={onCancel}>
-            Cancelar
-          </button>
           <button type="submit" className="button-primary" disabled={!isAvailable}>
             Solicitar alquiler
           </button>

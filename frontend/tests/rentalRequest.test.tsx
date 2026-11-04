@@ -48,15 +48,15 @@ function postCalls(fetchMock: ReturnType<typeof mockFetch>) {
 }
 
 function renderRentalRequest() {
-  const onCancel = vi.fn();
   const onRequested = vi.fn();
+  const onSessionExpired = vi.fn();
   const clearSession = vi.fn();
   render(
     <AuthContext.Provider value={{ session: SESSION, saveSession: vi.fn(), clearSession }}>
-      <RentalRequest item={ITEM} onCancel={onCancel} onRequested={onRequested} />
+      <RentalRequest item={ITEM} onRequested={onRequested} onSessionExpired={onSessionExpired} />
     </AuthContext.Provider>,
   );
-  return { onCancel, onRequested, clearSession };
+  return { onRequested, onSessionExpired, clearSession };
 }
 
 // Elige fechas válidas, pasa al resumen y pulsa «Confirmar».
@@ -94,7 +94,7 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
   it('sin fechas pide elegirlas y no deja solicitar', () => {
     renderRentalRequest();
 
-    expect(screen.getByRole('heading', { name: 'Solicitar alquiler' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Elige las fechas' })).toBeInTheDocument();
     expect(screen.getByText('Elige las fechas para ver el precio.')).toBeInTheDocument();
     expect(requestButton()).toBeDisabled();
     expect(screen.getByLabelText('Fecha de inicio')).toHaveAttribute('min', '2026-11-01');
@@ -108,6 +108,7 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
     expect(screen.getByText(/3 días × 5,00 € =/)).toBeInTheDocument();
     expect(screen.getByText('15,00 €')).toBeInTheDocument();
     await waitFor(() => expect(requestButton()).toBeEnabled());
+    expect(screen.getByRole('status')).toHaveTextContent('Fechas disponibles');
   });
 
   it('no deja que la fecha de fin sea anterior a la de inicio', () => {
@@ -141,7 +142,8 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
     await chooseAvailableDates('2026-11-04', '2026-11-06');
     await user.click(requestButton());
 
-    expect(screen.getByRole('heading', { name: 'Revisa tu solicitud' })).toBeInTheDocument();
+    // El botón pulsado ya no existe: el foco pasa al título del resumen.
+    expect(screen.getByRole('heading', { name: 'Revisa tu solicitud' })).toHaveFocus();
     const summary = screen.getByText('Desde').closest('dl');
     expect(summary).not.toBeNull();
     const details = within(summary as HTMLElement);
@@ -156,6 +158,7 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
 
     expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('2026-11-04');
     expect(screen.getByLabelText('Fecha de fin')).toHaveValue('2026-11-06');
+    expect(screen.getByRole('heading', { name: 'Elige las fechas' })).toHaveFocus();
   });
 
   it('al confirmar crea la solicitud con el token y avisa a quien la usa', async () => {
@@ -192,7 +195,7 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'El objeto no está disponible en esas fechas.',
     );
-    expect(screen.getByRole('heading', { name: 'Solicitar alquiler' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Elige las fechas' })).toBeInTheDocument();
     expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('2026-11-04');
     // Ahora se sabe que no están libres: no se puede volver a solicitar con las mismas fechas.
     expect(requestButton()).toBeDisabled();
@@ -261,26 +264,16 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
     expect(screen.getByRole('button', { name: 'Confirmar' })).toBeEnabled();
   });
 
-  it('con la sesión caducada la borra para volver al login', async () => {
+  it('con la sesión caducada la borra y avisa para volver al login', async () => {
     mockFetch(() => Response.json({ error: 'Sesión no válida' }, { status: 401 }));
     const user = userEvent.setup();
-    const { clearSession, onRequested } = renderRentalRequest();
+    const { clearSession, onRequested, onSessionExpired } = renderRentalRequest();
 
     await confirmRequest(user);
 
     await vi.waitFor(() => expect(clearSession).toHaveBeenCalled());
+    expect(onSessionExpired).toHaveBeenCalled();
     expect(onRequested).not.toHaveBeenCalled();
-  });
-
-  it('«Cancelar» avisa a quien la usa sin enviar nada', async () => {
-    const fetchMock = mockFetch(() => Response.json(RENTAL, { status: 201 }));
-    const user = userEvent.setup();
-    const { onCancel } = renderRentalRequest();
-
-    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
-
-    expect(onCancel).toHaveBeenCalled();
-    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
 
@@ -445,10 +438,11 @@ describe('consulta de disponibilidad (criterio 3 de US-04.01, #204)', () => {
 
   it('con la sesión caducada al consultar borra la sesión', async () => {
     mockFetch(undefined, () => Response.json({ error: 'Sesión no válida' }, { status: 401 }));
-    const { clearSession } = renderRentalRequest();
+    const { clearSession, onSessionExpired } = renderRentalRequest();
 
     chooseDates('2026-11-04', '2026-11-06');
 
     await waitFor(() => expect(clearSession).toHaveBeenCalled());
+    expect(onSessionExpired).toHaveBeenCalled();
   });
 });
