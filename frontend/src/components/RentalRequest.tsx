@@ -3,15 +3,21 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import { checkAvailability, requestRental, type Reservation } from '../services/rentalService';
+import { monthOf, selectRangeDate } from '../utils/calendar';
 import {
   calculateTotalPrice,
   countRentalDays,
+  formatInputDate,
   formatLongDate,
   formatPrice,
+  maskInputDate,
+  parseInputDate,
   todayIso,
+  validateInputDates,
   validateRentalDates,
   type RentalDateErrors,
 } from '../utils/rental';
+import { DateRangeCalendar } from './DateRangeCalendar';
 import { Icon } from './Icon';
 
 export type RentalItem = {
@@ -37,8 +43,9 @@ type AvailabilityResult = { datesKey: string } & ({ available: boolean } | { err
 // Selector de fechas, resumen y confirmación de US-04.01 (#121), dentro del panel lateral de la
 // ficha del objeto (#15).
 export function RentalRequest({ item, onRequested, onSessionExpired }: RentalRequestProps) {
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  // Lo que hay escrito en los campos («dd/mm/aaaa»). El calendario escribe en ellos al hacer clic.
+  const [startText, setStartText] = useState('');
+  const [endText, setEndText] = useState('');
   const [apiErrors, setApiErrors] = useState<RentalDateErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [step, setStep] = useState<'dates' | 'summary'>('dates');
@@ -50,7 +57,14 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
   const previousStep = useRef(step);
 
   const today = todayIso();
-  const errors = { ...validateRentalDates(startDate, endDate, today), ...apiErrors };
+  const [calendarMonth, setCalendarMonth] = useState(monthOf(today));
+  const startDate = parseInputDate(startText);
+  const endDate = parseInputDate(endText);
+  const errors = {
+    ...validateRentalDates(startDate, endDate, today),
+    ...validateInputDates(startText, endText),
+    ...apiErrors,
+  };
   const datesValid = startDate !== '' && endDate !== '' && !errors.startDate && !errors.endDate;
   const days = datesValid ? countRentalDays(startDate, endDate) : 0;
   const totalPrice = calculateTotalPrice(item.pricePerDay, days);
@@ -102,11 +116,32 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
     headingRef.current?.focus({ preventScroll: true });
   }, [step]);
 
-  function changeDate(field: 'startDate' | 'endDate', value: string) {
-    if (field === 'startDate') setStartDate(value);
-    else setEndDate(value);
+  function clearErrors() {
     setApiErrors({});
     setFormError(null);
+  }
+
+  function changeDateText(setText: (text: string) => void, rawText: string) {
+    const text = maskInputDate(rawText);
+    setText(text);
+    clearErrors();
+    // Una fecha escrita se enseña en el calendario; las pasadas no, porque no se pueden elegir.
+    const date = parseInputDate(text);
+    if (date >= today) setCalendarMonth(monthOf(date));
+  }
+
+  // Al salir del campo, «1/3/2030» pasa a «01/03/2030».
+  function normalizeDateText(setText: (text: string) => void, text: string) {
+    const date = parseInputDate(text);
+    if (date) setText(formatInputDate(date));
+  }
+
+  function handleSelectDate(date: string) {
+    // Una fecha de inicio con error no cuenta: el clic empieza de nuevo.
+    const range = selectRangeDate({ startDate: errors.startDate ? '' : startDate, endDate }, date);
+    setStartText(formatInputDate(range.startDate));
+    setEndText(formatInputDate(range.endDate));
+    clearErrors();
   }
 
   function handleDatesSubmit(event: FormEvent<HTMLFormElement>) {
@@ -226,10 +261,13 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
             <label htmlFor="rental-start-date">Fecha de inicio</label>
             <input
               id="rental-start-date"
-              type="date"
-              min={today}
-              value={startDate}
-              onChange={(event) => changeDate('startDate', event.target.value)}
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="dd/mm/aaaa"
+              value={startText}
+              onChange={(event) => changeDateText(setStartText, event.target.value)}
+              onBlur={() => normalizeDateText(setStartText, startText)}
               aria-invalid={errors.startDate ? true : undefined}
               aria-describedby={errors.startDate ? 'rental-start-date-error' : undefined}
             />
@@ -243,10 +281,13 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
             <label htmlFor="rental-end-date">Fecha de fin</label>
             <input
               id="rental-end-date"
-              type="date"
-              min={startDate || today}
-              value={endDate}
-              onChange={(event) => changeDate('endDate', event.target.value)}
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="dd/mm/aaaa"
+              value={endText}
+              onChange={(event) => changeDateText(setEndText, event.target.value)}
+              onBlur={() => normalizeDateText(setEndText, endText)}
               aria-invalid={errors.endDate ? true : undefined}
               aria-describedby={errors.endDate ? 'rental-end-date-error' : undefined}
             />
@@ -257,6 +298,14 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
             )}
           </div>
         </div>
+        <DateRangeCalendar
+          startDate={startDate}
+          endDate={endDate}
+          today={today}
+          month={calendarMonth}
+          onMonthChange={setCalendarMonth}
+          onSelectDate={handleSelectDate}
+        />
         <p className="rental-price" aria-live="polite">
           {datesValid ? (
             <>

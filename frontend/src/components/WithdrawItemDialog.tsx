@@ -70,7 +70,6 @@ export function WithdrawItemDialog({ item, onClose, onWithdrawn }: WithdrawItemD
           disabled={submitting}
           onClick={handleConfirm}
         >
-          <Icon name="delete" />
           {submitting ? 'Retirando…' : 'Retirar anuncio'}
         </button>
         <button type="button" className="button-secondary" onClick={onClose}>

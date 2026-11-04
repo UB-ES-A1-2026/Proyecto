@@ -192,8 +192,10 @@ bruno solicita el «Cortacésped eléctrico» de ana (9 €/día). Las fechas so
 
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
-| CP-SOL-01 | 1. Elegir fechas de inicio y fin | Sesión de bruno | 1. Buscar `cortacésped` y abrir la ficha 2. Elegir inicio y fin en el panel | Quedan las dos fechas elegidas, sin error | `solicitar-alquiler.spec.ts` · criterio 1 |
-| CP-SOL-02 | 1. El fin no puede ser anterior al inicio | Como CP-SOL-01 | 1. Elegir un fin anterior al inicio | «La fecha de fin no puede ser anterior a la fecha de inicio.» y «Solicitar alquiler» desactivado | `solicitar-alquiler.spec.ts` · criterio 1 |
+| CP-SOL-01 | 1. Elegir fechas de inicio y fin | Sesión de bruno | 1. Buscar `cortacésped` y abrir la ficha 2. Escribir inicio y fin en el panel, con formato `dd/mm/aaaa` | Quedan las dos fechas elegidas, sin error | `solicitar-alquiler.spec.ts` · criterio 1 |
+| CP-SOL-01b | 1. Elegir fechas en el calendario | Como CP-SOL-01 | 1. Avanzar con «Mes siguiente» 2. Pulsar el día 10 3. Pulsar el día 12 4. «Solicitar alquiler» 5. «Volver» | Los campos muestran las fechas pulsadas y el 11 queda dentro del rango, con el precio de 3 días. El resumen las enseña y «Volver» las conserva | `solicitar-alquiler.spec.ts` · criterio 1 |
+| CP-SOL-01c | 1. Los días pasados no se pueden elegir | Como CP-SOL-01 | 1. Mirar el mes actual en el calendario | Hoy se puede pulsar; ayer (si es del mismo mes) está desactivado, y «Mes anterior» también | `solicitar-alquiler.spec.ts` · criterio 1 |
+| CP-SOL-02 | 1. El fin no puede ser anterior al inicio | Como CP-SOL-01 | 1. Escribir un fin anterior al inicio (en el calendario no se puede) | «La fecha de fin no puede ser anterior a la fecha de inicio.» y «Solicitar alquiler» desactivado | `solicitar-alquiler.spec.ts` · criterio 1 |
 | CP-SOL-03 | 2. Se muestra el precio del periodo | Como CP-SOL-01 | 1. Elegir 3 días | «3 días × 9,00 € = 27,00 €» (las dos fechas cuentan) | `solicitar-alquiler.spec.ts` · criterio 2 |
 | CP-SOL-04 | 3. Con fechas disponibles se puede solicitar | Como CP-SOL-01 | 1. Fechas libres del cortacésped 2. Fechas de la escalera dentro de 13 y 14 días | En el paso 1, «Solicitar alquiler» está activo. En el 2 sale «El objeto no está disponible en esas fechas.» y el botón está desactivado | `solicitar-alquiler.spec.ts` · criterio 3 |
 | CP-SOL-05 | 4. Resumen antes de enviar | Fechas libres | 1. «Solicitar alquiler» | En el mismo panel y la misma URL, «Revisa tu solicitud» con el objeto, «Desde», «Hasta», «Importe del alquiler (3 días)», 27,00 €, «Volver» y «Confirmar». Todavía no se ha creado ninguna solicitud | `solicitar-alquiler.spec.ts` · criterio 4 |
@@ -240,7 +242,7 @@ Se publica sin fotos, porque la subida va a S3 y en el CI no hay almacenamiento 
 
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
-| CP-PUB-01 | 1. Se ven los campos del anuncio | Sesión de ana | 1. «Publicar objeto» en la cabecera | Se va a `/objetos/nuevo` y se ven Nombre, Descripción, Fotografías, Precio por día, Disponibilidad y «Publicar» | `publicar-objeto.spec.ts` · criterio 1 |
+| CP-PUB-01 | 1. Se ven los campos del anuncio | Sesión de ana | 1. En «Mis objetos», «Publicar un objeto» | Se va a `/objetos/nuevo` y se ven Nombre, Descripción, Fotografías, Precio por día, Disponibilidad y «Publicar» | `publicar-objeto.spec.ts` · criterio 1 |
 | CP-PUB-02 | 2. Se puede elegir la categoría | Sesión de ana | 1. Abrir «Categoría» | Están las 8 categorías de la migración y se puede elegir una | `publicar-objeto.spec.ts` · criterio 2 |
 | CP-PUB-03 | 3. Publicar con datos válidos | Sesión de ana | 1. Rellenar nombre, descripción, «Herramientas y bricolaje», `7,50`, fianza `20` y «Sants» 2. «Publicar» | Se va a la ficha con esos datos («7,50 € / día», «Fianza: 20,00 €», «Disponible»…) y el objeto sale en la búsqueda | `publicar-objeto.spec.ts` · criterio 3 |
 | CP-PUB-04 | 4. El anuncio es de quien lo crea | Sesión de ana | 1. Publicar 2. Abrir la ficha con la sesión de bruno | ana ve «Publicado por ana» y «Este anuncio es tuyo.». bruno ve «Publicado por ana» y las fechas en el panel | `publicar-objeto.spec.ts` · criterio 4 |

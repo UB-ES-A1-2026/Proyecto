@@ -110,14 +110,10 @@ export function ReservationCard({
         aria-controls={detailId}
         onClick={() => setExpanded((isExpanded) => !isExpanded)}
       >
-        <span className="reservation-card-icon">
-          <Icon name="inventory_2" />
-        </span>
         <span className="reservation-card-summary">
           <span className="reservation-card-title">{reservation.item.title}</span>{' '}
           <span className="manage-visually-hidden">·</span>{' '}
           <span className="reservation-card-dates">
-            <Icon name="calendar_month" size="1rem" />
             {formatShortDateRange(reservation.startDate, reservation.endDate)}
           </span>
         </span>{' '}
@@ -126,7 +122,6 @@ export function ReservationCard({
           key={reservation.status}
           className={`badge ${statusStyle.badge} reservation-card-status`}
         >
-          <Icon name={statusStyle.icon} />
           {status}
         </span>
         <span className="reservation-card-chevron">

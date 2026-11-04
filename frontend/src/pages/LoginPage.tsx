@@ -1,7 +1,6 @@
 // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 18/10/2026
 import { useRef, useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
-import { Icon } from '../components/Icon';
 import { PasswordInput } from '../components/PasswordInput';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
@@ -113,7 +112,6 @@ export function LoginPage() {
         <div className="form-field">
           <label htmlFor="login-email">Correo electrónico</label>
           <div className="auth-input">
-            <Icon name="mail" />
             <input
               id="login-email"
               ref={emailRef}
@@ -139,7 +137,6 @@ export function LoginPage() {
         <div className="form-field">
           <label htmlFor="login-password">Contraseña</label>
           <div className="auth-input">
-            <Icon name="shield" />
             <PasswordInput
               id="login-password"
               ref={passwordRef}
@@ -162,7 +159,6 @@ export function LoginPage() {
         </div>
 
         <button type="submit" className="button-primary" disabled={submitting}>
-          <Icon name="login" />
           {submitting ? 'Iniciando sesión…' : 'Iniciar sesión'}
         </button>
       </form>

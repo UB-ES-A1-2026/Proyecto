@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { EditItemDialog } from '../components/EditItemDialog';
-import { Icon, type IconName } from '../components/Icon';
+import { Icon } from '../components/Icon';
 import { WithdrawItemDialog } from '../components/WithdrawItemDialog';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
@@ -28,10 +28,10 @@ const STATUS_HINTS: Record<ItemStatus, string> = {
   withdrawn: 'Ya no se puede alquilar',
 };
 
-const STATUS_STYLES: Record<ItemStatus, { badge: string; icon: IconName }> = {
-  published: { badge: 'badge-success', icon: 'check_circle' },
-  paused: { badge: 'badge-warning', icon: 'pause' },
-  withdrawn: { badge: 'badge-neutral', icon: 'do_not_disturb_on' },
+const STATUS_STYLES: Record<ItemStatus, { badge: string }> = {
+  published: { badge: 'badge-success' },
+  paused: { badge: 'badge-warning' },
+  withdrawn: { badge: 'badge-neutral' },
 };
 
 type Filter = 'all' | ItemStatus;
@@ -181,7 +181,6 @@ export function MyItemsPage() {
           <p className="page-subtitle">Los objetos que tienes publicados para alquilar.</p>
         </div>
         <Link to="/objetos/nuevo" className="button-primary my-items-publish">
-          <Icon name="add" />
           Publicar un objeto
         </Link>
       </div>
@@ -257,7 +256,6 @@ export function MyItemsPage() {
                         key={item.status}
                         className={`badge ${STATUS_STYLES[item.status].badge} item-status`}
                       >
-                        <Icon name={STATUS_STYLES[item.status].icon} />
                         {STATUS_LABELS[item.status]}
                       </span>
                     </div>
@@ -276,7 +274,6 @@ export function MyItemsPage() {
                         aria-label={`Editar ${item.title}`}
                         onClick={() => openEditor(item.id)}
                       >
-                        <Icon name="edit" />
                         Editar
                       </button>
                       <button
@@ -286,7 +283,6 @@ export function MyItemsPage() {
                         disabled={togglingId !== null}
                         onClick={() => togglePause(item)}
                       >
-                        <Icon name={item.status === 'paused' ? 'play_arrow' : 'pause'} />
                         {togglingId === item.id
                           ? item.status === 'paused'
                             ? 'Reanudando…'
@@ -301,7 +297,6 @@ export function MyItemsPage() {
                         aria-label={`Retirar anuncio ${item.title}`}
                         onClick={() => openWithdraw(item)}
                       >
-                        <Icon name="delete" />
                         Retirar anuncio
                       </button>
                     </div>

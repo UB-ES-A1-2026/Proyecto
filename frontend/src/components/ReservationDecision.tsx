@@ -91,7 +91,6 @@ export function ReservationDecision({
               disabled={submitting !== null}
               onClick={() => void decide('accept')}
             >
-              <Icon name="check" />
               {submitting === 'accept' ? 'Aceptando…' : 'Aceptar'}
             </button>
           )}
@@ -101,7 +100,6 @@ export function ReservationDecision({
             disabled={submitting !== null}
             onClick={() => void decide('reject')}
           >
-            <Icon name="close" />
             {submitting === 'reject' ? 'Rechazando…' : 'Rechazar'}
           </button>
         </div>

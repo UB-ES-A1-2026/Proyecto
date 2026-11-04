@@ -111,11 +111,11 @@ describe('accesos directos del perfil', () => {
 
     renderRoute('/perfil');
 
-    expect(await screen.findByText('1 objeto')).toBeInTheDocument();
-    expect(await screen.findByText('3 solicitudes')).toBeInTheDocument();
-    expect(shortcut(/^Mis objetos/)).toHaveAttribute('href', '/mis-objetos');
-    expect(shortcut(/^Mis solicitudes/)).toHaveAttribute('href', '/mis-solicitudes');
-    expect(shortcut(/^Publicar objeto/)).toHaveAttribute('href', '/objetos/nuevo');
+    expect(await within(shortcut(/Mis objetos/)).findByText('1')).toBeInTheDocument();
+    expect(await within(shortcut(/Mis solicitudes/)).findByText('3')).toBeInTheDocument();
+    expect(shortcut(/Mis objetos/)).toHaveAttribute('href', '/mis-objetos');
+    expect(shortcut(/Mis solicitudes/)).toHaveAttribute('href', '/mis-solicitudes');
+    expect(shortcut(/Publicar un objeto/)).toHaveAttribute('href', '/objetos/nuevo');
   });
 
   it('si fallan las cifras la página sigue funcionando y no avisa de ningún error', async () => {

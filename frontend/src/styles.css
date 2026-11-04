@@ -45,8 +45,6 @@
   --color-focus-on-dark: #f2a33a;
 
   /* Sombras */
-  --shadow-sm: 0 1px 2px rgb(20 48 44 / 0.08);
-  --shadow-md: 0 4px 16px rgb(20 48 44 / 0.1);
   --shadow-lg: 0 16px 40px rgb(20 48 44 / 0.16);
 
   /* Tipografía */
@@ -70,9 +68,10 @@
   --space-3xl: 4.5rem;
 
   /* Formas y tamaños */
-  --radius: 10px;
-  --radius-large: 16px;
-  --radius-pill: 999px;
+  --radius-small: 4px;
+  --radius: 6px;
+  --radius-large: 10px;
+  --bottom-bar-height: 3.75rem;
   --border-width: 1px;
   --content-max-width: 1160px;
   --reading-max-width: 720px;
@@ -157,7 +156,6 @@ img {
   top: 0;
   z-index: 20;
   background-color: var(--color-primary);
-  box-shadow: var(--shadow-md);
 }
 
 .app-header-inner {
@@ -195,16 +193,6 @@ img {
   transform: rotate(-6deg) scale(1.06);
 }
 
-.app-menu-toggle {
-  display: none;
-  padding: var(--space-sm);
-  color: var(--color-on-primary);
-  background: none;
-  border: none;
-  border-radius: var(--radius);
-  cursor: pointer;
-}
-
 .app-nav {
   display: flex;
   flex-wrap: wrap;
@@ -213,6 +201,7 @@ img {
 }
 
 .nav-link {
+  position: relative;
   display: inline-flex;
   gap: 0.4rem;
   align-items: center;
@@ -237,32 +226,90 @@ img {
 
 .nav-link[aria-current='page'] {
   font-weight: var(--font-weight-medium);
-  background-color: var(--color-primary-hover);
   box-shadow: inset 0 -2px 0 var(--color-accent);
 }
 
-/* En pantallas estrechas el menú se abre con el botón. Los enlaces siguen en el DOM. */
-@media (max-width: 960px) {
-  .app-menu-toggle {
-    display: inline-flex;
+/* En escritorio el menú es solo texto; los iconos y «Inicio» son para la barra del móvil. */
+@media (min-width: 761px) {
+  .app-nav .icon,
+  .nav-home {
+    display: none;
   }
+}
 
-  .nav-help {
-    order: 1;
+@media (max-width: 760px) {
+  body {
+    padding-bottom: calc(var(--bottom-bar-height) + env(safe-area-inset-bottom));
   }
 
   .app-nav {
-    display: none;
-    order: 2;
-    flex-basis: 100%;
-    flex-direction: column;
-    align-items: stretch;
-    padding-bottom: var(--space-sm);
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 30;
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    gap: 0;
+    min-height: var(--bottom-bar-height);
+    padding-bottom: env(safe-area-inset-bottom);
+    background-color: var(--color-background);
+    border-top: var(--border-width) solid var(--color-border-soft);
   }
 
-  .app-nav[data-open='true'] {
-    display: flex;
-    animation: fade-down var(--duration) var(--ease-out);
+  .app-nav .nav-link {
+    flex-direction: column;
+    gap: 0.15rem;
+    justify-content: center;
+    padding: var(--space-xs) 0.15rem;
+    font-size: 0.6875rem;
+    color: var(--color-text-muted);
+    text-align: center;
+    border-radius: 0;
+    transition: color var(--duration-fast) var(--ease-out);
+    -webkit-tap-highlight-color: transparent;
+    --icon-size: 1.5rem;
+  }
+
+  .app-nav .nav-link .icon {
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  .app-nav .nav-link:hover {
+    color: var(--color-text-muted);
+    background: none;
+  }
+
+  .app-nav .nav-link:active .icon {
+    transform: scale(0.88);
+  }
+
+  .app-nav .nav-link[aria-current='page'] {
+    color: var(--color-primary);
+    box-shadow: none;
+  }
+
+  /* Indicador de la sección actual, en el borde superior de la barra. */
+  .app-nav .nav-link::before {
+    position: absolute;
+    top: -1px;
+    right: 28%;
+    left: 28%;
+    height: 2px;
+    content: '';
+    background-color: var(--color-primary);
+    transform: scaleX(0);
+    transition: transform var(--duration) var(--ease-out);
+  }
+
+  .app-nav .nav-link[aria-current='page']::before {
+    transform: scaleX(1);
+  }
+
+  .app-nav :focus-visible {
+    outline-color: var(--color-focus);
+    outline-offset: -2px;
   }
 }
 
@@ -453,8 +500,9 @@ img {
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding: 0.7rem 1.1rem;
+  padding: 0.625rem 1rem;
   font: inherit;
+  font-size: 0.9375rem;
   font-weight: var(--font-weight-medium);
   text-align: center;
   text-decoration: none;
@@ -467,18 +515,11 @@ img {
     transform var(--duration-fast) var(--ease-out);
 }
 
-.button-primary:hover:not(:disabled),
-.button-secondary:hover:not(:disabled),
-.button-danger:hover:not(:disabled) {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
-}
-
 .button-primary:active:not(:disabled),
 .button-secondary:active:not(:disabled),
-.button-danger:active:not(:disabled) {
-  box-shadow: none;
-  transform: translateY(0) scale(0.98);
+.button-danger:active:not(:disabled),
+.button-quiet:active:not(:disabled) {
+  transform: scale(0.985);
 }
 
 .button-primary {
@@ -493,14 +534,14 @@ img {
 }
 
 .button-secondary {
-  color: var(--color-primary);
+  color: var(--color-text);
   background-color: var(--color-background);
-  border: var(--border-width) solid var(--color-primary);
+  border: var(--border-width) solid var(--color-border);
 }
 
 .button-secondary:hover:not(:disabled) {
-  color: var(--color-primary);
-  background-color: var(--color-primary-soft);
+  color: var(--color-text);
+  background-color: var(--color-surface);
 }
 
 .button-danger {
@@ -521,7 +562,7 @@ img {
 }
 
 .button-quiet:hover:not(:disabled) {
-  background-color: var(--color-primary-soft);
+  background-color: var(--color-surface);
 }
 
 .button-primary:disabled,
@@ -530,6 +571,12 @@ img {
 .button-quiet:disabled {
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.button-primary:disabled {
+  color: var(--color-text-muted);
+  background-color: var(--color-surface);
+  opacity: 1;
 }
 
 .button-link {
@@ -563,20 +610,16 @@ img {
 /* Piezas comunes */
 .card {
   background-color: var(--color-background);
-  border: var(--border-width) solid var(--color-divider);
+  border: var(--border-width) solid var(--color-border-soft);
   border-radius: var(--radius-large);
-  box-shadow: var(--shadow-sm);
 }
 
 .card-hover {
-  transition:
-    box-shadow var(--duration) var(--ease-out),
-    transform var(--duration) var(--ease-out);
+  transition: border-color var(--duration-fast) var(--ease-out);
 }
 
 .card-hover:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-3px);
+  border-color: var(--color-border);
 }
 
 .badge {
@@ -586,7 +629,7 @@ img {
   padding: 0.1rem 0.6rem;
   font-size: var(--font-size-small);
   font-weight: var(--font-weight-medium);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-small);
   --icon-size: 0.95rem;
 }
 

@@ -1,7 +1,6 @@
 // Generado con asistencia de IA (Claude) – revisado por Max Jaume, 18/10/2026 y 19/10/2026
 import { useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { Icon } from '../components/Icon';
 import { PasswordInput } from '../components/PasswordInput';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
@@ -123,7 +122,6 @@ export function RegisterPage() {
         <div className="form-field">
           <label htmlFor="register-username">Nombre de usuario</label>
           <div className="auth-input">
-            <Icon name="person" />
             <input
               id="register-username"
               ref={usernameRef}
@@ -152,7 +150,6 @@ export function RegisterPage() {
         <div className="form-field">
           <label htmlFor="register-email">Correo electrónico</label>
           <div className="auth-input">
-            <Icon name="mail" />
             <input
               id="register-email"
               ref={emailRef}
@@ -178,7 +175,6 @@ export function RegisterPage() {
         <div className="form-field">
           <label htmlFor="register-password">Contraseña</label>
           <div className="auth-input">
-            <Icon name="shield" />
             <PasswordInput
               id="register-password"
               ref={passwordRef}
@@ -204,7 +200,6 @@ export function RegisterPage() {
         </div>
 
         <button type="submit" className="button-primary" disabled={submitting}>
-          <Icon name="person_add" />
           {submitting ? 'Creando cuenta…' : 'Crear cuenta'}
         </button>
       </form>

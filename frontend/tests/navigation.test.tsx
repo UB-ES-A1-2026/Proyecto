@@ -118,13 +118,13 @@ describe('layout y navegación (#21)', () => {
     expect(mainNav().queryByRole('link', { name: 'Publicar objeto' })).not.toBeInTheDocument();
   });
 
-  it('con sesión muestra Publicar objeto antes de Mi perfil', () => {
+  it('con sesión muestra las secciones sin «Publicar objeto», que está en «Mis objetos»', () => {
     localStorage.setItem('rentit.session', JSON.stringify(SESSION));
     renderRoute('/');
 
     const links = mainNav()
       .getAllByRole('link')
       .map((link) => link.textContent);
-    expect(links).toEqual(['Publicar objeto', 'Mis objetos', 'Mis solicitudes', 'Mi perfil']);
+    expect(links).toEqual(['Inicio', 'Mis objetos', 'Mis solicitudes', 'Mi perfil']);
   });
 });

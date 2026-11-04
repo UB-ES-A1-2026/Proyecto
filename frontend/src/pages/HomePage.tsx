@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useAuth } from '../context/useAuth';
-import { Icon, type IconName } from '../components/Icon';
+import { Icon } from '../components/Icon';
 import { categoryIcon } from '../utils/categoryIcons';
 import { ItemCard, ItemGridSkeleton } from '../components/ItemCard';
 import { SearchBar } from '../components/SearchBar';
@@ -11,28 +11,16 @@ import { searchItems, type SearchItem } from '../services/searchService';
 const NEWEST_ITEMS_COUNT = 8;
 const MAX_CATEGORIES = 12;
 
-const HERO_ICONS: IconName[] = [
-  'build',
-  'directions_bike',
-  'celebration',
-  'photo_camera',
-  'yard',
-  'devices',
-];
-
-const STEPS: { icon: IconName; title: string; text: string }[] = [
+const STEPS: { title: string; text: string }[] = [
   {
-    icon: 'search',
     title: 'Busca cerca de ti',
     text: 'Encuentra lo que necesitas entre los objetos que publican tus vecinos.',
   },
   {
-    icon: 'calendar_month',
     title: 'Elige las fechas',
     text: 'Comprueba que está libre esos días y envía tu solicitud de alquiler.',
   },
   {
-    icon: 'handshake',
     title: 'Recógelo y úsalo',
     text: 'Cuando el propietario acepte, el objeto es tuyo durante esos días.',
   },
@@ -85,7 +73,6 @@ export function HomePage() {
           <div className="home-hero-actions">
             {session ? (
               <Link to="/objetos/nuevo" className="button-secondary">
-                <Icon name="add" />
                 Publicar un objeto
               </Link>
             ) : (
@@ -99,13 +86,6 @@ export function HomePage() {
               </>
             )}
           </div>
-        </div>
-        <div className="home-hero-art" aria-hidden="true">
-          {HERO_ICONS.map((icon) => (
-            <span className="home-hero-tile" key={icon}>
-              <Icon name={icon} />
-            </span>
-          ))}
         </div>
       </section>
 
@@ -179,10 +159,7 @@ export function HomePage() {
         </h2>
         <ol className="home-steps">
           {STEPS.map((step) => (
-            <li className="card home-step" key={step.title}>
-              <span className="home-step-icon">
-                <Icon name={step.icon} size="1.5rem" />
-              </span>
+            <li className="home-step" key={step.title}>
               <h3>{step.title}</h3>
               <p>{step.text}</p>
             </li>

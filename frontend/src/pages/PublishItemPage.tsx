@@ -107,15 +107,8 @@ function amountToNumber(value: string): number {
   return Number(value.trim().replace(',', '.'));
 }
 
-function SectionTitle({ icon, children }: { icon: IconName; children: ReactNode }) {
-  return (
-    <h2 className="publish-section-title">
-      <span className="publish-section-icon">
-        <Icon name={icon} />
-      </span>
-      {children}
-    </h2>
-  );
+function SectionTitle({ children }: { children: ReactNode }) {
+  return <h2 className="publish-section-title">{children}</h2>;
 }
 
 // Tarjeta seleccionable: sigue siendo un input con su label, para el teclado y los lectores.
@@ -349,7 +342,7 @@ export function PublishItemPage() {
       <form className="publish-form" onSubmit={handleSubmit} noValidate>
         <div className="publish-column stagger">
           <section className="card publish-section">
-            <SectionTitle icon="description">Datos del objeto</SectionTitle>
+            <SectionTitle>Datos del objeto</SectionTitle>
 
             <div className="form-field">
               <label htmlFor="publish-item-title">Nombre</label>
@@ -445,7 +438,7 @@ export function PublishItemPage() {
           </section>
 
           <section className="card publish-section">
-            <SectionTitle icon="euro">Precio</SectionTitle>
+            <SectionTitle>Precio</SectionTitle>
 
             <div className="publish-field-row">
               <div className="form-field">
@@ -498,7 +491,7 @@ export function PublishItemPage() {
           </section>
 
           <section className="card publish-section">
-            <SectionTitle icon="photo_camera">Fotos</SectionTitle>
+            <SectionTitle>Fotos</SectionTitle>
 
             {/* El input ocupa toda la zona: abre el selector al pulsar y recibe el foco. */}
             <div
@@ -588,7 +581,7 @@ export function PublishItemPage() {
           <div className="card publish-section">
             <fieldset className="publish-fieldset">
               <legend>
-                <SectionTitle icon="event">Disponibilidad</SectionTitle>
+                <SectionTitle>Disponibilidad</SectionTitle>
               </legend>
               <div className="publish-item-options">
                 <OptionCard
@@ -616,7 +609,7 @@ export function PublishItemPage() {
           <div className="card publish-section">
             <fieldset className="publish-fieldset">
               <legend>
-                <SectionTitle icon="local_shipping">Formas de entrega</SectionTitle>
+                <SectionTitle>Formas de entrega</SectionTitle>
               </legend>
               <div className="publish-item-options">
                 <OptionCard
@@ -645,7 +638,6 @@ export function PublishItemPage() {
           </div>
 
           <button type="submit" className="button-primary" disabled={submitting}>
-            <Icon name="publish" />
             {submitting ? 'Publicando…' : 'Publicar'}
           </button>
         </div>

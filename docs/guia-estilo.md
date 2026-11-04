@@ -18,7 +18,7 @@ Toda la identidad está en el bloque `:root` de [`frontend/src/styles.css`](../f
 
 ## Cabecera
 
-Como en la maqueta: barra verde (`--color-primary`), logo y nombre en naranja (`--color-accent`) y enlaces en blanco (`--color-on-primary`). Se queda fija al hacer scroll. La página en la que estás se marca con el verde oscuro (`--color-primary-hover`). Por debajo de 960 px los enlaces se recogen en un menú con el botón «Abrir menú». La ayuda es solo un icono, en la esquina superior derecha, y «Cerrar sesión» está en «Mi perfil».
+Como en la maqueta: barra verde (`--color-primary`), logo y nombre en naranja (`--color-accent`) y enlaces en blanco (`--color-on-primary`). Se queda fija al hacer scroll. La página en la que estás se marca con el verde oscuro (`--color-primary-hover`). En escritorio los enlaces son solo texto. Por debajo de 760 px pasan a una barra inferior con iconos, como una app. La ayuda es solo un icono, en la esquina superior derecha, y «Cerrar sesión» está en «Mi perfil».
 
 ## Colores
 
@@ -70,7 +70,7 @@ La fuente es **Inter** (`--font-family`), con todos sus pesos en un solo archivo
 | `--font-weight-medium` | `600` | Etiquetas y botones |
 | `--font-weight-bold` | `700` | Títulos e importes |
 
-Espaciados (`--space-xs` a `--space-3xl`), radios (`--radius`, `--radius-large`, `--radius-pill`), sombras (`--shadow-sm`, `--shadow-md`, `--shadow-lg`) y anchos máximos también son variables de ese bloque.
+Espaciados (`--space-xs` a `--space-3xl`), radios (`--radius-small`, `--radius`, `--radius-large`), la sombra de lo que flota (`--shadow-lg`) y anchos máximos también son variables de ese bloque.
 
 ## Iconos
 
@@ -106,7 +106,8 @@ Mientras se envía, el botón se desactiva y cambia de texto: «Guardando…», 
 
 ### Tarjetas, etiquetas y estados
 
-- **Tarjeta:** `card`, y `card-hover` si toda la tarjeta se puede pulsar.
+- **Tarjeta:** `card`, con borde y sin sombra, y `card-hover` si toda la tarjeta se puede pulsar. Solo llevan sombra las ventanas, que son lo único que flota.
+- **Iconos:** solo donde aportan algo: categorías, estados vacíos, barra del móvil. Un botón con texto no lleva icono.
 - **Etiqueta de estado:** `badge` con `badge-success`, `badge-warning`, `badge-neutral` o `badge-error`.
 - **Sin contenido:** `empty-state`, con un icono y una frase.
 - **Listas que entran escalonadas:** `stagger`.

@@ -29,7 +29,6 @@ function ReservationSection({
   return (
     <section aria-labelledby={headingId} role="region">
       <div className="reservation-section-header">
-        <Icon name={icon} />
         <h2 id={headingId}>{title}</h2>
         <span className="reservation-section-count">{count}</span>
       </div>

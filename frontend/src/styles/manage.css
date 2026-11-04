@@ -64,7 +64,7 @@
   color: var(--color-text);
   background-color: var(--color-background);
   border: var(--border-width) solid var(--color-border-soft);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-small);
   cursor: pointer;
   transition:
     color var(--duration-fast) var(--ease-out),
@@ -112,7 +112,6 @@
 
 .item-row:hover {
   border-color: var(--color-border-soft);
-  box-shadow: var(--shadow-md);
 }
 
 .item-photo {
@@ -191,18 +190,6 @@
 
 .item-actions button {
   width: auto;
-}
-
-/* «Editar» es la acción principal de cada fila, en verde: el naranja es para publicar. */
-.item-actions .button-edit {
-  color: var(--color-on-primary);
-  background-color: var(--color-primary);
-}
-
-.item-actions .button-edit:hover:not(:disabled) {
-  color: var(--color-on-primary);
-  background-color: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
 }
 
 /* Retirar es definitiva: discreta para no competir, pero en el color de error. */
@@ -423,8 +410,7 @@
   color: var(--color-text);
   background-color: var(--color-background);
   border: none;
-  border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-small);
   cursor: pointer;
   transition:
     color var(--duration-fast) var(--ease-out),
@@ -457,7 +443,7 @@
   height: 3rem;
   color: var(--color-error);
   background-color: var(--color-error-background);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-small);
 }
 
 .withdraw-notice-question {
@@ -500,7 +486,7 @@
   font-weight: var(--font-weight-medium);
   text-align: center;
   background-color: var(--color-primary-soft);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-small);
 }
 
 .reservation-list {
@@ -523,14 +509,13 @@
 .reservation-card:hover,
 .reservation-card:has(> [aria-expanded='true']) {
   border-color: var(--color-border-soft);
-  box-shadow: var(--shadow-md);
 }
 
 .reservation-card-toggle {
   position: relative;
   display: grid;
-  grid-template-areas: 'icon summary status chevron';
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: 'summary status chevron';
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: var(--space-xs) var(--space-md);
   align-items: center;
   width: 100%;
@@ -553,17 +538,6 @@
 .reservation-card-toggle:focus-visible {
   outline-offset: -2px;
   border-radius: var(--radius-large);
-}
-
-.reservation-card-icon {
-  display: grid;
-  grid-area: icon;
-  place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  color: var(--color-primary);
-  background-color: var(--color-primary-soft);
-  border-radius: var(--radius);
 }
 
 .reservation-card-summary {
@@ -703,8 +677,8 @@
 @media (max-width: 560px) {
   .reservation-card-toggle {
     grid-template-areas:
-      'icon summary chevron'
-      'icon status chevron';
-    grid-template-columns: auto minmax(0, 1fr) auto;
+      'summary chevron'
+      'status chevron';
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 }

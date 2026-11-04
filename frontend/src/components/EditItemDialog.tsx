@@ -414,7 +414,6 @@ function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
 
         <div className="form-actions">
           <button type="submit" className="button-primary" disabled={submitting}>
-            <Icon name="check" />
             {submitting ? 'Guardando…' : 'Guardar'}
           </button>
           <button type="button" className="button-secondary" onClick={onCancel}>

@@ -3,9 +3,13 @@ import { describe, expect, it } from 'vitest';
 import {
   calculateTotalPrice,
   countRentalDays,
+  formatInputDate,
   formatLongDate,
   formatPrice,
+  maskInputDate,
+  parseInputDate,
   todayIso,
+  validateInputDates,
   validateRentalDates,
 } from '../src/utils/rental';
 
@@ -51,5 +55,43 @@ describe('cálculos del alquiler (US-04.01, #121)', () => {
     // Intl separa el símbolo con un espacio no separable (U+00A0) para que no se parta la línea.
     expect(formatPrice(15)).toBe('15,00 €');
     expect(formatLongDate('2026-11-04')).toBe('miércoles, 4 de noviembre de 2026');
+  });
+});
+
+describe('campos de fecha en formato dd/mm/aaaa', () => {
+  it('convierte entre el texto y la fecha de la API', () => {
+    expect(formatInputDate('2030-03-10')).toBe('10/03/2030');
+    expect(formatInputDate('')).toBe('');
+    expect(parseInputDate('10/03/2030')).toBe('2030-03-10');
+    expect(parseInputDate('1/3/2030')).toBe('2030-03-01');
+  });
+
+  it('no da fecha si está a medias o no existe', () => {
+    expect(parseInputDate('')).toBe('');
+    expect(parseInputDate('10/03')).toBe('');
+    expect(parseInputDate('10/03/203')).toBe('');
+    expect(parseInputDate('31/02/2030')).toBe('');
+    expect(parseInputDate('10/13/2030')).toBe('');
+    expect(parseInputDate('29/02/2028')).toBe('2028-02-29');
+  });
+
+  it('solo da error con la fecha completa', () => {
+    expect(validateInputDates('', '10/0')).toEqual({});
+    expect(validateInputDates('10/03/2030', '12/03/2030')).toEqual({});
+    expect(validateInputDates('31/02/2030', '31/04/2030')).toEqual({
+      startDate: 'Esa fecha no existe.',
+      endDate: 'Esa fecha no existe.',
+    });
+  });
+
+  it('pone las barras mientras se escribe, sin impedir borrarlas', () => {
+    expect(maskInputDate('10032030')).toBe('10/03/2030');
+    expect(maskInputDate('100')).toBe('10/0');
+    expect(maskInputDate('10')).toBe('10');
+    expect(maskInputDate('10/')).toBe('10/');
+    expect(maskInputDate('1/3/2030')).toBe('1/3/2030');
+    expect(maskInputDate('10-03-2030')).toBe('10/03/2030');
+    expect(maskInputDate('10/03/20301')).toBe('10/03/2030');
+    expect(maskInputDate('ab1')).toBe('1');
   });
 });

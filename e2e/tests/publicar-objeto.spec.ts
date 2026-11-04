@@ -41,8 +41,9 @@ async function login(page: Page, user: User) {
 async function openPublishForm(page: Page) {
   await page
     .getByRole("navigation", { name: "Principal" })
-    .getByRole("link", { name: "Publicar objeto" })
+    .getByRole("link", { name: "Mis objetos" })
     .click();
+  await page.getByRole("link", { name: "Publicar un objeto" }).click();
   await expect(page).toHaveURL("/objetos/nuevo");
   await expect(
     page.getByRole("heading", { level: 1, name: "Publicar un objeto" }),

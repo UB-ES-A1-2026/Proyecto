@@ -18,7 +18,7 @@ const SECTIONS: HelpSection[] = [
     title: 'Crear una cuenta',
     steps: [
       <>
-        Pulsa «<Link to="/registro">Crear cuenta</Link>» en la cabecera.
+        Pulsa «<Link to="/registro">Crear cuenta</Link>» en el menú.
       </>,
       'Escribe un nombre de usuario (de 3 a 30 caracteres: letras sin acentos, números, «.», «_» o «-»), tu correo electrónico y una contraseña de al menos 8 caracteres.',
       'Pulsa «Crear cuenta». Entrarás directamente con tu sesión iniciada.',
@@ -30,7 +30,7 @@ const SECTIONS: HelpSection[] = [
     title: 'Iniciar sesión',
     steps: [
       <>
-        Pulsa «<Link to="/login">Iniciar sesión</Link>» en la cabecera.
+        Pulsa «<Link to="/login">Iniciar sesión</Link>» en el menú.
       </>,
       'Escribe tu correo electrónico y tu contraseña.',
       'Pulsa «Iniciar sesión». Volverás a la página en la que estabas o, si intentabas abrir una página que pide sesión (como «Mi perfil»), a esa página.',
@@ -42,7 +42,7 @@ const SECTIONS: HelpSection[] = [
     title: 'Ver tu perfil',
     steps: [
       <>
-        Con la sesión iniciada, pulsa «<Link to="/perfil">Mi perfil</Link>» en la cabecera.
+        Con la sesión iniciada, pulsa «<Link to="/perfil">Mi perfil</Link>» en el menú.
       </>,
       'Verás tu nombre de usuario, tu correo electrónico y desde cuándo eres miembro.',
     ],
@@ -51,7 +51,10 @@ const SECTIONS: HelpSection[] = [
   {
     id: 'cerrar-sesion',
     title: 'Cerrar sesión',
-    steps: ['En «Mi perfil», pulsa «Cerrar sesión».', 'Volverás a la pantalla de inicio de sesión.'],
+    steps: [
+      'En «Mi perfil», pulsa «Cerrar sesión».',
+      'Volverás a la pantalla de inicio de sesión.',
+    ],
     note: 'Después de cerrar sesión, nadie puede volver a entrar en tu cuenta desde ese navegador sin tu contraseña.',
   },
   {
@@ -104,8 +107,8 @@ const SECTIONS: HelpSection[] = [
     title: 'Consultar tus solicitudes',
     steps: [
       <>
-        Con la sesión iniciada, pulsa «<Link to="/mis-solicitudes">Mis solicitudes</Link>» en la
-        cabecera.
+        Con la sesión iniciada, pulsa «<Link to="/mis-solicitudes">Mis solicitudes</Link>» en el
+        menú.
       </>,
       'En «Enviadas» están las que has pedido tú, y en «Recibidas», las que te han pedido por tus objetos.',
       'Pulsa una solicitud para ver el detalle. Su estado puede ser «Pendiente», «Aceptada» o «Rechazada».',
@@ -126,8 +129,8 @@ const SECTIONS: HelpSection[] = [
     title: 'Publicar un objeto',
     steps: [
       <>
-        Con la sesión iniciada, pulsa «<Link to="/objetos/nuevo">Publicar objeto</Link>» en la
-        cabecera.
+        Con la sesión iniciada, en «Mis objetos», pulsa «
+        <Link to="/objetos/nuevo">Publicar un objeto</Link>».
       </>,
       'Rellena el nombre, la descripción, la categoría, el precio por día, la fianza (escribe 0 si no pides) y el barrio.',
       'Si quieres, añade hasta 5 fotos JPG, PNG o WebP, de 5 MB como máximo.',
@@ -141,7 +144,7 @@ const SECTIONS: HelpSection[] = [
     title: 'Editar un objeto',
     steps: [
       <>
-        Con la sesión iniciada, pulsa «<Link to="/mis-objetos">Mis objetos</Link>» en la cabecera.
+        Con la sesión iniciada, pulsa «<Link to="/mis-objetos">Mis objetos</Link>» en el menú.
       </>,
       'Pulsa «Editar» en el objeto que quieras cambiar.',
       'Cambia el nombre, la descripción, el precio o la fianza, o añade fotos.',

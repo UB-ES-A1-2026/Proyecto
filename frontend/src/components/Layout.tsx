@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link, NavLink, Outlet, ScrollRestoration, useLocation } from 'react-router';
 import { useAuth } from '../context/useAuth';
 import { Icon } from './Icon';
@@ -7,7 +6,6 @@ import { Icon } from './Icon';
 export function Layout() {
   const { session } = useAuth();
   const { pathname, search, state } = useLocation();
-  const [menuOpen, setMenuOpen] = useState(false);
   // Al iniciar sesión se vuelve a la página en la que estaba (US-01.2, #224). Desde el registro no
   // hay a dónde volver y, si ya está en el login, se conserva la página pendiente.
   const loginState = ['/login', '/registro'].includes(pathname)
@@ -23,27 +21,14 @@ export function Layout() {
             <img src="/favicon.svg" alt="" width={28} height={28} />
             Rentit
           </Link>
-          <button
-            type="button"
-            className="app-menu-toggle"
-            aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            <Icon name={menuOpen ? 'close' : 'menu'} size="1.5rem" />
-          </button>
-          <nav
-            aria-label="Principal"
-            className="app-nav"
-            data-open={menuOpen}
-            onClick={() => setMenuOpen(false)}
-          >
+          {/* En escritorio, enlaces de texto. En el móvil, barra inferior con iconos, como una app. */}
+          <nav aria-label="Principal" className="app-nav">
+            <NavLink to="/" end className="nav-link nav-home">
+              <Icon name="home" />
+              Inicio
+            </NavLink>
             {session ? (
               <>
-                <NavLink to="/objetos/nuevo" className="nav-link">
-                  <Icon name="add" />
-                  Publicar objeto
-                </NavLink>
                 <NavLink to="/mis-objetos" className="nav-link">
                   <Icon name="inventory_2" />
                   Mis objetos

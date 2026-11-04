@@ -317,7 +317,7 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     const fetchMock = mockApi();
     renderRoute('/objetos/taladro-1');
 
-    await chooseDates('2026-11-10', '2026-11-12');
+    await chooseDates('10/11/2026', '12/11/2026');
 
     expect(screen.getByText(/3 días × 5,00 € =/)).toHaveTextContent('15,00 €');
     await waitFor(() => expect(requestButton()).toBeEnabled());
@@ -330,7 +330,7 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     mockApi(false);
     renderRoute('/objetos/taladro-1');
 
-    await chooseDates('2026-11-10', '2026-11-12');
+    await chooseDates('10/11/2026', '12/11/2026');
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'El objeto no está disponible en esas fechas.',
@@ -343,7 +343,7 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     const user = userEvent.setup();
     const { router, container } = renderRoute('/objetos/taladro-1');
 
-    await chooseDates('2026-11-10', '2026-11-12');
+    await chooseDates('10/11/2026', '12/11/2026');
     await waitFor(() => expect(requestButton()).toBeEnabled());
     await user.click(requestButton());
 
@@ -364,8 +364,8 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
 
     await user.click(panel.getByRole('button', { name: 'Volver' }));
 
-    expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('2026-11-10');
-    expect(screen.getByLabelText('Fecha de fin')).toHaveValue('2026-11-12');
+    expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('10/11/2026');
+    expect(screen.getByLabelText('Fecha de fin')).toHaveValue('12/11/2026');
   });
 
   it('al confirmar crea la solicitud y lleva a «Mis solicitudes»', async () => {
@@ -373,7 +373,7 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     const user = userEvent.setup();
     const { router } = renderRoute('/objetos/taladro-1');
 
-    await chooseDates('2026-11-10', '2026-11-12');
+    await chooseDates('10/11/2026', '12/11/2026');
     await waitFor(() => expect(requestButton()).toBeEnabled());
     await user.click(requestButton());
     await user.click(screen.getByRole('button', { name: 'Confirmar' }));
@@ -395,7 +395,7 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     );
     const { router } = renderRoute('/objetos/taladro-1');
 
-    await chooseDates('2026-11-10', '2026-11-12');
+    await chooseDates('10/11/2026', '12/11/2026');
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
     expect(router.state.location.state).toEqual({ from: '/objetos/taladro-1' });

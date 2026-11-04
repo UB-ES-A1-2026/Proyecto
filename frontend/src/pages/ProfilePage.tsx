@@ -1,7 +1,6 @@
 // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 19/10/2026
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { Icon, type IconName } from '../components/Icon';
 import { LogoutButton } from '../components/LogoutButton';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
@@ -15,57 +14,44 @@ type Count = number | 'loading' | 'failed';
 
 function ProfileSkeleton() {
   return (
-    <div className="card profile-summary">
+    <div className="profile-identity">
       <p role="status" className="profile-loading-text">
         Cargando tu perfil…
       </p>
       <span className="skeleton profile-avatar" />
-      <div className="profile-data">
-        {['user', 'email', 'date'].map((line) => (
-          <div key={line}>
-            <span className="skeleton profile-skeleton-label" />
-            <span className="skeleton profile-skeleton-value" />
-          </div>
-        ))}
-      </div>
+      <span className="skeleton profile-skeleton-name" />
+      <span className="skeleton profile-skeleton-line" />
+      <span className="skeleton profile-skeleton-line" />
     </div>
   );
 }
 
-function ProfileShortcut({
+// Enlace con su cifra. Si no se ha podido pedir, se muestra una descripción en su lugar.
+function ProfileStat({
   to,
-  icon,
   title,
-  detail,
+  count,
+  fallback,
   featured = false,
 }: {
   to: string;
-  icon: IconName;
   title: string;
-  detail: ReactNode;
+  count: Count;
+  fallback: string;
   featured?: boolean;
 }) {
   return (
-    <Link to={to} className="card card-hover profile-shortcut">
-      <span className="profile-shortcut-icon" data-featured={featured}>
-        <Icon name={icon} size="1.5rem" />
-      </span>
-      <span className="profile-shortcut-text">
-        <span className="profile-shortcut-title">{title}</span>
-        <span className="profile-shortcut-detail">{detail}</span>
-      </span>
-      <span className="profile-shortcut-arrow">
-        <Icon name="arrow_forward" />
-      </span>
+    <Link to={to} className="profile-stat" data-featured={featured}>
+      {count === 'loading' ? (
+        <span className="skeleton profile-skeleton-count" />
+      ) : typeof count === 'number' ? (
+        <span className="profile-stat-value">{count}</span>
+      ) : (
+        <span className="profile-stat-fallback">{fallback}</span>
+      )}
+      <span className="profile-stat-title">{title}</span>
     </Link>
   );
-}
-
-// Si la cifra no se ha podido pedir, el acceso directo sigue con su descripción.
-function countDetail(count: Count, singular: string, plural: string, fallback: string) {
-  if (count === 'loading') return <span className="skeleton profile-skeleton-count" />;
-  if (typeof count !== 'number') return fallback;
-  return `${count} ${count === 1 ? singular : plural}`;
 }
 
 // Solo se muestra dentro de PrivateRoute, así que siempre hay sesión.
@@ -130,75 +116,61 @@ export function ProfilePage() {
 
   return (
     <section className="profile-page">
-      <header className="page-header">
-        <div>
-          <h1 className="page-title">Mi perfil</h1>
-          <p className="page-subtitle">Los datos de tu cuenta y tus accesos directos.</p>
+      <h1 className="page-title">Mi perfil</h1>
+
+      <div className="profile-layout">
+        {error ? (
+          <p role="alert" className="form-error profile-identity">
+            {error}
+          </p>
+        ) : profile ? (
+          <div className="profile-identity">
+            <span className="profile-avatar" aria-hidden="true">
+              {profile.username.charAt(0).toUpperCase()}
+            </span>
+            <p className="profile-name">{profile.username}</p>
+            <dl className="profile-data">
+              <div>
+                <dt>Correo electrónico</dt>
+                <dd>{profile.email}</dd>
+              </div>
+              <div>
+                <dt>Miembro desde</dt>
+                <dd>{dateFormatter.format(new Date(profile.createdAt))}</dd>
+              </div>
+            </dl>
+          </div>
+        ) : (
+          <ProfileSkeleton />
+        )}
+
+        <div className="profile-activity">
+          <div className="profile-stats">
+            <ProfileStat
+              to="/mis-objetos"
+              title="Mis objetos"
+              count={itemCount}
+              fallback="Gestiona tus anuncios"
+              featured
+            />
+            <ProfileStat
+              to="/mis-solicitudes"
+              title="Mis solicitudes"
+              count={requestCount}
+              fallback="Enviadas y recibidas"
+            />
+          </div>
+          <div className="card profile-publish">
+            <p>¿Tienes algo que no usas?</p>
+            <Link to="/objetos/nuevo" className="button-primary">
+              Publicar un objeto
+            </Link>
+          </div>
         </div>
-      </header>
 
-      {error ? (
-        <p role="alert" className="form-error">
-          {error}
-        </p>
-      ) : profile ? (
-        <div className="card profile-summary">
-          <span className="profile-avatar" aria-hidden="true">
-            {profile.username.charAt(0).toUpperCase()}
-          </span>
-          <dl className="profile-data">
-            <div>
-              <dt>
-                <Icon name="person" />
-                Nombre de usuario
-              </dt>
-              <dd>{profile.username}</dd>
-            </div>
-            <div>
-              <dt>
-                <Icon name="mail" />
-                Correo electrónico
-              </dt>
-              <dd>{profile.email}</dd>
-            </div>
-            <div>
-              <dt>
-                <Icon name="calendar_month" />
-                Miembro desde
-              </dt>
-              <dd>{dateFormatter.format(new Date(profile.createdAt))}</dd>
-            </div>
-          </dl>
+        <div className="profile-logout">
+          <LogoutButton />
         </div>
-      ) : (
-        <ProfileSkeleton />
-      )}
-
-      <h2 className="profile-section-title">Accesos directos</h2>
-      <div className="profile-shortcuts stagger">
-        <ProfileShortcut
-          to="/mis-objetos"
-          icon="inventory_2"
-          title="Mis objetos"
-          detail={countDetail(itemCount, 'objeto', 'objetos', 'Gestiona tus anuncios')}
-        />
-        <ProfileShortcut
-          to="/mis-solicitudes"
-          icon="receipt_long"
-          title="Mis solicitudes"
-          detail={countDetail(requestCount, 'solicitud', 'solicitudes', 'Enviadas y recibidas')}
-        />
-        <ProfileShortcut
-          to="/objetos/nuevo"
-          icon="add"
-          title="Publicar objeto"
-          detail="Pon en alquiler lo que no usas"
-          featured
-        />
-      </div>
-
-      <div className="profile-logout">
-        <LogoutButton />
       </div>
     </section>
   );

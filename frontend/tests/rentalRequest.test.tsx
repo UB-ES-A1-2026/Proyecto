@@ -61,7 +61,7 @@ function renderRentalRequest() {
 
 // Elige fechas válidas, pasa al resumen y pulsa «Confirmar».
 async function confirmRequest(user: ReturnType<typeof userEvent.setup>) {
-  await chooseAvailableDates('2026-11-04', '2026-11-06');
+  await chooseAvailableDates('04/11/2026', '06/11/2026');
   await user.click(requestButton());
   await user.click(screen.getByRole('button', { name: 'Confirmar' }));
 }
@@ -81,6 +81,16 @@ function requestButton() {
   return screen.getByRole('button', { name: 'Solicitar alquiler' });
 }
 
+function dayButton(name: string) {
+  return screen.getByRole('button', { name });
+}
+
+function pressedDays() {
+  return within(screen.getByRole('grid'))
+    .getAllByRole('button', { pressed: true })
+    .map((day) => day.getAttribute('aria-label'));
+}
+
 beforeEach(() => {
   // Solo se finge la fecha: «hoy» es el 1 de noviembre de 2026.
   vi.useFakeTimers({ toFake: ['Date'] });
@@ -97,13 +107,15 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
     expect(screen.getByRole('heading', { name: 'Elige las fechas' })).toBeInTheDocument();
     expect(screen.getByText('Elige las fechas para ver el precio.')).toBeInTheDocument();
     expect(requestButton()).toBeDisabled();
-    expect(screen.getByLabelText('Fecha de inicio')).toHaveAttribute('min', '2026-11-01');
+    // Hoy es el día 1: el mes actual es el primero que se puede ver.
+    expect(screen.getByRole('button', { name: 'Mes anterior' })).toBeDisabled();
+    expect(dayButton('1 de noviembre de 2026')).toBeEnabled();
   });
 
   it('muestra el precio del periodo y activa «Solicitar alquiler» si las fechas están libres', async () => {
     renderRentalRequest();
 
-    chooseDates('2026-11-04', '2026-11-06');
+    chooseDates('04/11/2026', '06/11/2026');
 
     expect(screen.getByText(/3 días × 5,00 € =/)).toBeInTheDocument();
     expect(screen.getByText('15,00 €')).toBeInTheDocument();
@@ -114,7 +126,7 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
   it('no deja que la fecha de fin sea anterior a la de inicio', () => {
     renderRentalRequest();
 
-    chooseDates('2026-11-06', '2026-11-04');
+    chooseDates('06/11/2026', '04/11/2026');
 
     expect(screen.getByLabelText('Fecha de fin')).toHaveAccessibleDescription(
       'La fecha de fin no puede ser anterior a la fecha de inicio.',
@@ -126,7 +138,7 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
   it('no deja empezar antes de hoy', () => {
     renderRentalRequest();
 
-    chooseDates('2026-10-30', '2026-11-02');
+    chooseDates('30/10/2026', '02/11/2026');
 
     expect(screen.getByLabelText('Fecha de inicio')).toHaveAccessibleDescription(
       'La fecha de inicio no puede ser anterior a hoy.',
@@ -139,7 +151,7 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
     const user = userEvent.setup();
     renderRentalRequest();
 
-    await chooseAvailableDates('2026-11-04', '2026-11-06');
+    await chooseAvailableDates('04/11/2026', '06/11/2026');
     await user.click(requestButton());
 
     // El botón pulsado ya no existe: el foco pasa al título del resumen.
@@ -156,8 +168,8 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
 
     await user.click(screen.getByRole('button', { name: 'Volver' }));
 
-    expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('2026-11-04');
-    expect(screen.getByLabelText('Fecha de fin')).toHaveValue('2026-11-06');
+    expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('04/11/2026');
+    expect(screen.getByLabelText('Fecha de fin')).toHaveValue('06/11/2026');
     expect(screen.getByRole('heading', { name: 'Elige las fechas' })).toHaveFocus();
   });
 
@@ -196,7 +208,7 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
       'El objeto no está disponible en esas fechas.',
     );
     expect(screen.getByRole('heading', { name: 'Elige las fechas' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('2026-11-04');
+    expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('04/11/2026');
     // Ahora se sabe que no están libres: no se puede volver a solicitar con las mismas fechas.
     expect(requestButton()).toBeDisabled();
     expect(onRequested).not.toHaveBeenCalled();
@@ -321,7 +333,7 @@ describe('cambios de la revisión de #203', () => {
     await confirmRequest(user);
     expect(await screen.findByRole('alert')).toBeInTheDocument();
 
-    await chooseAvailableDates('2026-11-04', '2026-11-08');
+    await chooseAvailableDates('04/11/2026', '08/11/2026');
     await user.click(requestButton());
 
     expect(screen.getByRole('heading', { name: 'Revisa tu solicitud' })).toBeInTheDocument();
@@ -350,7 +362,7 @@ describe('consulta de disponibilidad (criterio 3 de US-04.01, #204)', () => {
     );
     renderRentalRequest();
 
-    chooseDates('2026-11-04', '2026-11-06');
+    chooseDates('04/11/2026', '06/11/2026');
 
     expect(screen.getByText('Comprobando disponibilidad…')).toBeInTheDocument();
     expect(requestButton()).toBeDisabled();
@@ -369,7 +381,7 @@ describe('consulta de disponibilidad (criterio 3 de US-04.01, #204)', () => {
     const fetchMock = mockFetch();
     renderRentalRequest();
 
-    chooseDates('2026-11-06', '2026-11-04');
+    chooseDates('06/11/2026', '04/11/2026');
 
     expect(fetchMock).not.toHaveBeenCalled();
   });
@@ -378,7 +390,7 @@ describe('consulta de disponibilidad (criterio 3 de US-04.01, #204)', () => {
     mockFetch(undefined, () => Response.json({ available: false }));
     renderRentalRequest();
 
-    chooseDates('2026-11-04', '2026-11-06');
+    chooseDates('04/11/2026', '06/11/2026');
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'El objeto no está disponible en esas fechas.',
@@ -391,8 +403,8 @@ describe('consulta de disponibilidad (criterio 3 de US-04.01, #204)', () => {
     mockFetch(undefined, () => new Promise<Response>((resolve) => pending.push(resolve)));
     renderRentalRequest();
 
-    chooseDates('2026-11-04', '2026-11-06');
-    fireEvent.change(screen.getByLabelText('Fecha de fin'), { target: { value: '2026-11-08' } });
+    chooseDates('04/11/2026', '06/11/2026');
+    fireEvent.change(screen.getByLabelText('Fecha de fin'), { target: { value: '08/11/2026' } });
     await waitFor(() => expect(pending).toHaveLength(2));
 
     // Llega primero la respuesta nueva (libre) y después la antigua (ocupada).
@@ -414,7 +426,7 @@ describe('consulta de disponibilidad (criterio 3 de US-04.01, #204)', () => {
     );
     renderRentalRequest();
 
-    chooseDates('2026-11-04', '2026-11-06');
+    chooseDates('04/11/2026', '06/11/2026');
 
     await waitFor(() =>
       expect(screen.getByLabelText('Fecha de inicio')).toHaveAccessibleDescription(
@@ -430,7 +442,7 @@ describe('consulta de disponibilidad (criterio 3 de US-04.01, #204)', () => {
     );
     renderRentalRequest();
 
-    chooseDates('2026-11-04', '2026-11-06');
+    chooseDates('04/11/2026', '06/11/2026');
 
     expect(await screen.findByRole('alert')).toHaveTextContent('No hemos encontrado este objeto.');
     expect(requestButton()).toBeDisabled();
@@ -440,9 +452,218 @@ describe('consulta de disponibilidad (criterio 3 de US-04.01, #204)', () => {
     mockFetch(undefined, () => Response.json({ error: 'Sesión no válida' }, { status: 401 }));
     const { clearSession, onSessionExpired } = renderRentalRequest();
 
-    chooseDates('2026-11-04', '2026-11-06');
+    chooseDates('04/11/2026', '06/11/2026');
 
     await waitFor(() => expect(clearSession).toHaveBeenCalled());
     expect(onSessionExpired).toHaveBeenCalled();
+  });
+});
+
+describe('calendario de fechas', () => {
+  it('el primer clic pone el inicio y el segundo el fin, y calcula el precio', async () => {
+    const fetchMock = mockFetch();
+    const user = userEvent.setup();
+    renderRentalRequest();
+
+    await user.click(dayButton('4 de noviembre de 2026'));
+
+    expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('04/11/2026');
+    expect(screen.getByLabelText('Fecha de fin')).toHaveValue('');
+    expect(dayButton('4 de noviembre de 2026')).toHaveAttribute('aria-pressed', 'true');
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    await user.click(dayButton('6 de noviembre de 2026'));
+
+    expect(screen.getByLabelText('Fecha de fin')).toHaveValue('06/11/2026');
+    expect(pressedDays()).toEqual([
+      '4 de noviembre de 2026',
+      '5 de noviembre de 2026',
+      '6 de noviembre de 2026',
+    ]);
+    expect(screen.getByText(/3 días × 5,00 € =/)).toHaveTextContent('15,00 €');
+    await waitFor(() => expect(requestButton()).toBeEnabled());
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/startDate=2026-11-04&endDate=2026-11-06$/);
+  });
+
+  it('un clic anterior al inicio mientras se elige el fin empieza de nuevo con esa fecha', async () => {
+    const user = userEvent.setup();
+    renderRentalRequest();
+
+    await user.click(dayButton('10 de noviembre de 2026'));
+    await user.click(dayButton('4 de noviembre de 2026'));
+
+    expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('04/11/2026');
+    expect(screen.getByLabelText('Fecha de fin')).toHaveValue('');
+    expect(pressedDays()).toEqual(['4 de noviembre de 2026']);
+  });
+
+  it('con el rango completo, otro clic empieza un rango nuevo', async () => {
+    const user = userEvent.setup();
+    renderRentalRequest();
+
+    await user.click(dayButton('4 de noviembre de 2026'));
+    await user.click(dayButton('6 de noviembre de 2026'));
+    await user.click(dayButton('20 de noviembre de 2026'));
+
+    expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('20/11/2026');
+    expect(screen.getByLabelText('Fecha de fin')).toHaveValue('');
+    expect(pressedDays()).toEqual(['20 de noviembre de 2026']);
+    expect(screen.getByText('Elige las fechas para ver el precio.')).toBeInTheDocument();
+  });
+
+  it('dos clics en el mismo día son un alquiler de un día', async () => {
+    const user = userEvent.setup();
+    renderRentalRequest();
+
+    await user.click(dayButton('4 de noviembre de 2026'));
+    await user.click(dayButton('4 de noviembre de 2026'));
+
+    expect(screen.getByLabelText('Fecha de fin')).toHaveValue('04/11/2026');
+    expect(screen.getByText(/1 día × 5,00 € =/)).toHaveTextContent('5,00 €');
+    await waitFor(() => expect(requestButton()).toBeEnabled());
+  });
+
+  it('los días pasados están desactivados y hoy está marcado', async () => {
+    vi.setSystemTime(new Date(2026, 10, 10, 12, 0));
+    const user = userEvent.setup();
+    renderRentalRequest();
+
+    expect(dayButton('9 de noviembre de 2026')).toBeDisabled();
+    expect(dayButton('10 de noviembre de 2026')).toBeEnabled();
+    expect(dayButton('10 de noviembre de 2026')).toHaveAttribute('aria-current', 'date');
+
+    await user.click(dayButton('9 de noviembre de 2026'));
+    expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('');
+  });
+
+  it('cambia de mes con las flechas, anuncia el mes y conserva el rango entre meses', async () => {
+    const user = userEvent.setup();
+    renderRentalRequest();
+    const previous = screen.getByRole('button', { name: 'Mes anterior' });
+    const next = screen.getByRole('button', { name: 'Mes siguiente' });
+    expect(screen.getByText('noviembre de 2026')).toHaveAttribute('aria-live', 'polite');
+
+    await user.click(dayButton('28 de noviembre de 2026'));
+    await user.click(next);
+
+    expect(screen.getByText('diciembre de 2026')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '28 de noviembre de 2026' })).toBeNull();
+    expect(previous).toBeEnabled();
+
+    await user.click(dayButton('2 de diciembre de 2026'));
+
+    expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('28/11/2026');
+    expect(screen.getByLabelText('Fecha de fin')).toHaveValue('02/12/2026');
+    expect(pressedDays()).toEqual(['1 de diciembre de 2026', '2 de diciembre de 2026']);
+
+    previous.focus();
+    await user.keyboard('{Enter}');
+
+    expect(screen.getByText('noviembre de 2026')).toBeInTheDocument();
+    expect(previous).toBeDisabled();
+    // El botón pulsado se ha desactivado: el foco no se pierde.
+    expect(next).toHaveFocus();
+  });
+
+  it('la semana empieza en lunes, con las iniciales en español', () => {
+    renderRentalRequest();
+
+    const headers = within(screen.getByRole('grid')).getAllByRole('columnheader');
+    expect(headers.map((header) => header.textContent)).toEqual([
+      'L',
+      'M',
+      'X',
+      'J',
+      'V',
+      'S',
+      'D',
+    ]);
+    expect(headers[0]).toHaveAccessibleName('lunes');
+    // El 1 de noviembre de 2026 es domingo: último hueco de la primera semana.
+    const firstWeek = within(screen.getByRole('grid')).getAllByRole('row')[1];
+    expect(firstWeek.lastElementChild).toHaveTextContent('1');
+    expect(firstWeek.firstElementChild).toBeEmptyDOMElement();
+  });
+
+  it('una fecha escrita se enseña en el calendario', () => {
+    renderRentalRequest();
+
+    fireEvent.change(screen.getByLabelText('Fecha de inicio'), {
+      target: { value: '10/03/2030' },
+    });
+
+    expect(screen.getByText('marzo de 2030')).toBeInTheDocument();
+    expect(dayButton('10 de marzo de 2030')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('solo valida la fecha cuando está completa', () => {
+    renderRentalRequest();
+    const start = screen.getByLabelText('Fecha de inicio');
+
+    fireEvent.change(start, { target: { value: '31/02' } });
+    expect(start).not.toHaveAttribute('aria-invalid');
+
+    fireEvent.change(start, { target: { value: '31/02/2030' } });
+    expect(start).toHaveAttribute('aria-invalid', 'true');
+    expect(start).toHaveAccessibleDescription('Esa fecha no existe.');
+    expect(requestButton()).toBeDisabled();
+  });
+
+  it('pone las barras al escribir y completa la fecha al salir del campo', async () => {
+    const user = userEvent.setup();
+    renderRentalRequest();
+    const start = screen.getByLabelText('Fecha de inicio');
+
+    await user.type(start, '10032030');
+    expect(start).toHaveValue('10/03/2030');
+
+    await user.clear(start);
+    await user.type(start, '1/3/2030');
+    expect(start).toHaveValue('1/3/2030');
+    await user.tab();
+    expect(start).toHaveValue('01/03/2030');
+  });
+
+  it('con una fecha de inicio pasada escrita, el clic empieza de nuevo', async () => {
+    const user = userEvent.setup();
+    renderRentalRequest();
+
+    fireEvent.change(screen.getByLabelText('Fecha de inicio'), {
+      target: { value: '30/10/2026' },
+    });
+    await user.click(dayButton('4 de noviembre de 2026'));
+
+    expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('04/11/2026');
+    expect(screen.getByLabelText('Fecha de inicio')).not.toHaveAttribute('aria-invalid');
+    expect(screen.getByLabelText('Fecha de fin')).toHaveValue('');
+  });
+
+  it('se navega con las flechas, cruzando de mes, y nunca hasta un día pasado', async () => {
+    vi.setSystemTime(new Date(2026, 10, 25, 12, 0));
+    const user = userEvent.setup();
+    renderRentalRequest();
+    const today = dayButton('25 de noviembre de 2026');
+
+    // Un solo día entra en el orden de tabulación.
+    expect(today).toHaveAttribute('tabindex', '0');
+    expect(dayButton('26 de noviembre de 2026')).toHaveAttribute('tabindex', '-1');
+
+    today.focus();
+    await user.keyboard('{ArrowLeft}');
+    expect(today).toHaveFocus();
+
+    await user.keyboard('{ArrowRight}');
+    expect(dayButton('26 de noviembre de 2026')).toHaveFocus();
+
+    await user.keyboard('{ArrowDown}');
+    expect(screen.getByText('diciembre de 2026')).toBeInTheDocument();
+    expect(dayButton('3 de diciembre de 2026')).toHaveFocus();
+
+    await user.keyboard('{Enter}');
+    expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('03/12/2026');
+
+    await user.keyboard('{PageUp}');
+    expect(screen.getByText('noviembre de 2026')).toBeInTheDocument();
+    expect(dayButton('25 de noviembre de 2026')).toHaveFocus();
   });
 });

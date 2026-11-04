@@ -57,7 +57,6 @@
   overflow: hidden;
   background-color: var(--color-surface);
   border-radius: var(--radius-large);
-  box-shadow: var(--shadow-sm);
 }
 
 .item-gallery-photo {
@@ -213,7 +212,7 @@
   font-weight: var(--font-weight-bold);
   color: var(--color-on-primary);
   background-color: var(--color-primary);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-small);
 }
 
 /* Panel de alquiler. .card se define después de este archivo: por eso el selector doble. */
@@ -224,7 +223,6 @@
   align-self: start;
   min-width: 0;
   padding: var(--space-lg);
-  box-shadow: var(--shadow-md);
 }
 
 .rental-panel-summary {
