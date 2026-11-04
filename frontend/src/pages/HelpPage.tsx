@@ -32,7 +32,7 @@ const SECTIONS: HelpSection[] = [
         Pulsa «<Link to="/login">Iniciar sesión</Link>» en la cabecera.
       </>,
       'Escribe tu correo electrónico y tu contraseña.',
-      'Pulsa «Iniciar sesión». Irás a la página de inicio o, si intentabas abrir una página que pide sesión (como «Mi perfil»), a esa página.',
+      'Pulsa «Iniciar sesión». Volverás a la página en la que estabas o, si intentabas abrir una página que pide sesión (como «Mi perfil»), a esa página.',
     ],
     note: 'Si el correo o la contraseña no son correctos, verás el error debajo del campo.',
   },
@@ -163,7 +163,7 @@ const SECTIONS: HelpSection[] = [
       'En «Mis objetos», pulsa «Retirar anuncio» en el objeto.',
       'Confirma con «Retirar anuncio». Dejará de aparecer para los demás y nadie podrá solicitar su alquiler.',
     ],
-    note: 'Retirar es definitivo: un objeto retirado ya no se puede editar. Si solo quieres dejarlo un tiempo, usa «Pausar». Con «Cancelar» no cambia nada.',
+    note: 'Un objeto con solicitudes pendientes o reservas activas no se puede retirar: antes hay que rechazar las pendientes. Retirar es definitivo: un objeto retirado ya no se puede editar. Si solo quieres dejarlo un tiempo, usa «Pausar». Con «Cancelar» no cambia nada.',
   },
 ];
 
