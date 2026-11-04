@@ -1,3 +1,5 @@
+// Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 04/11/2026
+
 import { useState } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';

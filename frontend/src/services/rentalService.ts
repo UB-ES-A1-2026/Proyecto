@@ -1,3 +1,4 @@
+// Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 04/11/2026
 import { apiRequest } from './apiClient';
 
 // Cuerpo de POST /api/reservas (#120). El importe no se envía: lo calcula el backend.
