@@ -63,6 +63,13 @@
   overflow: hidden;
   color: var(--color-on-primary);
   background-color: var(--color-primary);
+  background-image:
+    radial-gradient(
+      circle at 85% 15%,
+      color-mix(in srgb, var(--color-accent) 24%, transparent),
+      transparent 45%
+    ),
+    linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
   border-radius: var(--radius-large);
 }
 
