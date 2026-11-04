@@ -18,7 +18,7 @@ Toda la identidad está en el bloque `:root` de [`frontend/src/styles.css`](../f
 
 ## Cabecera
 
-Como en la maqueta: barra verde (`--color-primary`), logo y nombre en naranja (`--color-accent`) y enlaces en blanco (`--color-on-primary`). Se queda fija al hacer scroll. La página en la que estás se marca con el verde oscuro (`--color-primary-hover`). Por debajo de 960 px los enlaces se recogen en un menú con el botón «Abrir menú».
+Como en la maqueta: barra verde (`--color-primary`), logo y nombre en naranja (`--color-accent`) y enlaces en blanco (`--color-on-primary`). Se queda fija al hacer scroll. La página en la que estás se marca con el verde oscuro (`--color-primary-hover`). Por debajo de 960 px los enlaces se recogen en un menú con el botón «Abrir menú». La ayuda es solo un icono, en la esquina superior derecha, y «Cerrar sesión» está en «Mi perfil».
 
 ## Colores
 
@@ -98,8 +98,7 @@ Las animaciones son cortas y sutiles, siempre con estas variables: `--duration-f
 |---|---|
 | `button-primary` | La acción principal de la pantalla, en naranja con texto oscuro. Solo uno por formulario |
 | `button-secondary` | Acciones secundarias, como «Cancelar» o «Volver», con borde verde |
-| `button-quiet` | Acción discreta, sin borde |
-| `button-link` | Acción de la cabecera con aspecto de enlace, como «Cerrar sesión» |
+| `button-quiet` | Acción discreta, sin borde, como «Cerrar sesión» en el perfil |
 | `link-button` | Botón con aspecto de enlace dentro del contenido, como «Limpiar filtros» |
 | `button-danger` | Confirmar una acción destructiva, como retirar un anuncio |
 
