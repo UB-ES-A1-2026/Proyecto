@@ -479,7 +479,7 @@ Respuesta `200`, la reserva actualizada:
 | `403` | El objeto es de otra persona |
 | `404` | La solicitud no existe |
 | `409` | La solicitud ya no está pendiente |
-| `409` | Solo al aceptar: las fechas se solapan con otra reserva aceptada, pagada o en curso |
+| `409` | Solo al aceptar: las fechas se solapan con otra reserva aceptada, pagada o en curso (`field`: `startDate`). La solicitud sigue pendiente, así que aún se puede rechazar |
 
 ### `POST /objetos/:id/pausar` y `POST /objetos/:id/reanudar` (privados)
 

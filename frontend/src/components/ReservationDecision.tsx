@@ -26,6 +26,7 @@ export function ReservationDecision({
   const [completed, setCompleted] = useState<Decision | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [terminalError, setTerminalError] = useState(false);
+  const [acceptBlocked, setAcceptBlocked] = useState(false);
 
   if (!session) return null;
   if (status !== 'pending' && completed === null) return null;
@@ -50,7 +51,10 @@ export function ReservationDecision({
 
       if (requestError instanceof ApiError) {
         setError(requestError.message);
-        setTerminalError([403, 404, 409].includes(requestError.status));
+        // Con fechas solapadas la solicitud sigue pendiente: no se puede aceptar, pero sí rechazar.
+        const overlapping = requestError.status === 409 && requestError.field === 'startDate';
+        setAcceptBlocked(overlapping);
+        setTerminalError([403, 404, 409].includes(requestError.status) && !overlapping);
       } else {
         setError('Ha ocurrido un error inesperado.');
         setTerminalError(false);
@@ -77,14 +81,16 @@ export function ReservationDecision({
       )}
       {!terminalError && (
         <div className="reservation-decision-actions">
-          <button
-            className="button-primary"
-            type="button"
-            disabled={submitting !== null}
-            onClick={() => void decide('accept')}
-          >
-            {submitting === 'accept' ? 'Aceptando…' : 'Aceptar'}
-          </button>
+          {!acceptBlocked && (
+            <button
+              className="button-primary"
+              type="button"
+              disabled={submitting !== null}
+              onClick={() => void decide('accept')}
+            >
+              {submitting === 'accept' ? 'Aceptando…' : 'Aceptar'}
+            </button>
+          )}
           <button
             className="button-secondary"
             type="button"

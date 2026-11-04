@@ -158,7 +158,10 @@ describe('aceptar: fechas solapadas', () => {
       const response = await decide('aceptar', reservation.id, ownerToken);
 
       expect(response.status).toBe(409);
-      expect(response.body).toEqual({ error: OVERLAPPING_MESSAGE });
+      expect(response.body).toEqual({
+        error: OVERLAPPING_MESSAGE,
+        field: 'startDate',
+      });
       expect(await statusOf(reservation.id)).toBe('pending');
     },
   );

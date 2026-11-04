@@ -59,7 +59,7 @@ export async function acceptReservation(
     throw new AppError(409, NOT_PENDING_MESSAGE);
   }
   if (outcome === 'overlapping') {
-    throw new AppError(409, OVERLAPPING_MESSAGE);
+    throw new AppError(409, OVERLAPPING_MESSAGE, 'startDate');
   }
 
   return toReservationDetail(await findReservationDetail(id));
