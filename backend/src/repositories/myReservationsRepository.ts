@@ -1,5 +1,5 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 02/11/2026
-import { reservationDetailInclude } from '../services/reservation.js';
+import { reservationDetailInclude } from './detailIncludes.js';
 import { prisma } from './prisma.js';
 
 // De la más nueva a la más antigua; el id desempata las creadas en el mismo milisegundo.

@@ -1,24 +1,10 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 02/11/2026
-import type { Prisma, ReservationStatus } from '@prisma/client';
+import type { ReservationStatus } from '@prisma/client';
+import type { ReservationWithDetail } from '../repositories/detailIncludes.js';
 
 // Representación de una reserva en la API: la devuelven POST /api/reservas (#120),
 // GET /api/usuarios/me/reservas (#123) y aceptar/rechazar (#125). De las personas solo salen
 // id y username, nunca el correo.
-
-export const reservationDetailInclude = {
-  item: {
-    select: {
-      id: true,
-      title: true,
-      owner: { select: { id: true, username: true } },
-    },
-  },
-  renter: { select: { id: true, username: true } },
-} satisfies Prisma.ReservationInclude;
-
-export type ReservationWithDetail = Prisma.ReservationGetPayload<{
-  include: typeof reservationDetailInclude;
-}>;
 
 export interface ReservationDetail {
   id: string;

@@ -1,5 +1,5 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
-import { itemDetailInclude } from '../services/itemDetail.js';
+import { itemDetailInclude } from './detailIncludes.js';
 import { prisma } from './prisma.js';
 
 // Los objetos del usuario en cualquier estado, del más nuevo al más antiguo.
