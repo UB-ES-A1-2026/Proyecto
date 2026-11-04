@@ -69,6 +69,14 @@ async function renderList() {
 beforeEach(() => localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION)));
 afterEach(() => localStorage.clear());
 
+const PHOTO_ROW = {
+  id: 'o-foto',
+  title: 'Con foto',
+  dailyPrice: '5.00',
+  neighborhood: 'Gràcia',
+  status: 'published',
+};
+
 describe('pausar y reanudar un anuncio (US-02.04, #113)', () => {
   it('muestra «Pausar» en los publicados, «Reanudar» en los pausados y nada en los retirados', async () => {
     mockItemApi();
@@ -103,6 +111,24 @@ describe('pausar y reanudar un anuncio (US-02.04, #113)', () => {
     expect(init?.method).toBe('POST');
     expect(init?.headers).toMatchObject({ Authorization: 'Bearer token-de-prueba' });
     expect(init?.body).toBeUndefined();
+  });
+
+  it('al pausar conserva la foto de la fila, aunque la API no la devuelva', async () => {
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    const photo = 'https://example.test/foto.webp';
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (_input, init) =>
+      init?.method === 'POST'
+        ? Response.json({ ...PHOTO_ROW, status: 'paused' })
+        : Response.json([{ ...PHOTO_ROW, photo }]),
+    );
+    const user = userEvent.setup();
+
+    const { container } = renderRoute('/mis-objetos');
+
+    await user.click(await screen.findByRole('button', { name: 'Pausar Con foto' }));
+
+    await screen.findByRole('button', { name: 'Reanudar Con foto' });
+    expect(container.querySelector('.item-photo img')).toHaveAttribute('src', photo);
   });
 
   it('al reanudar vuelve a «Publicado»', async () => {

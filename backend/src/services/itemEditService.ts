@@ -7,7 +7,7 @@ import {
   updateItemById,
 } from '../repositories/itemEditRepository.js';
 import { toItemDetail, type ItemDetail } from './itemDetail.js';
-import { listItemPhotos } from './photoService.js';
+import { listFirstPhotoUrls, listItemPhotos } from './photoService.js';
 
 export const ITEM_NOT_FOUND_MESSAGE = 'No hemos encontrado este objeto.';
 export const NOT_OWNER_MESSAGE =
@@ -20,6 +20,8 @@ export interface MyItem {
   dailyPrice: string;
   neighborhood: string;
   status: ItemStatus;
+  // URL de la primera foto, o null si no tiene.
+  photo: string | null;
 }
 
 export interface ItemChanges {
@@ -32,10 +34,12 @@ export interface ItemChanges {
 // «Mis objetos» (US-02.02, #108): los del usuario, en cualquier estado.
 export async function getMyItems(ownerId: string): Promise<MyItem[]> {
   const items = await findItemsByOwner(ownerId);
+  const photos = await listFirstPhotoUrls(items.map((item) => item.id));
 
   return items.map((item) => ({
     ...item,
     dailyPrice: item.dailyPrice.toFixed(2),
+    photo: photos.get(item.id) ?? null,
   }));
 }
 

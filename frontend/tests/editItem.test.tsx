@@ -270,6 +270,19 @@ describe('añadir fotos al editar (US-02.02, #51)', () => {
     expect(uploadItemPhoto).toHaveBeenCalledWith('o1', file, 'token-de-prueba');
   });
 
+  it('la fila de «Mis objetos» muestra la foto recién subida', async () => {
+    mockItemApi();
+    const { user, save } = await openWithPhoto(jpeg('nueva.jpg'));
+
+    await user.click(save);
+
+    await screen.findByRole('status');
+    expect(document.querySelector('.item-photo img')).toHaveAttribute(
+      'src',
+      'https://example.test/photo.webp',
+    );
+  });
+
   it('sin fotos elegidas no sube nada', async () => {
     mockItemApi();
     const { user, save } = await openForm();

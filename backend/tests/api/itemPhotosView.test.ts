@@ -80,6 +80,35 @@ describe('PATCH /api/objetos/:id', () => {
   });
 });
 
+describe('GET /api/usuarios/me/objetos', () => {
+  it('devuelve la primera foto de cada objeto, o null si no tiene', async () => {
+    const ana = await createTestUser();
+    const withPhotos = await createTestItem(ana.id, { title: 'Con fotos' });
+    await createTestItem(ana.id, { title: 'Sin fotos' });
+    await addPhoto(withPhotos.id, 'objetos/segunda.webp', 2);
+    await addPhoto(withPhotos.id, 'objetos/primera.webp', 1);
+    const login = await request(app)
+      .post('/api/auth/login')
+      .send({ email: ana.email, password: TEST_PASSWORD });
+
+    const response = await request(app)
+      .get('/api/usuarios/me/objetos')
+      .set('Authorization', `Bearer ${login.body.token as string}`);
+
+    expect(response.status).toBe(200);
+    expect(
+      Object.fromEntries(
+        (response.body as { title: string; photo: string | null }[]).map(
+          ({ title, photo }) => [title, photo],
+        ),
+      ),
+    ).toEqual({
+      'Con fotos': 'https://s3.test/ver/objetos/primera.webp',
+      'Sin fotos': null,
+    });
+  });
+});
+
 describe('GET /api/objetos', () => {
   async function searchPhotos() {
     const response = await request(app).get('/api/objetos?q=taladro');

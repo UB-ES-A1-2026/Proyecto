@@ -200,9 +200,10 @@ function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
 
       // Los cambios ya están guardados: si falla una foto se avisa, pero no se pierden.
       let photosFailed = false;
+      const uploaded: ItemDetail['photos'] = [];
       for (const photo of newPhotos) {
         try {
-          await uploadItemPhoto(item.id, photo, token);
+          uploaded.push(await uploadItemPhoto(item.id, photo, token));
         } catch (photoError) {
           if (photoError instanceof ApiError && photoError.status === 401) {
             clearSession();
@@ -211,7 +212,7 @@ function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
           photosFailed = true;
         }
       }
-      onSaved(saved, photosFailed);
+      onSaved({ ...saved, photos: [...saved.photos, ...uploaded] }, photosFailed);
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         clearSession();

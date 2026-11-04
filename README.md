@@ -339,12 +339,13 @@ Respuesta `200`:
     "title": "Taladro percutor",
     "dailyPrice": "5.50",
     "neighborhood": "Gràcia",
-    "status": "published"
+    "status": "published",
+    "photo": null
   }
 ]
 ```
 
-`status` puede ser `published`, `paused` o `withdrawn`. `401` si el token falta, no es válido o ha caducado.
+`status` puede ser `published`, `paused` o `withdrawn`. `photo` es la URL de la primera foto, o `null` si no tiene. `401` si el token falta, no es válido o ha caducado.
 
 ### `PATCH /objetos/:id` (privado)
 

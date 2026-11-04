@@ -144,6 +144,24 @@ describe('pantalla «Mis objetos» (US-02.02, #109)', () => {
     );
   });
 
+  it('muestra la primera foto del objeto y conserva el icono si no tiene', async () => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
+    mockFetch(() =>
+      Response.json([{ ...ITEMS[0], photo: 'https://example.test/taladro.webp' }, ITEMS[1]]),
+    );
+
+    const { container } = renderRoute('/mis-objetos');
+
+    await screen.findByText('Taladro percutor');
+    const rows = container.querySelectorAll('.item-row');
+    expect(rows[0].querySelector('.item-photo img')).toHaveAttribute(
+      'src',
+      'https://example.test/taladro.webp',
+    );
+    expect(rows[1].querySelector('.item-photo img')).toBeNull();
+    expect(rows[1].querySelector('.item-photo svg')).not.toBeNull();
+  });
+
   it('si la sesión ya no es válida (401) la borra y vuelve al login', async () => {
     localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
     mockFetch(() =>
