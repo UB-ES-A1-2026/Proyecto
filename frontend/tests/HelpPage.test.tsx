@@ -10,7 +10,15 @@ const SECTIONS = [
   { id: 'ver-perfil', title: 'Ver tu perfil' },
   { id: 'cerrar-sesion', title: 'Cerrar sesión' },
   { id: 'buscar', title: 'Buscar un objeto' },
+  { id: 'filtrar', title: 'Filtrar los resultados' },
   { id: 'ver-objeto', title: 'Ver la ficha de un objeto' },
+  { id: 'solicitar', title: 'Solicitar un alquiler' },
+  { id: 'mis-solicitudes', title: 'Consultar tus solicitudes' },
+  { id: 'responder-solicitud', title: 'Aceptar o rechazar una solicitud' },
+  { id: 'publicar', title: 'Publicar un objeto' },
+  { id: 'editar', title: 'Editar un objeto' },
+  { id: 'pausar', title: 'Pausar o reanudar un objeto' },
+  { id: 'retirar', title: 'Retirar un objeto' },
 ];
 
 const SESSION = {

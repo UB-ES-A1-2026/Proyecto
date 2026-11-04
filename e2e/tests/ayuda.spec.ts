@@ -17,7 +17,15 @@ const DELIVERED_FLOWS = [
   'Ver tu perfil',
   'Cerrar sesión',
   'Buscar un objeto',
+  'Filtrar los resultados',
   'Ver la ficha de un objeto',
+  'Solicitar un alquiler',
+  'Consultar tus solicitudes',
+  'Aceptar o rechazar una solicitud',
+  'Publicar un objeto',
+  'Editar un objeto',
+  'Pausar o reanudar un objeto',
+  'Retirar un objeto',
 ];
 
 // Criterio 1

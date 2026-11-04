@@ -122,7 +122,15 @@ describe('layout y navegación (#21)', () => {
     localStorage.setItem('rentit.session', JSON.stringify(SESSION));
     renderRoute('/');
 
-    const links = mainNav().getAllByRole('link').map((link) => link.textContent);
-    expect(links).toEqual(['Publicar objeto', 'Mis objetos', 'Mis solicitudes', 'Mi perfil']);
+    const links = mainNav()
+      .getAllByRole('link')
+      .map((link) => link.textContent);
+    expect(links).toEqual([
+      'Ayuda',
+      'Publicar objeto',
+      'Mis objetos',
+      'Mis solicitudes',
+      'Mi perfil',
+    ]);
   });
 });
