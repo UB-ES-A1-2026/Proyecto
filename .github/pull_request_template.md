@@ -17,7 +17,9 @@ Closes #
 - [ ] Si es el PR de una historia a `develop`: he hecho `git rebase --rebase-merges origin/develop`, los tests pasan después del rebase y la descripción cierra la historia y todas sus tareas
 - [ ] Se integrará con **Create a merge commit** (nunca *squash*)
 - [ ] Cumple los criterios de aceptación de la historia
-- [ ] Tiene tests y pasan en local (`npm run lint`, `npm test`, `npm run build`)
+- [ ] Tiene tests y pasan en local (`npm run lint`, `npm run test:coverage`, `npm run build`)
+- [ ] Si es un `bugfix/` o `hotfix/`: cierra su issue de bug (`Closes #`) e incluye el test que lo reproduce
+- [ ] Si un test ha encontrado un bug en código ya integrado, lo he abierto con la plantilla «Bug»
 - [ ] He actualizado la documentación / página de ayuda si hacía falta
 - [ ] He pedido revisión a otra persona del equipo
 - [ ] Parte del código está generado con IA (indicado en el código si es un bloque grande)

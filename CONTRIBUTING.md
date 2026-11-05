@@ -88,7 +88,7 @@ El código de la historia va tal cual (`US-04.01`, `SP-05`); el resto, en minús
 Cuando todas las tareas de la historia están en su rama `feature/` (no queda ningún PR de tarea abierto):
 
 1. **Rebase sobre `develop`**: `git fetch origin && git rebase --rebase-merges origin/develop`. Con `--rebase-merges` se conservan los merges de cada tarea; sin él, Git los aplana y se pierde la información de las ramas.
-2. **Tests después del rebase**: `npm run lint`, `npm test` y `npm run build` en `backend/` y `frontend/`, y los e2e de la historia en `e2e/`. Si algo falla, se arregla en la rama de la historia antes de seguir.
+2. **Tests después del rebase**: `npm run lint`, `npm run test:coverage` y `npm run build` en `backend/` y `frontend/`, y los e2e de la historia en `e2e/`. Si algo falla, se arregla en la rama de la historia antes de seguir.
 3. **Subir la rama reescrita**: `git push --force-with-lease`. Nunca `--force` a secas: `--force-with-lease` falla si alguien ha subido algo que no tienes.
 4. **PR de `feature/` a `develop`**, con CI en verde (cuando exista), 1 aprobación y **Create a merge commit**.
 5. Se borra la rama y se cierra el issue de la historia.
@@ -131,7 +131,7 @@ docs(adr): SP-05 armario del barrio con QR (#94)
 3. Issues en la descripción. GitHub solo cierra un issue con `Closes #<nº>` cuando **ese PR** se mergea en la rama por defecto (`develop`); en un PR hacia otra rama no hace nada, ni entonces ni después.
    - PR de tarea (`task/` → `feature/`): `Parte de #<nº historia>` y el número de la tarea en el título. Su issue se queda abierto hasta que la historia entra en `develop`.
    - PR de historia (`feature/` → `develop`): un `Closes` por la historia **y por cada una de sus tareas**, por ejemplo `Closes #50, closes #13, closes #14`.
-   - PR de `bugfix/`: `Closes #<nº del bug>`.
+   - PR de `bugfix/` o `hotfix/`: `Closes #<nº del bug>`. El bug se crea antes con la plantilla «Bug» y el PR incluye el test que lo reproduce; el check «Test del arreglo» lo comprueba (#272).
 4. Rellena la plantilla (criterios de aceptación, tests, capturas si hay UI, casilla de IA).
 5. **Revisa otra persona del equipo** (nunca el autor). Como mínimo 1 aprobación.
 6. El CI tiene que estar en verde (cuando exista el CI): en los PRs de tarea y en el de la historia.
@@ -175,7 +175,7 @@ La revisión humana en el PR es obligatoria igualmente.
 ## Definition of Done
 Una historia está terminada cuando:
 - [ ] Cumple sus criterios de aceptación.
-- [ ] Tiene tests (unitarios y/o e2e) y pasan **después del rebase sobre `develop`**.
+- [ ] Tiene tests (unitarios y/o e2e) y pasan **después del rebase sobre `develop`**, sin bajar la cobertura del mínimo (#272).
 - [ ] Cada tarea y la propia historia están revisadas y aprobadas por otra persona en un PR.
 - [ ] Está mergeada en `develop` sin *squash* (y, al final del sprint, entregada en `main`).
 - [ ] Funciona en el entorno desplegado (a partir del Sprint 1).
@@ -211,8 +211,8 @@ git switch feature/US-02.01-publicar-objeto
 git pull
 git fetch origin
 git rebase --rebase-merges origin/develop
-(cd backend && npm run lint && npm test && npm run build)
-(cd frontend && npm run lint && npm test && npm run build)
+(cd backend && npm run lint && npm run test:coverage && npm run build)
+(cd frontend && npm run lint && npm run test:coverage && npm run build)
 git push --force-with-lease
 gh pr create --base develop --title "feat(objetos): US-02.01 Publicar un objeto (#50)"
 
