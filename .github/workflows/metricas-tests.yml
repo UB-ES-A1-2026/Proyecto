@@ -1,0 +1,41 @@
+# Métricas de tests (#272): cobertura de develop, bugs por origen y fallos parados por el CI.
+# Se ejecuta cada lunes y a mano (Actions → «Métricas de tests» → Run workflow). El informe queda en el
+# resumen de la ejecución: es lo que se enseña en la demo y lo que se copia a la plantilla del sprint.
+# Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 5/11/2026
+name: Métricas de tests
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 7 * * 1'
+
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  informe:
+    name: Informe
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # La cobertura sale de la última ejecución correcta del CI en develop.
+      - name: Cobertura de develop
+        run: |
+          echo "# Métricas de tests" >> "$GITHUB_STEP_SUMMARY"
+          id=$(gh run list -R "$GITHUB_REPOSITORY" --workflow ci.yml --branch develop --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          if [ -n "$id" ] && gh run download "$id" -R "$GITHUB_REPOSITORY" -p 'cobertura-*' -D cobertura; then
+            echo "Cobertura de la ejecución $id del CI en develop." >> "$GITHUB_STEP_SUMMARY"
+            node .github/scripts/cobertura.mjs cobertura >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Aún no hay datos de cobertura de develop." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Bugs y fallos parados por el CI
+        run: node .github/scripts/bugs.mjs informe >> "$GITHUB_STEP_SUMMARY"

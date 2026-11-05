@@ -59,13 +59,41 @@ Cuando redactes o revises una historia (issue o Trello), usa la plantilla `.gith
 ## Tests y calidad
 - Unitarios con **Vitest** (front y back), API con **Supertest**, e2e con **Playwright** en `e2e/`.
 - Cada función de service, endpoint o componente nuevo tiene **al menos un test**. Cada bug arreglado tiene un test que lo reproduce.
-- Antes de dar una tarea por terminada, ejecuta en la carpeta que hayas tocado:
+- Antes de dar una tarea por terminada, ejecuta en la carpeta que hayas tocado (en `e2e/`, `npx playwright test`):
   ```bash
   npm run lint
-  npm test
+  npm run test:coverage   # los tests con cobertura; falla si baja del mínimo
   npm run build
   ```
 - Si un test falla, arregla el código, no el test, salvo que la tarea diga que el comportamiento cambia.
+
+## Métricas de tests: cobertura y bugs encontrados por tests (#272)
+El profesor pidió métricas de los tests. Salen solas si se cumple esto; detalle en [docs/testing.md](docs/testing.md#5-métricas-de-tests).
+- **Cobertura.** El CI la mide en cada PR y comenta el resultado. Si `npm run test:coverage` falla por cobertura, **añade tests** del código nuevo. **Nunca bajes los mínimos** (`thresholds` de `vitest.config.ts`) ni excluyas archivos para pasar el corte.
+- **Qué es un bug.** Un fallo en código **ya integrado** (rama de historia, `develop` o `main`). Lo que falla mientras haces tu propia tarea, antes de integrarla, no lo es: arréglalo y sigue.
+- **Si un test (en local o en el CI) o tú encontráis un bug, no lo arregles de paso.** Para, avisa a la persona y créalo primero con la plantilla «Bug». Desde la terminal, con exactamente estas secciones:
+  ```bash
+  gh issue create --label bug --title "bug: <qué falla>" --body "### Qué pasa
+  <...>
+
+  ### Cómo reproducirlo
+  1. <...>
+
+  ### Qué debería pasar
+  <...>
+
+  ### Historia afectada
+  US-XX.YY <nombre> (#<nº>)
+
+  ### ¿Cómo se ha encontrado?
+
+  Un test automático en local (unitario, de API o e2e)
+
+  ### Test que lo detectó
+  <archivo › nombre del test>"
+  ```
+  La respuesta de «¿Cómo se ha encontrado?» tiene que ser **literalmente** una de estas: `Un test automático en local (unitario, de API o e2e)`, `El CI de un PR`, `Revisión de código`, `Probando a mano`, `En producción o en la demo`. El workflow `bugs.yml` la convierte en una etiqueta `hallado-*` y de ahí sale la métrica.
+- **Arreglo de un bug:** rama `bugfix/<nº del bug>-<desc>` (`hotfix/` si está en `main`), con **el test que lo reproduce** (falla sin el arreglo y pasa con él) y `Closes #<nº del bug>` en la descripción. El check «Test del arreglo» falla si falta alguna de las dos cosas. La etiqueta `bug-sin-test` solo la pone una persona, explicando en el PR por qué no se puede probar.
 
 ## Build y ejecución
 - Base de datos local: `docker compose up -d` desde la raíz (crea las BD `rentit` y `rentit_test`).
@@ -80,6 +108,7 @@ Antes de modificar estas rutas, **explica qué archivos vas a tocar y por qué, 
 - `backend/prisma/schema.prisma` y `backend/prisma/migrations/`. **Nunca edites una migración ya mergeada**: crea una nueva.
 - `.github/workflows/`: el CI y el despliegue.
 - `docker-compose.yml`, `docker/`, `.env.example`, `backend/.env.test` y cualquier configuración de hosting (Vercel, Render, Supabase).
+- `vitest.config.ts` (los mínimos de cobertura) y `.github/scripts/`.
 - `AGENTS.md`, `CONTRIBUTING.md` y `.github/pull_request_template.md`: son acuerdos del equipo; no los cambies salvo que la tarea lo pida.
 
 ## Trazabilidad del código generado con IA
