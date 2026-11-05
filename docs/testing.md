@@ -32,8 +32,8 @@ Los comandos completos están en el [README](../README.md#tests). Resumen:
 
 | Tests | Desde | Comando | Necesita en marcha |
 |---|---|---|---|
-| Backend | `backend/` | `npm test` | PostgreSQL |
-| Frontend | `frontend/` | `npm test` | Nada |
+| Backend | `backend/` | `npm test` (con cobertura: `npm run test:coverage`) | PostgreSQL |
+| Frontend | `frontend/` | `npm test` (con cobertura: `npm run test:coverage`) | Nada |
 | End-to-end | `e2e/` | `npx playwright test` | PostgreSQL con el seed, backend y frontend |
 | Smoke | `e2e/` | `npm run test:smoke` | PostgreSQL con el seed, backend y frontend |
 
@@ -278,7 +278,52 @@ Objetos del seed (`backend/prisma/demoData.ts`). En Deporte están la bicicleta 
 | CP-FIL-09 | 1. En móvil, los filtros se abren con su botón | Página de resultados, a 390 px | 1. Pulsar «Filtros» 2. Precio máximo `10` 3. «Aplicar filtros» 4. «Limpiar filtros» junto a los chips | En el paso 1 se abre el panel. En el 3 se cierra y el botón dice «Filtros (1)». En el 4 se vuelve a `/buscar?q=taladro` | `filtrar-objetos.spec.ts` · en móvil |
 | CP-FIL-10 | (Móvil) Sin scroll horizontal | Página de resultados, a 390 px | 1. Ir a `/buscar?q=taladro` | La página no se desplaza en horizontal | `filtrar-objetos.spec.ts` · en móvil |
 
-## 5. Pendiente
+## 5. Métricas de tests
+
+Petición del profesor en la demo del Sprint 1 (#272). Las dos métricas salen solas del CI y de GitHub; solo hace falta seguir las reglas de `AGENTS.md`.
+
+### Cobertura de código
+
+Qué porcentaje del código ejecutan los tests unitarios y de API (diapositiva 8 de «QA: Review, Testing, Code Analysis»). La mide Vitest con `@vitest/coverage-v8`.
+
+- **En local:** `npm run test:coverage` en `backend/` o `frontend/`. Al final sale el resumen, y el detalle por archivo (qué líneas no se ejecutan) en `coverage/index.html`.
+- **En el CI:** los jobs Backend y Frontend ejecutan `npm run test:coverage`. El job «Cobertura» pone la tabla en el resumen de la ejecución y en un comentario del PR, que se actualiza en cada push.
+- **Mínimos** (`thresholds` en cada `vitest.config.ts`): el valor medido el 5/11/2026 menos 2 puntos. Si baja de ahí, el CI falla. Los mínimos **solo se suben** (lo hace QA al final de cada sprint), nunca se bajan.
+- **Cobertura no es calidad:** un test sin comprobaciones también cuenta como cubierto (diapositiva 19). Por eso siguen valiendo las reglas de la sección 3 («Qué comprobar»).
+- Los e2e no entran en la cobertura: comprueban los criterios de aceptación (sección 4), no líneas de código.
+
+| Fecha | Parte | Líneas | Sentencias | Funciones | Ramas |
+|---|---|---|---|---|---|
+| 5/11/2026 | backend | 92,7 % | 92,7 % | 95,8 % | 93,8 % |
+| 5/11/2026 | frontend | 95,7 % | 93,6 % | 96,2 % | 89,7 % |
+
+### Bugs encontrados por tests
+
+Cuántos bugs encuentran los tests frente a los que se encuentran a mano, en revisión o en producción.
+
+1. Un **bug** es un fallo en código ya integrado (rama de historia, `develop` o `main`). Lo que falla durante tu propia tarea, antes de integrarla, no cuenta.
+2. Todo bug se abre con la plantilla **«Bug»** (Issues → New issue → Bug), que pregunta **«¿Cómo se ha encontrado?»**.
+3. El workflow `bugs.yml` pone la etiqueta según la respuesta:
+
+| Respuesta | Etiqueta |
+|---|---|
+| Un test automático en local (unitario, de API o e2e) | `hallado-por-test` |
+| El CI de un PR | `hallado-por-ci` |
+| Revisión de código | `hallado-en-revision` |
+| Probando a mano | `hallado-a-mano` |
+| En producción o en la demo | `hallado-en-produccion` |
+| Sin responder | `hallado-sin-indicar` |
+
+4. El arreglo va en `bugfix/<nº>-<desc>` (o `hotfix/`), con `Closes #<nº>` y **el test que reproduce el bug**. El check «Test del arreglo» falla si falta alguna de las dos cosas. Así cada bug deja un test que impide que vuelva.
+5. Además, el informe cuenta las ejecuciones del CI en PRs en las que falló un paso de tests: son fallos que el CI paró antes de integrarlos.
+
+### Informe para la demo
+
+Actions → **«Métricas de tests»** → *Run workflow* (también se ejecuta cada lunes). El resumen de la ejecución tiene la cobertura de `develop`, la tabla de bugs por sprint y origen, la lista de bugs encontrados por tests y los fallos parados por el CI. Es lo que se enseña en la demo y lo que se copia a la plantilla del sprint.
+
+En local: `node .github/scripts/bugs.mjs informe` (con `gh` autenticado).
+
+## 6. Pendiente
 
 - **Smoke test en el CI:** el workflow de GitHub Actions que arranca PostgreSQL, el backend y el frontend y ejecuta `npm run test:smoke`. Se coordina con el CI general (#19, Kai). En el CI conviene servir el frontend compilado (`npm run build` + `npm run preview`) en lugar de `npm run dev`, para evitar la espera de la primera carga de Vite.
 - **E2E del perfil:** la página «Mi perfil» tiene tests unitarios pero aún no un test e2e propio (está cubierta indirectamente por el criterio 2 del login y el 5 del logout).
