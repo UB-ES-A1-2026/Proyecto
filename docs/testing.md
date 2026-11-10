@@ -303,7 +303,7 @@ Cuántos bugs encuentran los tests frente a los que se encuentran a mano, en rev
 
 1. Un **bug** es un fallo en código ya integrado (rama de historia, `develop` o `main`). Lo que falla durante tu propia tarea, antes de integrarla, no cuenta.
 2. Todo bug se abre con la plantilla **«Bug»** (Issues → New issue → Bug), que pregunta **«¿Cómo se ha encontrado?»**.
-3. El workflow `bugs.yml` pone la etiqueta según la respuesta:
+3. El workflow «Métricas de tests» pone la etiqueta según la respuesta, cada lunes o cuando se lanza a mano (así no hay una ejecución en Actions por cada issue):
 
 | Respuesta | Etiqueta |
 |---|---|

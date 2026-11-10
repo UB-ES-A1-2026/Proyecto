@@ -109,7 +109,24 @@ jobs:
           retention-days: 90
       - run: npm run build
 
-  # Métricas de tests (#272): enseña la cobertura en el resumen de la ejecución y en un comentario del PR.
+  # Bugs encontrados por tests (US-12.01, #272): un PR de bugfix/ o hotfix/ tiene que cambiar algún test y
+  # enlazar su issue de bug. En el resto de PRs el job sale como «skipped».
+  test-del-arreglo:
+    name: Test del arreglo
+    if: github.event_name == 'pull_request' && (startsWith(github.head_ref, 'bugfix/') || startsWith(github.head_ref, 'hotfix/'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+      - run: node .github/scripts/bugs.mjs arreglo "${{ github.event.pull_request.number }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  # Métricas de tests (US-12.01, #272): enseña la cobertura en el resumen de la ejecución y en un comentario del PR.
   cobertura:
     name: Cobertura
     runs-on: ubuntu-latest

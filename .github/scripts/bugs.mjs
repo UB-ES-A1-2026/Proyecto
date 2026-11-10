@@ -1,5 +1,6 @@
-// Métricas de tests (#272): utilidades de los bugs, compartidas por bugs.yml y metricas-tests.yml.
+// Métricas de tests (US-12.01, #272): utilidades de los bugs, que usan ci.yml y metricas-tests.yml.
 //   node .github/scripts/bugs.mjs etiqueta <nº issue>   → pone la etiqueta hallado-* según el issue
+//   node .github/scripts/bugs.mjs etiquetar-todos       → lo mismo para todos los bugs (lo hace el informe)
 //   node .github/scripts/bugs.mjs arreglo <nº PR>       → falla si un PR de bugfix/ o hotfix/ no toca tests
 //   node .github/scripts/bugs.mjs informe               → tabla Markdown con los bugs por origen y los fallos parados por el CI
 // Necesita GH_TOKEN y GITHUB_REPOSITORY (los pone GitHub Actions; en local: GITHUB_REPOSITORY=UB-ES-A1-2026/Proyecto).
@@ -74,6 +75,33 @@ function etiqueta(numero) {
   if (!actuales.includes('bug'))
     return console.log(`#${numero} no es un bug: no se toca.`);
   const origen = origenDe(issue.body);
+  if (
+    actuales.includes(origen.etiqueta) &&
+    TODAS.filter((o) => actuales.includes(o.etiqueta)).length === 1
+  )
+    return;
+  crearEtiquetas();
+  const quitar = TODAS.map((o) => o.etiqueta).filter(
+    (e) => e !== origen.etiqueta && actuales.includes(e),
+  );
+  const args = [
+    'issue',
+    'edit',
+    numero,
+    '-R',
+    REPO,
+    '--add-label',
+    origen.etiqueta,
+  ];
+  for (const e of quitar) args.push('--remove-label', e);
+  gh(...args);
+  console.log(`#${numero}: ${origen.etiqueta}`);
+}
+
+let etiquetasCreadas = false;
+function crearEtiquetas() {
+  if (etiquetasCreadas) return;
+  etiquetasCreadas = true;
   for (const o of TODAS) {
     try {
       gh(
@@ -91,21 +119,25 @@ function etiqueta(numero) {
       // ya existe
     }
   }
-  const quitar = TODAS.map((o) => o.etiqueta).filter(
-    (e) => e !== origen.etiqueta && actuales.includes(e),
-  );
-  const args = [
+}
+
+function etiquetarTodos() {
+  const bugs = ghJson(
     'issue',
-    'edit',
-    numero,
+    'list',
     '-R',
     REPO,
-    '--add-label',
-    origen.etiqueta,
-  ];
-  for (const e of quitar) args.push('--remove-label', e);
-  gh(...args);
-  console.log(`#${numero}: ${origen.etiqueta}`);
+    '--label',
+    'bug',
+    '--state',
+    'all',
+    '--limit',
+    '500',
+    '--json',
+    'number',
+  );
+  for (const b of bugs) etiqueta(String(b.number));
+  console.log(`Revisados ${bugs.length} bugs.`);
 }
 
 function arreglo(numero) {
@@ -246,11 +278,12 @@ function informe() {
 
 const [accion, numero] = process.argv.slice(2);
 if (accion === 'etiqueta') etiqueta(numero);
+else if (accion === 'etiquetar-todos') etiquetarTodos();
 else if (accion === 'arreglo') arreglo(numero);
 else if (accion === 'informe') informe();
 else {
   console.error(
-    'Uso: node .github/scripts/bugs.mjs etiqueta <issue> | arreglo <pr> | informe',
+    'Uso: node .github/scripts/bugs.mjs etiqueta <issue> | etiquetar-todos | arreglo <pr> | informe',
   );
   process.exit(2);
 }

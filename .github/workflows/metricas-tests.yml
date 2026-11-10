@@ -1,4 +1,6 @@
-# Métricas de tests (#272): cobertura de develop, bugs por origen y fallos parados por el CI.
+# Métricas de tests (US-12.01, #272): cobertura de develop, bugs por origen y fallos parados por el CI.
+# Antes del informe pone a cada bug su etiqueta hallado-* según «¿Cómo se ha encontrado?» (plantilla bug.yml).
+# Se hace aquí y no con un workflow por cada issue para no llenar Actions de ejecuciones vacías.
 # Se ejecuta cada lunes y a mano (Actions → «Métricas de tests» → Run workflow). El informe queda en el
 # resumen de la ejecución: es lo que se enseña en la demo y lo que se copia a la plantilla del sprint.
 # Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 5/11/2026
@@ -12,7 +14,7 @@ on:
 permissions:
   contents: read
   actions: read
-  issues: read
+  issues: write
   pull-requests: read
 
 jobs:
@@ -36,6 +38,9 @@ jobs:
           else
             echo "Aún no hay datos de cobertura de develop." >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      - name: Etiquetas de origen de los bugs
+        run: node .github/scripts/bugs.mjs etiquetar-todos
 
       - name: Bugs y fallos parados por el CI
         run: node .github/scripts/bugs.mjs informe >> "$GITHUB_STEP_SUMMARY"

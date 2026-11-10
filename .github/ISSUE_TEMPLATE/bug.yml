@@ -1,5 +1,5 @@
-# Plantilla de bug (#272). «¿Cómo se ha encontrado?» alimenta la métrica de bugs encontrados por tests:
-# el workflow bugs.yml pone una etiqueta hallado-* según la respuesta. No cambies los textos de las opciones
+# Plantilla de bug (US-12.01, #272). «¿Cómo se ha encontrado?» alimenta la métrica de bugs encontrados por tests:
+# el workflow «Métricas de tests» pone una etiqueta hallado-* según la respuesta. No cambies los textos de las opciones
 # sin cambiar también ORIGENES en .github/scripts/bugs.mjs.
 name: Bug
 description: Algo que ya está integrado (en una rama de historia, en develop o en main) no funciona como dicen sus criterios.
