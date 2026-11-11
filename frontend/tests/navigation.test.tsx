@@ -127,4 +127,21 @@ describe('layout y navegación (#21)', () => {
       .map((link) => link.textContent);
     expect(links).toEqual(['Inicio', 'Mis objetos', 'Mis solicitudes', 'Mi perfil']);
   });
+
+  it('solo el admin ve «Riders», antes de «Mi perfil»', () => {
+    localStorage.setItem(
+      'rentit.session',
+      JSON.stringify({ ...SESSION, user: { ...SESSION.user, role: 'admin' } }),
+    );
+    renderRoute('/');
+
+    const links = mainNav()
+      .getAllByRole('link')
+      .map((link) => link.textContent);
+    expect(links).toEqual(['Inicio', 'Mis objetos', 'Mis solicitudes', 'Riders', 'Mi perfil']);
+    expect(mainNav().getByRole('link', { name: 'Riders' })).toHaveAttribute(
+      'href',
+      '/admin/riders',
+    );
+  });
 });

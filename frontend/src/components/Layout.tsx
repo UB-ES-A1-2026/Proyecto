@@ -37,6 +37,13 @@ export function Layout() {
                   <Icon name="receipt_long" />
                   Mis solicitudes
                 </NavLink>
+                {/* Solo el admin revisa las solicitudes para ser rider (US-11.03). */}
+                {session.user.role === 'admin' && (
+                  <NavLink to="/admin/riders" className="nav-link">
+                    <Icon name="pedal_bike" />
+                    Riders
+                  </NavLink>
+                )}
                 <NavLink to="/perfil" className="nav-link">
                   <Icon name="person" />
                   Mi perfil

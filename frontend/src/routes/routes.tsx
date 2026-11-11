@@ -13,6 +13,8 @@ import { ProfilePage } from '../pages/ProfilePage';
 import { PublishItemPage } from '../pages/PublishItemPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { SearchPage } from '../pages/SearchPage';
+import { AdminRidersPage } from '../pages/AdminRidersPage';
+import { AdminRoute } from '../components/AdminRoute';
 
 export const routes: RouteObject[] = [
   {
@@ -39,6 +41,10 @@ export const routes: RouteObject[] = [
           { path: 'mis-solicitudes', element: <MyReservationsPage /> },
           { path: 'objetos/nuevo', element: <PublishItemPage /> },
         ],
+      },
+      {
+        element: <AdminRoute />,
+        children: [{ path: 'admin/riders', element: <AdminRidersPage /> }],
       },
       { path: '*', element: <NotFoundPage /> },
     ],
