@@ -1,7 +1,8 @@
 // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
 import request from 'supertest';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { app } from '../../src/app.js';
+import * as pickupPointRepository from '../../src/repositories/pickupPointRepository.js';
 import { prisma } from '../../src/repositories/prisma.js';
 import {
   createReservation,
@@ -70,6 +71,10 @@ const RIDER = {
 
 beforeEach(async () => {
   await resetDb();
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 describe('POST /api/reservas con modo de entrega', () => {
@@ -328,6 +333,28 @@ describe('POST /api/reservas con modo de entrega', () => {
     });
 
     expect(response.status).toBe(201);
+  });
+
+  it('does not create the reservation when saving its delivery fails', async () => {
+    const { item, bruno, brunoToken } = await setUp();
+    // El punto pasa la validación (el repositorio dice que existe) pero no está en la BD: al
+    // guardar la entrega anidada falla la clave foránea y no debe quedar ninguna reserva.
+    vi.spyOn(pickupPointRepository, 'findPickupPointById').mockResolvedValue(
+      await prisma.pickupPoint.findFirstOrThrow(),
+    );
+    const missingId = '00000000-0000-4000-8000-000000000001';
+
+    const response = await post(brunoToken, {
+      itemId: item.id,
+      deliveryMode: 'pickup_point',
+      pickupPointId: missingId,
+    });
+
+    expect(response.status).toBe(500);
+    expect(
+      await prisma.reservation.count({ where: { renterId: bruno.id } }),
+    ).toBe(0);
+    expect(await prisma.delivery.count()).toBe(0);
   });
 
   it('does not create the delivery when the dates are taken', async () => {
