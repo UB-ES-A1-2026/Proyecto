@@ -3,8 +3,11 @@
 Cómo está montada la URL pública de Rentit (TR-04 · #85: tareas #96 y #97; secretos en #100) y qué hay que configurar a mano la primera vez. Sigue el [ADR 0001](adr/0001-stack.md): frontend en **Vercel**, backend en **Render** y PostgreSQL en **Supabase**, todo en planes gratuitos.
 
 > Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 25/10/2026.
+> La sección «Preproducción (staging)» (US-12.03, #278 y #279): generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026.
 
 **Estado (25/10/2026):** configurado. Frontend en https://rentit-ub.vercel.app (proyecto `rentit` del *scope* `marcsanz-dev` en Vercel) y backend en https://rentit-api-gfkc.onrender.com (`rentit-api`, Frankfurt), con Supabase en Frankfurt. Los secretos `VERCEL_*` y `RENDER_DEPLOY_HOOK_URL` y la variable `API_URL` ya están en GitHub. Ahora mismo está desplegada la versión del Sprint 0 (`main`).
+
+**Preproducción (11/11/2026):** la rama `staging` despliega un segundo entorno completo, con otras cuentas y otra base de datos, antes de pasar a producción. Su guía está en [«Preproducción (staging)»](#preproducción-staging) y los servicios los monta Max. Hasta entonces, mientras falten los secretos `STAGING_*`, los workflows avisan y terminan en verde sin desplegar.
 
 ## Cómo funciona
 
@@ -18,7 +21,7 @@ flowchart LR
   render -- "pooler IPv4" --> supa
 ```
 
-- **Solo se despliega a producción desde `main`**, es decir, en cada release o hotfix (CONTRIBUTING, «Despliegue»).
+- **Solo se despliega a producción desde `main`**, es decir, en cada release de `staging` o hotfix (CONTRIBUTING, «Despliegue»). Un push a `staging` despliega **preproducción** (sección siguiente).
 - Cada PR hacia `develop` o `main` genera una **preview** del frontend; la URL sale en el resumen del job «Despliegue del frontend / Vercel».
 - **Migraciones automáticas (#97):** el backend arranca con `npm run db:deploy && npm start`, así que cada despliegue aplica las migraciones nuevas antes de servir peticiones.
 - Los dos despliegues los lanza **GitHub Actions** (`.github/workflows/deploy-frontend.yml` y `deploy-backend.yml`), no las integraciones Git de Vercel y Render:
@@ -27,6 +30,109 @@ flowchart LR
   - Con la CLI de Vercel (token) y el *deploy hook* de Render no hace falta ninguna de las dos cosas.
 - Mientras falten los secretos, los dos workflows avisan y terminan **en verde sin desplegar**: no bloquean a nadie.
 - El despliegue del frontend son **dos jobs en máquinas distintas**: *Build* compila el código (también el de un PR) **sin el token de Vercel**, y *Vercel* despliega lo ya compilado con el token, sin ejecutar código del repo. Así un PR no puede leer el token (revisión de Kai en #165).
+
+## Preproducción (staging)
+
+Desde el Sprint 2 (US-12.03, #276) no se pasa de `develop` a `main` directamente: antes se despliega la versión en **preproducción**, un entorno igual que producción pero con sus propios servicios y su propia base de datos, y allí se prueba (smoke test e2e y pruebas a mano). Solo cuando todo está bien se hace el PR a `main`.
+
+```mermaid
+flowchart LR
+  feat[feature/ · bugfix/] -- "PR + CI + 1 aprobación" --> dev[develop]
+  dev -- "PR + CI + 1 aprobación" --> stg[staging]
+  stg -- "push: Actions" --> rstg[Render · rentit-api-staging]
+  stg -- "push: Actions" --> vstg[Vercel · rentit-staging]
+  rstg -- "db:deploy + seed demo" --> sstg[(Supabase · rentit-staging)]
+  stg -- "pruebas OK: PR + etiqueta sprint-N" --> main[main]
+  main -- "push: Actions" --> prod[Render + Vercel + Supabase de producción]
+```
+
+- Un **push a `staging`** lanza los mismos dos workflows que producción (`deploy-backend.yml` y `deploy-frontend.yml`), pero con los secretos y servicios de preproducción. Un push a `main` sigue desplegando producción exactamente como antes.
+- Backend: se lanza el *deploy hook* de `rentit-api-staging`, se espera a que `$STAGING_API_URL/health` responda y, después, un job aplica las migraciones y carga los datos de demo en la BD de preproducción (`npm run db:deploy` y `npm run db:seed:demo`).
+- Frontend: se despliega al proyecto `rentit-staging` como producción **de ese proyecto** (URL estable). Con la misma separación de seguridad que producción: el build, que ejecuta código del repo, va sin token.
+- El smoke test e2e contra preproducción lo añade la tarea T5 (#280) como un job más de `deploy-backend.yml`, después de los datos de demo. Necesita las variables `STAGING_WEB_URL` y `STAGING_API_URL`.
+- **Si algo falla** (el hook, que la API no responda, una migración o el seed), el workflow queda en **rojo**. Ese check rojo en el commit de `staging` es la señal: no se abre el PR a `main` hasta arreglarlo (con un `bugfix/` hacia `staging`, CONTRIBUTING regla 7). Lo mismo si falla el smoke test.
+- Los PR hacia `staging` pasan el CI y gitleaks, pero **no generan preview** del frontend: usaría el proyecto y el backend de producción, y la versión ya se previsualizó en sus PR a `develop`.
+
+### Por qué cuentas separadas
+
+| | Producción | Preproducción |
+|---|---|---|
+| Supabase, Render, Vercel | Cuentas de Marc | Cuentas de **Max** |
+| Base de datos | `rentit` | `rentit-staging` |
+| Fotos | `rentit-fotos` | `rentit-fotos-staging` |
+| Secretos en GitHub | Nivel repo (`RENDER_DEPLOY_HOOK_URL`, `VERCEL_*`…) | Environment `staging` (`STAGING_*`) |
+
+Los datos y las claves **no se comparten nunca**: así, un seed o una migración que salga mal en preproducción no puede tocar los datos reales, y lo que se prueba allí (incluidos los datos de demo, que son públicos en el repo) no mezcla cuentas de prueba con las de producción. Es lo que pide la historia: «las claves y la base de datos de producción nunca se usan en preproducción, ni al revés».
+
+### Guía para montar preproducción (la hace Max, una vez)
+
+Es la misma guía de producción de más abajo, con otros nombres y en tus cuentas. **Ninguna clave se escribe en el repo ni en el chat.**
+
+#### P1. Supabase
+1. *New project* → nombre `rentit-staging`, región **Central EU (Frankfurt)**, contraseña larga generada y guardada en tu gestor de contraseñas.
+2. *Connect* → copia las dos cadenas del **pooler** (como en el paso 1 de producción): *Transaction pooler* (6543, con `?pgbouncer=true`) → `DATABASE_URL` de Render y secreto `STAGING_DATABASE_URL`; *Session pooler* (5432) → `DIRECT_URL` de Render y secreto `STAGING_DIRECT_URL`.
+3. **Storage → New bucket** `rentit-fotos-staging`, **privado**. En *Project Settings → Storage → S3 Connection* copia el *Endpoint* y la *Region* y crea una *S3 Access Key* (el *Secret* solo se ve una vez), como en el paso 6 de producción.
+
+#### P2. Render
+1. *New → Web Service → Public Git Repository* → `https://github.com/UB-ES-A1-2026/Proyecto`, con la tabla del paso 2 de producción pero:
+
+   | Campo | Valor |
+   |---|---|
+   | Name | `rentit-api-staging` |
+   | Branch | **`staging`** |
+   | Auto-Deploy | **No** (lo lanza GitHub Actions) |
+   | Region, Root Directory, Runtime, Build/Start Command, Instance Type, Health Check Path | Igual que producción (`backend`, `npm ci && npm run build`, `npm run db:deploy && npm start`, `/api/health`…) |
+
+2. *Environment*, igual que producción pero con los valores de preproducción:
+
+   | Variable | Valor |
+   |---|---|
+   | `NODE_VERSION` | `22` |
+   | `DATABASE_URL` / `DIRECT_URL` | Los dos pooler de `rentit-staging` |
+   | `CORS_ORIGINS` | La URL de Vercel de `rentit-staging`, sin barra final (se rellena después del paso P3) |
+   | `BCRYPT_ROUNDS` | `10` |
+   | `S3_BUCKET` | `rentit-fotos-staging` |
+   | `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | Los de `rentit-staging` (paso P1.3) |
+   | `S3_FORCE_PATH_STYLE` | `true` |
+
+   `CORS_PREVIEW_PATTERN` no hace falta: preproducción no tiene previews.
+3. *Settings → Deploy Hook* → será el secreto `STAGING_RENDER_DEPLOY_HOOK_URL`. La URL de la API (`https://rentit-api-staging.onrender.com/api`, el dominio exacto lo da Render) será la variable `STAGING_API_URL`.
+
+#### P3. Vercel
+1. En **otra copia** del repo (otra carpeta, para no pisar el `.vercel/` de producción si lo tienes): `npx vercel@63.1.0 link` desde la raíz y crea el proyecto `rentit-staging` en tu cuenta Hobby, sin conectar Git. Si prefieres no tener otra copia: `npx vercel@63.1.0 link --project rentit-staging`. Esto genera `.vercel/project.json` (en `.gitignore`) con `orgId` y `projectId`.
+2. *Settings → Build and Deployment*: **Root Directory = `frontend`**, *Framework* = Vite.
+3. *Environment Variables*: `VITE_API_URL` = la URL de la API de preproducción (`…/api`), en **Production** (el workflow despliega con `--prod`).
+4. *Account Settings → Tokens*: crea un token solo para este proyecto, con caducidad al final del curso.
+5. Con la URL del proyecto, vuelve a Render y rellena `CORS_ORIGINS`.
+
+#### P4. GitHub: Environment `staging`
+En *Settings → Environments → New environment* → `staging` (lo crea una persona admin del repo):
+- **Deployment branches and tags → Selected branches** → solo `staging`. Así ninguna otra rama (ni un PR) puede leer estos secretos.
+- No hace falta pedir aprobadores: el control de calidad es el PR a `staging`.
+
+Secretos y variables **del Environment `staging`** (no del repo):
+
+| Nombre | Tipo | Valor |
+|---|---|---|
+| `STAGING_RENDER_DEPLOY_HOOK_URL` | Secreto | Deploy hook de `rentit-api-staging` |
+| `STAGING_VERCEL_TOKEN` | Secreto | Token de Vercel del paso P3 |
+| `STAGING_VERCEL_ORG_ID` | Secreto | `orgId` de `.vercel/project.json` |
+| `STAGING_VERCEL_PROJECT_ID` | Secreto | `projectId` de `.vercel/project.json` |
+| `STAGING_DATABASE_URL` | Secreto | Transaction pooler de `rentit-staging` (6543, `?pgbouncer=true`) |
+| `STAGING_DIRECT_URL` | Secreto | Session pooler de `rentit-staging` (5432) |
+| `STAGING_DEMO_PASSWORD` | Secreto | Contraseña de las cuentas de demo de preproducción (12+ caracteres) |
+| `STAGING_API_URL` | Variable | `https://<servicio>.onrender.com/api` de preproducción |
+| `STAGING_WEB_URL` | Variable | URL de Vercel de `rentit-staging` (para el smoke test, T5) |
+
+> **Por qué nombres distintos y no los de producción en otro Environment.** Si el secreto de staging se llamara igual que uno de producción que está a nivel de repo (por ejemplo, `DEMO_PASSWORD` o `PROD_DATABASE_URL`) y faltara en el Environment, GitHub usaría **en silencio el valor de producción**: un push a `staging` podría cargar los datos de demo en la BD de producción. Con prefijo `STAGING_*` nadie más tiene ese nombre, y si falta, el workflow lo dice y se para. Por eso los jobs de preproducción solo usan nombres `STAGING_*` y los de producción no declaran el Environment.
+
+#### P5. Primer despliegue y comprobación
+1. Cuando `staging` exista (la rama la crea una persona admin a partir de `develop`) y los secretos estén puestos: *Actions → Despliegue del backend → Run workflow* (rama **`staging`**) y lo mismo con *Despliegue del frontend*. A partir de ahí, cada push a `staging` los lanza solo.
+2. Comprueba:
+   - `https://<servicio>.onrender.com/api/health` → `{"status":"ok"}`.
+   - Los jobs «Render (preproducción)» y «Migraciones y datos de demo» en verde.
+   - En la URL de `rentit-staging`: entra con `laura@demo.rentit.test` y la contraseña `STAGING_DEMO_PASSWORD`, mira los objetos de la demo y publica uno con foto.
+   - El smoke test a mano, desde `e2e/`: `BASE_URL=<URL de Vercel de staging> API_URL=<URL de Render de staging>/api npm run test:smoke`.
 
 ## Configuración inicial (una vez, la hace la persona de DevOps)
 
@@ -123,7 +229,7 @@ Las fotos van a un bucket **privado** de Supabase Storage a través de su API de
 ## Datos en producción
 
 - **No ejecutes nunca `npm run db:seed` contra producción.** El seed de desarrollo crea `admin@rentit.test` con una contraseña que está en el repo, que es público.
-- Las previews usan el mismo backend y la misma BD que producción (ADR 0001 §4): prueba con cuentas de prueba, nunca con los datos de la demo.
+- Las previews usan el mismo backend y la misma BD que producción (ADR 0001 §4): prueba con cuentas de prueba, nunca con los datos de la demo. Esto sigue siendo así: **preproducción no tiene previews**, solo el despliegue de `staging`.
 
 ### Datos de demo (#97)
 
@@ -159,3 +265,5 @@ Los objetos de la demo todavía no tienen fotos: llegarán con la subida de foto
 | Error de CORS en el navegador | La URL de Vercel no está en `CORS_ORIGINS` o no encaja con `CORS_PREVIEW_PATTERN` | Revisar el paso 4 |
 | 404 al recargar una ruta | Falta `frontend/vercel.json` | Ya está en el repo; comprueba que Root Directory sea `frontend` |
 | Supabase en pausa | Más de 7 días sin actividad (plan gratuito) | *Restore* en el panel de Supabase |
+| El workflow de `staging` tarda o falla en «Esperar a que la API de preproducción responda» | Render free también duerme `rentit-api-staging` y el primer arranque tarda | Se espera hasta ~11 min; si sigue en rojo, mira los logs en Render y repite con *Re-run jobs* |
+| El job «Migraciones y datos de demo» no sale | Falta algún secreto `STAGING_*` del Environment `staging`, o el workflow se lanzó desde otra rama (el Environment solo admite `staging`) | Revisa la tabla de la sección de preproducción |
