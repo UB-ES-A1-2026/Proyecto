@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Escáner · SP-05</title>
+<style>body{font-family:system-ui;max-width:28rem;margin:2rem auto;padding:0 1rem;text-align:center}video{width:100%}</style>
+</head>
+<body>
+<h1>Escáner alternativo</h1>
+<p id="msg">Comprobando soporte…</p>
+<video id="v" playsinline muted hidden></video>
+<p><a href="/">Volver</a></p>
+<script>
+// Alternativa a la cámara nativa: BarcodeDetector + getUserMedia.
+// getUserMedia exige HTTPS (o localhost): en http://IP-LAN el navegador del móvil lo bloquea.
+const msg = document.getElementById('msg')
+;(async () => {
+  if (!('BarcodeDetector' in window)) return (msg.textContent = 'Este navegador no tiene BarcodeDetector (p. ej. Safari/Firefox). Usa la cámara nativa del móvil.')
+  if (!navigator.mediaDevices?.getUserMedia || !isSecureContext) return (msg.textContent = 'La cámara del navegador necesita HTTPS (contexto seguro). Usa la cámara nativa.')
+  const v = document.getElementById('v')
+  v.srcObject = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+  v.hidden = false; await v.play()
+  msg.textContent = 'Apunta al QR…'
+  const det = new BarcodeDetector({ formats: ['qr_code'] })
+  const tick = async () => {
+    const [code] = await det.detect(v)
+    if (code) {
+      const u = new URL(code.rawValue)
+      if (u.origin === location.origin && u.pathname === '/abrir') return (location.href = u.href)
+      msg.textContent = 'QR que no es de la taquilla.'
+    }
+    setTimeout(tick, 250)
+  }
+  tick()
+})().catch((e) => (msg.textContent = 'Error: ' + e.message))
+</script>
+</body>
+</html>
