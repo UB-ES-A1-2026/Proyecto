@@ -3,7 +3,11 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { app } from '../../src/app.js';
 import { prisma } from '../../src/repositories/prisma.js';
 import { resetDb } from '../helpers/db.js';
-import { createTestUser, TEST_PASSWORD } from '../helpers/users.js';
+import {
+  createTestRider,
+  createTestUser,
+  TEST_PASSWORD,
+} from '../helpers/users.js';
 
 const INVALID_SESSION = {
   error: 'Sesión no válida o caducada. Inicia sesión de nuevo.',
@@ -35,6 +39,8 @@ describe('GET /api/usuarios/me', () => {
       username: 'ana',
       email: 'ana@rentit.test',
       role: 'user',
+      isRider: false,
+      riderStatus: null,
       createdAt: user.createdAt.toISOString(),
     });
     expect(response.body).not.toHaveProperty('passwordHash');
@@ -42,6 +48,25 @@ describe('GET /api/usuarios/me', () => {
     expect(response.body).not.toHaveProperty('updatedAt');
     expect(response.body).not.toHaveProperty('session');
   });
+
+  // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+  it.each(['pending', 'approved', 'rejected'] as const)(
+    'reports the rider status when the application is %s',
+    async (status) => {
+      await createTestRider(status, { email: 'ana@rentit.test' });
+      const token = await loginAs();
+
+      const response = await request(app)
+        .get('/api/usuarios/me')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        isRider: true,
+        riderStatus: status,
+      });
+    },
+  );
 
   it.each([
     ['without an Authorization header', undefined],

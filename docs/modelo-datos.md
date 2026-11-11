@@ -11,6 +11,7 @@ Siguiendo el diseño emergente que pide la asignatura, en cada sprint solo se cr
 ```mermaid
 erDiagram
   USUARIO ||--o{ SESION : "inicia"
+  USUARIO ||--o| SOLICITUD_RIDER : "solicita ser rider"
   USUARIO ||--o{ OBJETO : "publica"
   CATEGORIA ||--o{ OBJETO : "clasifica"
   OBJETO ||--o{ FOTO_OBJETO : "tiene"
@@ -50,6 +51,18 @@ erDiagram
     fecha_hora creada_en
     fecha_hora expira_en
     fecha_hora revocada_en "null = activa"
+  }
+  SOLICITUD_RIDER {
+    id id PK
+    id usuario_id FK,UK
+    texto telefono
+    texto zona
+    enum vehiculo "a_pie | bici | patinete | moto | coche"
+    enum_array dias "lunes … domingo, al menos uno"
+    enum_array franjas "manana | tarde | noche, al menos una"
+    fecha_hora condiciones_aceptadas_en
+    enum estado "pendiente | aceptada | rechazada"
+    fecha_hora creada_en
   }
   CATEGORIA {
     id id PK
@@ -245,11 +258,36 @@ Se crea en la migración `crea_reserva` como parte de TR-05 (#86), para que est�
 
 En Prisma, el modelo es `Reservation`, y los enums son `ReservationStatus` (`pending`, `accepted`, `rejected`, `cancelled`, `paid`, `in_progress`, `finished`) y `DeliveryMode` (`home`, `rider`, `pickup_point`).
 
+## Tabla `solicitud_rider` (Sprint 2 · #314)
+
+Se crea en la migración `crea_solicitud_rider` como parte de US-10.03 (#304, «Solicitar ser rider»). Guarda las respuestas del cuestionario de «Hazte rider». La cuenta de rider es un `usuario` con `es_rider = true` (se crea junto con la solicitud, en una sola transacción), y su solicitud empieza en `pendiente`. US-11.03 (#305) la acepta o la rechaza; los campos de esa revisión (quién, cuándo y el motivo) los añade esa tarea con otra migración.
+
+| Campo | Tipo | Obligatorio | Restricciones | Para qué |
+|---|---|---|---|---|
+| `id` | UUID | sí | PK | Identificador |
+| `usuario_id` | UUID | sí | FK → `usuario.id`, único, borrado restringido | Una sola solicitud por cuenta |
+| `telefono` | texto (≤ 20) | sí | | Teléfono español normalizado (9 dígitos, sin prefijo ni espacios) |
+| `zona` | texto (≤ 100) | sí | | Zona en la que quiere repartir |
+| `vehiculo` | enum `a_pie`, `bici`, `patinete`, `moto`, `coche` | sí | | Vehículo con el que reparte |
+| `dias` | array de enum `dia_semana` (`lunes` … `domingo`) | sí | no vacío (`CHECK`) | Días en que puede repartir |
+| `franjas` | array de enum `franja_rider` (`manana`, `tarde`, `noche`) | sí | no vacío (`CHECK`) | Franjas en que puede repartir: mañana 9–14 h, tarde 14–20 h, noche 20–23 h |
+| `condiciones_aceptadas_en` | fecha y hora | sí | | Cuándo aceptó las condiciones |
+| `estado` | enum `pendiente`, `aceptada`, `rechazada` | sí | por defecto `pendiente` | Estado de la revisión |
+| `creada_en` | fecha y hora | sí | por defecto «ahora» | Orden de revisión: de la más antigua a la más nueva |
+
+| Decisión | Por qué |
+|---|---|
+| Se reutiliza `usuario.es_rider` | Vale `true` en toda cuenta de rider, sea cual sea el estado de su solicitud. Que pueda repartir lo dice `solicitud_rider.estado = aceptada`. Una cuenta con `es_rider` no puede solicitar ni publicar objetos. |
+| `dias` y `franjas` son arrays de enums de Postgres | Son listas cortas y cerradas que se leen siempre juntas con la solicitud; una tabla aparte no aporta nada. El backend rechaza repetidos. |
+| Un usuario con solicitud **no se puede borrar** | La solicitud es el historial de la revisión. |
+
+En Prisma, el modelo es `RiderApplication` y los enums son `RiderVehicle` (`on_foot`, `bike`, `scooter`, `motorbike`, `car`), `RiderApplicationStatus` (`pending`, `approved`, `rejected`), `RiderWeekday` (`monday` … `sunday`) y `RiderSlot` (`morning`, `afternoon`, `night`).
+
 ## Qué tablas entran en cada sprint
 
 | Sprint | Tablas nuevas | Historias |
 |---|---|---|
 | S0 | `usuario`, `sesion` | US-01.1, US-01.2, US-01.3 |
 | S1 | `categoria`, `objeto`, `foto_objeto`, `reserva` | US-02.x, US-03.x, US-04.01–04.04 |
-| S2 | `pago`, `punto_recogida`, `entrega`, `valoracion` (+ campos de perfil y rider en `usuario`) | US-07.01, US-05.01–05.02, US-10.01, US-08.x, US-01.4 |
+| S2 | `solicitud_rider` (US-10.03), `pago`, `punto_recogida`, `entrega`, `valoracion` (+ campos de perfil y rider en `usuario`) | US-07.01, US-05.01–05.02, US-10.01, US-10.03, US-08.x, US-01.4 |
 | S3 | `conversacion`, `mensaje`, `notificacion`, `incidencia`, `foto_estado` | US-06.x, US-09.x, US-11.01, US-04.05 |

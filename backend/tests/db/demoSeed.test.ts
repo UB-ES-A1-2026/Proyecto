@@ -4,9 +4,11 @@ import { DEMO_ITEMS, DEMO_RESERVATIONS } from '../../prisma/demoData.js';
 import {
   DEMO_USERS,
   DEV_PASSWORD,
+  PRODUCTION_DEMO_RIDERS,
   demoPasswordError,
   upsertDemoItems,
   upsertDemoReservations,
+  upsertDemoRiders,
   upsertUsers,
 } from '../../prisma/demoSeed.js';
 import { prisma } from '../../src/repositories/prisma.js';
@@ -186,5 +188,44 @@ describe('solicitudes de la demo', () => {
     await expect(
       upsertDemoReservations(prisma, userIds, TODAY),
     ).rejects.toThrow('crea antes los objetos');
+  });
+});
+
+// Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+describe('riders de la demo (US-10.03)', () => {
+  async function seedRiders() {
+    return upsertDemoRiders(prisma, DEMO_PASSWORD, 4, PRODUCTION_DEMO_RIDERS);
+  }
+
+  it('crea un rider pendiente y uno aceptado con la contraseña de la demo', async () => {
+    expect(await seedRiders()).toBe(2);
+
+    const riders = await prisma.user.findMany({
+      where: { isRider: true },
+      include: { riderApplication: true },
+      orderBy: { username: 'asc' },
+    });
+    expect(
+      riders.map(({ email, riderApplication }) => [
+        email,
+        riderApplication?.status,
+      ]),
+    ).toEqual([
+      ['nuria@demo.rentit.test', 'pending'],
+      ['pau@demo.rentit.test', 'approved'],
+    ]);
+    for (const rider of riders) {
+      expect(await bcrypt.compare(DEMO_PASSWORD, rider.passwordHash)).toBe(
+        true,
+      );
+    }
+  });
+
+  it('repetir el seed no duplica las cuentas ni las solicitudes', async () => {
+    await seedRiders();
+    await seedRiders();
+
+    expect(await prisma.user.count({ where: { isRider: true } })).toBe(2);
+    expect(await prisma.riderApplication.count()).toBe(2);
   });
 });

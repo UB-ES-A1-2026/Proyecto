@@ -32,6 +32,8 @@ describe('userService.getProfile', () => {
       username: 'ana',
       email: 'ana@rentit.test',
       role: 'user',
+      isRider: true,
+      riderApplication: { status: 'approved' },
       createdAt,
       passwordHash: 'private-hash',
       status: 'active',
@@ -45,6 +47,8 @@ describe('userService.getProfile', () => {
       username: 'ana',
       email: 'ana@rentit.test',
       role: 'user',
+      isRider: true,
+      riderStatus: 'approved',
       createdAt,
     });
     expect(profile).not.toHaveProperty('passwordHash');

@@ -3,7 +3,11 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { app } from '../../src/app.js';
 import { prisma } from '../../src/repositories/prisma.js';
 import { resetDb } from '../helpers/db.js';
-import { createTestUser, TEST_PASSWORD } from '../helpers/users.js';
+import {
+  createTestRider,
+  createTestUser,
+  TEST_PASSWORD,
+} from '../helpers/users.js';
 
 const INVALID_EMAIL = {
   error: 'El campo "correo electrónico" no es correcto, revísalo.',
@@ -42,11 +46,35 @@ describe('POST /api/auth/login', () => {
         username: 'ana',
         email: 'ana@rentit.test',
         role: 'user',
+        isRider: false,
+        riderStatus: null,
       },
     });
     expect(JSON.stringify(response.body)).not.toContain('passwordHash');
     expect(await prisma.session.count({ where: { userId: user.id } })).toBe(1);
   });
+
+  // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+  it.each(['pending', 'approved', 'rejected'] as const)(
+    'reports a rider account with a %s application',
+    async (status) => {
+      const rider = await createTestRider(status);
+
+      const response = await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'rider@rentit.test', password: TEST_PASSWORD });
+
+      expect(response.status).toBe(200);
+      expect(response.body.user).toEqual({
+        id: rider.id,
+        username: 'rider',
+        email: 'rider@rentit.test',
+        role: 'user',
+        isRider: true,
+        riderStatus: status,
+      });
+    },
+  );
 
   it('accepts the email with spaces and capital letters', async () => {
     await createTestUser();

@@ -2,7 +2,14 @@
 // varias veces. Las usan seed.ts (desarrollo) y seed-demo.ts (demo en producción).
 // Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 31/10/2026
 import bcrypt from 'bcrypt';
-import type { PrismaClient, UserRole } from '@prisma/client';
+import type {
+  PrismaClient,
+  RiderApplicationStatus,
+  RiderSlot,
+  RiderVehicle,
+  RiderWeekday,
+  UserRole,
+} from '@prisma/client';
 import { DEMO_ITEMS, DEMO_RESERVATIONS } from './demoData.js';
 
 // Contraseña de las cuentas del seed de desarrollo: está en el repo, que es público.
@@ -160,4 +167,94 @@ export async function upsertDemoReservations(
   }
 
   return DEMO_RESERVATIONS.length;
+}
+
+// Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+// Cuentas de rider de ejemplo (US-10.03): una pendiente de revisión y una ya aceptada.
+export interface SeedRider {
+  username: string;
+  email: string;
+  phone: string;
+  zone: string;
+  vehicle: RiderVehicle;
+  days: RiderWeekday[];
+  slots: RiderSlot[];
+  status: RiderApplicationStatus;
+}
+
+// Las del seed de desarrollo.
+export const DEMO_RIDERS: readonly SeedRider[] = [
+  {
+    username: 'carla',
+    email: 'carla@rentit.test',
+    phone: '612345678',
+    zone: 'Gràcia',
+    vehicle: 'bike',
+    days: ['monday', 'wednesday', 'friday'],
+    slots: ['afternoon'],
+    status: 'pending',
+  },
+  {
+    username: 'dani',
+    email: 'dani@rentit.test',
+    phone: '698765432',
+    zone: 'Eixample',
+    vehicle: 'motorbike',
+    days: ['saturday', 'sunday'],
+    slots: ['morning', 'afternoon', 'night'],
+    status: 'approved',
+  },
+];
+
+// Las de la demo en producción (seed-demo.ts), con el mismo dominio que DEMO_USERS: sin ellas no se
+// puede enseñar «Hazte rider» ni la revisión del admin en la demo.
+export const PRODUCTION_DEMO_RIDERS: readonly SeedRider[] = [
+  {
+    username: 'nuria',
+    email: 'nuria@demo.rentit.test',
+    phone: '623456789',
+    zone: 'Gràcia',
+    vehicle: 'bike',
+    days: ['monday', 'tuesday', 'thursday'],
+    slots: ['afternoon', 'night'],
+    status: 'pending',
+  },
+  {
+    username: 'pau',
+    email: 'pau@demo.rentit.test',
+    phone: '687654321',
+    zone: 'Poblenou',
+    vehicle: 'scooter',
+    days: ['friday', 'saturday', 'sunday'],
+    slots: ['morning', 'afternoon'],
+    status: 'approved',
+  },
+];
+
+// Crea o actualiza las cuentas de rider (por email) con su solicitud. Repetir el seed deja otra
+// vez cada solicitud en el estado del catálogo, igual que las reservas de demo.
+export async function upsertDemoRiders(
+  prisma: PrismaClient,
+  password: string,
+  bcryptRounds: number,
+  riders: readonly SeedRider[] = DEMO_RIDERS,
+): Promise<number> {
+  const passwordHash = await bcrypt.hash(password, bcryptRounds);
+
+  for (const { username, email, ...application } of riders) {
+    const user = await prisma.user.upsert({
+      where: { email },
+      update: { username, isRider: true, passwordHash },
+      create: { username, email, isRider: true, passwordHash },
+    });
+    const data = { ...application, termsAcceptedAt: new Date() };
+
+    await prisma.riderApplication.upsert({
+      where: { userId: user.id },
+      update: data,
+      create: { ...data, userId: user.id },
+    });
+  }
+
+  return riders.length;
 }

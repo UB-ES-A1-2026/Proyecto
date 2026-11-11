@@ -1,10 +1,13 @@
 import { AppError } from '../errors/appError.js';
 import { findUserById } from '../repositories/userRepository.js';
+import { toRiderFields, type RiderFields } from './riderStatus.js';
 
 const INVALID_SESSION_MESSAGE =
   'Sesión no válida o caducada. Inicia sesión de nuevo.';
 
-export interface UserProfile {
+// Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+// El perfil incluye isRider y riderStatus (US-10.03).
+export interface UserProfile extends RiderFields {
   id: string;
   username: string;
   email: string;
@@ -25,6 +28,7 @@ export async function getProfile(userId: string): Promise<UserProfile> {
     username: user.username,
     email: user.email,
     role: user.role,
+    ...toRiderFields(user),
     createdAt: user.createdAt,
   };
 }
