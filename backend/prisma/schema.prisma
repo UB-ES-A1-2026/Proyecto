@@ -162,8 +162,46 @@ model Reservation {
   // Restrict: las reservas son el historial de un alquiler; no se borran con su objeto ni su usuario.
   item         Item              @relation(fields: [itemId], references: [id], onDelete: Restrict)
   renter       User              @relation(fields: [renterId], references: [id], onDelete: Restrict)
+  payment      Payment?
 
   @@index([itemId, status])
   @@index([renterId])
   @@map("reserva")
+}
+
+// Pagos y fianzas (US-07.01, #284). Una reserva tiene como mucho un pago (reserva_id único):
+// así la BD impide pagar dos veces la misma reserva.
+enum PaymentStatus {
+  pending  @map("pendiente")
+  paid     @map("pagado")
+  rejected @map("rechazado")
+  refunded @map("reembolsado")
+
+  @@map("estado_pago")
+}
+
+enum DepositStatus {
+  held     @map("retenida")
+  released @map("liberada")
+  charged  @map("ejecutada")
+
+  @@map("estado_fianza")
+}
+
+model Payment {
+  id               String        @id @default(uuid()) @db.Uuid
+  reservationId    String        @unique @map("reserva_id") @db.Uuid
+  // importes >= 0: CHECK en la migración.
+  rentalAmount     Decimal       @map("importe_alquiler") @db.Decimal(10, 2)
+  // 0 hasta que exista la tabla entrega (US-05.01, T6).
+  deliveryAmount   Decimal       @default(0) @map("importe_entrega") @db.Decimal(10, 2)
+  depositAmount    Decimal       @map("importe_fianza") @db.Decimal(10, 2)
+  status           PaymentStatus @default(pending) @map("estado")
+  depositStatus    DepositStatus @default(held) @map("estado_fianza")
+  // Id del PaymentIntent de Stripe (T10).
+  gatewayReference String?       @map("referencia_pasarela")
+  createdAt        DateTime      @default(now()) @map("creado_en")
+  reservation      Reservation   @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+
+  @@map("pago")
 }
