@@ -21,8 +21,13 @@ function assertTestDatabase(): void {
 }
 
 // Tablas que no se vacían: el historial de Prisma y los datos de referencia que crean las
-// migraciones (las categorías existen también en producción y los tests cuentan con ellas).
-export const PRESERVED_TABLES = ['_prisma_migrations', 'categoria'] as const;
+// migraciones (las categorías y los puntos de recogida existen también en producción y los tests
+// cuentan con ellos).
+export const PRESERVED_TABLES = [
+  '_prisma_migrations',
+  'categoria',
+  'punto_recogida',
+] as const;
 
 export async function resetDb(): Promise<void> {
   assertTestDatabase();
