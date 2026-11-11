@@ -17,7 +17,7 @@ erDiagram
   USUARIO ||--o{ RESERVA : "solicita (arrendatario)"
   OBJETO ||--o{ RESERVA : "es reservado en"
   RESERVA ||--o| PAGO : "se paga con"
-  RESERVA ||--o{ ENTREGA : "ida y vuelta"
+  RESERVA ||--o| ENTREGA : "se entrega con"
   USUARIO |o--o{ ENTREGA : "reparte (rider)"
   PUNTO_RECOGIDA |o--o{ ENTREGA : "se usa en"
   RESERVA ||--o{ FOTO_ESTADO : "check-in / check-out"
@@ -63,7 +63,8 @@ erDiagram
     texto descripcion
     decimal precio_dia
     decimal fianza
-    texto barrio
+    texto barrio "de la lista fija de barrios de Barcelona"
+    texto direccion "null; obligatoria con entrega_domicilio o entrega_rider"
     decimal latitud
     decimal longitud
     booleano entrega_domicilio
@@ -106,19 +107,19 @@ erDiagram
     id id PK
     texto nombre
     texto direccion
+    texto barrio
     decimal latitud
     decimal longitud
   }
   ENTREGA {
     id id PK
-    id reserva_id FK
-    enum sentido "ida | vuelta"
-    id rider_id FK "null si no es por rider"
+    id reserva_id FK,UK
     id punto_recogida_id FK "null si no es punto"
-    fecha_hora hora_programada
-    enum estado "pendiente | asignada | recogida | en_camino | entregada"
-    texto codigo_entrega
-    decimal tarifa
+    texto franja "null = lo antes posible (solo rider)"
+    texto direccion_destino "solo rider"
+    texto barrio_destino "solo rider"
+    decimal tarifa "solo rider"
+    fecha_hora creada_en
   }
   FOTO_ESTADO {
     id id PK
@@ -237,13 +238,30 @@ Se crea en la migración `crea_reserva` como parte de TR-05 (#86), para que est�
 
 | Decisión | Por qué |
 |---|---|
-| `modo_entrega` es **opcional** | Se elige en US-05.01 (Sprint 2). En el Sprint 1 la solicitud solo lleva fechas e importe. |
+| `modo_entrega` es **opcional en la BD** | Las reservas del Sprint 1 no lo tienen. Desde US-05.01 (Sprint 2) la API lo exige al solicitar y lo guarda junto con su `entrega` (ver más abajo). |
 | `fecha_inicio` y `fecha_fin` son `DATE`, **sin hora** | El alquiler va por días y así no depende de la zona horaria. Las dos fechas cuentan: del 4 al 6 son 3 días. |
 | `precio_total` se guarda en la reserva | Si el propietario cambia el precio después, la solicitud conserva el importe que vio el arrendatario. |
 | `CHECK` en la BD: `fecha_fin >= fecha_inicio` y `precio_total > 0` | El backend también lo valida, pero así la BD nunca guarda datos imposibles. |
 | Un objeto o un usuario con reservas **no se pueden borrar** | Las reservas son el historial de los alquileres. |
 
 En Prisma, el modelo es `Reservation`, y los enums son `ReservationStatus` (`pending`, `accepted`, `rejected`, `cancelled`, `paid`, `in_progress`, `finished`) y `DeliveryMode` (`home`, `rider`, `pickup_point`).
+
+## Tablas `punto_recogida` y `entrega`, y `objeto.direccion` (Sprint 2 · US-05.01 · #281)
+
+Se crean en la migración `crea_punto_recogida_y_entrega`, en la tarea de backend de la primera historia que las usa (US-05.01). Siguen `AGENTS.md`: tablas y columnas en español, modelos en inglés (`PickupPoint`, `Delivery`).
+
+| Decisión | Por qué |
+|---|---|
+| **`objeto.direccion`** (opcional, ≤ 200) | La dirección exacta del propietario. La API exige que exista si el objeto ofrece recogida en su domicilio o rider, pero la BD la deja opcional porque los objetos antiguos no la tienen. **Nunca sale en la API pública**: solo la ve su propietario y, con recogida en domicilio, el arrendatario cuando la solicitud está aceptada, pagada, en curso o finalizada. El rider la verá al aceptar el trabajo (US-10.01). |
+| **`objeto.barrio` se elige de una lista fija** de barrios de Barcelona (`GET /api/barrios`) | Con el centro aproximado de cada barrio se calcula la distancia sin geocodificar nada (ADR 0005). La lista vive en el backend (`services/neighborhoods.ts`), no en la BD; los objetos antiguos con el barrio escrito a mano siguen funcionando (con la tarifa más alta). |
+| Los **puntos de recogida** los inserta la migración | Son lugares públicos (bibliotecas, mercados y centros cívicos), datos de referencia como las categorías: existen también en producción y `resetDb()` no los vacía. Llevan coordenadas exactas, porque son públicos. Para cambiarlos: una migración nueva. |
+| `entrega` es **0..1 por reserva** (`reserva_id` único) | Cada solicitud nueva crea su entrega en la misma transacción que la reserva. Las reservas anteriores a US-05.01 no tienen entrega ni `modo_entrega`. |
+| `franja` vale `HH:MM-HH:MM` o `NULL` («Lo antes posible») | Solo tiene sentido con rider. Las franjas son de 2 h, de 9:00 a 21:00, del día de inicio. `CHECK` de formato en la BD. |
+| `direccion_destino`, `barrio_destino` y `tarifa` solo se rellenan con rider | El arrendatario escribe la dirección y el barrio de entrega; la **tarifa la calcula el servidor**: distancia en línea recta entre los centros de los dos barrios × 1,3, hasta 2 km 3,00 €, de 2 a 5 km 5,00 € y más de 5 km 7,00 €. `CHECK (tarifa > 0)` cuando no es `NULL`. |
+| `reserva.precio_total` **sigue siendo solo el alquiler** | La tarifa vive en `entrega.tarifa`; el pago (US-07.01) suma las dos cosas. |
+| La entrega y el punto de recogida **no se pueden borrar** si hay reservas | `ON DELETE RESTRICT`: las reservas son historial. |
+
+Todavía **no tiene** `estado`, `codigo_entrega` (US-05.02, #288) ni `rider_id` (US-10.01, #292): cada una de esas historias añade sus columnas con una migración nueva. El diagrama de arriba refleja solo lo creado hasta ahora. `sentido` (ida y vuelta) y `hora_programada` quedan sustituidos por `franja`.
 
 ## Qué tablas entran en cada sprint
 
