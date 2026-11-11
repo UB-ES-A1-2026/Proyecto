@@ -2,41 +2,12 @@
 // Validación del cuerpo de POST /api/riders (US-10.03): datos de cuenta y cuestionario.
 import { AppError } from '../errors/appError.js';
 import {
-  asRecord,
-  readAccountFields,
-  type AccountFields,
-} from './accountFields.js';
-
-export const RIDER_VEHICLES = [
-  'on_foot',
-  'bike',
-  'scooter',
-  'motorbike',
-  'car',
-] as const;
-export const RIDER_WEEKDAYS = [
-  'monday',
-  'tuesday',
-  'wednesday',
-  'thursday',
-  'friday',
-  'saturday',
-  'sunday',
-] as const;
-// Mañana 9-14 h, tarde 14-20 h, noche 20-23 h.
-export const RIDER_SLOTS = ['morning', 'afternoon', 'night'] as const;
-
-export type RiderVehicleValue = (typeof RIDER_VEHICLES)[number];
-export type RiderWeekdayValue = (typeof RIDER_WEEKDAYS)[number];
-export type RiderSlotValue = (typeof RIDER_SLOTS)[number];
-
-export interface RiderBody extends AccountFields {
-  phone: string;
-  zone: string;
-  vehicle: RiderVehicleValue;
-  days: RiderWeekdayValue[];
-  slots: RiderSlotValue[];
-}
+  RIDER_SLOTS,
+  RIDER_VEHICLES,
+  RIDER_WEEKDAYS,
+  type RiderSignupInput,
+} from '../services/riderService.js';
+import { asRecord, readAccountFields } from './accountFields.js';
 
 export const TERMS_NOT_ACCEPTED_MESSAGE = 'Tienes que aceptar las condiciones.';
 
@@ -97,7 +68,7 @@ function readUniqueList<T extends string>(
   return items;
 }
 
-export function readRiderBody(body: unknown): RiderBody {
+export function readRiderBody(body: unknown): RiderSignupInput {
   const account = readAccountFields(body);
   const fields = asRecord(body);
 
