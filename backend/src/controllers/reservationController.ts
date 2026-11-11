@@ -2,6 +2,8 @@
 import type { RequestHandler } from 'express';
 import { AppError } from '../errors/appError.js';
 import { PaymentActionRequiredError } from '../services/paymentGateway.js';
+import { invalidFieldMessage } from '../services/itemService.js';
+import { isKnownNeighborhood } from '../services/neighborhoods.js';
 import * as reservationService from '../services/reservationService.js';
 
 const UUID_PATTERN =
@@ -52,9 +54,76 @@ function readReservationInput(source: unknown): {
   return { itemId, startDate, endDate };
 }
 
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+// Modo y hora de entrega de la solicitud (US-05.01, #281). Aquí solo se comprueba la forma de los
+// campos; que el objeto ofrezca el modo, que la franja no haya empezado o que el punto exista lo
+// comprueba el service.
+const DELIVERY_ADDRESS_MAX_LENGTH = 200;
+const DELIVERY_MODES: readonly string[] = ['home', 'rider', 'pickup_point'];
+
+function readDelivery(
+  source: unknown,
+): reservationService.ReservationDeliveryInput {
+  const fields = (source ?? {}) as Record<string, unknown>;
+  const { deliveryMode } = fields;
+
+  if (
+    typeof deliveryMode !== 'string' ||
+    !DELIVERY_MODES.includes(deliveryMode)
+  ) {
+    throw new AppError(400, 'Elige un modo de entrega.', 'deliveryMode');
+  }
+
+  if (deliveryMode === 'home') {
+    return { mode: 'home' };
+  }
+
+  if (deliveryMode === 'pickup_point') {
+    const { pickupPointId } = fields;
+    if (
+      typeof pickupPointId !== 'string' ||
+      !UUID_PATTERN.test(pickupPointId)
+    ) {
+      throw new AppError(400, 'Elige un punto de recogida.', 'pickupPointId');
+    }
+    return { mode: 'pickup_point', pickupPointId };
+  }
+
+  const { slot, deliveryAddress, deliveryNeighborhood } = fields;
+
+  if (typeof slot !== 'string') {
+    throw new AppError(400, reservationService.INVALID_SLOT_MESSAGE, 'slot');
+  }
+
+  const address =
+    typeof deliveryAddress === 'string' ? deliveryAddress.trim() : '';
+  if (address.length === 0 || address.length > DELIVERY_ADDRESS_MAX_LENGTH) {
+    throw new AppError(
+      400,
+      invalidFieldMessage('dirección de entrega'),
+      'deliveryAddress',
+    );
+  }
+
+  const neighborhood =
+    typeof deliveryNeighborhood === 'string' ? deliveryNeighborhood.trim() : '';
+  if (!isKnownNeighborhood(neighborhood)) {
+    throw new AppError(
+      400,
+      invalidFieldMessage('barrio de entrega'),
+      'deliveryNeighborhood',
+    );
+  }
+
+  return { mode: 'rider', slot, address, neighborhood };
+}
+
 // POST /api/reservas (US-04.01, #120). requireAuth garantiza que request.auth existe.
 export const createReservation: RequestHandler = async (request, response) => {
-  const input = readReservationInput(request.body);
+  const input = {
+    ...readReservationInput(request.body),
+    delivery: readDelivery(request.body),
+  };
 
   // Token del formulario de pago de Stripe (US-07.01, #72): sin él no se puede bloquear el importe.
   // Tras el 3D Secure, el navegador repite la petición con paymentIntentId en su lugar.

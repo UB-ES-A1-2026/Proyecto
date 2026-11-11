@@ -1,5 +1,5 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
-import type { Prisma, ReservationStatus } from '@prisma/client';
+import type { DeliveryMode, Prisma, ReservationStatus } from '@prisma/client';
 import { reservationDetailInclude } from './detailIncludes.js';
 import { prisma } from './prisma.js';
 
@@ -7,7 +7,16 @@ import { prisma } from './prisma.js';
 export function findItemForReservation(itemId: string) {
   return prisma.item.findUnique({
     where: { id: itemId },
-    select: { ownerId: true, status: true, dailyPrice: true, deposit: true },
+    select: {
+      ownerId: true,
+      status: true,
+      dailyPrice: true,
+      deposit: true,
+      neighborhood: true,
+      homeDelivery: true,
+      riderDelivery: true,
+      pickupPointDelivery: true,
+    },
   });
 }
 
@@ -72,6 +81,18 @@ export async function findReservationConflict(
   return overlapping ? 'overlapping' : null;
 }
 
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+// Entrega de la solicitud (US-05.01, #281): se guarda en la misma transacción que la reserva.
+export interface ReservationDeliveryData {
+  mode: DeliveryMode;
+  pickupPointId?: string;
+  // NULL = «Lo antes posible».
+  slot?: string | null;
+  deliveryAddress?: string;
+  deliveryNeighborhood?: string;
+  fee?: string;
+}
+
 export type InsertReservationResult =
   | {
       outcome: 'created';
@@ -92,17 +113,20 @@ export function insertReservationIfAvailable(
     endDate: Date;
     totalPrice: Prisma.Decimal;
     expiresAt: Date;
+    delivery: ReservationDeliveryData;
   },
   // El pago del bloqueo hecho en la pasarela (US-07.01, #72): se guarda junto con la reserva.
   payment: {
     rentalAmount: Prisma.Decimal;
+    deliveryAmount: Prisma.Decimal;
     depositAmount: Prisma.Decimal;
     depositStatus: 'pending' | null;
     rentalReference: string;
   },
   occupyingStatuses: readonly ReservationStatus[],
 ): Promise<InsertReservationResult> {
-  const { itemId, renterId, startDate, endDate } = data;
+  const { itemId, renterId, startDate, endDate, delivery } = data;
+  const { mode, ...deliveryFields } = delivery;
 
   return prisma.$transaction(async (transaction) => {
     await transaction.$queryRaw`SELECT id FROM objeto WHERE id = ${itemId}::uuid FOR UPDATE`;
@@ -137,7 +161,17 @@ export function insertReservationIfAvailable(
     }
 
     const reservation = await transaction.reservation.create({
-      data: { ...data, payment: { create: payment } },
+      data: {
+        itemId,
+        renterId,
+        startDate,
+        endDate,
+        totalPrice: data.totalPrice,
+        expiresAt: data.expiresAt,
+        deliveryMode: mode,
+        delivery: { create: deliveryFields },
+        payment: { create: payment },
+      },
       include: reservationDetailInclude,
     });
 
