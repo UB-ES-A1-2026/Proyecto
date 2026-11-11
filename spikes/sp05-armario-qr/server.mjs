@@ -16,19 +16,52 @@ export function lanAddress() {
   return '127.0.0.1'
 }
 
-/** Límite sencillo por IP: 30 intentos por minuto en /abrir (frena la fuerza bruta). */
+/**
+ * Límite sencillo por IP: 30 intentos FALLIDOS por minuto en /abrir (frena la fuerza bruta).
+ * Solo cuentan los fallos; se podan las entradas caducadas para que el Map no crezca.
+ * Tras un proxy (Render) la IP debe salir de X-Forwarded-For con `trust proxy`; aquí es la del socket.
+ */
 const attempts = new Map()
-function tooMany(ip, now = Date.now()) {
-  const recent = (attempts.get(ip) ?? []).filter((t) => now - t < 60_000)
-  recent.push(now)
-  attempts.set(ip, recent)
-  return recent.length > 30
+const WINDOW_MS = 60_000
+const MAX_FAILS = 30
+function prune(now) {
+  for (const [ip, times] of attempts) {
+    const recent = times.filter((t) => now - t < WINDOW_MS)
+    if (recent.length === 0) attempts.delete(ip)
+    else attempts.set(ip, recent)
+  }
+}
+function blocked(ip, now = Date.now()) {
+  prune(now)
+  return (attempts.get(ip)?.length ?? 0) >= MAX_FAILS
+}
+function recordFail(ip, now = Date.now()) {
+  attempts.set(ip, [...(attempts.get(ip) ?? []), now])
 }
 
-const page = (title, body, color) => `<!doctype html><html lang="es"><meta charset="utf-8">
+const escapeHtml = (s) =>
+  String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
+
+/** Lee un formulario application/x-www-form-urlencoded (máx. 1 KB). */
+function readForm(req) {
+  return new Promise((resolve, reject) => {
+    let body = ''
+    req.on('data', (chunk) => {
+      body += chunk
+      if (body.length > 1024) {
+        reject(new Error('cuerpo demasiado grande'))
+        req.destroy()
+      }
+    })
+    req.on('end', () => resolve(new URLSearchParams(body)))
+    req.on('error', reject)
+  })
+}
+
+const page = (title, body, color, extra = '') => `<!doctype html><html lang="es"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title>
 <body style="font-family:system-ui;text-align:center;padding:3rem 1rem;background:${color};color:#fff">
-<h1 style="font-size:2.2rem">${title}</h1><p style="font-size:1.1rem">${body}</p></body></html>`
+<h1 style="font-size:2.2rem">${title}</h1><p style="font-size:1.1rem">${body}</p>${extra}</body></html>`
 
 const MESSAGES = {
   abierta: (r) => [`Taquilla ${r.slot} abierta`, 'Recoge tu artículo. Este código ya no se puede volver a usar.', '#1a7f37', 200],
@@ -36,6 +69,10 @@ const MESSAGES = {
   caducada: () => ['Este código ha caducado', 'Pide uno nuevo al propietario.', '#b35900', 410],
   invalida: () => ['Código no válido', 'Revisa el QR o pide uno nuevo.', '#b42318', 404],
 }
+
+const confirmForm = (token) =>
+  `<form method="post" action="/abrir"><input type="hidden" name="c" value="${escapeHtml(token)}">` +
+  '<button style="font-size:1.4rem;padding:.8rem 2rem;border:0;border-radius:.5rem">Abrir</button></form>'
 
 export function createApp({ baseUrl }) {
   return async (req, res) => {
@@ -60,11 +97,27 @@ export function createApp({ baseUrl }) {
       if (req.method === 'GET' && url.pathname === '/api/estado') {
         return send(200, 'application/json', JSON.stringify(store.summary()))
       }
+      // Paso 1: el GET (lo que abre la cámara o un previsualizador) NO consume nada.
       if (req.method === 'GET' && url.pathname === '/abrir') {
-        if (tooMany(req.socket.remoteAddress)) {
-          return send(429, 'text/html', page('Demasiados intentos', 'Espera un minuto.', '#b42318'))
+        const ip = req.socket.remoteAddress
+        if (blocked(ip)) return send(429, 'text/html', page('Demasiados intentos', 'Espera un minuto.', '#b42318'))
+        const token = url.searchParams.get('c')
+        const r = store.peekCode(token)
+        if (r.status === 'vigente') {
+          console.log(`[confirmar] vigente taquilla ${r.slot}`)
+          return send(200, 'text/html', page(`Abrir taquilla ${r.slot}`, 'Pulsa el botón para abrirla. El código solo se puede usar una vez.', '#1d4ed8', confirmForm(token)))
         }
-        const r = store.consumeCode(url.searchParams.get('c'))
+        recordFail(ip)
+        const [title, body, color, status] = MESSAGES[r.status](r)
+        console.log(`[confirmar] ${r.status}`)
+        return send(status, 'text/html', page(title, body, color))
+      }
+      // Paso 2: el POST (botón «Abrir») consume el código de forma atómica.
+      if (req.method === 'POST' && url.pathname === '/abrir') {
+        const ip = req.socket.remoteAddress
+        if (blocked(ip)) return send(429, 'text/html', page('Demasiados intentos', 'Espera un minuto.', '#b42318'))
+        const r = store.consumeCode((await readForm(req)).get('c'))
+        if (r.status !== 'abierta') recordFail(ip)
         const [title, body, color, status] = MESSAGES[r.status](r)
         console.log(`[abrir] ${r.status}${r.slot ? ` taquilla ${r.slot}` : ''}`) // nunca se registra el token
         return send(status, 'text/html', page(title, body, color))
@@ -82,7 +135,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const baseUrl = process.env.BASE_URL ?? `http://${lanAddress()}:${port}`
   createServer(createApp({ baseUrl })).listen(port, '0.0.0.0', () => {
     console.log(`Taquilla en el portátil:  http://localhost:${port}/`)
-    console.log(`URL de los QR (LAN):      ${baseUrl}/abrir?c=<token>`)
+    console.log(`URL de los QR (LAN):      ${baseUrl}/abrir?c=<token>  (GET confirma, POST abre)`)
     console.log('Abre la URL LAN desde el móvil (misma Wi-Fi).')
   })
 }

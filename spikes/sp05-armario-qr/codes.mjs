@@ -23,6 +23,21 @@ export function createCodeStore() {
     },
 
     /**
+     * Mira el estado de un código SIN consumirlo (para la pantalla de confirmación del GET).
+     * Estados: vigente | usada | caducada | invalida.
+     */
+    peekCode(token, now = Date.now()) {
+      if (typeof token !== 'string' || token.length === 0 || token.length > 64) {
+        return { status: 'invalida' }
+      }
+      const entry = byHash.get(hashToken(token))
+      if (!entry) return { status: 'invalida' }
+      if (entry.usedAt !== null) return { status: 'usada', slot: entry.slot }
+      if (now >= entry.expiresAt) return { status: 'caducada', slot: entry.slot }
+      return { status: 'vigente', slot: entry.slot }
+    },
+
+    /**
      * Consume un código. Es síncrono, así que en Node es atómico (no hay await entre
      * comprobar y marcar). Estados: abierta | usada | caducada | invalida.
      */

@@ -75,3 +75,21 @@ test('el resumen no expone tokens ni hashes', () => {
   const json = JSON.stringify(store.summary())
   assert.ok(!json.includes(token) && !json.includes(hashToken(token)))
 })
+
+test('peekCode no consume: se puede mirar varias veces y luego abrir', () => {
+  const store = createCodeStore()
+  const { token } = store.createCode({ slot: 3, now: 0 })
+  assert.deepEqual(store.peekCode(token, 10), { status: 'vigente', slot: 3 })
+  assert.deepEqual(store.peekCode(token, 20), { status: 'vigente', slot: 3 })
+  assert.equal(store.summary(20)[0].estado, 'vigente')
+  assert.equal(store.consumeCode(token, 30).status, 'abierta')
+  assert.equal(store.peekCode(token, 40).status, 'usada')
+})
+
+test('peekCode distingue caducada e inválida', () => {
+  const store = createCodeStore()
+  const { token } = store.createCode({ slot: 3, now: 0, ttlMs: 10 })
+  assert.equal(store.peekCode(token, 10).status, 'caducada')
+  assert.equal(store.peekCode('inventado', 0).status, 'invalida')
+  assert.equal(store.peekCode(undefined).status, 'invalida')
+})
