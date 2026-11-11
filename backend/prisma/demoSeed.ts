@@ -2,7 +2,14 @@
 // varias veces. Las usan seed.ts (desarrollo) y seed-demo.ts (demo en producción).
 // Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 31/10/2026
 import bcrypt from 'bcrypt';
-import type { PrismaClient, UserRole } from '@prisma/client';
+import type {
+  PrismaClient,
+  RiderApplicationStatus,
+  RiderSlot,
+  RiderVehicle,
+  RiderWeekday,
+  UserRole,
+} from '@prisma/client';
 import { DEMO_ITEMS, DEMO_RESERVATIONS } from './demoData.js';
 
 // Contraseña de las cuentas del seed de desarrollo: está en el repo, que es público.
@@ -160,4 +167,66 @@ export async function upsertDemoReservations(
   }
 
   return DEMO_RESERVATIONS.length;
+}
+
+// Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+// Cuentas de rider de ejemplo (US-10.03): una pendiente de revisión y una ya aceptada. Solo las
+// crea el seed de desarrollo; el seed de la demo en producción no las incluye.
+export const DEMO_RIDERS: readonly {
+  username: string;
+  email: string;
+  phone: string;
+  zone: string;
+  vehicle: RiderVehicle;
+  days: RiderWeekday[];
+  slots: RiderSlot[];
+  status: RiderApplicationStatus;
+}[] = [
+  {
+    username: 'carla',
+    email: 'carla@rentit.test',
+    phone: '612345678',
+    zone: 'Gràcia',
+    vehicle: 'bike',
+    days: ['monday', 'wednesday', 'friday'],
+    slots: ['afternoon'],
+    status: 'pending',
+  },
+  {
+    username: 'dani',
+    email: 'dani@rentit.test',
+    phone: '698765432',
+    zone: 'Eixample',
+    vehicle: 'motorbike',
+    days: ['saturday', 'sunday'],
+    slots: ['morning', 'afternoon', 'night'],
+    status: 'approved',
+  },
+];
+
+// Crea o actualiza las cuentas de DEMO_RIDERS (por email) con su solicitud. Repetir el seed deja
+// otra vez cada solicitud en el estado del catálogo, igual que las reservas de demo.
+export async function upsertDemoRiders(
+  prisma: PrismaClient,
+  password: string,
+  bcryptRounds: number,
+): Promise<number> {
+  const passwordHash = await bcrypt.hash(password, bcryptRounds);
+
+  for (const { username, email, ...application } of DEMO_RIDERS) {
+    const user = await prisma.user.upsert({
+      where: { email },
+      update: { username, isRider: true, passwordHash },
+      create: { username, email, isRider: true, passwordHash },
+    });
+    const data = { ...application, termsAcceptedAt: new Date() };
+
+    await prisma.riderApplication.upsert({
+      where: { userId: user.id },
+      update: data,
+      create: { ...data, userId: user.id },
+    });
+  }
+
+  return DEMO_RIDERS.length;
 }
