@@ -6,16 +6,25 @@ export type RiderStatus = RiderApplicationStatus;
 export interface RiderFields {
   isRider: boolean;
   riderStatus: RiderStatus | null;
+  // Motivo del rechazo (US-11.03): solo en una cuenta de rider rechazada y con motivo.
+  riderRejectionReason: string | null;
 }
 
 // Campos de rider que se exponen en el login y en GET /api/usuarios/me (US-10.03):
 // `riderStatus` es null si la cuenta no es de rider.
 export function toRiderFields(user: {
   isRider: boolean;
-  riderApplication?: { status: RiderStatus } | null;
+  riderApplication?: {
+    status: RiderStatus;
+    rejectionReason?: string | null;
+  } | null;
 }): RiderFields {
   return {
     isRider: user.isRider,
     riderStatus: user.isRider ? (user.riderApplication?.status ?? null) : null,
+    riderRejectionReason:
+      user.isRider && user.riderApplication?.status === 'rejected'
+        ? (user.riderApplication.rejectionReason ?? null)
+        : null,
   };
 }

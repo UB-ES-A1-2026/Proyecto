@@ -48,6 +48,7 @@ describe('POST /api/auth/login', () => {
         role: 'user',
         isRider: false,
         riderStatus: null,
+        riderRejectionReason: null,
       },
     });
     expect(JSON.stringify(response.body)).not.toContain('passwordHash');
@@ -72,9 +73,26 @@ describe('POST /api/auth/login', () => {
         role: 'user',
         isRider: true,
         riderStatus: status,
+        riderRejectionReason: null,
       });
     },
   );
+
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+  it('shows the rejection reason to a rejected rider (US-11.03)', async () => {
+    await createTestRider('rejected', {
+      rejectionReason: 'Zona sin cobertura.',
+    });
+
+    const response = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'rider@rentit.test', password: TEST_PASSWORD });
+
+    expect(response.body.user).toMatchObject({
+      riderStatus: 'rejected',
+      riderRejectionReason: 'Zona sin cobertura.',
+    });
+  });
 
   it('accepts the email with spaces and capital letters', async () => {
     await createTestUser();

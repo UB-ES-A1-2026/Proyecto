@@ -3,7 +3,7 @@ import { prisma } from './prisma.js';
 // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
 // Las búsquedas incluyen el estado de la solicitud de rider para el login y el perfil (US-10.03).
 const withRiderApplication = {
-  riderApplication: { select: { status: true } },
+  riderApplication: { select: { status: true, rejectionReason: true } },
 } as const;
 
 export function findUserByEmail(email: string) {
