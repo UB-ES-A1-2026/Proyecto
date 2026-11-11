@@ -2,7 +2,6 @@
 // Única forma de crear, validar y revocar sesiones (ver AGENTS.md). El registro (#23) también la usa.
 import { createHash, randomBytes } from 'node:crypto';
 import {
-  findSessionById,
   findSessionByTokenHash,
   insertSession,
   markSessionRevoked,
@@ -34,16 +33,6 @@ export async function findValidSession(token: string) {
   }
 
   return session;
-}
-
-// Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
-// Igual que findValidSession pero por id de sesión: lo usan los streams abiertos para revisarla.
-export async function isSessionValid(sessionId: string): Promise<boolean> {
-  const session = await findSessionById(sessionId);
-
-  return Boolean(
-    session && !session.revokedAt && session.expiresAt > new Date(),
-  );
 }
 
 export async function revokeSession(sessionId: string): Promise<void> {

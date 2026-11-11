@@ -5,7 +5,7 @@ import {
   subscribe,
   type RealtimeMessage,
 } from '../services/realtimeService.js';
-import { isSessionValid } from '../services/sessionService.js';
+import { findValidSession } from '../services/sessionService.js';
 
 export const HEARTBEAT_MS = 15_000;
 export const SESSION_CHECK_MS = 60_000;
@@ -17,7 +17,10 @@ function formatEvent({ id, type, data }: RealtimeMessage): string {
 
 // Los intervalos se pueden cambiar para que los tests no esperen 15 ni 60 s.
 export function createEventStreamHandler(
-  options: { heartbeatMs?: number; sessionCheckMs?: number } = {},
+  options: {
+    heartbeatMs?: number;
+    sessionCheckMs?: number;
+  } = {},
 ): RequestHandler {
   const heartbeatMs = options.heartbeatMs ?? HEARTBEAT_MS;
   const sessionCheckMs = options.sessionCheckMs ?? SESSION_CHECK_MS;
@@ -33,39 +36,53 @@ export function createEventStreamHandler(
       Connection: 'keep-alive',
       'X-Accel-Buffering': 'no',
     });
+
+    // Token en bruto solo para revisar la sesión con findValidSession (AGENTS.md: una única forma
+    // de validarla). Vive en esta clausura: no se registra ni se envía a ningún sitio.
+    const token = request.get('authorization')?.split(' ')[1] ?? '';
     response.flushHeaders();
     response.write(`retry: ${RETRY_MS}\n\n`);
 
     let closed = false;
+    let heartbeat: NodeJS.Timeout | undefined;
+    let sessionCheck: NodeJS.Timeout | undefined;
+    let unsubscribe: (() => void) | undefined;
 
+    // Puede llamarse durante el replay de `subscribe`, antes de que existan la baja y los timers.
     const finish = () => {
       if (closed) return;
       closed = true;
       clearInterval(heartbeat);
       clearInterval(sessionCheck);
-      unsubscribe();
+      unsubscribe?.();
       if (!response.writableEnded) response.end();
     };
 
-    const unsubscribe = subscribe(
+    unsubscribe = subscribe(
       userId,
       sessionId,
       (message) => {
-        if (!closed) response.write(formatEvent(message));
+        if (closed) return;
+        response.write(formatEvent(message));
       },
       lastEventId,
       finish,
     );
 
-    const heartbeat = setInterval(() => {
+    if (closed) {
+      unsubscribe();
+      return;
+    }
+
+    heartbeat = setInterval(() => {
       if (!closed) response.write(': ping\n\n');
     }, heartbeatMs);
 
     // El logout ya cierra el stream; esto cubre sesiones caducadas o revocadas por otra vía.
-    const sessionCheck = setInterval(() => {
-      void isSessionValid(sessionId)
-        .then((valid) => {
-          if (!valid) finish();
+    sessionCheck = setInterval(() => {
+      void findValidSession(token)
+        .then((session) => {
+          if (session?.id !== sessionId) finish();
         })
         .catch(() => {
           // Si la BD falla no se corta el stream: se vuelve a comprobar en el siguiente ciclo.

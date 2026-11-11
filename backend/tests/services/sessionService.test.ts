@@ -4,7 +4,6 @@ import {
   createSession,
   findValidSession,
   hashToken,
-  isSessionValid,
   revokeSession,
 } from '../../src/services/sessionService.js';
 import { resetDb } from '../helpers/db.js';
@@ -54,31 +53,5 @@ describe('sessionService', () => {
     expect(await findValidSession('token-que-no-existe')).toBeNull();
     expect(await findValidSession(revoked.token)).toBeNull();
     expect(await findValidSession(expired.token)).toBeNull();
-  });
-
-  // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
-  it('isSessionValid checks a session by id (unknown, revoked and expired are not valid)', async () => {
-    const user = await createTestUser();
-    const active = await createSession(user.id);
-    const revoked = await createSession(user.id);
-    const expired = await createSession(user.id);
-    const idOf = async (token: string) =>
-      (
-        await prisma.session.findUniqueOrThrow({
-          where: { tokenHash: hashToken(token) },
-        })
-      ).id;
-    await revokeSession(await idOf(revoked.token));
-    await prisma.session.update({
-      where: { tokenHash: hashToken(expired.token) },
-      data: { expiresAt: new Date(Date.now() - 1000) },
-    });
-
-    expect(await isSessionValid(await idOf(active.token))).toBe(true);
-    expect(await isSessionValid(await idOf(revoked.token))).toBe(false);
-    expect(await isSessionValid(await idOf(expired.token))).toBe(false);
-    expect(await isSessionValid('00000000-0000-0000-0000-000000000000')).toBe(
-      false,
-    );
   });
 });

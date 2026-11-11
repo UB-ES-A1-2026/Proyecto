@@ -2,7 +2,7 @@
 import express from 'express';
 import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { app } from '../../src/app.js';
 import { createEventStreamHandler } from '../../src/controllers/eventController.js';
 import { requireAuth } from '../../src/middlewares/requireAuth.js';
@@ -186,6 +186,43 @@ describe('GET /api/eventos/stream', () => {
     expect(second.text()).not.toContain('"n":1');
   });
 
+  // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+  it('replays two or more missed events in order', async () => {
+    const ana = await sessionFor('ana');
+    const first = await openStream(baseUrl, ana.token);
+    await first.waitFor((text) => text.includes('retry:'));
+    publish([ana.user.id], 'entrega.estado', { n: 1 });
+    await first.waitFor((text) => text.includes('"n":1'));
+    const lastId = /id: (\S+)\n/.exec(first.text())![1];
+    first.close();
+    await first.pump;
+    publish([ana.user.id], 'entrega.estado', { n: 2 });
+    publish([ana.user.id], 'entrega.estado', { n: 3 });
+    publish([ana.user.id], 'entrega.estado', { n: 4 });
+
+    const second = await openStream(baseUrl, ana.token, {
+      'Last-Event-ID': lastId,
+    });
+    await second.waitFor((text) => text.includes('"n":4'));
+
+    const order = [...second.text().matchAll(/"n":(\d)/g)].map(
+      (match) => match[1],
+    );
+    expect(order).toEqual(['2', '3', '4']);
+  });
+
+  it('closeAll ends an open HTTP stream', async () => {
+    const { token } = await sessionFor('ana');
+    const stream = await openStream(baseUrl, token);
+    await stream.waitFor((text) => text.includes('retry:'));
+
+    closeAll();
+
+    await stream.waitForEnd();
+    expect(stream.isDone()).toBe(true);
+    expect(subscriberCount()).toBe(0);
+  });
+
   it('sends resync when Last-Event-ID is from another boot', async () => {
     const ana = await sessionFor('ana');
 
@@ -265,6 +302,29 @@ describe('stream timers (short intervals)', () => {
 
     await stream.waitForEnd();
     expect(stream.isDone()).toBe(true);
+  });
+
+  it('keeps the stream open when the DB fails during the recheck, and still closes later', async () => {
+    const { token } = await sessionFor('ana');
+    const url = await shortApp();
+    const stream = await openStream(url, token, {}, '/stream');
+    await stream.waitFor((text) => text.includes('retry:'));
+
+    const original = prisma.session.findUnique.bind(prisma.session);
+    const failing = vi
+      .spyOn(prisma.session, 'findUnique')
+      .mockRejectedValue(new Error('BD caída'));
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(failing).toHaveBeenCalled();
+    expect(stream.isDone()).toBe(false);
+
+    // Se devuelve la implementación real (mockRestore deja el delegado de Prisma sin método).
+    failing.mockImplementation(original);
+    await prisma.session.update({
+      where: { tokenHash: hashToken(token) },
+      data: { revokedAt: new Date() },
+    });
+    await stream.waitForEnd();
   });
 
   it('keeps the stream open while the session is valid', async () => {
