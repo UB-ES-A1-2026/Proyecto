@@ -15,6 +15,10 @@ export async function createTestItem(
     dailyPrice: number;
     deposit: number;
     neighborhood: string;
+    address: string | null;
+    homeDelivery: boolean;
+    riderDelivery: boolean;
+    pickupPointDelivery: boolean;
     status: 'published' | 'paused' | 'withdrawn';
     categoryId: string;
   }> = {},
@@ -30,6 +34,10 @@ export async function createTestItem(
       dailyPrice: overrides.dailyPrice ?? 5,
       deposit: overrides.deposit ?? 30,
       neighborhood: overrides.neighborhood ?? 'Gràcia',
+      address: overrides.address ?? null,
+      homeDelivery: overrides.homeDelivery ?? false,
+      riderDelivery: overrides.riderDelivery ?? false,
+      pickupPointDelivery: overrides.pickupPointDelivery ?? false,
       status: overrides.status ?? 'published',
     },
   });

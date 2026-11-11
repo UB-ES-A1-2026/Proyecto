@@ -2,7 +2,9 @@
 import type { RequestHandler } from 'express';
 import { AppError } from '../errors/appError.js';
 import * as itemService from '../services/itemService.js';
+import { ADDRESS_MAX_LENGTH } from '../services/itemDelivery.js';
 import { invalidFieldMessage } from '../services/itemService.js';
+import { isKnownNeighborhood } from '../services/neighborhoods.js';
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -82,6 +84,18 @@ function readPublishBody(body: unknown): itemService.PublishItemInput {
     100,
   );
 
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+  // El barrio se elige de la lista fija de barrios (US-05.01, #281).
+  if (!isKnownNeighborhood(neighborhood)) {
+    invalid('neighborhood', 'barrio');
+  }
+
+  // Opcional: solo es obligatoria con entrega en casa o por rider, y eso lo comprueba el service.
+  const address =
+    fields.address === undefined || fields.address === null
+      ? null
+      : readText(fields.address, 'address', 'dirección', ADDRESS_MAX_LENGTH);
+
   const homeDelivery = readFlag(
     fields.homeDelivery,
     'homeDelivery',
@@ -111,6 +125,7 @@ function readPublishBody(body: unknown): itemService.PublishItemInput {
     dailyPrice,
     deposit,
     neighborhood,
+    address,
     homeDelivery,
     riderDelivery,
     pickupPointDelivery,
