@@ -187,4 +187,60 @@ describe('solicitudes de la demo', () => {
       upsertDemoReservations(prisma, userIds, TODAY),
     ).rejects.toThrow('crea antes los objetos');
   });
+
+  // Pagos (US-07.01, #284) – revisado por Francesc Curto, 11/11/2026
+  it('la reserva pagada lleva su pago con la fianza retenida y las demás no tienen pago', async () => {
+    await seedWithReservations();
+
+    const payments = await prisma.payment.findMany({
+      include: { reservation: { include: { item: true } } },
+    });
+    const paidDemos = DEMO_RESERVATIONS.filter(
+      ({ status }) => status === 'paid',
+    );
+
+    expect(payments).toHaveLength(paidDemos.length);
+    for (const payment of payments) {
+      expect(payment.reservation.status).toBe('paid');
+      expect(payment.depositStatus).toBe('held');
+      expect(payment.rentalAmount.toFixed(2)).toBe(
+        payment.reservation.totalPrice.toFixed(2),
+      );
+      expect(payment.depositAmount.toFixed(2)).toBe(
+        payment.reservation.item.deposit.toFixed(2),
+      );
+    }
+  });
+
+  it('repetir el seed deja otra vez sin pagar la solicitud aceptada que se pagó al probar', async () => {
+    const userIds = await seedWithReservations();
+    const accepted = await prisma.reservation.findFirstOrThrow({
+      where: { status: 'accepted' },
+      include: { item: true },
+    });
+    await prisma.reservation.update({
+      where: { id: accepted.id },
+      data: { status: 'paid' },
+    });
+    await prisma.payment.create({
+      data: {
+        reservationId: accepted.id,
+        rentalAmount: accepted.totalPrice,
+        depositAmount: accepted.item.deposit,
+      },
+    });
+
+    await upsertDemoReservations(prisma, userIds, TODAY);
+
+    expect(
+      (
+        await prisma.reservation.findUniqueOrThrow({
+          where: { id: accepted.id },
+        })
+      ).status,
+    ).toBe('accepted');
+    expect(
+      await prisma.payment.count({ where: { reservationId: accepted.id } }),
+    ).toBe(0);
+  });
 });

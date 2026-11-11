@@ -211,7 +211,7 @@ export interface DemoReservation {
   renter: number;
   startInDays: number;
   days: number;
-  status: 'pending' | 'accepted' | 'rejected';
+  status: 'pending' | 'accepted' | 'rejected' | 'paid';
 }
 
 export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
@@ -249,5 +249,13 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
     startInDays: 3,
     days: 2,
     status: 'rejected',
+  },
+  // Pagada (US-07.01, #284): ana ya la ha pagado y la fianza está retenida.
+  {
+    item: { owner: 1, title: 'Bicicleta de montaña talla M' },
+    renter: 0,
+    startInDays: 4,
+    days: 2,
+    status: 'paid',
   },
 ];

@@ -131,7 +131,7 @@ export async function upsertDemoReservations(
 
     const item = await prisma.item.findFirst({
       where: { ownerId, title: reservation.item.title },
-      select: { id: true, dailyPrice: true },
+      select: { id: true, dailyPrice: true, deposit: true },
     });
     if (!item) {
       throw new Error(
@@ -152,10 +152,25 @@ export async function upsertDemoReservations(
       select: { id: true },
     });
 
-    if (existing) {
-      await prisma.reservation.update({ where: { id: existing.id }, data });
-    } else {
-      await prisma.reservation.create({ data });
+    const { id } = existing
+      ? await prisma.reservation.update({ where: { id: existing.id }, data })
+      : await prisma.reservation.create({ data });
+
+    // Pagos (US-07.01, #284): al repetir el seed se borra el pago que se haya hecho al probar,
+    // para que la reserva «aceptada» se pueda volver a pagar, y la «pagada» lleva el suyo.
+    // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 11/11/2026
+    await prisma.payment.deleteMany({ where: { reservationId: id } });
+    if (reservation.status === 'paid') {
+      await prisma.payment.create({
+        data: {
+          reservationId: id,
+          rentalAmount: data.totalPrice,
+          depositAmount: item.deposit,
+          status: 'paid',
+          depositStatus: 'held',
+          gatewayReference: 'demo',
+        },
+      });
     }
   }
 
