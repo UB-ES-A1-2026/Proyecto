@@ -3,6 +3,7 @@
 Dónde va cada variable de Rentit, qué no se sube nunca y qué hacer si se filtra una clave (TR-07 · #88, tarea #100). **El repositorio es público**: todo lo que llega a GitHub lo puede leer cualquiera, también en el historial.
 
 > Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 25/10/2026.
+> Sección de preproducción (US-12.03): generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026.
 
 ## Reglas
 
@@ -28,11 +29,25 @@ Dónde va cada variable de Rentit, qué no se sube nunca y qué hacer si se filt
 | `RENDER_DEPLOY_HOOK_URL` | Lanzar el despliegue del backend | — | GitHub → *Secrets* | **Sí** |
 | `API_URL` | Comprobar la API tras desplegar | — | GitHub → *Variables* | No |
 
+### Preproducción (`staging`, US-12.03)
+
+Preproducción tiene sus propios servicios y claves, en otras cuentas. Todo va en el **Environment `staging`** de GitHub (restringido a la rama `staging`) y con nombres **distintos** a los de producción: si un secreto de staging se llamara igual que uno de producción del repo y faltara, GitHub usaría el de producción sin avisar.
+
+| Nombre | Tipo | Para qué |
+|---|---|---|
+| `STAGING_RENDER_DEPLOY_HOOK_URL` | Secreto | Lanzar el despliegue de `rentit-api-staging` |
+| `STAGING_VERCEL_TOKEN`, `STAGING_VERCEL_ORG_ID`, `STAGING_VERCEL_PROJECT_ID` | Secreto (el token, sobre todo) | Desplegar el frontend de preproducción |
+| `STAGING_DATABASE_URL`, `STAGING_DIRECT_URL` | Secreto | Migraciones y datos de demo en la BD de preproducción |
+| `STAGING_DEMO_PASSWORD` | Secreto | Contraseña de las cuentas de demo de preproducción |
+| `STAGING_API_URL`, `STAGING_WEB_URL` | Variable | URL de la API y de la web de preproducción (comprobación y smoke test) |
+
+Las variables de `rentit-api-staging` en Render (`DATABASE_URL`, `S3_*`, `CORS_ORIGINS`…) son las de la tabla de arriba, con los valores de preproducción. Cómo se configura: [docs/despliegue.md](despliegue.md#preproducción-staging).
+
 Cómo se configuran los de producción: [docs/despliegue.md](despliegue.md).
 
 ## gitleaks en el CI
 
-El workflow [`.github/workflows/secretos.yml`](../.github/workflows/secretos.yml) revisa **todo el historial** con [gitleaks](https://github.com/gitleaks/gitleaks) en cada PR hacia `develop`, `main` y las ramas `feature/`, y en cada push a `develop` y `main`. Si encuentra algo, el check «Secretos / gitleaks» sale en rojo y el log indica el archivo, el commit y la regla (con el valor tapado).
+El workflow [`.github/workflows/secretos.yml`](../.github/workflows/secretos.yml) revisa **todo el historial** con [gitleaks](https://github.com/gitleaks/gitleaks) en cada PR hacia `develop`, `staging`, `main` y las ramas `feature/`, y en cada push a `develop`, `staging` y `main`. Si encuentra algo, el check «Secretos / gitleaks» sale en rojo y el log indica el archivo, el commit y la regla (con el valor tapado).
 
 Para revisarlo en local antes de subir (con Docker):
 
