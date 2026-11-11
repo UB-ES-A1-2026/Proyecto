@@ -1,0 +1,61 @@
+<!doctype html>
+<!-- Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026 -->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Taquilla del barrio · SP-05</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"
+  integrity="sha384-mZT2gIty7ZDdOGkxfP6joZcYdMW1Jvj9dRlfpTmaJAKKXTqzygtB22k7FLe+KZC1"
+  crossorigin="anonymous"></script>
+<style>
+  body { font-family: system-ui; max-width: 28rem; margin: 2rem auto; padding: 0 1rem; text-align: center }
+  #door { padding: 1rem; border-radius: .5rem; background: #e5e7eb; font-size: 1.3rem; margin-bottom: 1rem }
+  #door.open { background: #1a7f37; color: #fff }
+  button { font-size: 1rem; padding: .6rem 1.2rem }
+  #qr svg { width: 16rem; height: 16rem }
+  code { word-break: break-all; font-size: .75rem }
+</style>
+</head>
+<body>
+<h1>Taquilla 3</h1>
+<div id="door">Cerrada</div>
+<button id="nuevo">Generar código de recogida</button>
+<div id="qr"></div>
+<p id="info"></p>
+<p><a href="/escanear">Escáner en el navegador (BarcodeDetector)</a></p>
+<script>
+const door = document.getElementById('door')
+document.getElementById('nuevo').onclick = async () => {
+  const c = await (await fetch('/api/codigos', { method: 'POST' })).json()
+  const qr = qrcode(0, 'M')
+  qr.addData(c.url)
+  qr.make()
+  // El SVG lo genera la librería a partir de la URL; se parsea con DOMParser, sin innerHTML.
+  const svg = new DOMParser().parseFromString(qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true }), 'image/svg+xml').documentElement
+  document.getElementById('qr').replaceChildren(svg)
+  const code = document.createElement('code')
+  code.textContent = c.url
+  document.getElementById('info').replaceChildren(
+    'Escanéalo con la cámara del móvil y pulsa «Abrir».',
+    document.createElement('br'),
+    'Caduca: ' + new Date(c.expiresAt).toLocaleString('es-ES'),
+    document.createElement('br'),
+    code,
+  )
+  door.className = ''; door.textContent = 'Cerrada'
+}
+// La «puerta» se abre en esta pantalla cuando el móvil consume el código.
+// `last` se inicializa con el primer sondeo: recargar la página no debe mostrar «abierta».
+let last = null
+async function poll() {
+  const list = await (await fetch('/api/estado')).json()
+  const used = Math.max(0, ...list.map((e) => e.usedAt ?? 0))
+  if (last !== null && used > last) { door.className = 'open'; door.textContent = 'Taquilla 3 abierta' }
+  last = used
+}
+poll()
+setInterval(poll, 1000)
+</script>
+</body>
+</html>
