@@ -1,14 +1,15 @@
 # CI de Rentit (#19, TR-03): ramas y commits con su historia (US-12.02), lint, tests y build del backend y del
 # frontend, y los tests e2e,
-# en cada PR hacia develop, main y las ramas de historia (feature/**, estrategia de #160).
+# en cada PR hacia develop, staging, main y las ramas de historia (feature/**, estrategia de #160).
 # Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 25/10/2026
+# Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
 name: CI
 
 on:
   pull_request:
-    branches: [develop, main, 'feature/**']
+    branches: [develop, main, staging, 'feature/**']
   push:
-    branches: [develop, main]
+    branches: [develop, main, staging]
   workflow_dispatch:
 
 # Si se sube otro commit al mismo PR, se cancela la ejecución anterior.

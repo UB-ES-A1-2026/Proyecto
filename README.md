@@ -624,7 +624,7 @@ La estrategia de pruebas, las convenciones para escribir tests e2e y los casos d
 
 ### Tests en el CI (GitHub Actions)
 
-El workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (#19) se ejecuta en cada PR hacia `develop`, `main` y las ramas `feature/`, y en cada push a `develop` y `main`. Tiene tres jobs:
+El workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (#19) se ejecuta en cada PR hacia `develop`, `staging`, `main` y las ramas `feature/`, y en cada push a `develop`, `staging` y `main`. Tiene tres jobs:
 
 | Job | Qué hace |
 |---|---|
@@ -663,7 +663,7 @@ Si has tocado algo que se ve en la interfaz o cambia un flujo de usuario, ejecut
 
 ## Ramas, commits y PR
 
-Usamos **GitFlow**: cada historia de usuario va en una rama `feature/<nº historia>-<descripcion>` que sale de `develop`, y cada una de sus tareas en una rama `task/<nº tarea>-<descripcion>` que vuelve a la rama de la historia mediante un PR revisado por otra persona. Cuando la historia está completa, se hace *rebase* sobre `develop`, se pasan los tests y entra en `develop` con un *merge commit* (nunca con *squash*). Así `develop` solo tiene historias completas y siempre compila. `main` solo recibe la versión de cada demo. Las reglas completas, el formato de los commits y la **Definition of Done** están en [CONTRIBUTING.md](CONTRIBUTING.md).
+Usamos **GitFlow**: cada historia de usuario va en una rama `feature/<nº historia>-<descripcion>` que sale de `develop`, y cada una de sus tareas en una rama `task/<nº tarea>-<descripcion>` que vuelve a la rama de la historia mediante un PR revisado por otra persona. Cuando la historia está completa, se hace *rebase* sobre `develop`, se pasan los tests y entra en `develop` con un *merge commit* (nunca con *squash*). Así `develop` solo tiene historias completas y siempre compila. Al final del sprint, `develop` pasa a `staging` (preproducción, US-12.03), se prueba allí y después pasa a `main`, que solo recibe la versión de cada demo. Las reglas completas, el formato de los commits y la **Definition of Done** están en [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
