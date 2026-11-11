@@ -60,21 +60,23 @@ export function createEventStreamHandler(
     response.write(`retry: ${RETRY_MS}\n\n`);
 
     let closed = false;
-    let heartbeat: NodeJS.Timeout | undefined;
-    let sessionCheck: NodeJS.Timeout | undefined;
-    let unsubscribe: (() => void) | undefined;
+    const active: {
+      heartbeat?: NodeJS.Timeout;
+      sessionCheck?: NodeJS.Timeout;
+      unsubscribe?: () => void;
+    } = {};
 
     // Puede llamarse durante el replay de `subscribe`, antes de que existan la baja y los timers.
     const finish = () => {
       if (closed) return;
       closed = true;
-      clearInterval(heartbeat);
-      clearInterval(sessionCheck);
-      unsubscribe?.();
+      clearInterval(active.heartbeat);
+      clearInterval(active.sessionCheck);
+      active.unsubscribe?.();
       if (!response.writableEnded) response.end();
     };
 
-    unsubscribe = subscribe(
+    active.unsubscribe = subscribe(
       userId,
       sessionId,
       (message) => {
@@ -87,16 +89,16 @@ export function createEventStreamHandler(
     );
 
     if (closed) {
-      unsubscribe();
+      active.unsubscribe();
       return;
     }
 
-    heartbeat = setInterval(() => {
+    active.heartbeat = setInterval(() => {
       if (!closed) response.write(': ping\n\n');
     }, heartbeatMs);
 
     // El logout ya cierra el stream; esto cubre sesiones caducadas o revocadas por otra vía.
-    sessionCheck = setInterval(() => {
+    active.sessionCheck = setInterval(() => {
       void findValidSession(token)
         .then((session) => {
           if (session?.id !== sessionId) finish();
