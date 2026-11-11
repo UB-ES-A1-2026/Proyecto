@@ -180,13 +180,20 @@ describe('POST /api/riders', () => {
     'returns 409 on the field %s when the unique constraint fails on insert',
     async (field, message, override) => {
       await createTestUser({ username: 'carla', email: 'carla@rentit.test' });
-      vi.spyOn(userRepository, 'findUserByEmail').mockResolvedValue(null);
-      vi.spyOn(userRepository, 'findUserByUsername').mockResolvedValue(null);
+      const byEmail = vi
+        .spyOn(userRepository, 'findUserByEmail')
+        .mockResolvedValue(null);
+      const byUsername = vi
+        .spyOn(userRepository, 'findUserByUsername')
+        .mockResolvedValue(null);
 
       const response = await request(app)
         .post('/api/riders')
         .send({ ...validBody, ...override });
 
+      // Las comprobaciones previas se han saltado de verdad: el 409 sale del catch del INSERT.
+      expect(byEmail).toHaveBeenCalled();
+      expect(byUsername).toHaveBeenCalled();
       expect(response.status).toBe(409);
       expect(response.body).toEqual({ error: message, field });
       expect(await prisma.user.count()).toBe(1);
