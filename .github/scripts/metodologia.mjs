@@ -16,11 +16,11 @@ const TASK = new RegExp(String.raw`^task/(${CODIGO})-\d+-${DESC}$`);
 const BUGFIX = new RegExp(String.raw`^bugfix/(${CODIGO})-\d+-${DESC}$`);
 const HOTFIX = new RegExp(String.raw`^hotfix/(${CODIGO})-\d+-${DESC}$`);
 
-// Ramas que admite cada destino. `release/` sigue valiendo hasta que exista `staging` (US-12.03).
+// Ramas que admite cada destino. `release/sprint-N` ya no se usa desde US-12.03: la sustituye `staging`.
 function reglas(destino) {
   if (destino === 'develop')
     return {
-      admite: [FEATURE, BUGFIX, HOTFIX, /^staging$/, /^release\/sprint-\d+$/],
+      admite: [FEATURE, BUGFIX, HOTFIX, /^staging$/],
       texto:
         '`feature/US-XX.YY-<desc>`, `bugfix/US-XX.YY-<nº>-<desc>`, `hotfix/US-XX.YY-<nº>-<desc>` o `staging`',
     };
@@ -31,7 +31,7 @@ function reglas(destino) {
     };
   if (destino === 'main')
     return {
-      admite: [/^staging$/, HOTFIX, /^release\/sprint-\d+$/],
+      admite: [/^staging$/, HOTFIX],
       texto: '`staging` o `hotfix/US-XX.YY-<nº>-<desc>`',
     };
   const historia = destino.match(FEATURE)?.[1];
@@ -59,8 +59,8 @@ export function comprobar(rama, destino, commits) {
       `La rama \`${rama}\` no puede ir a \`${destino}\`. Hacia \`${destino}\` solo van: ${r.texto}. El código es el de la historia (\`US-04.01\`, \`SP-05\`); el resto, en minúsculas, con guiones y sin tildes.`,
     );
   }
-  // Los PR de integración (develop → staging, staging → main/develop, release) traen commits ya comprobados.
-  if (/^(develop|staging|release\/.*)$/.test(rama)) return errores;
+  // Los PR de integración (develop → staging, staging → main/develop) traen commits ya comprobados.
+  if (/^(develop|staging)$/.test(rama)) return errores;
   const codigo = [FEATURE, TASK, BUGFIX, HOTFIX]
     .map((re) => rama.match(re)?.[1])
     .find(Boolean);
