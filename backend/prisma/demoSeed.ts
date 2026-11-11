@@ -59,6 +59,16 @@ export const DEV_USERS: readonly SeedUser[] = [
   },
   { username: 'admin', email: 'admin@rentit.test', role: UserRole.admin },
 ];
+// Admin de la demo en producción (US-11.03): revisa las solicitudes de rider. No va en DEMO_USERS
+// porque no es dueño de objetos ni solicita nada. Misma contraseña que el resto (DEMO_PASSWORD).
+export const DEMO_ADMIN = {
+  username: 'admin',
+  email: 'admin@demo.rentit.test',
+  role: 'admin',
+} as const satisfies SeedUser;
+
+// Admin del seed de desarrollo (seed.ts), que revisa los riders de ejemplo.
+export const DEV_ADMIN_EMAIL = 'admin@rentit.test';
 
 export interface SeedUser {
   username: string;
@@ -354,7 +364,8 @@ export async function upsertDemoDemand(
 }
 
 // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
-// Cuentas de rider de ejemplo (US-10.03): una pendiente de revisión y una ya aceptada.
+// Cuentas de rider de ejemplo (US-10.03 y US-11.03): una pendiente de revisión, una aceptada y
+// una rechazada con motivo; las resueltas las revisó el admin del seed.
 export interface SeedRider {
   username: string;
   email: string;
@@ -364,6 +375,7 @@ export interface SeedRider {
   days: RiderWeekday[];
   slots: RiderSlot[];
   status: RiderApplicationStatus;
+  rejectionReason?: string;
 }
 
 // Las del seed de desarrollo.
@@ -387,6 +399,17 @@ export const DEMO_RIDERS: readonly SeedRider[] = [
     days: ['saturday', 'sunday'],
     slots: ['morning', 'afternoon', 'night'],
     status: 'approved',
+  },
+  {
+    username: 'eva',
+    email: 'eva@rentit.test',
+    phone: '634567890',
+    zone: 'Sants',
+    vehicle: 'on_foot',
+    days: ['tuesday', 'thursday'],
+    slots: ['night'],
+    status: 'rejected',
+    rejectionReason: 'Zona sin cobertura de reparto por ahora.',
   },
 ];
 
@@ -413,25 +436,55 @@ export const PRODUCTION_DEMO_RIDERS: readonly SeedRider[] = [
     slots: ['morning', 'afternoon'],
     status: 'approved',
   },
+  {
+    username: 'bruna',
+    email: 'bruna@demo.rentit.test',
+    phone: '645678901',
+    zone: 'Sant Martí',
+    vehicle: 'car',
+    days: ['wednesday'],
+    slots: ['night'],
+    status: 'rejected',
+    rejectionReason: 'Necesitamos más disponibilidad semanal.',
+  },
 ];
 
 // Crea o actualiza las cuentas de rider (por email) con su solicitud. Repetir el seed deja otra
-// vez cada solicitud en el estado del catálogo, igual que las reservas de demo.
+// vez cada solicitud en el estado del catálogo, igual que las reservas de demo. Las aceptadas y
+// rechazadas quedan revisadas por `reviewerEmail`, que debe existir ya.
 export async function upsertDemoRiders(
   prisma: PrismaClient,
   password: string,
   bcryptRounds: number,
   riders: readonly SeedRider[] = DEMO_RIDERS,
+  reviewerEmail: string = DEV_ADMIN_EMAIL,
 ): Promise<number> {
   const passwordHash = await bcrypt.hash(password, bcryptRounds);
+  const reviewer = await prisma.user.findUnique({
+    where: { email: reviewerEmail },
+    select: { id: true },
+  });
+  if (!reviewer) {
+    throw new Error(
+      `No existe el admin ${reviewerEmail}: crea antes los usuarios del seed`,
+    );
+  }
 
-  for (const { username, email, ...application } of riders) {
+  for (const { username, email, rejectionReason, ...application } of riders) {
     const user = await prisma.user.upsert({
       where: { email },
       update: { username, isRider: true, passwordHash },
       create: { username, email, isRider: true, passwordHash },
     });
-    const data = { ...application, termsAcceptedAt: new Date() };
+    const reviewed = application.status !== 'pending';
+    const data = {
+      ...application,
+      termsAcceptedAt: new Date(),
+      reviewedById: reviewed ? reviewer.id : null,
+      reviewedAt: reviewed ? new Date() : null,
+      rejectionReason:
+        application.status === 'rejected' ? (rejectionReason ?? null) : null,
+    };
 
     await prisma.riderApplication.upsert({
       where: { userId: user.id },

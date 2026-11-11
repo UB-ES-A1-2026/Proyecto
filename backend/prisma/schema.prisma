@@ -25,22 +25,25 @@ enum UserStatus {
 }
 
 model User {
-  id               String            @id @default(uuid()) @db.Uuid
-  username         String            @unique @map("nombre_usuario") @db.VarChar(30)
-  email            String            @unique @db.VarChar(255)
-  passwordHash     String            @map("password_hash")
-  photoUrl         String?           @map("foto_url")
-  bio              String?           @db.VarChar(500)
-  role             UserRole          @default(user) @map("rol")
-  isRider          Boolean           @default(false) @map("es_rider")
-  verified         Boolean           @default(false) @map("verificado")
-  status           UserStatus        @default(active) @map("estado")
-  createdAt        DateTime          @default(now()) @map("creado_en")
-  updatedAt        DateTime          @updatedAt @map("actualizado_en")
-  sessions         Session[]
-  items            Item[]
-  reservations     Reservation[]
-  riderApplication RiderApplication?
+  id                        String             @id @default(uuid()) @db.Uuid
+  username                  String             @unique @map("nombre_usuario") @db.VarChar(30)
+  email                     String             @unique @db.VarChar(255)
+  passwordHash              String             @map("password_hash")
+  photoUrl                  String?            @map("foto_url")
+  bio                       String?            @db.VarChar(500)
+  role                      UserRole           @default(user) @map("rol")
+  isRider                   Boolean            @default(false) @map("es_rider")
+  verified                  Boolean            @default(false) @map("verificado")
+  status                    UserStatus         @default(active) @map("estado")
+  createdAt                 DateTime           @default(now()) @map("creado_en")
+  updatedAt                 DateTime           @updatedAt @map("actualizado_en")
+  sessions                  Session[]
+  items                     Item[]
+  reservations              Reservation[]
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+  riderApplication          RiderApplication?  @relation("RiderApplicant")
+  // Solicitudes de rider que ha resuelto este usuario (si es admin, US-11.03).
+  reviewedRiderApplications RiderApplication[] @relation("RiderReviewer")
 
   @@map("usuario")
 }
@@ -232,9 +235,16 @@ model RiderApplication {
   termsAcceptedAt DateTime               @map("condiciones_aceptadas_en")
   status          RiderApplicationStatus @default(pending) @map("estado")
   createdAt       DateTime               @default(now()) @map("creada_en")
+  // Revisión del admin (US-11.03, #317). Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+  // Pendiente <=> sin revisor ni fecha; el motivo solo existe si está rechazada (CHECK en la migración).
+  reviewedById    String?                @map("revisada_por_id") @db.Uuid
+  reviewedAt      DateTime?              @map("revisada_en")
+  rejectionReason String?                @map("motivo_rechazo") @db.VarChar(500)
   // Restrict: la solicitud es el historial de la revisión; no se borra con su usuario.
-  user            User                   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  user            User                   @relation("RiderApplicant", fields: [userId], references: [id], onDelete: Restrict)
+  reviewedBy      User?                  @relation("RiderReviewer", fields: [reviewedById], references: [id], onDelete: Restrict)
 
+  @@index([status, createdAt])
   @@map("solicitud_rider")
 }
 
