@@ -8,6 +8,7 @@ import {
   findUserByEmail,
   findUserByUsername,
 } from '../repositories/userRepository.js';
+import { closeSession } from './realtimeService.js';
 import { createSession, revokeSession } from './sessionService.js';
 
 // Mensajes del criterio de aceptación de US-01.2: «El campo "X" no es correcto, revísalo».
@@ -134,4 +135,6 @@ export async function login(
 
 export async function logout(sessionId: string): Promise<void> {
   await revokeSession(sessionId);
+  // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+  closeSession(sessionId);
 }
