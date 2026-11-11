@@ -82,6 +82,7 @@ describe.each(ACTIONS)('POST /api/reservas/:id/%s', (action, finalStatus) => {
       expiresAt: null,
       renter: { id: renter.id, username: 'bruno' },
       owner: { id: owner.id, username: 'ana' },
+      delivery: null,
       createdAt: reservation.createdAt.toISOString(),
     });
     expect(await statusOf(reservation.id)).toBe(finalStatus);
