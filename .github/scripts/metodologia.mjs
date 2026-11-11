@@ -20,9 +20,10 @@ const HOTFIX = new RegExp(String.raw`^hotfix/(${CODIGO})-\d+-${DESC}$`);
 function reglas(destino) {
   if (destino === 'develop')
     return {
-      admite: [FEATURE, BUGFIX, HOTFIX, /^staging$/],
+      // `staging` nunca vuelve a `develop`: un bugfix de preproducción entra por su propia rama.
+      admite: [FEATURE, BUGFIX, HOTFIX],
       texto:
-        '`feature/US-XX.YY-<desc>`, `bugfix/US-XX.YY-<nº>-<desc>`, `hotfix/US-XX.YY-<nº>-<desc>` o `staging`',
+        '`feature/US-XX.YY-<desc>`, `bugfix/US-XX.YY-<nº>-<desc>` o `hotfix/US-XX.YY-<nº>-<desc>`',
     };
   if (destino === 'staging')
     return {
