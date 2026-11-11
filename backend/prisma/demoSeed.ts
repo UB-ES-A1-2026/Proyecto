@@ -237,9 +237,8 @@ export async function upsertDemoDemand(
 }
 
 // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
-// Cuentas de rider de ejemplo (US-10.03): una pendiente de revisión y una ya aceptada. Solo las
-// crea el seed de desarrollo; el seed de la demo en producción no las incluye.
-export const DEMO_RIDERS: readonly {
+// Cuentas de rider de ejemplo (US-10.03): una pendiente de revisión y una ya aceptada.
+export interface SeedRider {
   username: string;
   email: string;
   phone: string;
@@ -248,7 +247,10 @@ export const DEMO_RIDERS: readonly {
   days: RiderWeekday[];
   slots: RiderSlot[];
   status: RiderApplicationStatus;
-}[] = [
+}
+
+// Las del seed de desarrollo.
+export const DEMO_RIDERS: readonly SeedRider[] = [
   {
     username: 'carla',
     email: 'carla@rentit.test',
@@ -271,16 +273,42 @@ export const DEMO_RIDERS: readonly {
   },
 ];
 
-// Crea o actualiza las cuentas de DEMO_RIDERS (por email) con su solicitud. Repetir el seed deja
-// otra vez cada solicitud en el estado del catálogo, igual que las reservas de demo.
+// Las de la demo en producción (seed-demo.ts), con el mismo dominio que DEMO_USERS: sin ellas no se
+// puede enseñar «Hazte rider» ni la revisión del admin en la demo.
+export const PRODUCTION_DEMO_RIDERS: readonly SeedRider[] = [
+  {
+    username: 'nuria',
+    email: 'nuria@demo.rentit.test',
+    phone: '623456789',
+    zone: 'Gràcia',
+    vehicle: 'bike',
+    days: ['monday', 'tuesday', 'thursday'],
+    slots: ['afternoon', 'night'],
+    status: 'pending',
+  },
+  {
+    username: 'pau',
+    email: 'pau@demo.rentit.test',
+    phone: '687654321',
+    zone: 'Poblenou',
+    vehicle: 'scooter',
+    days: ['friday', 'saturday', 'sunday'],
+    slots: ['morning', 'afternoon'],
+    status: 'approved',
+  },
+];
+
+// Crea o actualiza las cuentas de rider (por email) con su solicitud. Repetir el seed deja otra
+// vez cada solicitud en el estado del catálogo, igual que las reservas de demo.
 export async function upsertDemoRiders(
   prisma: PrismaClient,
   password: string,
   bcryptRounds: number,
+  riders: readonly SeedRider[] = DEMO_RIDERS,
 ): Promise<number> {
   const passwordHash = await bcrypt.hash(password, bcryptRounds);
 
-  for (const { username, email, ...application } of DEMO_RIDERS) {
+  for (const { username, email, ...application } of riders) {
     const user = await prisma.user.upsert({
       where: { email },
       update: { username, isRider: true, passwordHash },
@@ -295,5 +323,5 @@ export async function upsertDemoRiders(
     });
   }
 
-  return DEMO_RIDERS.length;
+  return riders.length;
 }
