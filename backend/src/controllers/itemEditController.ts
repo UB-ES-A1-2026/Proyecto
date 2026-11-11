@@ -1,7 +1,7 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
 import type { RequestHandler } from 'express';
 import { AppError } from '../errors/appError.js';
-import { ADDRESS_MAX_LENGTH } from '../services/itemDelivery.js';
+import { parseAddress } from '../services/itemDelivery.js';
 import * as itemEditService from '../services/itemEditService.js';
 
 const UUID_PATTERN =
@@ -82,10 +82,9 @@ function readChanges(body: unknown): itemEditService.ItemChanges {
       'pickupPointDelivery',
       'punto de recogida',
     ),
+    // undefined no cambia la dirección; vacía, con solo espacios o null la borra.
     address:
-      fields.address === undefined
-        ? undefined
-        : readText(fields.address, 'address', 'dirección', ADDRESS_MAX_LENGTH),
+      fields.address === undefined ? undefined : parseAddress(fields.address),
     title: readText(fields.title, 'title', 'nombre', 100),
     description: readText(
       fields.description,

@@ -145,7 +145,6 @@ describe('POST /api/objetos (US-02.01, #14)', () => {
     ['neighborhood', '', 'barrio'],
     ['neighborhood', 'Vila de Gràcia', 'barrio'],
     ['neighborhood', 'Madrid', 'barrio'],
-    ['address', '   ', 'dirección'],
     ['address', 'x'.repeat(201), 'dirección'],
     ['address', 42, 'dirección'],
     ['homeDelivery', 'sí', 'entrega a domicilio'],
@@ -194,6 +193,57 @@ describe('POST /api/objetos (US-02.01, #14)', () => {
     expect(response.status).toBe(201);
     expect(response.body.address).toBeNull();
   });
+
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+  it.each(['', '   '])(
+    'treats the blank address %j as no address when only the pickup point is offered',
+    async (address) => {
+      await createTestUser();
+      const token = await loginAs();
+
+      const response = await publish(token, {
+        ...(await validBody()),
+        address,
+        homeDelivery: false,
+        pickupPointDelivery: true,
+      });
+
+      expect(response.status).toBe(201);
+      expect(response.body.address).toBeNull();
+      const stored = await prisma.item.findUniqueOrThrow({
+        where: { id: response.body.id },
+      });
+      expect(stored.address).toBeNull();
+    },
+  );
+
+  it.each([
+    ['homeDelivery', ''],
+    ['homeDelivery', '   '],
+    ['riderDelivery', ''],
+    ['riderDelivery', '   '],
+  ])(
+    'returns 400 for the address when %s is on and the address is %j',
+    async (flag, address) => {
+      await createTestUser();
+      const token = await loginAs();
+
+      const response = await publish(token, {
+        ...(await validBody()),
+        address,
+        homeDelivery: false,
+        pickupPointDelivery: false,
+        [flag]: true,
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        error: 'El campo "dirección" no es correcto, revísalo.',
+        field: 'address',
+      });
+      expect(await prisma.item.count()).toBe(0);
+    },
+  );
 
   it.each(['homeDelivery', 'riderDelivery'])(
     'returns 400 for the address when %s is on and there is no address',
