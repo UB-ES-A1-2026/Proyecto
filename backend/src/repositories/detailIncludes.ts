@@ -17,10 +17,13 @@ export const reservationDetailInclude = {
     select: {
       id: true,
       title: true,
+      // Solo para decidir si el arrendatario la puede ver (services/deliveryView.ts).
+      address: true,
       owner: { select: { id: true, username: true } },
     },
   },
   renter: { select: { id: true, username: true } },
+  delivery: { include: { pickupPoint: true } },
 } satisfies Prisma.ReservationInclude;
 
 export type ReservationWithDetail = Prisma.ReservationGetPayload<{

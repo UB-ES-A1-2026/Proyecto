@@ -22,14 +22,19 @@ export interface ItemDetail {
   homeDelivery: boolean;
   riderDelivery: boolean;
   pickupPointDelivery: boolean;
+  // Dirección exacta del propietario (US-05.01, #281): solo sale cuando la pide el propio
+  // propietario (para rellenar el formulario de editar). Nunca en la API pública.
+  address?: string | null;
   owner: { id: string; username: string };
   createdAt: Date;
 }
 
 // Los importes salen como texto con 2 decimales ("5.00"), como espera el frontend.
+// `includeAddress` es true solo si quien lo pide es el propietario del objeto.
 export function toItemDetail(
   item: ItemWithDetail,
   photos: ItemPhotoDto[],
+  includeAddress: boolean,
 ): ItemDetail {
   return {
     id: item.id,
@@ -44,6 +49,7 @@ export function toItemDetail(
     homeDelivery: item.homeDelivery,
     riderDelivery: item.riderDelivery,
     pickupPointDelivery: item.pickupPointDelivery,
+    ...(includeAddress ? { address: item.address } : {}),
     owner: item.owner,
     createdAt: item.createdAt,
   };

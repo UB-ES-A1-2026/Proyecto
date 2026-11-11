@@ -31,17 +31,21 @@ async function setUp(dailyPrice = 5.5) {
     username: 'bruno',
     email: 'bruno@rentit.test',
   });
-  const item = await createTestItem(owner.id, { dailyPrice });
+  const item = await createTestItem(owner.id, {
+    dailyPrice,
+    homeDelivery: true,
+  });
   const token = await loginAs('bruno@rentit.test');
 
   return { owner, renter, item, token };
 }
 
+// US-05.01 (#281): el modo de entrega es obligatorio; por defecto, recogida en casa del propietario.
 function postReservation(token: string, body: object) {
   return request(app)
     .post('/api/reservas')
     .set('Authorization', `Bearer ${token}`)
-    .send(body);
+    .send({ deliveryMode: 'home', ...body });
 }
 
 beforeEach(async () => {
@@ -264,6 +268,15 @@ describe('POST /api/reservas', () => {
       status: 'pending',
       renter: { id: renter.id, username: 'bruno' },
       owner: { id: owner.id, username: 'ana' },
+      delivery: {
+        mode: 'home',
+        slot: null,
+        pickupPoint: null,
+        fee: null,
+        deliveryNeighborhood: null,
+        deliveryAddress: null,
+        ownerAddress: null,
+      },
       createdAt: expect.any(String),
     });
 

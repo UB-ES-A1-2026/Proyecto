@@ -6,6 +6,7 @@ import {
   findItemsByOwner,
   updateItemById,
 } from '../repositories/itemEditRepository.js';
+import { assertValidDeliverySettings } from './itemDelivery.js';
 import { toItemDetail, type ItemDetail } from './itemDetail.js';
 import { listFirstPhotoUrls, listItemPhotos } from './photoService.js';
 
@@ -19,6 +20,8 @@ export interface MyItem {
   title: string;
   dailyPrice: string;
   neighborhood: string;
+  // Solo se devuelve en «Mis objetos», que ve únicamente su propietario (US-05.01, #281).
+  address: string | null;
   status: ItemStatus;
   // URL de la primera foto, o null si no tiene.
   photo: string | null;
@@ -29,6 +32,14 @@ export interface ItemChanges {
   description: string;
   dailyPrice: string;
   deposit: string;
+  // Opcionales (US-05.01, #281): si no se envían, no cambian.
+  homeDelivery?: boolean | undefined;
+  riderDelivery?: boolean | undefined;
+  pickupPointDelivery?: boolean | undefined;
+  // null borra la dirección.
+  address?: string | null | undefined;
+  // Opcional: permite corregir los barrios escritos a mano de los objetos antiguos.
+  neighborhood?: string | undefined;
 }
 
 // «Mis objetos» (US-02.02, #108): los del usuario, en cualquier estado.
@@ -64,6 +75,23 @@ export async function updateItem(
     throw new AppError(409, WITHDRAWN_MESSAGE);
   }
 
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+  // Si se tocan los modos de entrega o la dirección, valida cómo queda el objeto.
+  const touchesDelivery =
+    changes.homeDelivery !== undefined ||
+    changes.riderDelivery !== undefined ||
+    changes.pickupPointDelivery !== undefined ||
+    changes.address !== undefined;
+  if (touchesDelivery) {
+    assertValidDeliverySettings({
+      homeDelivery: changes.homeDelivery ?? item.homeDelivery,
+      riderDelivery: changes.riderDelivery ?? item.riderDelivery,
+      pickupPointDelivery:
+        changes.pickupPointDelivery ?? item.pickupPointDelivery,
+      address: changes.address === undefined ? item.address : changes.address,
+    });
+  }
+
   const updated = await updateItemById(itemId, changes);
 
   const photos = await listItemPhotos(itemId);
@@ -71,5 +99,6 @@ export async function updateItem(
   return toItemDetail(
     updated,
     photos.map(({ id, url }) => ({ id, url })),
+    true,
   );
 }

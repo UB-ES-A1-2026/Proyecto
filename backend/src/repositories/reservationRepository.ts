@@ -1,5 +1,5 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
-import type { Prisma, ReservationStatus } from '@prisma/client';
+import type { DeliveryMode, Prisma, ReservationStatus } from '@prisma/client';
 import { reservationDetailInclude } from './detailIncludes.js';
 import { prisma } from './prisma.js';
 
@@ -7,7 +7,16 @@ import { prisma } from './prisma.js';
 export function findItemForReservation(itemId: string) {
   return prisma.item.findUnique({
     where: { id: itemId },
-    select: { ownerId: true, status: true, dailyPrice: true },
+    select: {
+      ownerId: true,
+      status: true,
+      dailyPrice: true,
+      neighborhood: true,
+      address: true,
+      homeDelivery: true,
+      riderDelivery: true,
+      pickupPointDelivery: true,
+    },
   });
 }
 
@@ -46,6 +55,18 @@ export async function hasOverlappingReservation(
   return overlapping !== null;
 }
 
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+// Entrega de la solicitud (US-05.01, #281): se guarda en la misma transacción que la reserva.
+export interface ReservationDeliveryData {
+  mode: DeliveryMode;
+  pickupPointId?: string;
+  // NULL = «Lo antes posible».
+  slot?: string | null;
+  deliveryAddress?: string;
+  deliveryNeighborhood?: string;
+  fee?: string;
+}
+
 export type InsertReservationResult =
   | {
       outcome: 'created';
@@ -65,10 +86,12 @@ export function insertReservationIfAvailable(
     startDate: Date;
     endDate: Date;
     totalPrice: Prisma.Decimal;
+    delivery: ReservationDeliveryData;
   },
   occupyingStatuses: readonly ReservationStatus[],
 ): Promise<InsertReservationResult> {
-  const { itemId, renterId, startDate, endDate } = data;
+  const { itemId, renterId, startDate, endDate, delivery } = data;
+  const { mode, ...deliveryFields } = delivery;
 
   return prisma.$transaction(async (transaction) => {
     await transaction.$queryRaw`SELECT id FROM objeto WHERE id = ${itemId}::uuid FOR UPDATE`;
@@ -103,7 +126,15 @@ export function insertReservationIfAvailable(
     }
 
     const reservation = await transaction.reservation.create({
-      data,
+      data: {
+        itemId,
+        renterId,
+        startDate,
+        endDate,
+        totalPrice: data.totalPrice,
+        deliveryMode: mode,
+        delivery: { create: deliveryFields },
+      },
       include: reservationDetailInclude,
     });
 

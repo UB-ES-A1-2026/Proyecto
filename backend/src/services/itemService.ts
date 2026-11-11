@@ -5,6 +5,7 @@ import {
   findCategoryById,
 } from '../repositories/itemRepository.js';
 import { toItemDetail, type ItemDetail } from './itemDetail.js';
+import { assertValidDeliverySettings } from './itemDelivery.js';
 
 // Mensaje del criterio 5 de US-02.01: «El campo "X" no es correcto, revísalo.»
 export function invalidFieldMessage(label: string): string {
@@ -18,6 +19,8 @@ export interface PublishItemInput {
   dailyPrice: string;
   deposit: string;
   neighborhood: string;
+  // Dirección exacta (US-05.01, #281): obligatoria con entrega en casa o por rider.
+  address: string | null;
   homeDelivery: boolean;
   riderDelivery: boolean;
   pickupPointDelivery: boolean;
@@ -30,10 +33,12 @@ export async function publishItem(
   ownerId: string,
   input: PublishItemInput,
 ): Promise<ItemDetail> {
+  assertValidDeliverySettings(input);
+
   if (!(await findCategoryById(input.categoryId))) {
     throw new AppError(400, invalidFieldMessage('categoría'), 'categoryId');
   }
 
   const item = await createItem({ ownerId, ...input });
-  return toItemDetail(item, []);
+  return toItemDetail(item, [], true);
 }

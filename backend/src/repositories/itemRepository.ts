@@ -13,6 +13,7 @@ export function createItem(data: {
   dailyPrice: string;
   deposit: string;
   neighborhood: string;
+  address: string | null;
   homeDelivery: boolean;
   riderDelivery: boolean;
   pickupPointDelivery: boolean;

@@ -79,6 +79,7 @@ describe('GET /api/usuarios/me/reservas', () => {
           status: 'pending',
           renter: { id: bruno.id, username: 'bruno' },
           owner: { id: ana.id, username: 'ana' },
+          delivery: null,
           createdAt: reservation.createdAt.toISOString(),
         },
       ],

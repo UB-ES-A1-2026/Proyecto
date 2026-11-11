@@ -10,6 +10,8 @@ import {
   upsertUsers,
 } from '../../prisma/demoSeed.js';
 import { prisma } from '../../src/repositories/prisma.js';
+import { quoteRiderFee } from '../../src/services/deliveryFee.js';
+import { isKnownNeighborhood } from '../../src/services/neighborhoods.js';
 import { resetDb } from '../helpers/db.js';
 
 // Datos de demo (#97): las cuentas y los objetos se crean bien, no se duplican al repetir el
@@ -100,6 +102,23 @@ describe('seed de la demo', () => {
     ).toBe(true);
   });
 
+  // US-05.01 (#281) – revisado por Alex Matos, 11/11/2026
+  it('todos los objetos con entrega en casa o por rider llevan dirección, con barrio de la lista', async () => {
+    await seedDemo();
+
+    const items = await prisma.item.findMany();
+    for (const item of items) {
+      expect(isKnownNeighborhood(item.neighborhood), item.title).toBe(true);
+      if (item.homeDelivery || item.riderDelivery) {
+        expect(item.address, item.title).toBeTruthy();
+      }
+      expect(
+        item.homeDelivery || item.riderDelivery || item.pickupPointDelivery,
+        item.title,
+      ).toBe(true);
+    }
+  });
+
   it('falla con un mensaje claro si falta un propietario', async () => {
     await expect(upsertDemoItems(prisma, [])).rejects.toThrow(
       'Falta el propietario',
@@ -186,5 +205,67 @@ describe('solicitudes de la demo', () => {
     await expect(
       upsertDemoReservations(prisma, userIds, TODAY),
     ).rejects.toThrow('crea antes los objetos');
+  });
+
+  // Entrega de las solicitudes (US-05.01, #281) – revisado por Alex Matos, 11/11/2026
+  it('cada solicitud tiene su entrega, con un modo que el objeto ofrece, y hay uno de cada', async () => {
+    await seedWithReservations();
+
+    const reservations = await prisma.reservation.findMany({
+      include: { item: true, delivery: { include: { pickupPoint: true } } },
+    });
+    expect(await prisma.delivery.count()).toBe(DEMO_RESERVATIONS.length);
+
+    for (const reservation of reservations) {
+      const offers = {
+        home: reservation.item.homeDelivery,
+        rider: reservation.item.riderDelivery,
+        pickup_point: reservation.item.pickupPointDelivery,
+      };
+      expect(reservation.deliveryMode, reservation.item.title).not.toBeNull();
+      expect(offers[reservation.deliveryMode!], reservation.item.title).toBe(
+        true,
+      );
+      expect(reservation.delivery, reservation.item.title).not.toBeNull();
+    }
+    expect(
+      new Set(reservations.map(({ deliveryMode }) => deliveryMode)),
+    ).toEqual(new Set(['home', 'rider', 'pickup_point']));
+  });
+
+  it('las entregas por rider llevan la tarifa calculada y las de punto, el punto', async () => {
+    await seedWithReservations();
+
+    const deliveries = await prisma.delivery.findMany({
+      include: { pickupPoint: true, reservation: { include: { item: true } } },
+    });
+    for (const delivery of deliveries) {
+      const { deliveryMode, item } = delivery.reservation;
+      if (deliveryMode === 'rider') {
+        expect(delivery.fee?.toFixed(2)).toBe(
+          quoteRiderFee(item.neighborhood, delivery.deliveryNeighborhood!).fee,
+        );
+        expect(delivery.deliveryAddress).toBeTruthy();
+        expect(delivery.pickupPoint).toBeNull();
+      } else if (deliveryMode === 'pickup_point') {
+        expect(delivery.pickupPoint).not.toBeNull();
+        expect(delivery.fee).toBeNull();
+      } else {
+        expect(delivery.pickupPointId).toBeNull();
+        expect(delivery.fee).toBeNull();
+      }
+    }
+  });
+
+  it('repetir el seed no duplica las entregas y las deja como en el catálogo', async () => {
+    const userIds = await seedWithReservations();
+    await prisma.delivery.updateMany({ data: { slot: '19:00-21:00' } });
+
+    await upsertDemoReservations(prisma, userIds, TODAY);
+
+    expect(await prisma.delivery.count()).toBe(DEMO_RESERVATIONS.length);
+    expect(
+      await prisma.delivery.count({ where: { slot: '19:00-21:00' } }),
+    ).toBe(0);
   });
 });

@@ -24,5 +24,7 @@ export async function getItemDetail(
   return toItemDetail(
     item,
     photos.map(({ id, url }) => ({ id, url })),
+    // La dirección exacta solo la ve el propietario (US-05.01, #281).
+    item.ownerId === viewerId,
   );
 }
