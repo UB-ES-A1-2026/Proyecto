@@ -10,11 +10,13 @@ import type {
   RiderWeekday,
   UserRole,
 } from '@prisma/client';
+import { quoteRiderFee } from '../src/services/deliveryFee.js';
 import {
   DEMO_DEMAND_ITEM,
   DEMO_DEMAND_REQUESTS,
   DEMO_ITEMS,
   DEMO_RESERVATIONS,
+  type DemoDelivery,
 } from './demoData.js';
 
 // Contraseña de las cuentas del seed de desarrollo: está en el repo, que es público.
@@ -123,7 +125,49 @@ function daysFrom(today: Date, days: number): Date {
   return new Date(midnight + days * DAY_MS);
 }
 
-// Crea o actualiza las solicitudes de DEMO_RESERVATIONS (US-04.02 a US-04.04). Necesita que
+// Columnas de `entrega` de una solicitud de la demo (US-05.01, #281). Todas se escriben siempre,
+// con NULL las que no tocan, para que repetir el seed deje la entrega como en el catálogo.
+async function demoDeliveryData(
+  prisma: PrismaClient,
+  delivery: DemoDelivery,
+  itemNeighborhood: string,
+) {
+  const empty = {
+    pickupPointId: null,
+    slot: null,
+    deliveryAddress: null,
+    deliveryNeighborhood: null,
+    fee: null,
+  };
+
+  switch (delivery.mode) {
+    case 'home':
+      return empty;
+    case 'rider':
+      return {
+        ...empty,
+        slot: delivery.slot,
+        deliveryAddress: delivery.address,
+        deliveryNeighborhood: delivery.neighborhood,
+        fee: quoteRiderFee(itemNeighborhood, delivery.neighborhood).fee,
+      };
+    case 'pickup_point': {
+      const point = await prisma.pickupPoint.findFirst({
+        where: { name: delivery.pickupPoint },
+        select: { id: true },
+      });
+      if (!point) {
+        throw new Error(
+          `No existe el punto de recogida «${delivery.pickupPoint}»: aplica antes las migraciones (npm run db:deploy)`,
+        );
+      }
+      return { ...empty, pickupPointId: point.id };
+    }
+  }
+}
+
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+// Crea o actualiza las solicitudes de DEMO_RESERVATIONS (US-04.02 a US-04.04 y, desde US-05.01, con su entrega). Necesita que
 // existan antes los usuarios y los objetos. Hay como mucho una por objeto y arrendatario: si ya
 // existe, se le devuelven las fechas, el importe y el estado del catálogo, así que repetir el
 // seed deja otra vez pendientes las que se hayan aceptado o rechazado al probar.
@@ -143,7 +187,7 @@ export async function upsertDemoReservations(
 
     const item = await prisma.item.findFirst({
       where: { ownerId, title: reservation.item.title },
-      select: { id: true, dailyPrice: true, deposit: true },
+      select: { id: true, dailyPrice: true, deposit: true, neighborhood: true },
     });
     if (!item) {
       throw new Error(
@@ -157,6 +201,7 @@ export async function upsertDemoReservations(
       startDate: daysFrom(today, reservation.startInDays),
       endDate: daysFrom(today, reservation.startInDays + reservation.days - 1),
       totalPrice: item.dailyPrice.times(reservation.days),
+      deliveryMode: reservation.delivery.mode,
       status: reservation.status,
       // Las pendientes tienen 48 h para responder desde que se carga el seed (#72).
       expiresAt:
@@ -174,6 +219,17 @@ export async function upsertDemoReservations(
       ? await prisma.reservation.update({ where: { id: existing.id }, data })
       : await prisma.reservation.create({ data });
 
+    const delivery = await demoDeliveryData(
+      prisma,
+      reservation.delivery,
+      item.neighborhood,
+    );
+    await prisma.delivery.upsert({
+      where: { reservationId: id },
+      update: delivery,
+      create: { reservationId: id, ...delivery },
+    });
+
     // Pagos (US-07.01, #72): la pendiente tiene el importe bloqueado («autorizado») y la pagada,
     // cobrado. Al repetir el seed se rehace el pago, por si se ha cambiado al probar. Las aceptadas
     // y rechazadas son del flujo antiguo y no llevan pago. Sin referencias: pagos sin pasarela.
@@ -184,6 +240,8 @@ export async function upsertDemoReservations(
         data: {
           reservationId: id,
           rentalAmount: data.totalPrice,
+          // Con rider, la tarifa se bloquea y se cobra con el alquiler (US-05.01).
+          deliveryAmount: delivery.fee ?? 0,
           depositAmount: item.deposit,
           status: reservation.status === 'paid' ? 'paid' : 'authorized',
           // La fianza se retiene el día antes de empezar (#72): de momento, «pendiente». Sin fianza
