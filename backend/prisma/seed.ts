@@ -7,6 +7,7 @@ import {
   DEV_PASSWORD,
   upsertDemoItems,
   upsertDemoReservations,
+  upsertDemoRiders,
   upsertUsers,
   demandNeighbours,
   upsertDemoDemand,
@@ -42,8 +43,12 @@ async function main(): Promise<void> {
   );
   const demand = await upsertDemoDemand(prisma, [anaId, brunoId], neighbourIds);
 
+  // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+  // Dos cuentas de rider (US-10.03): carla pendiente y dani aceptada.
+  const riders = await upsertDemoRiders(prisma, DEV_PASSWORD, rounds);
+
   console.info(
-    `Seed completado: ${demoUsers.length} usuarios de prueba, ${items} objetos y ${reservations + demand} solicitudes`,
+    `Seed completado: ${demoUsers.length} usuarios de prueba, ${riders} riders, ${items} objetos y ${reservations + demand} solicitudes`,
   );
 }
 

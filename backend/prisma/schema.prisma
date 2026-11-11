@@ -25,21 +25,22 @@ enum UserStatus {
 }
 
 model User {
-  id           String        @id @default(uuid()) @db.Uuid
-  username     String        @unique @map("nombre_usuario") @db.VarChar(30)
-  email        String        @unique @db.VarChar(255)
-  passwordHash String        @map("password_hash")
-  photoUrl     String?       @map("foto_url")
-  bio          String?       @db.VarChar(500)
-  role         UserRole      @default(user) @map("rol")
-  isRider      Boolean       @default(false) @map("es_rider")
-  verified     Boolean       @default(false) @map("verificado")
-  status       UserStatus    @default(active) @map("estado")
-  createdAt    DateTime      @default(now()) @map("creado_en")
-  updatedAt    DateTime      @updatedAt @map("actualizado_en")
-  sessions     Session[]
-  items        Item[]
-  reservations Reservation[]
+  id               String            @id @default(uuid()) @db.Uuid
+  username         String            @unique @map("nombre_usuario") @db.VarChar(30)
+  email            String            @unique @db.VarChar(255)
+  passwordHash     String            @map("password_hash")
+  photoUrl         String?           @map("foto_url")
+  bio              String?           @db.VarChar(500)
+  role             UserRole          @default(user) @map("rol")
+  isRider          Boolean           @default(false) @map("es_rider")
+  verified         Boolean           @default(false) @map("verificado")
+  status           UserStatus        @default(active) @map("estado")
+  createdAt        DateTime          @default(now()) @map("creado_en")
+  updatedAt        DateTime          @updatedAt @map("actualizado_en")
+  sessions         Session[]
+  items            Item[]
+  reservations     Reservation[]
+  riderApplication RiderApplication?
 
   @@map("usuario")
 }
@@ -166,4 +167,64 @@ model Reservation {
   @@index([itemId, status])
   @@index([renterId])
   @@map("reserva")
+}
+
+// Solicitudes para ser rider del Sprint 2 (#314, US-10.03). Diseño en docs/modelo-datos.md.
+// Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+
+enum RiderVehicle {
+  on_foot   @map("a_pie")
+  bike      @map("bici")
+  scooter   @map("patinete")
+  motorbike @map("moto")
+  car       @map("coche")
+
+  @@map("vehiculo_rider")
+}
+
+enum RiderApplicationStatus {
+  pending  @map("pendiente")
+  approved @map("aceptada")
+  rejected @map("rechazada")
+
+  @@map("estado_solicitud_rider")
+}
+
+enum RiderWeekday {
+  monday    @map("lunes")
+  tuesday   @map("martes")
+  wednesday @map("miercoles")
+  thursday  @map("jueves")
+  friday    @map("viernes")
+  saturday  @map("sabado")
+  sunday    @map("domingo")
+
+  @@map("dia_semana")
+}
+
+// Franjas: mañana 9-14 h, tarde 14-20 h, noche 20-23 h.
+enum RiderSlot {
+  morning   @map("manana")
+  afternoon @map("tarde")
+  night     @map("noche")
+
+  @@map("franja_rider")
+}
+
+model RiderApplication {
+  id              String                 @id @default(uuid()) @db.Uuid
+  userId          String                 @unique @map("usuario_id") @db.Uuid
+  phone           String                 @map("telefono") @db.VarChar(20)
+  zone            String                 @map("zona") @db.VarChar(100)
+  vehicle         RiderVehicle           @map("vehiculo")
+  // dias y franjas no vacíos: CHECK en la migración (Prisma no los declara en el esquema).
+  days            RiderWeekday[]         @map("dias")
+  slots           RiderSlot[]            @map("franjas")
+  termsAcceptedAt DateTime               @map("condiciones_aceptadas_en")
+  status          RiderApplicationStatus @default(pending) @map("estado")
+  createdAt       DateTime               @default(now()) @map("creada_en")
+  // Restrict: la solicitud es el historial de la revisión; no se borra con su usuario.
+  user            User                   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@map("solicitud_rider")
 }
