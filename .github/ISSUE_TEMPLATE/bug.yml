@@ -10,7 +10,7 @@ body:
     attributes:
       value: |
         Un fallo que encuentras mientras haces tu propia tarea, antes de integrarla, no es un bug: arréglalo y sigue.
-        El arreglo va en una rama `bugfix/<nº de este issue>-<desc>` (o `hotfix/` si ya está en `main`) y **tiene que incluir el test que lo reproduce**.
+        El arreglo va en una rama `bugfix/<código de la historia afectada>-<nº de este issue>-<desc>`, por ejemplo `bugfix/US-04.01-330-fechas` (o `hotfix/…` si ya está en `main`), y **tiene que incluir el test que lo reproduce**.
   - type: textarea
     id: que-pasa
     attributes:

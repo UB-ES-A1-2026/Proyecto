@@ -314,7 +314,7 @@ Cuántos bugs encuentran los tests frente a los que se encuentran a mano, en rev
 | En producción o en la demo | `hallado-en-produccion` |
 | Sin responder | `hallado-sin-indicar` |
 
-4. El arreglo va en `bugfix/<nº>-<desc>` (o `hotfix/`), con `Closes #<nº>` y **el test que reproduce el bug**. El check «Test del arreglo» falla si falta alguna de las dos cosas. Así cada bug deja un test que impide que vuelva.
+4. El arreglo va en `bugfix/US-XX.YY-<nº>-<desc>` (o `hotfix/US-XX.YY-<nº>-<desc>` si ya está en `main`), con el código de la historia afectada, con `Closes #<nº>` y **el test que reproduce el bug**. El check «Test del arreglo» falla si falta alguna de las dos cosas. Así cada bug deja un test que impide que vuelva.
 5. Además, el informe cuenta las ejecuciones del CI en PRs en las que falló un paso de tests: son fallos que el CI paró antes de integrarlos.
 
 ### Informe para la demo

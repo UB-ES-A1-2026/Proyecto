@@ -154,7 +154,7 @@ El profesor pidió métricas de los tests. Salen solas si se cumple esto; detall
   <archivo › nombre del test>"
   ```
   La respuesta de «¿Cómo se ha encontrado?» tiene que ser **literalmente** una de estas: `Un test automático en local (unitario, de API o e2e)`, `El CI de un PR`, `Revisión de código`, `Probando a mano`, `En producción o en la demo`. El workflow «Métricas de tests» la convierte en una etiqueta `hallado-*` (cada lunes o al lanzarlo) y de ahí sale la métrica.
-- **Arreglo de un bug:** rama `bugfix/<nº del bug>-<desc>` (`hotfix/` si está en `main`), con **el test que lo reproduce** (falla sin el arreglo y pasa con él) y `Closes #<nº del bug>` en la descripción. El check «Test del arreglo» falla si falta alguna de las dos cosas. La etiqueta `bug-sin-test` solo la pone una persona, explicando en el PR por qué no se puede probar, y después vuelve a lanzar el CI (*Re-run jobs*).
+- **Arreglo de un bug:** rama `bugfix/US-XX.YY-<nº del bug>-<desc>`, con el código de la historia afectada (`hotfix/US-XX.YY-<nº del bug>-<desc>` si está en `main`), con **el test que lo reproduce** (falla sin el arreglo y pasa con él) y `Closes #<nº del bug>` en la descripción. El check «Test del arreglo» falla si falta alguna de las dos cosas. La etiqueta `bug-sin-test` solo la pone una persona, explicando en el PR por qué no se puede probar, y después vuelve a lanzar el CI (*Re-run jobs*).
 
 ## Build y ejecución
 - Base de datos local: `docker compose up -d` desde la raíz (crea las BD `rentit` y `rentit_test`).
