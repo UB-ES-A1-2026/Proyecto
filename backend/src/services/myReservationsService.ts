@@ -20,7 +20,9 @@ export async function getMyReservations(
   ]);
 
   return {
-    sent: sent.map(toReservationDetail),
-    received: received.map(toReservationDetail),
+    sent: sent.map((reservation) => toReservationDetail(reservation, 'renter')),
+    received: received.map((reservation) =>
+      toReservationDetail(reservation, 'owner'),
+    ),
   };
 }

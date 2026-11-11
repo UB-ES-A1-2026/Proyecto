@@ -1,11 +1,15 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
 import type { ReservationStatus } from '@prisma/client';
 import { AppError } from '../errors/appError.js';
+import { findPickupPointById } from '../repositories/pickupPointRepository.js';
 import {
   findItemForReservation,
   hasOverlappingReservation,
   insertReservationIfAvailable,
+  type ReservationDeliveryData,
 } from '../repositories/reservationRepository.js';
+import { quoteRiderFee } from './deliveryFee.js';
+import { ASAP_SLOT, availableSlots } from './deliverySlots.js';
 import { toReservationDetail, type ReservationDetail } from './reservation.js';
 
 export const ITEM_NOT_FOUND_MESSAGE = 'No hemos encontrado este objeto.';
@@ -18,6 +22,10 @@ export const START_DATE_IN_PAST_MESSAGE =
   'La fecha de inicio no puede ser anterior a hoy.';
 export const END_BEFORE_START_MESSAGE =
   'La fecha de fin no puede ser anterior a la fecha de inicio.';
+export const INVALID_SLOT_MESSAGE = 'Elige una hora de entrega.';
+export const MODE_NOT_OFFERED_MESSAGE =
+  'Este objeto no ofrece ese modo de entrega.';
+export const INVALID_PICKUP_POINT_MESSAGE = 'Elige un punto de recogida.';
 export const RENTAL_TOO_LONG_MESSAGE =
   'El periodo es demasiado largo: revisa la fecha de fin.';
 
@@ -87,9 +95,69 @@ export async function checkAvailability(
   return { available: !overlapping };
 }
 
+// Entrega elegida al solicitar (US-05.01, #281), ya con la forma de los campos comprobada.
+export type ReservationDeliveryInput =
+  | { mode: 'home' }
+  | { mode: 'rider'; slot: string; address: string; neighborhood: string }
+  | { mode: 'pickup_point'; pickupPointId: string };
+
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+// Comprueba la entrega contra el objeto y calcula lo que guarda la BD. La tarifa la calcula el
+// servidor: el cliente no la envía.
+async function resolveDelivery(
+  item: {
+    neighborhood: string;
+    homeDelivery: boolean;
+    riderDelivery: boolean;
+    pickupPointDelivery: boolean;
+  },
+  delivery: ReservationDeliveryInput,
+  startDate: string,
+  now: Date,
+): Promise<ReservationDeliveryData> {
+  const offered = {
+    home: item.homeDelivery,
+    rider: item.riderDelivery,
+    pickup_point: item.pickupPointDelivery,
+  }[delivery.mode];
+  if (!offered) {
+    throw new AppError(400, MODE_NOT_OFFERED_MESSAGE, 'deliveryMode');
+  }
+
+  switch (delivery.mode) {
+    case 'home':
+      return { mode: 'home' };
+    case 'pickup_point': {
+      if (!(await findPickupPointById(delivery.pickupPointId))) {
+        throw new AppError(400, INVALID_PICKUP_POINT_MESSAGE, 'pickupPointId');
+      }
+      return { mode: 'pickup_point', pickupPointId: delivery.pickupPointId };
+    }
+    case 'rider': {
+      const slots = availableSlots(startDate === todayInSpain(now), now);
+      if (delivery.slot !== ASAP_SLOT && !slots.includes(delivery.slot)) {
+        throw new AppError(400, INVALID_SLOT_MESSAGE, 'slot');
+      }
+      return {
+        mode: 'rider',
+        // «Lo antes posible» se guarda como NULL.
+        slot: delivery.slot === ASAP_SLOT ? null : delivery.slot,
+        deliveryAddress: delivery.address,
+        deliveryNeighborhood: delivery.neighborhood,
+        fee: quoteRiderFee(item.neighborhood, delivery.neighborhood).fee,
+      };
+    }
+  }
+}
+
 export async function createReservation(
   renterId: string,
-  input: { itemId: string; startDate: string; endDate: string },
+  input: {
+    itemId: string;
+    startDate: string;
+    endDate: string;
+    delivery: ReservationDeliveryInput;
+  },
   now: Date = new Date(),
 ): Promise<ReservationDetail> {
   assertValidDates(input, now);
@@ -104,6 +172,13 @@ export async function createReservation(
     throw new AppError(403, OWN_ITEM_MESSAGE);
   }
 
+  const delivery = await resolveDelivery(
+    item,
+    input.delivery,
+    input.startDate,
+    now,
+  );
+
   const startDate = toUtcDate(input.startDate);
   const endDate = toUtcDate(input.endDate);
   const totalPrice = item.dailyPrice.times(countRentalDays(startDate, endDate));
@@ -113,7 +188,14 @@ export async function createReservation(
   }
 
   const result = await insertReservationIfAvailable(
-    { itemId: input.itemId, renterId, startDate, endDate, totalPrice },
+    {
+      itemId: input.itemId,
+      renterId,
+      startDate,
+      endDate,
+      totalPrice,
+      delivery,
+    },
     OCCUPYING_STATUSES,
   );
 
@@ -125,6 +207,6 @@ export async function createReservation(
     case 'overlapping':
       throw new AppError(409, NOT_AVAILABLE_MESSAGE, 'startDate');
     case 'created':
-      return toReservationDetail(result.reservation);
+      return toReservationDetail(result.reservation, 'renter');
   }
 }
