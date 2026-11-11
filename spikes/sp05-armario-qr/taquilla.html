@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026 -->
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -30,19 +31,31 @@ document.getElementById('nuevo').onclick = async () => {
   const qr = qrcode(0, 'M')
   qr.addData(c.url)
   qr.make()
-  document.getElementById('qr').innerHTML = qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true })
-  document.getElementById('info').innerHTML =
-    'Escanéalo con la cámara del móvil.<br>Caduca: ' + new Date(c.expiresAt).toLocaleString('es-ES') +
-    '<br><code>' + c.url + '</code>'
+  // El SVG lo genera la librería a partir de la URL; se parsea con DOMParser, sin innerHTML.
+  const svg = new DOMParser().parseFromString(qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true }), 'image/svg+xml').documentElement
+  document.getElementById('qr').replaceChildren(svg)
+  const code = document.createElement('code')
+  code.textContent = c.url
+  document.getElementById('info').replaceChildren(
+    'Escanéalo con la cámara del móvil y pulsa «Abrir».',
+    document.createElement('br'),
+    'Caduca: ' + new Date(c.expiresAt).toLocaleString('es-ES'),
+    document.createElement('br'),
+    code,
+  )
   door.className = ''; door.textContent = 'Cerrada'
 }
 // La «puerta» se abre en esta pantalla cuando el móvil consume el código.
-let last = 0
-setInterval(async () => {
+// `last` se inicializa con el primer sondeo: recargar la página no debe mostrar «abierta».
+let last = null
+async function poll() {
   const list = await (await fetch('/api/estado')).json()
   const used = Math.max(0, ...list.map((e) => e.usedAt ?? 0))
-  if (used > last) { last = used; door.className = 'open'; door.textContent = 'Taquilla 3 abierta' }
-}, 1000)
+  if (last !== null && used > last) { door.className = 'open'; door.textContent = 'Taquilla 3 abierta' }
+  last = used
+}
+poll()
+setInterval(poll, 1000)
 </script>
 </body>
 </html>

@@ -1,3 +1,4 @@
+// Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
 // SP-05 (#94): taquilla simulada con QR de un solo uso. Solo node:*, sin dependencias.
 import { createServer } from 'node:http'
 import { readFile } from 'node:fs/promises'

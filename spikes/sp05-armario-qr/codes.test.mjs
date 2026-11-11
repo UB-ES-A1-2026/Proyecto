@@ -1,3 +1,4 @@
+// Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { createCodeStore, hashToken, DEFAULT_TTL_MS } from './codes.mjs'

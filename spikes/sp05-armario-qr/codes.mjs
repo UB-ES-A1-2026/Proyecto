@@ -1,3 +1,4 @@
+// Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
 // Lógica de los códigos de un solo uso de la taquilla (SP-05, #94).
 // Solo se guarda el hash SHA-256 del token, nunca el token (como las sesiones, AGENTS.md).
 // El almacén es un Map en memoria; en producción sería una tabla y `consumeCode`
