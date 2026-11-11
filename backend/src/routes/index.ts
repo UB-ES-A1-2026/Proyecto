@@ -15,6 +15,7 @@ import { photoRoutes } from './photoRoutes.js';
 import { riderRoutes } from './riderRoutes.js';
 import { userRoutes } from './userRoutes.js';
 import { itemDemandRoutes } from './itemDemandRoutes.js';
+import { profileRoutes } from './profileRoutes.js';
 
 export const apiRoutes = Router();
 
@@ -22,6 +23,8 @@ apiRoutes.use(healthRoutes);
 apiRoutes.use(authRoutes);
 apiRoutes.use(userRoutes);
 apiRoutes.use(riderRoutes);
+// Después de userRoutes: «/usuarios/me» tiene que resolverse antes que «/usuarios/:id».
+apiRoutes.use(profileRoutes);
 apiRoutes.use(itemEditRoutes);
 apiRoutes.use(itemSearchRoutes);
 apiRoutes.use(itemDetailRoutes);
