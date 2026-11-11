@@ -88,6 +88,10 @@ model Item {
   dailyPrice          Decimal       @map("precio_dia") @db.Decimal(10, 2)
   deposit             Decimal       @default(0) @map("fianza") @db.Decimal(10, 2)
   neighborhood        String        @map("barrio") @db.VarChar(100)
+  // Dirección exacta del propietario (US-05.01, #281): obligatoria si ofrece recogida en su
+  // domicilio o rider (lo valida el backend). Nunca sale en la API pública; solo la ve su dueño y,
+  // en algunos casos, el arrendatario (ver services/deliveryView.ts).
+  address             String?       @map("direccion") @db.VarChar(200)
   // Opcionales: el mapa y la búsqueda por distancia son «si da tiempo» (US-03.04).
   latitude            Decimal?      @map("latitud") @db.Decimal(9, 6)
   longitude           Decimal?      @map("longitud") @db.Decimal(9, 6)
@@ -154,8 +158,9 @@ model Reservation {
   startDate    DateTime          @map("fecha_inicio") @db.Date
   endDate      DateTime          @map("fecha_fin") @db.Date
   totalPrice   Decimal           @map("precio_total") @db.Decimal(10, 2)
-  // Opcional: el modo de entrega se elige en US-05.01 (Sprint 2).
+  // Opcional en la BD (las reservas anteriores a US-05.01 no lo tienen), pero la API lo exige.
   deliveryMode DeliveryMode?     @map("modo_entrega")
+  delivery     Delivery?
   status       ReservationStatus @default(pending) @map("estado")
   createdAt    DateTime          @default(now()) @map("creada_en")
   updatedAt    DateTime          @updatedAt @map("actualizada_en")
@@ -166,4 +171,40 @@ model Reservation {
   @@index([itemId, status])
   @@index([renterId])
   @@map("reserva")
+}
+
+// Entrega de las reservas (US-05.01, #281). Diseño en docs/modelo-datos.md.
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+
+// Datos de referencia: lugares públicos que crea la migración, como las categorías.
+model PickupPoint {
+  id           String     @id @default(uuid()) @db.Uuid
+  name         String     @map("nombre") @db.VarChar(100)
+  address      String     @map("direccion") @db.VarChar(200)
+  neighborhood String     @map("barrio") @db.VarChar(100)
+  latitude     Decimal    @map("latitud") @db.Decimal(9, 6)
+  longitude    Decimal    @map("longitud") @db.Decimal(9, 6)
+  deliveries   Delivery[]
+
+  @@map("punto_recogida")
+}
+
+// Una entrega por reserva. tarifa > 0 cuando no es NULL: CHECK en la migración.
+model Delivery {
+  id                   String       @id @default(uuid()) @db.Uuid
+  reservationId        String       @unique @map("reserva_id") @db.Uuid
+  pickupPointId        String?      @map("punto_recogida_id") @db.Uuid
+  // «HH:MM-HH:MM». NULL = «Lo antes posible»; solo tiene sentido con rider.
+  slot                 String?      @map("franja") @db.VarChar(11)
+  deliveryAddress      String?      @map("direccion_destino") @db.VarChar(200)
+  deliveryNeighborhood String?      @map("barrio_destino") @db.VarChar(100)
+  // Tarifa del rider, calculada por el servidor. El importe del alquiler sigue en reserva.precio_total.
+  fee                  Decimal?     @map("tarifa") @db.Decimal(10, 2)
+  createdAt            DateTime     @default(now()) @map("creada_en")
+  // Restrict: las reservas son historial y no se borran; un punto de recogida en uso tampoco.
+  reservation          Reservation  @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  pickupPoint          PickupPoint? @relation(fields: [pickupPointId], references: [id], onDelete: Restrict)
+
+  @@index([pickupPointId])
+  @@map("entrega")
 }
