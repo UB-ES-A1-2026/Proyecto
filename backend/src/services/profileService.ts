@@ -80,6 +80,11 @@ export async function getPublicProfile(
   };
 }
 
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+// Postgres (UTF8) no admite NUL ni sustitutos UTF-16 sueltos: sin esto serían un 500.
+const LONE_SURROGATE =
+  /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;
+
 // Edita la bio del propio usuario (solo se acepta ese campo; el resto del cuerpo se ignora).
 // Se recorta; en blanco se guarda como null. El límite cuenta caracteres, como VARCHAR(500).
 export async function updateOwnBio(
@@ -88,7 +93,12 @@ export async function updateOwnBio(
 ): Promise<PublicProfile> {
   const { bio } = (body ?? {}) as Record<string, unknown>;
 
-  if (typeof bio !== 'string' || [...bio.trim()].length > MAX_BIO_LENGTH) {
+  if (
+    typeof bio !== 'string' ||
+    [...bio.trim()].length > MAX_BIO_LENGTH ||
+    bio.includes('\u0000') ||
+    LONE_SURROGATE.test(bio)
+  ) {
     throw new AppError(400, INVALID_BIO_MESSAGE, 'bio');
   }
 

@@ -276,6 +276,26 @@ describe('PATCH /api/usuarios/me', () => {
     },
   );
 
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+  it.each([['a\u0000b'], ['\ud800x'], ['x\udc00']])(
+    'rechaza una bio con caracteres no válidos para Postgres (%j) y no la guarda',
+    async (bio) => {
+      const { ana } = await twoUsers();
+      await prisma.user.update({
+        where: { id: ana.id },
+        data: { bio: 'Antes' },
+      });
+
+      const response = await patch({ bio });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual(INVALID_BIO);
+      expect(
+        (await prisma.user.findUniqueOrThrow({ where: { id: ana.id } })).bio,
+      ).toBe('Antes');
+    },
+  );
+
   it('rechaza un cuerpo ausente', async () => {
     await twoUsers();
     const token = await loginAs('ana@rentit.test');
