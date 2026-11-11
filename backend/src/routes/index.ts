@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authRoutes } from './authRoutes.js';
 import { categoryRoutes } from './categoryRoutes.js';
+import { eventRoutes } from './eventRoutes.js';
 import { healthRoutes } from './healthRoutes.js';
 import { itemEditRoutes } from './itemEditRoutes.js';
 import { itemSearchRoutes } from './itemSearchRoutes.js';
@@ -19,6 +20,7 @@ export const apiRoutes = Router();
 apiRoutes.use(healthRoutes);
 apiRoutes.use(authRoutes);
 apiRoutes.use(userRoutes);
+apiRoutes.use(eventRoutes);
 apiRoutes.use(itemEditRoutes);
 apiRoutes.use(itemSearchRoutes);
 apiRoutes.use(itemDetailRoutes);
