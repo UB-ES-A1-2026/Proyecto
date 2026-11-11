@@ -6,6 +6,7 @@ import {
   hasOverlappingReservation,
   insertReservationIfAvailable,
 } from '../repositories/reservationRepository.js';
+import { assertNotRiderAccount } from './riderService.js';
 import { toReservationDetail, type ReservationDetail } from './reservation.js';
 
 export const ITEM_NOT_FOUND_MESSAGE = 'No hemos encontrado este objeto.';
@@ -92,6 +93,10 @@ export async function createReservation(
   input: { itemId: string; startDate: string; endDate: string },
   now: Date = new Date(),
 ): Promise<ReservationDetail> {
+  // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+  // Las cuentas de rider no solicitan objetos (US-10.03).
+  await assertNotRiderAccount(renterId);
+
   assertValidDates(input, now);
 
   const item = await findItemForReservation(input.itemId);
