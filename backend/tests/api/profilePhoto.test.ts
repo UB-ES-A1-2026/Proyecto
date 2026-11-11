@@ -240,6 +240,8 @@ describe('POST /api/usuarios/me/foto', () => {
       foreign,
       `objetos/${ana.id}/${'a'.repeat(8)}-aaaa-aaaa-aaaa-${'a'.repeat(12)}.png`,
       `usuarios/${ana.id}/../${bruno.id}/x.png`,
+      // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+      `usuarios/${ana.id}x/${'a'.repeat(8)}-aaaa-aaaa-aaaa-${'a'.repeat(12)}.png`,
       42,
       undefined,
     ]) {
