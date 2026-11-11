@@ -24,6 +24,15 @@ export async function createTestItem(
   }> = {},
 ) {
   const categoryId = overrides.categoryId ?? (await getTestCategory()).id;
+  // Un objeto con domicilio o rider necesita dirección para poder solicitarse (US-05.01, #281):
+  // salvo que el test la indique (también con null), se le pone una.
+  const needsAddress = overrides.homeDelivery || overrides.riderDelivery;
+  const address =
+    overrides.address !== undefined
+      ? overrides.address
+      : needsAddress
+        ? 'Carrer de Prova, 1'
+        : null;
 
   return prisma.item.create({
     data: {
@@ -34,7 +43,7 @@ export async function createTestItem(
       dailyPrice: overrides.dailyPrice ?? 5,
       deposit: overrides.deposit ?? 30,
       neighborhood: overrides.neighborhood ?? 'Gràcia',
-      address: overrides.address ?? null,
+      address,
       homeDelivery: overrides.homeDelivery ?? false,
       riderDelivery: overrides.riderDelivery ?? false,
       pickupPointDelivery: overrides.pickupPointDelivery ?? false,

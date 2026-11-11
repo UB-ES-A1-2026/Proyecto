@@ -24,6 +24,7 @@ import {
   release,
   toCents,
 } from './paymentGateway.js';
+import { selectableModes } from './itemDelivery.js';
 import { assertNotRiderAccount } from './riderService.js';
 import { toReservationDetail, type ReservationDetail } from './reservation.js';
 
@@ -134,6 +135,7 @@ export type ReservationDeliveryInput =
 async function resolveDelivery(
   item: {
     neighborhood: string;
+    address: string | null;
     homeDelivery: boolean;
     riderDelivery: boolean;
     pickupPointDelivery: boolean;
@@ -142,10 +144,11 @@ async function resolveDelivery(
   startDate: string,
   now: Date,
 ): Promise<ReservationDeliveryData> {
+  const modes = selectableModes(item);
   const offered = {
-    home: item.homeDelivery,
-    rider: item.riderDelivery,
-    pickup_point: item.pickupPointDelivery,
+    home: modes.home,
+    rider: modes.rider,
+    pickup_point: modes.pickupPoint,
   }[delivery.mode];
   if (!offered) {
     throw new AppError(400, MODE_NOT_OFFERED_MESSAGE, 'deliveryMode');
