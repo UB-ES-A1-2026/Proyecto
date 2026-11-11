@@ -48,7 +48,7 @@ gitGraph
   checkout main
   merge staging tag: "sprint-1"
   checkout develop
-  merge staging id: "volver a develop"
+  merge bugfix/US-02.01-120-ajuste-demo id: "PR bugfix a develop"
 ```
 
 ## Tipos de rama
@@ -144,13 +144,13 @@ docs(adr): SP-05 armario del barrio con QR (#94)
 4. Rellena la plantilla (criterios de aceptación, tests, capturas si hay UI, casilla de IA).
 5. **Revisa otra persona del equipo** (nunca el autor). Como mínimo 1 aprobación.
 6. El CI tiene que estar en verde (cuando exista el CI): en los PRs de tarea y en el de la historia.
-7. Forma de integrar: siempre **Create a merge commit**. Nunca *Squash and merge* ni *Rebase and merge*. Tras el merge se borra la rama (salvo `main` y `develop`).
+7. Forma de integrar: siempre **Create a merge commit**. Nunca *Squash and merge* ni *Rebase and merge*. Tras el merge se borra la rama (salvo `main`, `develop` y `staging`; y un `bugfix/` encontrado en preproducción, que se borra solo cuando también está mergeado en `develop`, regla 7).
 
 ### 7. Final de cada sprint (preproducción)
 1. Cuando todas las historias del sprint están en `develop`, una persona abre un PR de `develop` a `staging`. Tiene que pasar el CI y recibir 1 aprobación de otra persona.
 2. Al mergearlo, GitHub Actions despliega el backend y el frontend de preproducción, aplica las migraciones en su base de datos, carga los datos de demo y ejecuta el smoke test e2e contra la URL de preproducción. Si algo falla, el workflow queda en rojo y **no se abre el PR a `main`** hasta arreglarlo.
 3. Con el despliegue en verde, se prueban a mano las historias del sprint en preproducción.
-4. Si algo falla: se abre el bug con la plantilla, se arregla en una rama `bugfix/` que sale de `staging` y vuelve a `staging` por PR (CI y 1 aprobación), y después ese arreglo vuelve a `develop` por otro PR para que no se pierda. Cada merge en `staging` vuelve a desplegar y a lanzar el smoke test.
+4. Si algo falla: se abre el bug con la plantilla. Un bug encontrado en preproducción se arregla en `bugfix/US-XX.YY-<nº>-<desc>`, creada desde `staging`. Se abre un PR a `staging` (CI y 1 aprobación) y, **sin borrar esa rama `bugfix/`**, un segundo PR de la misma rama a `develop` (CI y 1 aprobación) para que el arreglo no se pierda. Solo cuando están mergeados los dos se borra. Nunca se mergea `staging` en `develop`. Cada merge en `staging` vuelve a desplegar y a lanzar el smoke test.
 5. Con todo bien, PR de `staging` a `main` (CI y 1 aprobación). Tras el merge, se etiqueta en `main`: `git tag sprint-<N>` y `git push origin sprint-<N>`. El despliegue a producción es automático.
 6. Lo que no esté en `main` al final del sprint no está entregado: vuelve al backlog. Una historia a medias se queda en su rama `feature/`, fuera de `develop`.
 
@@ -229,6 +229,6 @@ gh pr create --base develop --title "feat(objetos): US-02.01 Publicar un objeto 
 
 # Final del sprint (una persona): develop → staging → main
 gh pr create --base staging --head develop --title "release: sprint 1 a preproducción"
-# ...se prueba en preproducción; un bug se arregla en bugfix/ desde staging, con PR a staging y luego a develop...
+# ...se prueba en preproducción; un bug se arregla en bugfix/ desde staging, con PR a staging y, de la misma rama, otro PR a develop (no se borra hasta entonces)...
 gh pr create --base main --head staging --title "release: sprint 1"
 ```
