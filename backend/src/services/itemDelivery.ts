@@ -26,6 +26,25 @@ export function parseAddress(value: unknown): string | null {
   return address.length === 0 ? null : address;
 }
 
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+// Modos que se pueden elegir de verdad. Un objeto antiguo puede tener domicilio o rider marcados
+// sin dirección (se publicó antes de pedirla): sin ella no se sabe dónde recogerlo, así que esos
+// dos modos no se ofrecen hasta que el propietario la añada. La ficha sigue mostrando lo guardado.
+export function selectableModes(item: {
+  homeDelivery: boolean;
+  riderDelivery: boolean;
+  pickupPointDelivery: boolean;
+  address: string | null;
+}): { home: boolean; rider: boolean; pickupPoint: boolean } {
+  const hasAddress = item.address !== null && item.address.trim() !== '';
+
+  return {
+    home: item.homeDelivery && hasAddress,
+    rider: item.riderDelivery && hasAddress,
+    pickupPoint: item.pickupPointDelivery,
+  };
+}
+
 export interface ItemDeliverySettings {
   homeDelivery: boolean;
   riderDelivery: boolean;

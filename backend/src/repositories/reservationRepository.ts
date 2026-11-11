@@ -13,6 +13,7 @@ export function findItemForReservation(itemId: string) {
       dailyPrice: true,
       deposit: true,
       neighborhood: true,
+      address: true,
       homeDelivery: true,
       riderDelivery: true,
       pickupPointDelivery: true,
