@@ -1,7 +1,6 @@
 // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
 import bcrypt from 'bcrypt';
 import { env } from '../config/env.js';
-import type { RiderBody } from '../controllers/riderBody.js';
 import { AppError } from '../errors/appError.js';
 import {
   createRiderAccount,
@@ -16,6 +15,41 @@ import {
   REGISTER_USERNAME_TAKEN_MESSAGE,
   uniqueConstraintField,
 } from './authService.js';
+
+export const RIDER_VEHICLES = [
+  'on_foot',
+  'bike',
+  'scooter',
+  'motorbike',
+  'car',
+] as const;
+export const RIDER_WEEKDAYS = [
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+  'sunday',
+] as const;
+// Mañana 9-14 h, tarde 14-20 h, noche 20-23 h.
+export const RIDER_SLOTS = ['morning', 'afternoon', 'night'] as const;
+
+export type RiderVehicleValue = (typeof RIDER_VEHICLES)[number];
+export type RiderWeekdayValue = (typeof RIDER_WEEKDAYS)[number];
+export type RiderSlotValue = (typeof RIDER_SLOTS)[number];
+
+// Datos ya validados del alta de rider: cuenta + cuestionario.
+export interface RiderSignupInput {
+  username: string;
+  email: string;
+  password: string;
+  phone: string;
+  zone: string;
+  vehicle: RiderVehicleValue;
+  days: RiderWeekdayValue[];
+  slots: RiderSlotValue[];
+}
 
 export const RIDER_EMAIL_TAKEN_MESSAGE =
   'Ya existe una cuenta con este correo.';
@@ -34,7 +68,7 @@ function throwConflict(field: 'email' | 'username'): never {
 // Alta de una cuenta de rider con su solicitud (US-10.03). No crea sesión: la persona inicia
 // sesión después y ve el estado de su solicitud.
 export async function registerRider(
-  input: RiderBody,
+  input: RiderSignupInput,
 ): Promise<{ message: string; status: RiderStatus }> {
   if (await findUserByEmail(input.email)) throwConflict('email');
   if (await findUserByUsername(input.username)) throwConflict('username');
