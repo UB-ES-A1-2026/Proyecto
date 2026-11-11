@@ -13,7 +13,7 @@ Closes #
 
 ## Checklist
 - [ ] La rama lleva el código de su historia: `task/US-XX.YY-<nº tarea>-<desc>` para una tarea, `feature/US-XX.YY-<desc>` para una historia (o `bugfix/` y `hotfix/` con el código de la historia afectada), y cada commit es `tipo(ámbito): US-XX.YY descripción (#nº)`
-- [ ] La base del PR es correcta: la rama `feature/` de su historia para `task/`; `develop` para `feature/` y `bugfix/`; `main` para `release/` y `hotfix/`
+- [ ] La base del PR es correcta: la rama `feature/` de su historia para `task/`; `develop` para `feature/` y `bugfix/`; `staging` para `develop` y los `bugfix/` de preproducción; `main` para `staging` y `hotfix/`
 - [ ] Si es el PR de una historia a `develop`: he hecho `git rebase --rebase-merges origin/develop`, los tests pasan después del rebase y la descripción cierra la historia y todas sus tareas
 - [ ] Se integrará con **Create a merge commit** (nunca *squash*)
 - [ ] Cumple los criterios de aceptación de la historia
