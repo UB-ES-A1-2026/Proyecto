@@ -1,27 +1,42 @@
-# Despliegue del backend en Render (#96) con un deploy hook, en cada push a main.
+# Despliegue del backend en Render (#96) con un deploy hook.
+# - push a main → producción (como siempre). Mientras no exista RENDER_DEPLOY_HOOK_URL, el job avisa y termina en verde.
+#   Producción solo se despliega desde main: una ejecución manual desde otra rama no hace nada.
+# - push a staging → preproducción (US-12.03, #279): otro servicio de Render, otra base de datos y otros secretos.
+#   Después se aplican las migraciones y se cargan los datos de demo en la BD de preproducción.
 # Así Render no necesita la app de GitHub instalada en la organización (lo tendría que aprobar
 # el dueño de la org): el servicio se crea desde la URL del repo público (docs/despliegue.md).
-# Mientras no exista el secreto RENDER_DEPLOY_HOOK_URL, el job avisa y termina en verde.
+#
+# Preproducción usa el Environment de GitHub «staging» y SOLO secretos con prefijo STAGING_*, con nombres
+# distintos a los de producción a propósito: si un secreto de staging tuviera el mismo nombre que uno de
+# producción (a nivel de repo) y faltara, GitHub usaría el de producción sin avisar (docs/despliegue.md).
+# El Environment ya existe, así que faltar un STAGING_* es un error de configuración (rojo), nunca un aviso en verde.
+# Si algo falla (config, hook, health, migración o seed), el workflow queda en rojo: ese check rojo en el commit de
+# staging es la señal de que no se abre el PR a main.
 # Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 25/10/2026
+# Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
 name: Despliegue del backend
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
   workflow_dispatch:
 
+# Un grupo por entorno: un despliegue a preproducción no cancela ni espera a uno de producción.
 concurrency:
-  group: deploy-backend
+  group: deploy-backend-${{ github.ref == 'refs/heads/staging' && 'staging' || 'production' }}
   cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
+  # ---------------------------------------------------------------- Producción (sin cambios)
   deploy:
     name: Render
+    # Producción solo desde main (push, o ejecución manual elegida sobre main).
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
       API_URL: ${{ vars.API_URL }}
@@ -34,7 +49,7 @@ jobs:
             echo "lanzado=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL" > /dev/null
+          curl -fsS --max-time 30 -X POST "$RENDER_DEPLOY_HOOK_URL" > /dev/null
           echo "lanzado=true" >> "$GITHUB_OUTPUT"
 
       # Render tarda unos minutos (build + migraciones); se espera a que /api/health responda.
@@ -44,7 +59,7 @@ jobs:
         run: |
           sleep 60
           for i in $(seq 1 40); do
-            if curl -fsS "$API_URL/health" > /dev/null; then
+            if curl -fsS --max-time 10 "$API_URL/health" > /dev/null; then
               echo "### Backend desplegado: $API_URL/health responde" >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
@@ -52,3 +67,101 @@ jobs:
           done
           echo "::error::La API no responde tras el despliegue. Revisa los logs en Render."
           exit 1
+
+  # ---------------------------------------------------------------- Preproducción (US-12.03, #279)
+  deploy-staging:
+    name: Render (preproducción)
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: staging
+    outputs:
+      sano: ${{ steps.salud.outputs.sano }}
+    env:
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.STAGING_RENDER_DEPLOY_HOOK_URL }}
+      API_URL: ${{ vars.STAGING_API_URL }}
+    steps:
+      - name: Lanzar el despliegue en Render (preproducción)
+        id: hook
+        run: |
+          # El Environment «staging» existe: si falta configuración es un error, no un aviso.
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "::error::Falta el secreto STAGING_RENDER_DEPLOY_HOOK_URL del Environment «staging» (ver docs/despliegue.md)."
+            exit 1
+          fi
+          if [ -z "$API_URL" ]; then
+            echo "::error::Falta la variable STAGING_API_URL del Environment «staging»: no se puede comprobar el despliegue."
+            exit 1
+          fi
+          curl -fsS --max-time 30 -X POST "$RENDER_DEPLOY_HOOK_URL" > /dev/null
+
+      - name: Esperar a que la API de preproducción responda
+        id: salud
+        run: |
+          sleep 60
+          for i in $(seq 1 40); do
+            if curl -fsS --max-time 10 "$API_URL/health" > /dev/null; then
+              echo "### Backend de preproducción desplegado: $API_URL/health responde" >> "$GITHUB_STEP_SUMMARY"
+              echo "sano=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::La API de preproducción no responde tras el despliegue. Revisa los logs en Render."
+          exit 1
+
+  # Migraciones y datos de demo en la BD de preproducción. Solo corre con la API sana: si deploy-staging falla,
+  # `seed` se salta y el run ya queda en rojo por ese job; si llegara sin `sano`, el primer paso lo marca como error.
+  seed:
+    name: Migraciones y datos de demo
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.STAGING_DIRECT_URL }}
+      DEMO_PASSWORD: ${{ secrets.STAGING_DEMO_PASSWORD }}
+    steps:
+      # Antes del checkout todavía no existe la carpeta backend/ de los defaults.
+      - name: Comprobar la API y los secretos
+        working-directory: .
+        env:
+          SANO: ${{ needs.deploy-staging.outputs.sano }}
+        run: |
+          if [ "$SANO" != "true" ]; then
+            echo "::error::La API de preproducción no está confirmada como sana: no se cargan datos."
+            exit 1
+          fi
+          for name in DATABASE_URL DIRECT_URL DEMO_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Falta un secreto del Environment «staging» (STAGING_DATABASE_URL, STAGING_DIRECT_URL o STAGING_DEMO_PASSWORD). Ver docs/despliegue.md."
+              exit 1
+            fi
+          done
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      # Render ya las aplica al arrancar; aquí se asegura y falla si una migración no se puede aplicar.
+      - run: npm run db:deploy
+      - run: npm run db:seed:demo
+      - name: Resumen
+        run: echo "### Preproducción lista (migraciones aplicadas y datos de demo cargados)" >> "$GITHUB_STEP_SUMMARY"
+
+  # Smoke test e2e contra preproducción (US-12.03, T5 #280, de Danyal). Aquí irá un job `smoke` con
+  #   needs: seed
+  #   if: github.ref == 'refs/heads/staging' && needs.seed.result == 'success'  (o un primer paso que falle si no)
+  #   environment: staging
+  # El smoke DEBE usar `needs: seed` y fallar si seed no terminó en success (si no, un seed saltado o fallido
+  # dejaría el smoke en verde sin haber probado nada). Que lance `npm run test:smoke` en e2e/ con BASE_URL = vars.STAGING_WEB_URL y
+  # API_URL = vars.STAGING_API_URL (variables del Environment «staging»). Si falla, el workflow queda en rojo.
+  # No se implementa aquí: es la tarea #280.

@@ -2,13 +2,21 @@
 # No usamos la integración Git de Vercel: en el plan Hobby bloquea los despliegues de repos de una
 # organización y de commits de personas que no son la dueña de la cuenta (docs/despliegue.md).
 # - push a main → producción · PR hacia develop o main → preview (la URL sale en el resumen del job).
-# Mientras no existan los secretos VERCEL_*, el job avisa y termina en verde sin desplegar.
+# - push a staging → preproducción (US-12.03, #279): proyecto de Vercel propio, desplegado como `--prod` de ese
+#   proyecto (URL estable). Usa el Environment de GitHub «staging» y SOLO secretos STAGING_VERCEL_*, con nombres
+#   distintos a los de producción a propósito: si faltara uno y tuviera el mismo nombre, GitHub usaría el de
+#   producción sin avisar (docs/despliegue.md). Los jobs de producción/preview no declaran ese Environment.
+# - Los PR hacia staging NO generan preview: usaría el proyecto y el backend de producción, y el PR develop → staging
+#   ya tiene el CI y las previews de sus PR a develop; lo que se prueba en preproducción es el despliegue de staging.
+# Mientras no existan los secretos VERCEL_*, los jobs de producción/preview avisan y terminan en verde sin desplegar.
+# En preproducción el Environment ya existe: si falta un STAGING_VERCEL_*, el job falla (rojo).
 # Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 25/10/2026
+# Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
 name: Despliegue del frontend
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
   pull_request:
     branches: [develop, main]
   workflow_dispatch:
@@ -31,8 +39,8 @@ env:
 jobs:
   build:
     name: Build
-    # Los PRs desde forks no tienen acceso a los secretos.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    # Los PRs desde forks no tienen acceso a los secretos. Staging tiene sus propios jobs (más abajo).
+    if: github.ref != 'refs/heads/staging' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
@@ -82,7 +90,7 @@ jobs:
   deploy:
     name: Vercel
     needs: build
-    if: needs.build.outputs.listo == 'true'
+    if: github.ref != 'refs/heads/staging' && needs.build.outputs.listo == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -109,4 +117,83 @@ jobs:
           npx --yes vercel@63.1.0 deploy --prebuilt $PROD --token="$VERCEL_TOKEN" | tee deploy.log
           URL=$(grep -oE 'https://[a-z0-9-]+\.vercel\.app' deploy.log | head -1)
           echo "### Frontend desplegado ($ENTORNO)" >> "$GITHUB_STEP_SUMMARY"
+          echo "$URL" >> "$GITHUB_STEP_SUMMARY"
+
+  # ---------------------------------------------------------------- Preproducción (US-12.03, #279)
+  # Misma separación que arriba: build sin token ejecutando el código; el token solo en `vercel pull` y en el despliegue.
+  # `--environment=production` y `--prod` son los del proyecto de preproducción (no los de producción real).
+  build-staging:
+    name: Build (preproducción)
+    # En un PR github.ref es refs/pull/…, así que esto solo se cumple en un push (o ejecución manual) en staging.
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: staging
+    env:
+      VERCEL_ORG_ID: ${{ secrets.STAGING_VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.STAGING_VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Comprobar que Vercel de preproducción está configurado
+        env:
+          VERCEL_TOKEN: ${{ secrets.STAGING_VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error::Faltan secretos STAGING_VERCEL_* del Environment «staging» (STAGING_VERCEL_TOKEN, STAGING_VERCEL_ORG_ID o STAGING_VERCEL_PROJECT_ID). Ver docs/despliegue.md."
+            exit 1
+          fi
+
+      - name: Descargar la configuración del proyecto de preproducción
+        env:
+          VERCEL_TOKEN: ${{ secrets.STAGING_VERCEL_TOKEN }}
+        run: npx --yes vercel@63.1.0 pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      # Sin token: aquí se ejecuta el `npm run build` del código de staging.
+      - name: Build
+        run: npx --yes vercel@63.1.0 build --prod
+
+      - name: Guardar lo compilado
+        uses: actions/upload-artifact@v4
+        with:
+          name: vercel-output-staging
+          path: .vercel/output
+          include-hidden-files: true
+          retention-days: 1
+
+  deploy-staging:
+    name: Vercel (preproducción)
+    needs: build-staging
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging
+    env:
+      VERCEL_ORG_ID: ${{ secrets.STAGING_VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.STAGING_VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Máquina nueva: no hay código del repo, solo lo compilado en el job anterior.
+      - name: Recuperar lo compilado
+        uses: actions/download-artifact@v4
+        with:
+          name: vercel-output-staging
+          path: .vercel/output
+
+      - name: Desplegar (preproducción)
+        env:
+          VERCEL_TOKEN: ${{ secrets.STAGING_VERCEL_TOKEN }}
+        # La CLI comprueba que exista la carpeta del Root Directory, aunque con --prebuilt no la use.
+        run: |
+          set -o pipefail
+          mkdir -p frontend
+          npx --yes vercel@63.1.0 deploy --prebuilt --prod --token="$VERCEL_TOKEN" | tee deploy.log
+          URL=$(grep -oE 'https://[a-z0-9-]+\.vercel\.app' deploy.log | head -1)
+          echo "### Frontend de preproducción desplegado" >> "$GITHUB_STEP_SUMMARY"
           echo "$URL" >> "$GITHUB_STEP_SUMMARY"
