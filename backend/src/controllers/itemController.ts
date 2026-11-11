@@ -2,7 +2,7 @@
 import type { RequestHandler } from 'express';
 import { AppError } from '../errors/appError.js';
 import * as itemService from '../services/itemService.js';
-import { ADDRESS_MAX_LENGTH } from '../services/itemDelivery.js';
+import { parseAddress } from '../services/itemDelivery.js';
 import { invalidFieldMessage } from '../services/itemService.js';
 import { isKnownNeighborhood } from '../services/neighborhoods.js';
 
@@ -91,10 +91,8 @@ function readPublishBody(body: unknown): itemService.PublishItemInput {
   }
 
   // Opcional: solo es obligatoria con entrega en casa o por rider, y eso lo comprueba el service.
-  const address =
-    fields.address === undefined || fields.address === null
-      ? null
-      : readText(fields.address, 'address', 'dirección', ADDRESS_MAX_LENGTH);
+  // Vacía o con solo espacios cuenta como sin dirección.
+  const address = parseAddress(fields.address);
 
   const homeDelivery = readFlag(
     fields.homeDelivery,
