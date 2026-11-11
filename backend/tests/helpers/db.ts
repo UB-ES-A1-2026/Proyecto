@@ -12,17 +12,26 @@ function assertTestDatabase(): void {
   try {
     databaseName = decodeURIComponent(new URL(databaseUrl).pathname.slice(1));
   } catch {
-    throw new Error('No se puede vaciar la base de datos: DATABASE_URL no es válida');
+    throw new Error(
+      'No se puede vaciar la base de datos: DATABASE_URL no es válida',
+    );
   }
 
   if (databaseName !== 'rentit_test') {
-    throw new Error('resetDb() solo puede ejecutarse con la base de datos rentit_test');
+    throw new Error(
+      'resetDb() solo puede ejecutarse con la base de datos rentit_test',
+    );
   }
 }
 
 // Tablas que no se vacían: el historial de Prisma y los datos de referencia que crean las
-// migraciones (las categorías existen también en producción y los tests cuentan con ellas).
-export const PRESERVED_TABLES = ['_prisma_migrations', 'categoria'] as const;
+// migraciones (las categorías y los puntos de recogida existen también en producción y los tests
+// cuentan con ellos).
+export const PRESERVED_TABLES = [
+  '_prisma_migrations',
+  'categoria',
+  'punto_recogida',
+] as const;
 
 export async function resetDb(): Promise<void> {
   assertTestDatabase();
