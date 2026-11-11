@@ -12,6 +12,7 @@ Siguiendo el diseño emergente que pide la asignatura, en cada sprint solo se cr
 erDiagram
   USUARIO ||--o{ SESION : "inicia"
   USUARIO ||--o| SOLICITUD_RIDER : "solicita ser rider"
+  USUARIO |o--o{ SOLICITUD_RIDER : "revisa (admin)"
   USUARIO ||--o{ OBJETO : "publica"
   CATEGORIA ||--o{ OBJETO : "clasifica"
   OBJETO ||--o{ FOTO_OBJETO : "tiene"
@@ -63,6 +64,9 @@ erDiagram
     fecha_hora condiciones_aceptadas_en
     enum estado "pendiente | aceptada | rechazada"
     fecha_hora creada_en
+    id revisada_por_id FK "admin que la resolvió, null si pendiente"
+    fecha_hora revisada_en "null = pendiente"
+    texto motivo_rechazo "opcional, solo si rechazada"
   }
   CATEGORIA {
     id id PK
@@ -263,7 +267,7 @@ En Prisma, el modelo es `Reservation`, y los enums son `ReservationStatus` (`pen
 
 ## Tabla `solicitud_rider` (Sprint 2 · #314)
 
-Se crea en la migración `crea_solicitud_rider` como parte de US-10.03 (#304, «Solicitar ser rider»). Guarda las respuestas del cuestionario de «Hazte rider». La cuenta de rider es un `usuario` con `es_rider = true` (se crea junto con la solicitud, en una sola transacción), y su solicitud empieza en `pendiente`. US-11.03 (#305) la acepta o la rechaza; los campos de esa revisión (quién, cuándo y el motivo) los añade esa tarea con otra migración.
+Se crea en la migración `crea_solicitud_rider` como parte de US-10.03 (#304, «Solicitar ser rider»). Guarda las respuestas del cuestionario de «Hazte rider». La cuenta de rider es un `usuario` con `es_rider = true` (se crea junto con la solicitud, en una sola transacción), y su solicitud empieza en `pendiente`. US-11.03 (#305) la acepta o la rechaza; los campos de esa revisión (quién, cuándo y el motivo) los añade la migración `revision_solicitud_rider` (#317).
 
 | Campo | Tipo | Obligatorio | Restricciones | Para qué |
 |---|---|---|---|---|
@@ -277,12 +281,17 @@ Se crea en la migración `crea_solicitud_rider` como parte de US-10.03 (#304, «
 | `condiciones_aceptadas_en` | fecha y hora | sí | | Cuándo aceptó las condiciones |
 | `estado` | enum `pendiente`, `aceptada`, `rechazada` | sí | por defecto `pendiente` | Estado de la revisión |
 | `creada_en` | fecha y hora | sí | por defecto «ahora» | Orden de revisión: de la más antigua a la más nueva |
+| `revisada_por_id` | UUID | no | FK → `usuario.id`, borrado restringido | Admin que la resolvió (`null` mientras está pendiente) |
+| `revisada_en` | fecha y hora | no | `CHECK` | Cuándo se resolvió (`null` mientras está pendiente) |
+| `motivo_rechazo` | texto (≤ 500) | no | `CHECK`: solo si `estado = rechazada` | Motivo opcional que verá la persona |
 
 | Decisión | Por qué |
 |---|---|
 | Se reutiliza `usuario.es_rider` | Vale `true` en toda cuenta de rider, sea cual sea el estado de su solicitud. Que pueda repartir lo dice `solicitud_rider.estado = aceptada`. Una cuenta con `es_rider` no puede solicitar ni publicar objetos. |
 | `dias` y `franjas` son arrays de enums de Postgres | Son listas cortas y cerradas que se leen siempre juntas con la solicitud; una tabla aparte no aporta nada. El backend rechaza repetidos. |
-| Un usuario con solicitud **no se puede borrar** | La solicitud es el historial de la revisión. |
+| Revisión coherente (`CHECK`) | `pendiente` si y solo si `revisada_en` y `revisada_por_id` son `null`; una solicitud resuelta siempre tiene `revisada_en`. El revisor solo puede faltar en las resueltas anteriores a la migración (datos de ejemplo), a las que se les dio como fecha de revisión la de creación. |
+| Resolver es una transición única | El backend actualiza con `WHERE estado = 'pendiente'`: si dos admins resuelven a la vez, solo uno lo consigue y el otro recibe un 409. |
+| Un usuario con solicitud, o que haya revisado alguna, **no se puede borrar** | La solicitud es el historial de la revisión. |
 
 En Prisma, el modelo es `RiderApplication` y los enums son `RiderVehicle` (`on_foot`, `bike`, `scooter`, `motorbike`, `car`), `RiderApplicationStatus` (`pending`, `approved`, `rejected`), `RiderWeekday` (`monday` … `sunday`) y `RiderSlot` (`morning`, `afternoon`, `night`).
 
