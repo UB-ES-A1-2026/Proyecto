@@ -98,7 +98,7 @@ export async function acceptReservation(
     throw new AppError(409, EXPIRED_MESSAGE);
   }
 
-  return toReservationDetail(await findReservationDetail(id));
+  return toReservationDetail(await findReservationDetail(id), 'owner');
 }
 
 export async function rejectReservation(
@@ -119,5 +119,5 @@ export async function rejectReservation(
     throw new AppError(409, NOT_PENDING_MESSAGE);
   }
 
-  return toReservationDetail(await findReservationDetail(id));
+  return toReservationDetail(await findReservationDetail(id), 'owner');
 }
