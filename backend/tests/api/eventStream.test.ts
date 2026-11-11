@@ -211,6 +211,19 @@ describe('GET /api/eventos/stream', () => {
     expect(order).toEqual(['2', '3', '4']);
   });
 
+  it('does not open a subscription for HEAD requests', async () => {
+    const { token } = await sessionFor('ana');
+
+    const response = await fetch(`${baseUrl}/api/eventos/stream`, {
+      method: 'HEAD',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('text/event-stream');
+    expect(subscriberCount()).toBe(0);
+  });
+
   it('closeAll ends an open HTTP stream', async () => {
     const { token } = await sessionFor('ana');
     const stream = await openStream(baseUrl, token);

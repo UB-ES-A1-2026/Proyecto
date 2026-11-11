@@ -45,6 +45,14 @@ export function createEventStreamHandler(
       'X-Accel-Buffering': 'no',
     });
 
+    // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+    // Express enruta HEAD al handler de GET: se responde solo con las cabeceras, sin suscripción
+    // ni temporizadores (si no, quedaría un stream abierto sin nadie leyéndolo).
+    if (request.method === 'HEAD') {
+      response.end();
+      return;
+    }
+
     // Token en bruto solo para revisar la sesión con findValidSession (AGENTS.md: una única forma
     // de validarla). Vive en esta clausura: no se registra ni se envía a ningún sitio.
     const token = request.get('authorization')?.split(' ')[1] ?? '';
