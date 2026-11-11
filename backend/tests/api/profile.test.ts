@@ -41,6 +41,7 @@ describe('GET /api/usuarios/me', () => {
       role: 'user',
       isRider: false,
       riderStatus: null,
+      riderRejectionReason: null,
       createdAt: user.createdAt.toISOString(),
     });
     expect(response.body).not.toHaveProperty('passwordHash');
@@ -64,9 +65,28 @@ describe('GET /api/usuarios/me', () => {
       expect(response.body).toMatchObject({
         isRider: true,
         riderStatus: status,
+        riderRejectionReason: null,
       });
     },
   );
+
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+  it('exposes the rejection reason only for a rejected rider (US-11.03)', async () => {
+    await createTestRider('rejected', {
+      email: 'ana@rentit.test',
+      rejectionReason: 'Zona sin cobertura.',
+    });
+    const token = await loginAs();
+
+    const response = await request(app)
+      .get('/api/usuarios/me')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.body).toMatchObject({
+      riderStatus: 'rejected',
+      riderRejectionReason: 'Zona sin cobertura.',
+    });
+  });
 
   it.each([
     ['without an Authorization header', undefined],

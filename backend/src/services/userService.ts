@@ -6,7 +6,7 @@ const INVALID_SESSION_MESSAGE =
   'Sesión no válida o caducada. Inicia sesión de nuevo.';
 
 // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
-// El perfil incluye isRider y riderStatus (US-10.03).
+// El perfil incluye isRider, riderStatus y riderRejectionReason (US-10.03, US-11.03).
 export interface UserProfile extends RiderFields {
   id: string;
   username: string;
