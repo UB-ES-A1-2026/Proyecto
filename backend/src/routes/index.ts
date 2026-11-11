@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { adminRiderRoutes } from './adminRiderRoutes.js';
 import { authRoutes } from './authRoutes.js';
 import { categoryRoutes } from './categoryRoutes.js';
 import { healthRoutes } from './healthRoutes.js';
@@ -22,6 +23,7 @@ apiRoutes.use(healthRoutes);
 apiRoutes.use(authRoutes);
 apiRoutes.use(userRoutes);
 apiRoutes.use(riderRoutes);
+apiRoutes.use(adminRiderRoutes);
 apiRoutes.use(itemEditRoutes);
 apiRoutes.use(itemSearchRoutes);
 apiRoutes.use(itemDetailRoutes);
