@@ -1,5 +1,5 @@
-# CI de Rentit (#19, TR-03): ramas y commits con su historia (US-12.02), lint, tests y build del backend y del
-# frontend, y los tests e2e,
+# CI de Rentit (#19, TR-03): ramas y commits con su historia (US-12.02), lint, tests con cobertura (US-12.01) y
+# build del backend y del frontend, y los tests e2e,
 # en cada PR hacia develop, main y las ramas de historia (feature/**, estrategia de #160).
 # Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 25/10/2026
 name: CI
@@ -69,7 +69,16 @@ jobs:
       - run: npx prisma generate
       - run: npm run lint
       # globalSetup aplica las migraciones a rentit_test antes de los tests.
-      - run: npm test
+      # Con cobertura (#272): falla si baja del mínimo de vitest.config.ts.
+      - run: npm run test:coverage
+      - name: Guardar el resumen de cobertura
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-backend
+          path: backend/coverage/coverage-summary.json
+          if-no-files-found: ignore
+          retention-days: 90
       - run: npm run build
 
   frontend:
@@ -88,9 +97,66 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - run: npm run lint
-      # No necesitan BD: los tests simulan la API.
-      - run: npm test
+      # No necesitan BD: los tests simulan la API. Con cobertura (#272), como el backend.
+      - run: npm run test:coverage
+      - name: Guardar el resumen de cobertura
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-frontend
+          path: frontend/coverage/coverage-summary.json
+          if-no-files-found: ignore
+          retention-days: 90
       - run: npm run build
+
+  # Bugs encontrados por tests (US-12.01, #272): un PR de bugfix/ o hotfix/ tiene que cambiar algún test y
+  # enlazar su issue de bug. En el resto de PRs el job sale como «skipped».
+  test-del-arreglo:
+    name: Test del arreglo
+    if: github.event_name == 'pull_request' && (startsWith(github.head_ref, 'bugfix/') || startsWith(github.head_ref, 'hotfix/'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+      - run: node .github/scripts/bugs.mjs arreglo "${{ github.event.pull_request.number }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  # Métricas de tests (US-12.01, #272): enseña la cobertura en el resumen de la ejecución y en un comentario del PR.
+  cobertura:
+    name: Cobertura
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [backend, frontend]
+    if: ${{ !cancelled() }}
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cobertura-*
+          path: cobertura
+      - name: Resumen de cobertura
+        run: node .github/scripts/cobertura.mjs cobertura > cobertura.md && cat cobertura.md >> "$GITHUB_STEP_SUMMARY"
+      # Un solo comentario por PR, que se actualiza en cada ejecución.
+      - name: Comentario en el PR
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate             --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("<!-- cobertura-rentit -->"))) | .id' | head -n 1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -F body=@cobertura.md > /dev/null
+          else
+            gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR/comments" -F body=@cobertura.md > /dev/null
+          fi
 
   e2e:
     name: E2E
