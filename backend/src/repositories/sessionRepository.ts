@@ -18,3 +18,8 @@ export function markSessionRevoked(sessionId: string, revokedAt: Date) {
     data: { revokedAt },
   });
 }
+
+// Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+export function findSessionById(sessionId: string) {
+  return prisma.session.findUnique({ where: { id: sessionId } });
+}
