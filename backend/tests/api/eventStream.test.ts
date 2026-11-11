@@ -212,6 +212,26 @@ describe('GET /api/eventos/stream', () => {
   });
 });
 
+describe('logout', () => {
+  it('closes the streams of the session that logs out and keeps the others', async () => {
+    const ana = await sessionFor('ana');
+    const other = await createSession(ana.user.id);
+    const closing = await openStream(baseUrl, ana.token);
+    const staying = await openStream(baseUrl, other.token);
+    await closing.waitFor((text) => text.includes('retry:'));
+    await staying.waitFor((text) => text.includes('retry:'));
+
+    const response = await fetch(`${baseUrl}/api/auth/logout`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${ana.token}` },
+    });
+
+    expect(response.status).toBe(204);
+    await closing.waitForEnd();
+    expect(staying.isDone()).toBe(false);
+  });
+});
+
 describe('stream timers (short intervals)', () => {
   async function shortApp() {
     const small = express();
