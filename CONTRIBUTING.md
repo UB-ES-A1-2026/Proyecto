@@ -5,10 +5,11 @@ Usamos **GitFlow**, con dos ramas permanentes:
 - **`main`**: solo contiene versiones entregadas, es decir, lo que se enseña en cada demo. Cada versión lleva una etiqueta (`sprint-0`, `sprint-1`…).
 - **`develop`**: la rama de integración. Aquí solo entran **historias de usuario completas** y probadas, así que siempre compila y pasa los tests.
 
-Cada historia de usuario (o requisito técnico, o spike) se desarrolla en su propia rama `feature/`, que sale de `develop`. Cada tarea de esa historia se hace en una rama corta `task/` que sale de la rama de la historia y vuelve a ella mediante un Pull Request revisado. Cuando la historia está completa, se hace *rebase* sobre `develop`, se vuelve a probar y entra en `develop` con un *merge commit*. **Nunca se hace *squash***, para no perder el historial de las ramas. Al final del sprint, `develop` pasa a `main` a través de una rama de release.
+Cada historia de usuario (de producto o técnica, como las US-12.xx de EP-12) o spike se desarrolla en su propia rama `feature/`, que sale de `develop`. Cada tarea de esa historia se hace en una rama corta `task/` que sale de la rama de la historia y vuelve a ella mediante un Pull Request revisado. Cuando la historia está completa, se hace *rebase* sobre `develop`, se vuelve a probar y entra en `develop` con un *merge commit*. **Nunca se hace *squash***, para no perder el historial de las ramas. Al final del sprint, `develop` pasa a `main` a través de una rama de release.
 
 > **Cambios respecto a versiones anteriores**
 > - Sprint 0 (#20): pasamos de GitHub Flow a GitFlow para separar la integración diaria (`develop`) de la versión que se entrega en cada demo (`main`).
+> - Sprint 2 (US-12.02, #275), tras la corrección del profesor en la demo del Sprint 1: solo se crean ramas para historias (o spikes). El trabajo técnico sin pantalla también es una historia (US-12.xx), y una pieza suelta (una tabla, una migración, estilos) es una tarea de la primera historia que la usa. Las ramas y los commits llevan el código de su historia (`US-04.01`), para que cada punto del network graph diga a qué historia pertenece, y el check «Metodología» del CI lo comprueba en cada PR.
 > - Sprint 1 (#160), tras la corrección del profesor en la demo del Sprint 0: antes usábamos una rama por tarea que entraba en `develop` con *squash*. Eso dejaba en `develop` funcionalidades a medias (por ejemplo, el formulario de registro llegó antes que su endpoint) y borraba el historial de cada rama. Ahora la rama es por historia, las tareas se integran dentro de ella y todo se fusiona sin *squash*.
 
 ## Diagrama
@@ -19,21 +20,21 @@ gitGraph
   branch develop
   checkout develop
   commit id: "release sprint-0"
-  branch feature/50-publicar-objeto
-  checkout feature/50-publicar-objeto
-  branch task/14-endpoint-publicar
-  checkout task/14-endpoint-publicar
+  branch feature/US-02.01-publicar-objeto
+  checkout feature/US-02.01-publicar-objeto
+  branch task/US-02.01-14-endpoint-publicar
+  checkout task/US-02.01-14-endpoint-publicar
   commit id: "feat(api): POST /objetos"
   commit id: "test(api): validaciones"
-  checkout feature/50-publicar-objeto
-  merge task/14-endpoint-publicar id: "PR tarea #14"
-  branch task/13-formulario-publicar
-  checkout task/13-formulario-publicar
+  checkout feature/US-02.01-publicar-objeto
+  merge task/US-02.01-14-endpoint-publicar id: "PR tarea #14"
+  branch task/US-02.01-13-formulario-publicar
+  checkout task/US-02.01-13-formulario-publicar
   commit id: "feat(web): formulario"
-  checkout feature/50-publicar-objeto
-  merge task/13-formulario-publicar id: "PR tarea #13"
+  checkout feature/US-02.01-publicar-objeto
+  merge task/US-02.01-13-formulario-publicar id: "PR tarea #13"
   checkout develop
-  merge feature/50-publicar-objeto id: "PR historia #50"
+  merge feature/US-02.01-publicar-objeto id: "PR historia #50"
   branch release/sprint-1
   checkout release/sprint-1
   commit id: "fix: ajuste demo"
@@ -49,13 +50,13 @@ gitGraph
 |---|---|---|---|---|---|
 | `main` | Versión entregada en cada demo | — | — | — | — |
 | `develop` | Integración: solo historias completas | `main` (una sola vez) | — | — | — |
-| `feature/<nº>-<desc>` | Una historia de usuario, requisito técnico (TR) o spike. `<nº>` = issue de la historia | `develop` | `develop` | Merge commit, tras *rebase* | `feature/50-publicar-objeto` |
-| `task/<nº>-<desc>` | Una tarea de esa historia. `<nº>` = issue de la tarea | su `feature/` | su `feature/` | Merge commit | `task/14-endpoint-publicar` |
-| `bugfix/<nº>-<desc>` | Bug encontrado en `develop` (aún no entregado) | `develop` | `develop` | Merge commit, tras *rebase* | `bugfix/120-validacion-email` |
-| `release/sprint-<N>` | Preparar la demo: solo arreglos pequeños, nada nuevo | `develop` | `main` **y** `develop` | Merge commit | `release/sprint-1` |
-| `hotfix/<nº>-<desc>` | Bug urgente en lo que ya está en `main` | `main` | `main` **y** `develop` | Merge commit | `hotfix/140-error-login` |
+| `feature/<código>-<desc>` | Una historia (de producto o técnica) o un spike. `<código>` = `US-XX.YY` o `SP-NN` | `develop` | `develop` | Merge commit, tras *rebase* | `feature/US-02.01-publicar-objeto` |
+| `task/<código>-<nº>-<desc>` | Una tarea de esa historia. `<código>` = el de la historia, `<nº>` = issue de la tarea | su `feature/` | su `feature/` | Merge commit | `task/US-02.01-14-endpoint-publicar` |
+| `bugfix/<código>-<nº>-<desc>` | Bug encontrado en `develop` (aún no entregado). `<código>` = historia afectada, `<nº>` = issue del bug | `develop` | `develop` | Merge commit, tras *rebase* | `bugfix/US-01.1-120-validacion-email` |
+| `release/sprint-<N>` | Preparar la demo: solo arreglos pequeños, nada nuevo. Se sustituye por la rama fija `staging` cuando exista (US-12.03) | `develop` | `main` **y** `develop` | Merge commit | `release/sprint-1` |
+| `hotfix/<código>-<nº>-<desc>` | Bug urgente en lo que ya está en `main` | `main` | `main` **y** `develop` | Merge commit | `hotfix/US-01.2-140-error-login` |
 
-Nombres en minúsculas y con guiones. El `<nº>` es el del issue de GitHub.
+El código de la historia va tal cual (`US-04.01`, `SP-05`); el resto, en minúsculas, con guiones y sin tildes. El `<nº>` es el del issue de GitHub. El check «Metodología» lo comprueba en cada PR (regla 11).
 
 ## Reglas
 
@@ -73,13 +74,13 @@ Nombres en minúsculas y con guiones. El `<nº>` es el del issue de GitHub.
 - Las ramas `feature/` no están protegidas por GitHub (hace falta poder hacer `--force-with-lease` después del *rebase*), pero se trabajan igual: nadie hace commits directos en ellas, todo entra desde ramas `task/` por PR.
 
 ### 2. Una rama `feature/` por historia
-- La crea el responsable de la historia (o la primera persona que empieza una de sus tareas) desde `develop` actualizado, con el número del issue de la **historia** (US, TR o spike), no el de una tarea.
+- La crea el responsable de la historia (o la primera persona que empieza una de sus tareas) desde `develop` actualizado, con el **código de la historia** (`US-XX.YY` o `SP-NN`), no el de una tarea. Antes de crearla, comprueba que no existe ya (`git ls-remote --heads origin "feature/US-XX.YY-*"`): **una sola rama por historia**, también si ya entró en `develop` y falta algo (eso es un bug o una historia nueva).
 - Vive mientras dure la historia. Si una historia no cabe en el sprint, se parte en historias más pequeñas en la planning.
 - Si la historia solo tiene una tarea, se puede trabajar directamente en la rama `feature/`, sin rama `task/`.
 
 ### 3. Una rama `task/` por tarea
 - Sale de la rama `feature/` de su historia, actualizada, y dura **poco (1-3 días)**.
-- Mantenla al día con la rama de la historia: `git rebase origin/feature/<nº>-<desc>` (es tu rama, así que puedes reescribirla).
+- Mantenla al día con la rama de la historia: `git rebase origin/feature/<código>-<desc>` (es tu rama, así que puedes reescribirla).
 - PR hacia la rama `feature/` de la historia, revisado por otra persona y con *Create a merge commit*.
 - Si tu tarea necesita algo de otra tarea de la misma historia, espera a que esté en la rama de la historia. No crees ramas a partir de ramas de otras personas.
 
@@ -97,12 +98,12 @@ El rebase reescribe la rama de la historia: avisa al equipo antes de hacerlo, po
 ```bash
 git fetch origin
 git switch develop
-git branch -D feature/50-publicar-objeto   # solo la copia local; la del remoto no se toca
-git switch feature/50-publicar-objeto      # se crea de nuevo desde origin/feature/50-publicar-objeto
+git branch -D feature/US-02.01-publicar-objeto   # solo la copia local; la del remoto no se toca
+git switch feature/US-02.01-publicar-objeto      # se crea de nuevo desde origin/feature/US-02.01-publicar-objeto
 ```
 
 ### 5. Commits
-Formato [Conventional Commits](https://www.conventionalcommits.org/es/): `tipo(ámbito): descripción en presente (#issue)`
+Formato [Conventional Commits](https://www.conventionalcommits.org/es/) con el código de la historia: `tipo(ámbito): <código> descripción en presente (#issue)`
 
 | Tipo | Para qué |
 |---|---|
@@ -114,14 +115,14 @@ Formato [Conventional Commits](https://www.conventionalcommits.org/es/): `tipo(�
 | `chore` | Configuración, dependencias, CI, Docker |
 
 ```
-chore(api): crea el proyecto base del backend (#17)
-feat(api): añade el endpoint GET /api/health (#17)
-feat(auth): añade el endpoint de registro con email único (#23)
-docs(repo): cambia la estrategia de ramas a GitFlow (#20)
+feat(db): US-05.01 tablas de puntos de recogida y entregas (#281)
+feat(web): US-05.01 selector de modo y hora de entrega (#282)
+test(e2e): US-05.01 los tres modos de entrega (#283)
+docs(adr): SP-05 armario del barrio con QR (#94)
 ```
 
 - Commits pequeños y frecuentes, cada uno con un cambio coherente. Como ya no hay *squash*, cada commit queda en `develop`: el mensaje tiene que tener sentido por sí solo y el código de cada commit tiene que compilar.
-- El `(#issue)` del commit es el de la **tarea**.
+- El `<código>` es el de la historia de la rama (`US-05.01`): al pasar el ratón por un punto del network graph se ve a qué historia pertenece. El `(#issue)` es el de la **tarea**.
 - **Cada persona hace commits con su propia cuenta**: el email de `git config user.email` debe ser el de tu cuenta de GitHub; si no, el commit no aparece como tuyo.
 
 ### 6. Pull Requests
@@ -164,6 +165,13 @@ Si una parte del código la ha generado una IA, indícalo en el PR (casilla de l
 
 La revisión humana en el PR es obligatoria igualmente.
 
+### 11. Todo va dentro de una historia, y el CI lo comprueba
+- **Solo se crean ramas para historias o spikes** (corrección del profesor en la demo del Sprint 1). Una tabla, una migración, unos estilos o unos datos de ejemplo no tienen rama propia: son una tarea de la primera historia que los usa. El trabajo técnico sin pantalla se escribe como historia de EP-12 (US-12.xx), con sus criterios y su tarjeta.
+- El job **«Metodología»** del CI (`.github/scripts/metodologia.mjs`) comprueba en cada PR que la rama corresponde a su destino y que cada commit lleva el código de su historia. Si falla, dice qué cambiar:
+  - **Rama mal nombrada:** renómbrala antes de abrir el PR (`git branch -m` y sube la nueva). Si el PR ya existe, GitHub lo cierra al renombrar la rama: abre otro y enlaza el viejo.
+  - **Commits sin código:** reescríbelos en tu rama (`git rebase -i` y *reword*) y súbela con `git push --force-with-lease`.
+- En local, antes de abrir el PR: `node .github/scripts/metodologia.mjs --rama <tu rama> --destino <destino> --commit "<mensaje>"`.
+
 ## Definition of Done
 Una historia está terminada cuando:
 - [ ] Cumple sus criterios de aceptación.
@@ -179,12 +187,12 @@ Una historia está terminada cuando:
 # 1. Crear la rama de la historia (una vez por historia)
 git switch develop
 git pull
-git switch -c feature/50-publicar-objeto
-git push -u origin feature/50-publicar-objeto
+git switch -c feature/US-02.01-publicar-objeto
+git push -u origin feature/US-02.01-publicar-objeto
 
 # 2. Crear la rama de tu tarea desde la de la historia
 git fetch origin
-git switch -c task/14-endpoint-publicar origin/feature/50-publicar-objeto
+git switch -c task/US-02.01-14-endpoint-publicar origin/feature/US-02.01-publicar-objeto
 
 # 3. Trabajar y hacer commits
 git add .
@@ -192,14 +200,14 @@ git commit -m "feat(api): añade el endpoint para publicar un objeto (#14)"
 
 # 4. Traer lo último de la historia a tu tarea
 git fetch origin
-git rebase origin/feature/50-publicar-objeto
+git rebase origin/feature/US-02.01-publicar-objeto
 
 # 5. Subir la tarea y abrir el PR contra la rama de la historia
-git push -u origin task/14-endpoint-publicar      # tras un rebase: git push --force-with-lease
-gh pr create --base feature/50-publicar-objeto --fill
+git push -u origin task/US-02.01-14-endpoint-publicar      # tras un rebase: git push --force-with-lease
+gh pr create --base feature/US-02.01-publicar-objeto --fill
 
 # 6. Historia completa: rebase sobre develop, tests y PR a develop
-git switch feature/50-publicar-objeto
+git switch feature/US-02.01-publicar-objeto
 git pull
 git fetch origin
 git rebase --rebase-merges origin/develop
