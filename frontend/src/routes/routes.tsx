@@ -18,6 +18,8 @@ import { PublishItemPage } from '../pages/PublishItemPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { RiderJobsPage } from '../pages/RiderJobsPage';
 import { SearchPage } from '../pages/SearchPage';
+import { AdminRidersPage } from '../pages/AdminRidersPage';
+import { AdminRoute } from '../components/AdminRoute';
 
 export const routes: RouteObject[] = [
   {
@@ -69,6 +71,10 @@ export const routes: RouteObject[] = [
             children: [{ path: 'trabajos', element: <RiderJobsPage /> }],
           },
         ],
+      },
+      {
+        element: <AdminRoute />,
+        children: [{ path: 'admin/riders', element: <AdminRidersPage /> }],
       },
       { path: '*', element: <NotFoundPage /> },
     ],
