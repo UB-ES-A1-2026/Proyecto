@@ -29,6 +29,13 @@ interface Subscriber {
 
 export const DEFAULT_BUFFER_SIZE = 500;
 
+// Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+// Máximo de streams abiertos por usuario. Hay una sola instancia gratuita en Render (poca memoria
+// y pocos sockets), así que una cuenta (o un cliente con un bucle de reconexión) no puede abrir
+// streams sin límite. Al llegar el 6.º se cierra el más antiguo del mismo usuario: el cliente
+// reconecta solo con `Last-Event-ID` y no pierde eventos. 5 sobra para las pestañas de una persona.
+export const MAX_STREAMS_PER_USER = 5;
+
 const EVENT_ID_PATTERN = /^(.+)-(\d+)$/;
 
 export function createRealtimeBus(
@@ -112,7 +119,7 @@ export function createRealtimeBus(
   }
 
   // Devuelve la función para darse de baja. `onClose` se llama si el bus cierra el stream
-  // (logout o apagado); entonces el suscriptor ya está dado de baja.
+  // (logout, apagado o límite por usuario); entonces el suscriptor ya está dado de baja.
   function subscribe(
     userId: string,
     sessionId: string,
@@ -121,6 +128,18 @@ export function createRealtimeBus(
     onClose?: () => void,
   ): () => void {
     if (lastEventId) replay(userId, listener, lastEventId);
+
+    // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+    // Los Set conservan el orden de inserción: los primeros del usuario son los más antiguos.
+    const ofUser = [...subscribers].filter(
+      (existing) => existing.userId === userId,
+    );
+    for (const oldest of ofUser.slice(
+      0,
+      Math.max(0, ofUser.length - MAX_STREAMS_PER_USER + 1),
+    )) {
+      close((subscriber) => subscriber === oldest);
+    }
 
     const subscriber: Subscriber = { userId, sessionId, listener, onClose };
     subscribers.add(subscriber);
