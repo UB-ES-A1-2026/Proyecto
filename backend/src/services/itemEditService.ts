@@ -36,7 +36,8 @@ export interface ItemChanges {
   homeDelivery?: boolean | undefined;
   riderDelivery?: boolean | undefined;
   pickupPointDelivery?: boolean | undefined;
-  address?: string | undefined;
+  // null borra la dirección.
+  address?: string | null | undefined;
 }
 
 // «Mis objetos» (US-02.02, #108): los del usuario, en cualquier estado.
@@ -85,7 +86,7 @@ export async function updateItem(
       riderDelivery: changes.riderDelivery ?? item.riderDelivery,
       pickupPointDelivery:
         changes.pickupPointDelivery ?? item.pickupPointDelivery,
-      address: changes.address ?? item.address,
+      address: changes.address === undefined ? item.address : changes.address,
     });
   }
 

@@ -239,8 +239,72 @@ describe('PATCH /api/objetos/:id', () => {
       });
     });
 
+    // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+    it.each(['', '   '])(
+      'clears the address when it is %j and only the pickup point is offered',
+      async (address) => {
+        const { ana, token } = await setUp();
+        const item = await createTestItem(ana.id, {
+          pickupPointDelivery: true,
+          address: 'Carrer de Verdi, 45',
+        });
+
+        const response = await patchItem(token, item.id, {
+          ...VALID_CHANGES,
+          address,
+        });
+
+        expect(response.status).toBe(200);
+        expect(response.body.address).toBeNull();
+        const saved = await prisma.item.findUniqueOrThrow({
+          where: { id: item.id },
+        });
+        expect(saved.address).toBeNull();
+      },
+    );
+
     it.each([
-      ['address', '   ', 'dirección'],
+      ['homeDelivery', ''],
+      ['homeDelivery', '   '],
+      ['riderDelivery', ''],
+      ['riderDelivery', '   '],
+    ])(
+      'returns 400 for the address when %s is on and the address is %j',
+      async (flag, address) => {
+        const { item, token } = await setUp();
+
+        const response = await patchItem(token, item.id, {
+          ...VALID_CHANGES,
+          pickupPointDelivery: true,
+          [flag]: true,
+          address,
+        });
+
+        expect(response.status).toBe(400);
+        expect(response.body).toEqual({
+          error: 'El campo "dirección" no es correcto, revísalo.',
+          field: 'address',
+        });
+      },
+    );
+
+    it('returns 400 when a blank address leaves a stored home delivery without address', async () => {
+      const { ana, token } = await setUp();
+      const item = await createTestItem(ana.id, {
+        homeDelivery: true,
+        address: 'Carrer de Verdi, 45',
+      });
+
+      const response = await patchItem(token, item.id, {
+        ...VALID_CHANGES,
+        address: '   ',
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.field).toBe('address');
+    });
+
+    it.each([
       ['address', 'x'.repeat(201), 'dirección'],
       ['homeDelivery', 'sí', 'entrega a domicilio'],
       ['riderDelivery', 1, 'entrega con rider'],

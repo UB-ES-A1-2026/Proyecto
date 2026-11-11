@@ -5,6 +5,27 @@ import { AppError } from '../errors/appError.js';
 export const NO_DELIVERY_MODE_MESSAGE = 'Elige al menos un modo de entrega.';
 export const ADDRESS_MAX_LENGTH = 200;
 
+export const INVALID_ADDRESS_MESSAGE =
+  'El campo "dirección" no es correcto, revísalo.';
+
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+// Una dirección vacía o solo con espacios es «sin dirección» (null), no un error: solo falla si el
+// objeto la necesita, y eso lo comprueba assertValidDeliverySettings. Más de 200 caracteres o un
+// valor que no es texto sí son error.
+export function parseAddress(value: unknown): string | null {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== 'string') {
+    throw new AppError(400, INVALID_ADDRESS_MESSAGE, 'address');
+  }
+
+  const address = value.trim();
+  if (address.length > ADDRESS_MAX_LENGTH) {
+    throw new AppError(400, INVALID_ADDRESS_MESSAGE, 'address');
+  }
+
+  return address.length === 0 ? null : address;
+}
+
 export interface ItemDeliverySettings {
   homeDelivery: boolean;
   riderDelivery: boolean;
@@ -25,10 +46,6 @@ export function assertValidDeliverySettings(
   }
 
   if ((homeDelivery || riderDelivery) && !address) {
-    throw new AppError(
-      400,
-      'El campo "dirección" no es correcto, revísalo.',
-      'address',
-    );
+    throw new AppError(400, INVALID_ADDRESS_MESSAGE, 'address');
   }
 }
