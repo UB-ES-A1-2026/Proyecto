@@ -53,6 +53,9 @@ async function fillValidItem(page: Page, title: string) {
   await page.getByLabel('Precio por día (€)').fill('7,50');
   await page.getByLabel('Fianza (€)').fill('20');
   await page.getByLabel('Barrio').fill('Sants');
+  // Desde US-05.01 (#281) hace falta al menos un modo de entrega. «Punto de recogida» no pide
+  // dirección, que el formulario aún no tiene (T27, #307).
+  await page.getByLabel('Punto de recogida').check();
 }
 
 // Publica un objeto válido y devuelve la URL de su ficha
