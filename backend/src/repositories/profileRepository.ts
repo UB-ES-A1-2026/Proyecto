@@ -31,3 +31,19 @@ export function findPublicProfile(userId: string) {
 export function updateBio(userId: string, bio: string | null) {
   return prisma.user.update({ where: { id: userId }, data: { bio } });
 }
+
+export async function findPhotoKey(userId: string): Promise<string | null> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { photoUrl: true },
+  });
+  return user?.photoUrl ?? null;
+}
+
+// La columna foto_url guarda la clave del fichero en el bucket, no una URL (ADR 0002).
+export function updatePhotoKey(userId: string, key: string | null) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { photoUrl: key },
+  });
+}

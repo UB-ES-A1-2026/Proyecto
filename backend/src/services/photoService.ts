@@ -98,6 +98,38 @@ export function validatePhotoRequest(body: unknown): {
   return { contentType, size };
 }
 
+// Clave nueva para una foto dentro de una carpeta del bucket («objetos/<id>», «usuarios/<id>»).
+// Compartido con la foto del perfil (US-01.4, #300).
+export function newPhotoKey(folder: string, contentType: string): string {
+  return `${folder}/${randomUUID()}.${EXTENSION_BY_TYPE.get(contentType)}`;
+}
+
+// Comprueba el fichero ya subido (existe, tamaño, tipo declarado y bytes). Si no es válido, lo borra.
+// Compartido con la foto del perfil (US-01.4, #300).
+export async function verifyStoredImage(key: string): Promise<void> {
+  const stored = await findStoredPhoto(key);
+  if (!stored) {
+    throw new AppError(
+      400,
+      'No se ha subido ninguna foto con esa clave.',
+      'key',
+    );
+  }
+
+  const expectedType = [...EXTENSION_BY_TYPE].find(([, extension]) =>
+    key.endsWith(`.${extension}`),
+  )?.[0];
+  const realType = detectImageType(await readFirstBytes(key, 12));
+  if (
+    stored.size > MAX_PHOTO_BYTES ||
+    stored.contentType !== expectedType ||
+    realType !== expectedType
+  ) {
+    await deleteStoredPhoto(key);
+    throw new AppError(400, INVALID_PHOTO_MESSAGE, 'key');
+  }
+}
+
 async function findOwnedItem(userId: string, itemId: string) {
   const item = UUID_PATTERN.test(itemId)
     ? await findItemForPhotos(itemId)
@@ -132,7 +164,7 @@ export async function requestPhotoUpload(
   }
 
   // La clave la decide siempre el backend, nunca el cliente.
-  const key = `objetos/${itemId}/${randomUUID()}.${EXTENSION_BY_TYPE.get(contentType)}`;
+  const key = newPhotoKey(`objetos/${itemId}`, contentType);
   const uploadUrl = await createUploadUrl(key, contentType, size);
 
   return { key, uploadUrl, expiresIn: UPLOAD_URL_SECONDS };
@@ -165,27 +197,7 @@ export async function confirmPhotoUpload(
     throw new AppError(409, MAX_PHOTOS_MESSAGE);
   }
 
-  const stored = await findStoredPhoto(key);
-  if (!stored) {
-    throw new AppError(
-      400,
-      'No se ha subido ninguna foto con esa clave.',
-      'key',
-    );
-  }
-
-  const expectedType = [...EXTENSION_BY_TYPE].find(([, extension]) =>
-    key.endsWith(`.${extension}`),
-  )?.[0];
-  const realType = detectImageType(await readFirstBytes(key, 12));
-  if (
-    stored.size > MAX_PHOTO_BYTES ||
-    stored.contentType !== expectedType ||
-    realType !== expectedType
-  ) {
-    await deleteStoredPhoto(key);
-    throw new AppError(400, INVALID_PHOTO_MESSAGE, 'key');
-  }
+  await verifyStoredImage(key);
 
   const usedOrders = new Set(photos.map(({ order }) => order));
   const order =
