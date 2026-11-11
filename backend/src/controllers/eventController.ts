@@ -10,6 +10,12 @@ import { findValidSession } from '../services/sessionService.js';
 export const HEARTBEAT_MS = 15_000;
 export const SESSION_CHECK_MS = 60_000;
 const RETRY_MS = 1_000;
+// Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+// Contrapresión: si un cliente lento deja más de 1 MiB sin enviar en el buffer del socket, se cierra
+// el stream en vez de acumular memoria en la única instancia de Render. El cliente reconecta con
+// `Last-Event-ID` y recupera lo perdido (o recibe `resync`). Se mira `writableLength` tras cada
+// escritura: es más simple que esperar al evento `drain` con un temporizador por stream.
+export const MAX_BUFFERED_BYTES = 1024 * 1024;
 
 function formatEvent({ id, type, data }: RealtimeMessage): string {
   return `id: ${id}\nevent: ${type}\ndata: ${JSON.stringify(data)}\n\n`;
@@ -20,10 +26,12 @@ export function createEventStreamHandler(
   options: {
     heartbeatMs?: number;
     sessionCheckMs?: number;
+    maxBufferedBytes?: number;
   } = {},
 ): RequestHandler {
   const heartbeatMs = options.heartbeatMs ?? HEARTBEAT_MS;
   const sessionCheckMs = options.sessionCheckMs ?? SESSION_CHECK_MS;
+  const maxBufferedBytes = options.maxBufferedBytes ?? MAX_BUFFERED_BYTES;
 
   return (request, response) => {
     // requireAuth garantiza que request.auth existe.
@@ -64,6 +72,7 @@ export function createEventStreamHandler(
       (message) => {
         if (closed) return;
         response.write(formatEvent(message));
+        if (response.writableLength > maxBufferedBytes) finish();
       },
       lastEventId,
       finish,
