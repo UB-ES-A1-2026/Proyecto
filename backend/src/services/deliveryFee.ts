@@ -2,7 +2,8 @@
 // Tarifa del rider por tramos (US-05.01, #281). Es el único sitio con los importes.
 import { routeDistanceKm } from './neighborhoods.js';
 
-// Hasta `maxKm` (incluido) se cobra `fee`; el último tramo no tiene límite.
+// Hasta `maxKm` (incluido) se cobra `fee`; el último tramo no tiene límite. Los tramos se aplican
+// a la distancia ya redondeada a 1 decimal, la que se enseña al usuario (ver quoteRiderFee).
 const FEE_TIERS: readonly { maxKm: number; fee: string }[] = [
   { maxKm: 2, fee: '3.00' },
   { maxKm: 5, fee: '5.00' },
@@ -24,9 +25,11 @@ export interface RiderQuote {
   fee: string;
 }
 
-// Distancia por calle entre el barrio del objeto y el de entrega, y su tarifa. Si el barrio del
-// objeto no está en la lista (objetos antiguos con el barrio escrito a mano) no hay distancia: se
-// aplica el tramo más alto y la distancia sale null para no inventarla.
+// Distancia por calle entre el barrio del objeto y el de entrega, y su tarifa. El tramo se elige con
+// la distancia redondeada a 1 decimal, la misma que se muestra: así «2,0 km» es siempre el tramo de
+// 3 €, y no el de 5 € por un 2,04 que el usuario no ve. Si el barrio del objeto no está en la lista
+// (objetos antiguos con el barrio escrito a mano) no hay distancia: se aplica el tramo más alto y la
+// distancia sale null para no inventarla.
 export function quoteRiderFee(
   itemNeighborhood: string,
   deliveryNeighborhood: string,
@@ -37,8 +40,10 @@ export function quoteRiderFee(
     return { distanceKm: null, fee: HIGHEST_FEE };
   }
 
+  const shownDistance = Math.round(distance * 10) / 10;
+
   return {
-    distanceKm: Math.round(distance * 10) / 10,
-    fee: riderFeeForDistance(distance),
+    distanceKm: shownDistance,
+    fee: riderFeeForDistance(shownDistance),
   };
 }
