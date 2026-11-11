@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   createRealtimeBus,
+  MAX_STREAMS_PER_USER,
   type RealtimeMessage,
 } from '../../src/services/realtimeService.js';
 
@@ -175,6 +176,32 @@ describe('realtimeService', () => {
 
     expect(closed).toHaveBeenCalledTimes(2);
     expect(bus.subscriberCount()).toBe(0);
+  });
+
+  // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+  it('closes the oldest stream of a user when a new one exceeds the cap', () => {
+    const bus = createRealtimeBus();
+    const closed = Array.from({ length: MAX_STREAMS_PER_USER + 1 }, () =>
+      vi.fn(),
+    );
+    const bea = vi.fn();
+    bus.subscribe('bea', 'sb', collect().listener, undefined, bea);
+    closed.slice(0, MAX_STREAMS_PER_USER).forEach((onClose, index) => {
+      bus.subscribe('ana', `s${index}`, collect().listener, undefined, onClose);
+    });
+    expect(closed[0]).not.toHaveBeenCalled();
+
+    const newest = collect();
+    bus.subscribe('ana', 'new', newest.listener, undefined, closed[5]);
+
+    expect(closed[0]).toHaveBeenCalledTimes(1);
+    closed
+      .slice(1)
+      .forEach((onClose) => expect(onClose).not.toHaveBeenCalled());
+    expect(bea).not.toHaveBeenCalled();
+    expect(bus.subscriberCount()).toBe(MAX_STREAMS_PER_USER + 1);
+    bus.publish(['ana'], 'entrega.estado', {});
+    expect(newest.received).toHaveLength(1);
   });
 
   it('a failing listener does not break the others', () => {
