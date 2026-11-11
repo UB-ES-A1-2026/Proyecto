@@ -1,9 +1,10 @@
 // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
 import bcrypt from 'bcrypt';
 import request from 'supertest';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { app } from '../../src/app.js';
 import { prisma } from '../../src/repositories/prisma.js';
+import * as userRepository from '../../src/repositories/userRepository.js';
 import { resetDb } from '../helpers/db.js';
 import { createTestUser } from '../helpers/users.js';
 
@@ -21,6 +22,10 @@ const validBody = {
 
 beforeEach(async () => {
   await resetDb();
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 describe('POST /api/riders', () => {
@@ -160,6 +165,65 @@ describe('POST /api/riders', () => {
     expect(responses.map(({ status }) => status).sort()).toEqual([201, 409]);
     expect(await prisma.user.count()).toBe(1);
     expect(await prisma.riderApplication.count()).toBe(1);
+  });
+
+  // Se saltan las comprobaciones previas para que sea el INSERT el que choque con la restricción
+  // única (P2002): es lo que pasa cuando dos altas simultáneas las superan a la vez.
+  it.each([
+    ['email', 'Ya existe una cuenta con este correo.', { username: 'carla2' }],
+    [
+      'username',
+      'Este nombre de usuario ya está en uso.',
+      { email: 'otra@rentit.test' },
+    ],
+  ])(
+    'returns 409 on the field %s when the unique constraint fails on insert',
+    async (field, message, override) => {
+      await createTestUser({ username: 'carla', email: 'carla@rentit.test' });
+      const byEmail = vi
+        .spyOn(userRepository, 'findUserByEmail')
+        .mockResolvedValue(null);
+      const byUsername = vi
+        .spyOn(userRepository, 'findUserByUsername')
+        .mockResolvedValue(null);
+
+      const response = await request(app)
+        .post('/api/riders')
+        .send({ ...validBody, ...override });
+
+      // Las comprobaciones previas se han saltado de verdad: el 409 sale del catch del INSERT.
+      expect(byEmail).toHaveBeenCalled();
+      expect(byUsername).toHaveBeenCalled();
+      expect(response.status).toBe(409);
+      expect(response.body).toEqual({ error: message, field });
+      expect(await prisma.user.count()).toBe(1);
+      expect(await prisma.riderApplication.count()).toBe(0);
+    },
+  );
+
+  it('ignores role, status and rider flags sent in the body', async () => {
+    const response = await request(app)
+      .post('/api/riders')
+      .send({
+        ...validBody,
+        role: 'admin',
+        isRider: false,
+        status: 'blocked',
+        riderStatus: 'approved',
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body.status).toBe('pending');
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { email: 'carla@rentit.test' },
+      include: { riderApplication: true },
+    });
+    expect(user).toMatchObject({
+      role: 'user',
+      isRider: true,
+      status: 'active',
+    });
+    expect(user.riderApplication?.status).toBe('pending');
   });
 
   it('does not leave a user behind when the application cannot be saved', async () => {
