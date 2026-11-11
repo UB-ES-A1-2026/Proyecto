@@ -12,7 +12,7 @@ Closes #
 1.
 
 ## Checklist
-- [ ] La rama sigue GitFlow: `task/<nº tarea>-<descripcion>` para una tarea, `feature/<nº historia>-<descripcion>` para una historia (o `bugfix/`, `release/`, `hotfix/`)
+- [ ] La rama lleva el código de su historia: `task/US-XX.YY-<nº tarea>-<desc>` para una tarea, `feature/US-XX.YY-<desc>` para una historia (o `bugfix/` y `hotfix/` con el código de la historia afectada), y cada commit es `tipo(ámbito): US-XX.YY descripción (#nº)`
 - [ ] La base del PR es correcta: la rama `feature/` de su historia para `task/`; `develop` para `feature/` y `bugfix/`; `main` para `release/` y `hotfix/`
 - [ ] Si es el PR de una historia a `develop`: he hecho `git rebase --rebase-merges origin/develop`, los tests pasan después del rebase y la descripción cierra la historia y todas sus tareas
 - [ ] Se integrará con **Create a merge commit** (nunca *squash*)
