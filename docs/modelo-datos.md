@@ -245,6 +245,24 @@ Se crea en la migración `crea_reserva` como parte de TR-05 (#86), para que est�
 
 En Prisma, el modelo es `Reservation`, y los enums son `ReservationStatus` (`pending`, `accepted`, `rejected`, `cancelled`, `paid`, `in_progress`, `finished`) y `DeliveryMode` (`home`, `rider`, `pickup_point`).
 
+## Tabla `pago` (Sprint 2 · #284)
+
+Se crea en la migración `crea_pago` como parte de US-07.01 (#72, tarea T9). Lo que no se ve en el diagrama:
+
+| Decisión | Por qué |
+|---|---|
+| `reserva_id` es **único** | Una reserva tiene como mucho un pago: la BD impide cobrar dos veces la misma reserva aunque lleguen dos peticiones a la vez. |
+| Los importes se **copian** de la reserva y del objeto al pagar | Si el propietario cambia la fianza después, el pago conserva lo que se cobró y se retuvo. |
+| `importe_entrega` vale 0 por defecto | Hasta que exista la tabla `entrega` (US-05.01, T6) no hay coste de entrega. |
+| `estado_fianza` empieza en `retenida` | La fianza se autoriza sin cobrarla; se libera al finalizar el alquiler o se ejecuta por una incidencia (US-09.01, Sprint 3). |
+| `referencia_pasarela` es opcional | Guarda el id del PaymentIntent de Stripe (T10, #285); en los datos de demo vale `demo`. |
+| `CHECK` en la BD: los tres importes `>= 0` | El backend también lo valida, pero así la BD nunca guarda datos imposibles. |
+| Una reserva con pago **no se puede borrar** | El pago es el historial de lo que se cobró. |
+
+En Prisma, el modelo es `Payment`, y los enums son `PaymentStatus` (`pending`, `paid`, `rejected`, `refunded`) y `DepositStatus` (`held`, `released`, `charged`).
+
+El endpoint es `POST /api/reservas/:id/pago` con `{ "paymentMethodId": "..." }`: solo el arrendatario, solo si la reserva está `aceptada`, y en una transacción crea el pago y la pasa a `pagada`. Errores: 400 sin tarjeta, 402 tarjeta rechazada, 403 no es el arrendatario, 404 no existe y 409 no está aceptada o ya está pagada.
+
 ## Qué tablas entran en cada sprint
 
 | Sprint | Tablas nuevas | Historias |
