@@ -36,7 +36,9 @@ export const REGISTER_USERNAME_TAKEN_MESSAGE =
   'Este nombre de usuario ya está en uso.';
 
 // Exportada para el alta de rider (US-10.03), que desempata igual las altas simultáneas.
-export function uniqueConstraintField(error: unknown): 'email' | 'username' | null {
+export function uniqueConstraintField(
+  error: unknown,
+): 'email' | 'username' | null {
   if (
     !(error instanceof Prisma.PrismaClientKnownRequestError) ||
     error.code !== 'P2002'
