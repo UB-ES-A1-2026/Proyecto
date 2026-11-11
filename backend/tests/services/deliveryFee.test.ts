@@ -27,7 +27,23 @@ describe('quoteRiderFee', () => {
     });
   });
 
-  it('rounds the distance to one decimal and picks the tier of the real distance', () => {
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+  it('picks the tier from the rounded distance that is shown: 2.0 km is the 3 € tier', () => {
+    // La distancia real es 2,046 km: se muestra «2,0 km» y se cobra el primer tramo.
+    expect(
+      quoteRiderFee("La Nova Esquerra de l'Eixample", 'Poble-sec'),
+    ).toEqual({ distanceKm: 2, fee: '3.00' });
+  });
+
+  it('picks the tier from the rounded distance that is shown: 5.0 km is the 5 € tier', () => {
+    // La distancia real es 5,031 km: se muestra «5,0 km» y se cobra el segundo tramo.
+    expect(quoteRiderFee('Poblenou', 'Sant Antoni')).toEqual({
+      distanceKm: 5,
+      fee: '5.00',
+    });
+  });
+
+  it('rounds the distance to one decimal and picks the tier of the shown distance', () => {
     expect(quoteRiderFee('Sants', 'Poblenou')).toEqual({
       distanceKm: 7.9,
       fee: '7.00',
