@@ -11,6 +11,7 @@ import {
   findUserByEmail,
   findUserByUsername,
 } from '../repositories/userRepository.js';
+import type { RiderStatus } from './riderStatus.js';
 import {
   REGISTER_USERNAME_TAKEN_MESSAGE,
   uniqueConstraintField,
@@ -22,8 +23,6 @@ export const RIDER_ACCOUNT_NOT_ALLOWED_MESSAGE =
   'Las cuentas de rider no pueden solicitar ni publicar objetos.';
 export const RIDER_APPLICATION_RECEIVED_MESSAGE =
   'Hemos recibido tu solicitud. Un admin la revisará pronto.';
-
-export type RiderStatus = 'pending' | 'approved' | 'rejected';
 
 function throwConflict(field: 'email' | 'username'): never {
   if (field === 'email') {
