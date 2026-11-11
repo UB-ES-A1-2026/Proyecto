@@ -206,3 +206,125 @@ describe('GET /api/usuarios/:id', () => {
     expect(authenticated.body.email).toBe('ana@rentit.test');
   });
 });
+
+const INVALID_BIO = {
+  error: 'El campo "bio" no es correcto, revísalo.',
+  field: 'bio',
+};
+
+describe('PATCH /api/usuarios/me', () => {
+  async function patch(body: unknown, email = 'ana@rentit.test') {
+    const token = await loginAs(email);
+    return request(app)
+      .patch('/api/usuarios/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send(body as object);
+  }
+
+  it('guarda la bio recortada y devuelve el perfil propio', async () => {
+    const { ana } = await twoUsers();
+    await createTestItem(ana.id);
+
+    const response = await patch({ bio: '  Vivo en Gràcia.  ' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.bio).toBe('Vivo en Gràcia.');
+    expect(response.body.isOwnProfile).toBe(true);
+    expect(response.body.items).toHaveLength(1);
+    expect(JSON.stringify(response.body)).not.toContain('ana@rentit.test');
+    expect(
+      (await prisma.user.findUniqueOrThrow({ where: { id: ana.id } })).bio,
+    ).toBe('Vivo en Gràcia.');
+  });
+
+  it.each(['', '   \n '])('una bio en blanco (%j) la borra', async (bio) => {
+    const { ana } = await twoUsers();
+    await prisma.user.update({ where: { id: ana.id }, data: { bio: 'Antes' } });
+
+    const response = await patch({ bio });
+
+    expect(response.status).toBe(200);
+    expect(response.body.bio).toBeNull();
+    expect(
+      (await prisma.user.findUniqueOrThrow({ where: { id: ana.id } })).bio,
+    ).toBeNull();
+  });
+
+  it('acepta 500 caracteres y rechaza 501', async () => {
+    const { ana } = await twoUsers();
+
+    const ok = await patch({ bio: 'a'.repeat(500) });
+    const tooLong = await patch({ bio: 'a'.repeat(501) });
+
+    expect(ok.status).toBe(200);
+    expect(tooLong.status).toBe(400);
+    expect(tooLong.body).toEqual(INVALID_BIO);
+    expect(
+      (await prisma.user.findUniqueOrThrow({ where: { id: ana.id } })).bio,
+    ).toBe('a'.repeat(500));
+  });
+
+  it.each([[42], [null], [['a']], [{}], [undefined]])(
+    'rechaza una bio que no es texto (%j)',
+    async (bio) => {
+      await twoUsers();
+
+      const response = await patch({ bio });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual(INVALID_BIO);
+    },
+  );
+
+  it('rechaza un cuerpo ausente', async () => {
+    await twoUsers();
+    const token = await loginAs('ana@rentit.test');
+
+    const response = await request(app)
+      .patch('/api/usuarios/me')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual(INVALID_BIO);
+  });
+
+  it('sin sesión responde 401', async () => {
+    await twoUsers();
+
+    const response = await request(app)
+      .patch('/api/usuarios/me')
+      .send({ bio: 'Hola' });
+
+    expect(response.status).toBe(401);
+  });
+
+  it('ignora el resto de campos: el nombre, el correo y el rol no cambian', async () => {
+    const { ana } = await twoUsers();
+
+    const response = await patch({
+      bio: 'Hola',
+      username: 'otro',
+      email: 'otro@rentit.test',
+      role: 'admin',
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.username).toBe('ana');
+    const saved = await prisma.user.findUniqueOrThrow({
+      where: { id: ana.id },
+    });
+    expect(saved.username).toBe('ana');
+    expect(saved.email).toBe('ana@rentit.test');
+    expect(saved.role).toBe('user');
+  });
+
+  it('solo cambia el perfil de quien tiene la sesión', async () => {
+    const { bruno } = await twoUsers();
+
+    await patch({ bio: 'Mía' });
+
+    expect(
+      (await prisma.user.findUniqueOrThrow({ where: { id: bruno.id } })).bio,
+    ).toBeNull();
+  });
+});

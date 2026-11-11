@@ -27,3 +27,7 @@ export function findPublicProfile(userId: string) {
     },
   });
 }
+
+export function updateBio(userId: string, bio: string | null) {
+  return prisma.user.update({ where: { id: userId }, data: { bio } });
+}

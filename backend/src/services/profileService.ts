@@ -1,6 +1,9 @@
 // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
 import { AppError } from '../errors/appError.js';
-import { findPublicProfile } from '../repositories/profileRepository.js';
+import {
+  findPublicProfile,
+  updateBio,
+} from '../repositories/profileRepository.js';
 import {
   createViewUrl,
   isStorageConfigured,
@@ -8,6 +11,9 @@ import {
 import { listFirstPhotoUrls } from './photoService.js';
 
 const USER_NOT_FOUND = 'No hemos encontrado este usuario.';
+
+const MAX_BIO_LENGTH = 500;
+const INVALID_BIO_MESSAGE = 'El campo "bio" no es correcto, revísalo.';
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -72,4 +78,20 @@ export async function getPublicProfile(
     })),
     isOwnProfile: viewerId === user.id,
   };
+}
+
+// Edita la bio del propio usuario (solo se acepta ese campo; el resto del cuerpo se ignora).
+// Se recorta; en blanco se guarda como null. El límite cuenta caracteres, como VARCHAR(500).
+export async function updateOwnBio(
+  userId: string,
+  body: unknown,
+): Promise<PublicProfile> {
+  const { bio } = (body ?? {}) as Record<string, unknown>;
+
+  if (typeof bio !== 'string' || [...bio.trim()].length > MAX_BIO_LENGTH) {
+    throw new AppError(400, INVALID_BIO_MESSAGE, 'bio');
+  }
+
+  await updateBio(userId, bio.trim() || null);
+  return getPublicProfile(userId, userId);
 }
