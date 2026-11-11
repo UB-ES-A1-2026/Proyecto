@@ -77,6 +77,36 @@ describe('GET /api/objetos/:id (US-03.03, #119)', () => {
     expect(response.body).not.toHaveProperty('latitude');
   });
 
+  // US-05.01 (#281): la dirección exacta del propietario nunca es pública.
+  it('never includes the address for anyone but the owner', async () => {
+    const { ana } = await createOwners();
+    const item = await createTestItem(ana.id, {
+      address: 'Carrer de Verdi, 45, 2º 1ª',
+      homeDelivery: true,
+    });
+    const brunoToken = await loginAs('bruno@rentit.test');
+
+    for (const token of [undefined, brunoToken, 'token-falso']) {
+      const response = await getDetail(item.id, token);
+      expect(response.status).toBe(200);
+      expect(response.body).not.toHaveProperty('address');
+      expect(JSON.stringify(response.body)).not.toContain('Verdi');
+    }
+  });
+
+  it('includes the address when the owner asks for the item', async () => {
+    const { ana } = await createOwners();
+    const item = await createTestItem(ana.id, {
+      address: 'Carrer de Verdi, 45, 2º 1ª',
+      homeDelivery: true,
+    });
+    const token = await loginAs('ana@rentit.test');
+
+    const response = await getDetail(item.id, token);
+
+    expect(response.body.address).toBe('Carrer de Verdi, 45, 2º 1ª');
+  });
+
   it.each(['paused', 'withdrawn'] as const)(
     'returns a %s item to its owner',
     async (status) => {

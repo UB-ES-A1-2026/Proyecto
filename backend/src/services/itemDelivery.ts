@@ -1,0 +1,34 @@
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+// Reglas de los modos de entrega de un objeto (US-05.01, #281), comunes a publicar y editar.
+import { AppError } from '../errors/appError.js';
+
+export const NO_DELIVERY_MODE_MESSAGE = 'Elige al menos un modo de entrega.';
+export const ADDRESS_MAX_LENGTH = 200;
+
+export interface ItemDeliverySettings {
+  homeDelivery: boolean;
+  riderDelivery: boolean;
+  pickupPointDelivery: boolean;
+  address: string | null;
+}
+
+// Tiene que haber al menos un modo y, si el objeto se recoge en casa del propietario o lo lleva un
+// rider, su dirección (sin ella no se sabe dónde recogerlo).
+export function assertValidDeliverySettings(
+  settings: ItemDeliverySettings,
+): void {
+  const { homeDelivery, riderDelivery, pickupPointDelivery, address } =
+    settings;
+
+  if (!homeDelivery && !riderDelivery && !pickupPointDelivery) {
+    throw new AppError(400, NO_DELIVERY_MODE_MESSAGE, 'deliveryModes');
+  }
+
+  if ((homeDelivery || riderDelivery) && !address) {
+    throw new AppError(
+      400,
+      'El campo "dirección" no es correcto, revísalo.',
+      'address',
+    );
+  }
+}

@@ -1,6 +1,7 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
 import type { RequestHandler } from 'express';
 import { AppError } from '../errors/appError.js';
+import { ADDRESS_MAX_LENGTH } from '../services/itemDelivery.js';
 import * as itemEditService from '../services/itemEditService.js';
 
 const UUID_PATTERN =
@@ -46,6 +47,19 @@ function readAmount(
   return text;
 }
 
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+// Los modos de entrega y la dirección son opcionales al editar (US-05.01, #281): lo que no se envía
+// no cambia. El service valida el resultado completo.
+function readOptionalFlag(
+  value: unknown,
+  field: string,
+  label: string,
+): boolean | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'boolean') invalid(field, label);
+  return value;
+}
+
 function readChanges(body: unknown): itemEditService.ItemChanges {
   const fields =
     typeof body === 'object' && body !== null
@@ -53,6 +67,25 @@ function readChanges(body: unknown): itemEditService.ItemChanges {
       : {};
 
   return {
+    homeDelivery: readOptionalFlag(
+      fields.homeDelivery,
+      'homeDelivery',
+      'entrega a domicilio',
+    ),
+    riderDelivery: readOptionalFlag(
+      fields.riderDelivery,
+      'riderDelivery',
+      'entrega con rider',
+    ),
+    pickupPointDelivery: readOptionalFlag(
+      fields.pickupPointDelivery,
+      'pickupPointDelivery',
+      'punto de recogida',
+    ),
+    address:
+      fields.address === undefined
+        ? undefined
+        : readText(fields.address, 'address', 'dirección', ADDRESS_MAX_LENGTH),
     title: readText(fields.title, 'title', 'nombre', 100),
     description: readText(
       fields.description,
