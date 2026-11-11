@@ -6,12 +6,12 @@ export const ADMIN_ONLY_MESSAGE =
   'Solo un admin puede revisar las solicitudes de rider.';
 
 // Comprobación de rol de las acciones de admin (US-11.03). Está en el servicio y no en un
-// middleware: lee el rol de la BD en cada petición, así que quitarle el rol a un admin surte
-// efecto al instante aunque su sesión siga activa.
+// middleware: lee el rol y el estado de la BD en cada petición, así que quitarle el rol a un admin
+// o bloquearlo surte efecto al instante aunque su sesión siga activa.
 export async function assertAdmin(userId: string): Promise<void> {
   const user = await findUserById(userId);
 
-  if (user?.role !== 'admin') {
+  if (user?.role !== 'admin' || user.status !== 'active') {
     throw new AppError(403, ADMIN_ONLY_MESSAGE);
   }
 }
