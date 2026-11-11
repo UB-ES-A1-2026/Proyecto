@@ -36,7 +36,7 @@ jobs:
     # Producción solo desde main (push, o ejecución manual elegida sobre main).
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
       API_URL: ${{ vars.API_URL }}
@@ -49,7 +49,7 @@ jobs:
             echo "lanzado=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL" > /dev/null
+          curl -fsS --max-time 30 -X POST "$RENDER_DEPLOY_HOOK_URL" > /dev/null
           echo "lanzado=true" >> "$GITHUB_OUTPUT"
 
       # Render tarda unos minutos (build + migraciones); se espera a que /api/health responda.
@@ -73,7 +73,7 @@ jobs:
     name: Render (preproducción)
     if: github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     environment: staging
     outputs:
       sano: ${{ steps.salud.outputs.sano }}
@@ -93,7 +93,7 @@ jobs:
             echo "::error::Falta la variable STAGING_API_URL del Environment «staging»: no se puede comprobar el despliegue."
             exit 1
           fi
-          curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL" > /dev/null
+          curl -fsS --max-time 30 -X POST "$RENDER_DEPLOY_HOOK_URL" > /dev/null
 
       - name: Esperar a que la API de preproducción responda
         id: salud
