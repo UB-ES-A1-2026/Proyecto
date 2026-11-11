@@ -84,10 +84,21 @@ describe('GET /api/usuarios/me/objetos', () => {
         title: item.title,
         dailyPrice: '5.50',
         neighborhood: item.neighborhood,
+        address: null,
         status: 'published',
         photo: null,
       },
     ]);
+  });
+
+  it('returns the address of the owner items', async () => {
+    const { ana, token } = await setUp();
+    await prisma.item.deleteMany();
+    await createTestItem(ana.id, { address: 'Carrer de Verdi, 45' });
+
+    const response = await getMyItems(token);
+
+    expect(response.body[0].address).toBe('Carrer de Verdi, 45');
   });
 
   it('includes the items in every status', async () => {
@@ -134,6 +145,242 @@ describe('GET /api/usuarios/me/objetos', () => {
 });
 
 describe('PATCH /api/objetos/:id', () => {
+  // US-05.01 (#281): modos de entrega y dirección.
+  describe('delivery modes and address', () => {
+    it('changes the modes and the address, and returns the address to the owner', async () => {
+      const { item, token } = await setUp();
+
+      const response = await patchItem(token, item.id, {
+        ...VALID_CHANGES,
+        homeDelivery: true,
+        riderDelivery: true,
+        pickupPointDelivery: false,
+        address: '  Carrer de Verdi, 45  ',
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        homeDelivery: true,
+        riderDelivery: true,
+        pickupPointDelivery: false,
+        address: 'Carrer de Verdi, 45',
+      });
+      const saved = await prisma.item.findUniqueOrThrow({
+        where: { id: item.id },
+      });
+      expect(saved.homeDelivery).toBe(true);
+      expect(saved.address).toBe('Carrer de Verdi, 45');
+    });
+
+    it('keeps the stored modes and address when they are not sent', async () => {
+      const { ana, token } = await setUp();
+      const item = await createTestItem(ana.id, {
+        homeDelivery: true,
+        address: 'Carrer de Verdi, 45',
+      });
+
+      const response = await patchItem(token, item.id, VALID_CHANGES);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        homeDelivery: true,
+        address: 'Carrer de Verdi, 45',
+      });
+    });
+
+    it('uses the stored address when only the modes change', async () => {
+      const { ana, token } = await setUp();
+      const item = await createTestItem(ana.id, {
+        pickupPointDelivery: true,
+        address: 'Carrer de Verdi, 45',
+      });
+
+      const response = await patchItem(token, item.id, {
+        ...VALID_CHANGES,
+        riderDelivery: true,
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.riderDelivery).toBe(true);
+    });
+
+    it('returns 400 when the result has no delivery mode', async () => {
+      const { ana, token } = await setUp();
+      const item = await createTestItem(ana.id, { pickupPointDelivery: true });
+
+      const response = await patchItem(token, item.id, {
+        ...VALID_CHANGES,
+        pickupPointDelivery: false,
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        error: 'Elige al menos un modo de entrega.',
+        field: 'deliveryModes',
+      });
+      const saved = await prisma.item.findUniqueOrThrow({
+        where: { id: item.id },
+      });
+      expect(saved.pickupPointDelivery).toBe(true);
+    });
+
+    it('returns 400 for the address when home or rider is on and there is none', async () => {
+      const { item, token } = await setUp();
+
+      const response = await patchItem(token, item.id, {
+        ...VALID_CHANGES,
+        homeDelivery: true,
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        error: 'El campo "dirección" no es correcto, revísalo.',
+        field: 'address',
+      });
+    });
+
+    // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+    it.each(['', '   '])(
+      'clears the address when it is %j and only the pickup point is offered',
+      async (address) => {
+        const { ana, token } = await setUp();
+        const item = await createTestItem(ana.id, {
+          pickupPointDelivery: true,
+          address: 'Carrer de Verdi, 45',
+        });
+
+        const response = await patchItem(token, item.id, {
+          ...VALID_CHANGES,
+          address,
+        });
+
+        expect(response.status).toBe(200);
+        expect(response.body.address).toBeNull();
+        const saved = await prisma.item.findUniqueOrThrow({
+          where: { id: item.id },
+        });
+        expect(saved.address).toBeNull();
+      },
+    );
+
+    it.each([
+      ['homeDelivery', ''],
+      ['homeDelivery', '   '],
+      ['riderDelivery', ''],
+      ['riderDelivery', '   '],
+    ])(
+      'returns 400 for the address when %s is on and the address is %j',
+      async (flag, address) => {
+        const { item, token } = await setUp();
+
+        const response = await patchItem(token, item.id, {
+          ...VALID_CHANGES,
+          pickupPointDelivery: true,
+          [flag]: true,
+          address,
+        });
+
+        expect(response.status).toBe(400);
+        expect(response.body).toEqual({
+          error: 'El campo "dirección" no es correcto, revísalo.',
+          field: 'address',
+        });
+      },
+    );
+
+    // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+    it('lets the owner fix a legacy free-text neighborhood', async () => {
+      const { ana, token } = await setUp();
+      const item = await createTestItem(ana.id, {
+        neighborhood: 'Vila de Gràcia',
+      });
+
+      const response = await patchItem(token, item.id, {
+        ...VALID_CHANGES,
+        neighborhood: '  Sants  ',
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.neighborhood).toBe('Sants');
+      const saved = await prisma.item.findUniqueOrThrow({
+        where: { id: item.id },
+      });
+      expect(saved.neighborhood).toBe('Sants');
+    });
+
+    it('keeps the stored neighborhood when it is not sent', async () => {
+      const { ana, token } = await setUp();
+      const item = await createTestItem(ana.id, {
+        neighborhood: 'Vila de Gràcia',
+      });
+
+      const response = await patchItem(token, item.id, VALID_CHANGES);
+
+      expect(response.status).toBe(200);
+      expect(response.body.neighborhood).toBe('Vila de Gràcia');
+    });
+
+    it.each(['Madrid', 'Vila de Gràcia', '', '   ', 42])(
+      'returns 400 for the neighborhood when it is %j',
+      async (neighborhood) => {
+        const { item, token } = await setUp();
+
+        const response = await patchItem(token, item.id, {
+          ...VALID_CHANGES,
+          neighborhood,
+        });
+
+        expect(response.status).toBe(400);
+        expect(response.body).toEqual({
+          error: 'El campo "barrio" no es correcto, revísalo.',
+          field: 'neighborhood',
+        });
+        const saved = await prisma.item.findUniqueOrThrow({
+          where: { id: item.id },
+        });
+        expect(saved.neighborhood).toBe('Gràcia');
+      },
+    );
+
+    it('returns 400 when a blank address leaves a stored home delivery without address', async () => {
+      const { ana, token } = await setUp();
+      const item = await createTestItem(ana.id, {
+        homeDelivery: true,
+        address: 'Carrer de Verdi, 45',
+      });
+
+      const response = await patchItem(token, item.id, {
+        ...VALID_CHANGES,
+        address: '   ',
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.field).toBe('address');
+    });
+
+    it.each([
+      ['address', 'x'.repeat(201), 'dirección'],
+      ['homeDelivery', 'sí', 'entrega a domicilio'],
+      ['riderDelivery', 1, 'entrega con rider'],
+      ['pickupPointDelivery', 'no', 'punto de recogida'],
+    ])('returns 400 for an invalid %s (%j)', async (field, value, label) => {
+      const { item, token } = await setUp();
+
+      const response = await patchItem(token, item.id, {
+        ...VALID_CHANGES,
+        homeDelivery: true,
+        address: 'Carrer de Verdi, 45',
+        [field]: value,
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        error: `El campo "${label}" no es correcto, revísalo.`,
+        field,
+      });
+    });
+  });
+
   it('saves the changes and returns the item like the detail endpoint', async () => {
     const { ana, item, token } = await setUp();
 

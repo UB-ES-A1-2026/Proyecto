@@ -1,6 +1,8 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
 import type { RequestHandler } from 'express';
 import { AppError } from '../errors/appError.js';
+import { isKnownNeighborhood } from '../services/neighborhoods.js';
+import { parseAddress } from '../services/itemDelivery.js';
 import * as itemEditService from '../services/itemEditService.js';
 
 const UUID_PATTERN =
@@ -46,6 +48,28 @@ function readAmount(
   return text;
 }
 
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+// Los modos de entrega y la dirección son opcionales al editar (US-05.01, #281): lo que no se envía
+// no cambia. El service valida el resultado completo.
+function readOptionalFlag(
+  value: unknown,
+  field: string,
+  label: string,
+): boolean | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'boolean') invalid(field, label);
+  return value;
+}
+
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+// El barrio es opcional al editar, pero si se envía tiene que ser de la lista, como al publicar.
+function readOptionalNeighborhood(value: unknown): string | undefined {
+  if (value === undefined) return undefined;
+  const neighborhood = readText(value, 'neighborhood', 'barrio', 100);
+  if (!isKnownNeighborhood(neighborhood)) invalid('neighborhood', 'barrio');
+  return neighborhood;
+}
+
 function readChanges(body: unknown): itemEditService.ItemChanges {
   const fields =
     typeof body === 'object' && body !== null
@@ -53,6 +77,25 @@ function readChanges(body: unknown): itemEditService.ItemChanges {
       : {};
 
   return {
+    homeDelivery: readOptionalFlag(
+      fields.homeDelivery,
+      'homeDelivery',
+      'entrega a domicilio',
+    ),
+    riderDelivery: readOptionalFlag(
+      fields.riderDelivery,
+      'riderDelivery',
+      'entrega con rider',
+    ),
+    pickupPointDelivery: readOptionalFlag(
+      fields.pickupPointDelivery,
+      'pickupPointDelivery',
+      'punto de recogida',
+    ),
+    // undefined no cambia la dirección; vacía, con solo espacios o null la borra.
+    address:
+      fields.address === undefined ? undefined : parseAddress(fields.address),
+    neighborhood: readOptionalNeighborhood(fields.neighborhood),
     title: readText(fields.title, 'title', 'nombre', 100),
     description: readText(
       fields.description,
