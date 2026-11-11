@@ -134,7 +134,7 @@ El orden importa: hoy `staging` es una copia de `develop` **sin** los workflows 
 
 > **No lances ningún workflow de despliegue sobre `staging` antes del paso 3** (ni *Run workflow* con la rama `staging`): hasta entonces `staging` lleva los workflows antiguos, que solo conocen los secretos de producción.
 
-2. Comprueba:
+**Comprobaciones:**
    - `https://<servicio>.onrender.com/api/health` → `{"status":"ok"}`.
    - Los jobs «Render (preproducción)» y «Migraciones y datos de demo» en verde.
    - En la URL de `rentit-staging`: entra con `laura@demo.rentit.test` y la contraseña `STAGING_DEMO_PASSWORD`, mira los objetos de la demo y publica uno con foto.
@@ -271,5 +271,5 @@ Los objetos de la demo todavía no tienen fotos: llegarán con la subida de foto
 | Error de CORS en el navegador | La URL de Vercel no está en `CORS_ORIGINS` o no encaja con `CORS_PREVIEW_PATTERN` | Revisar el paso 4 |
 | 404 al recargar una ruta | Falta `frontend/vercel.json` | Ya está en el repo; comprueba que Root Directory sea `frontend` |
 | Supabase en pausa | Más de 7 días sin actividad (plan gratuito) | *Restore* en el panel de Supabase |
-| El workflow de `staging` tarda o falla en «Esperar a que la API de preproducción responda» | Render free también duerme `rentit-api-staging` y el primer arranque tarda | Se espera hasta ~11 min; si sigue en rojo, mira los logs en Render y repite con *Re-run jobs* |
+| El workflow de `staging` tarda o falla en «Esperar a que la API de preproducción responda» | Render free también duerme `rentit-api-staging` y el primer arranque tarda | Se espera hasta unos 18 min en el peor caso; si sigue en rojo, mira los logs en Render y repite con *Re-run jobs* |
 | El job «Migraciones y datos de demo» no sale | Falta algún secreto `STAGING_*` del Environment `staging`, o el workflow se lanzó desde otra rama (el Environment solo admite `staging`) | Con un secreto o variable `STAGING_*` ausente el job «Render (preproducción)» o «Build (preproducción)» ya queda en rojo con el nombre que falta. Revisa la tabla de la sección de preproducción |
