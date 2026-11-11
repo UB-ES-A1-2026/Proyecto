@@ -296,6 +296,40 @@ describe('POST /api/reservas con modo de entrega', () => {
     },
   );
 
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+  it.each(['home', 'rider'])(
+    'returns 400 for mode %s when the item offers it but has no address (legacy item)',
+    async (mode) => {
+      const { item, brunoToken } = await setUp({ address: null });
+
+      const response = await post(brunoToken, {
+        itemId: item.id,
+        ...RIDER,
+        deliveryMode: mode,
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        error: 'Este objeto no ofrece ese modo de entrega.',
+        field: 'deliveryMode',
+      });
+      expect(await prisma.reservation.count()).toBe(0);
+    },
+  );
+
+  it('still accepts the pickup point for an item without address', async () => {
+    const { item, brunoToken } = await setUp({ address: null });
+    const point = await prisma.pickupPoint.findFirstOrThrow();
+
+    const response = await post(brunoToken, {
+      itemId: item.id,
+      deliveryMode: 'pickup_point',
+      pickupPointId: point.id,
+    });
+
+    expect(response.status).toBe(201);
+  });
+
   it('does not create the delivery when the dates are taken', async () => {
     const { item, bruno, brunoToken } = await setUp();
     const carla = await createTestUser({

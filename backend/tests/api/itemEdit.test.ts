@@ -288,6 +288,60 @@ describe('PATCH /api/objetos/:id', () => {
       },
     );
 
+    // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+    it('lets the owner fix a legacy free-text neighborhood', async () => {
+      const { ana, token } = await setUp();
+      const item = await createTestItem(ana.id, {
+        neighborhood: 'Vila de Gràcia',
+      });
+
+      const response = await patchItem(token, item.id, {
+        ...VALID_CHANGES,
+        neighborhood: '  Sants  ',
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.neighborhood).toBe('Sants');
+      const saved = await prisma.item.findUniqueOrThrow({
+        where: { id: item.id },
+      });
+      expect(saved.neighborhood).toBe('Sants');
+    });
+
+    it('keeps the stored neighborhood when it is not sent', async () => {
+      const { ana, token } = await setUp();
+      const item = await createTestItem(ana.id, {
+        neighborhood: 'Vila de Gràcia',
+      });
+
+      const response = await patchItem(token, item.id, VALID_CHANGES);
+
+      expect(response.status).toBe(200);
+      expect(response.body.neighborhood).toBe('Vila de Gràcia');
+    });
+
+    it.each(['Madrid', 'Vila de Gràcia', '', '   ', 42])(
+      'returns 400 for the neighborhood when it is %j',
+      async (neighborhood) => {
+        const { item, token } = await setUp();
+
+        const response = await patchItem(token, item.id, {
+          ...VALID_CHANGES,
+          neighborhood,
+        });
+
+        expect(response.status).toBe(400);
+        expect(response.body).toEqual({
+          error: 'El campo "barrio" no es correcto, revísalo.',
+          field: 'neighborhood',
+        });
+        const saved = await prisma.item.findUniqueOrThrow({
+          where: { id: item.id },
+        });
+        expect(saved.neighborhood).toBe('Gràcia');
+      },
+    );
+
     it('returns 400 when a blank address leaves a stored home delivery without address', async () => {
       const { ana, token } = await setUp();
       const item = await createTestItem(ana.id, {
