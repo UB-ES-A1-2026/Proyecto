@@ -60,7 +60,7 @@ export function comprobar(rama, destino, commits) {
       `La rama \`${rama}\` no puede ir a \`${destino}\`. Hacia \`${destino}\` solo van: ${r.texto}. El código es el de la historia (\`US-04.01\`, \`SP-05\`); el resto, en minúsculas, con guiones y sin tildes.`,
     );
   }
-  // Los PR de integración (develop → staging, staging → main/develop) traen commits ya comprobados.
+  // Los PR de integración (develop → staging, staging → main) traen commits ya comprobados.
   if (/^(develop|staging)$/.test(rama)) return errores;
   const codigo = [FEATURE, TASK, BUGFIX, HOTFIX]
     .map((re) => rama.match(re)?.[1])
