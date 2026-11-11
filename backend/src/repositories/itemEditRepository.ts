@@ -42,7 +42,7 @@ export function updateItemById(
     homeDelivery?: boolean | undefined;
     riderDelivery?: boolean | undefined;
     pickupPointDelivery?: boolean | undefined;
-    address?: string | undefined;
+    address?: string | null | undefined;
   },
 ) {
   return prisma.item.update({
