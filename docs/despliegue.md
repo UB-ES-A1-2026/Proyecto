@@ -7,7 +7,7 @@ Cómo está montada la URL pública de Rentit (TR-04 · #85: tareas #96 y #97; s
 
 **Estado (25/10/2026):** configurado. Frontend en https://rentit-ub.vercel.app (proyecto `rentit` del *scope* `marcsanz-dev` en Vercel) y backend en https://rentit-api-gfkc.onrender.com (`rentit-api`, Frankfurt), con Supabase en Frankfurt. Los secretos `VERCEL_*` y `RENDER_DEPLOY_HOOK_URL` y la variable `API_URL` ya están en GitHub. Ahora mismo está desplegada la versión del Sprint 0 (`main`).
 
-**Preproducción (11/11/2026):** la rama `staging` despliega un segundo entorno completo, con otras cuentas y otra base de datos, antes de pasar a producción. Su guía está en [«Preproducción (staging)»](#preproducción-staging) y los servicios los monta Max. La rama `staging`, el Environment `staging` (con su política de ramas) y la regla `proteger-rama-staging` ya están creados en GitHub; solo falta que Max cree los servicios y ponga los secretos y variables `STAGING_*`. Si falta alguno, el workflow de `staging` queda **en rojo** (no en verde): el Environment existe, así que faltar configuración es un error.
+**Preproducción (11/11/2026):** la rama `staging` despliega un segundo entorno completo, con otras cuentas y otra base de datos, antes de pasar a producción. Su guía está en [«Preproducción (staging)»](#preproducción-staging). **Montada el 11/11/2026:** Supabase `rentit-staging` y Render `rentit-api-staging` (https://rentit-api-staging.onrender.com, Frankfurt) en las cuentas de Max; Vercel `rentit-staging` en el equipo `wrdb` de Alex. La rama `staging`, el Environment `staging` (con su política de ramas), la regla `proteger-rama-staging` y los 7 secretos `STAGING_*` y la variable `STAGING_API_URL` ya están en GitHub. Falta `STAGING_WEB_URL`, que se sabrá con el primer despliegue del frontend. Si falta alguno, el workflow de `staging` queda **en rojo** (no en verde): el Environment existe, así que faltar configuración es un error.
 
 ## Cómo funciona
 
@@ -58,7 +58,8 @@ flowchart LR
 
 | | Producción | Preproducción |
 |---|---|---|
-| Supabase, Render, Vercel | Cuentas de Marc | Cuentas de **Max** |
+| Supabase, Render | Cuentas de Marc | Cuentas de **Max** |
+| Vercel | Cuenta de Marc (*scope* `marcsanz-dev`) | Equipo **`wrdb`** de **Alex** (proyecto `rentit-staging`, aparte de los demás proyectos de ese equipo) |
 | Base de datos | `rentit` | `rentit-staging` |
 | Fotos | `rentit-fotos` | `rentit-fotos-staging` |
 | Secretos en GitHub | Nivel repo (`RENDER_DEPLOY_HOOK_URL`, `VERCEL_*`…) | Environment `staging` (`STAGING_*`) |
@@ -70,7 +71,7 @@ Los datos y las claves **no se comparten nunca**: así, un seed o una migración
 Es la misma guía de producción de más abajo, con otros nombres y en tus cuentas. **Ninguna clave se escribe en el repo ni en el chat.** Ya están creados en GitHub la rama `staging`, el Environment `staging` (solo despliega la rama `staging`) y la regla `proteger-rama-staging`; a Max le quedan los servicios (P1–P3) y los secretos y variables del Environment (P4).
 
 #### P1. Supabase
-1. *New project* → nombre `rentit-staging`, región **Central EU (Frankfurt)**, contraseña larga generada y guardada en tu gestor de contraseñas.
+1. *New project* (en la organización «Rentit staging», plan Free) → nombre `rentit-staging`, región **Central EU (Frankfurt)**, contraseña larga generada y guardada en tu gestor de contraseñas. **Desmarca «Enable Data API»**: solo usamos la BD por Prisma, y con la Data API las tablas sin RLS se podrían leer con la clave pública (ADR 0004).
 2. *Connect* → copia las dos cadenas del **pooler** (como en el paso 1 de producción): *Transaction pooler* (6543, con `?pgbouncer=true`) → `DATABASE_URL` de Render y secreto `STAGING_DATABASE_URL`; *Session pooler* (5432) → `DIRECT_URL` de Render y secreto `STAGING_DIRECT_URL`.
 3. **Storage → New bucket** `rentit-fotos-staging`, **privado**. En *Project Settings → Storage → S3 Connection* copia el *Endpoint* y la *Region* y crea una *S3 Access Key* (el *Secret* solo se ve una vez), como en el paso 6 de producción.
 
@@ -90,7 +91,7 @@ Es la misma guía de producción de más abajo, con otros nombres y en tus cuent
    |---|---|
    | `NODE_VERSION` | `22` |
    | `DATABASE_URL` / `DIRECT_URL` | Los dos pooler de `rentit-staging` |
-   | `CORS_ORIGINS` | La URL de Vercel de `rentit-staging`, sin barra final (se rellena después del paso P3) |
+   | `CORS_ORIGINS` | La URL de Vercel de `rentit-staging`, sin barra final. **Es obligatoria: sin ella el backend no arranca** («Falta la variable de entorno CORS_ORIGINS»). Si aún no sabes la URL, pon `https://rentit-staging.vercel.app` y corrígela después del primer despliegue |
    | `BCRYPT_ROUNDS` | `10` |
    | `S3_BUCKET` | `rentit-fotos-staging` |
    | `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | Los de `rentit-staging` (paso P1.3) |
@@ -100,10 +101,10 @@ Es la misma guía de producción de más abajo, con otros nombres y en tus cuent
 3. *Settings → Deploy Hook* → será el secreto `STAGING_RENDER_DEPLOY_HOOK_URL`. La URL de la API (`https://rentit-api-staging.onrender.com/api`, el dominio exacto lo da Render) será la variable `STAGING_API_URL`.
 
 #### P3. Vercel
-1. En **otra copia** del repo (otra carpeta, para no pisar el `.vercel/` de producción si lo tienes): `npx vercel@63.1.0 link` desde la raíz y crea el proyecto `rentit-staging` en tu cuenta Hobby, sin conectar Git. Si prefieres no tener otra copia: `npx vercel@63.1.0 link --project rentit-staging`. Esto genera `.vercel/project.json` (en `.gitignore`) con `orgId` y `projectId`.
+1. Crea el proyecto sin conectar Git: `npx vercel@63.1.0 project add rentit-staging --scope <equipo>` (nosotros: equipo `wrdb` de Alex), o `npx vercel@63.1.0 link --project rentit-staging` desde una carpeta aparte. El `orgId` (el id del equipo) y el `projectId` salen en `.vercel/project.json` o en *Settings → General* del proyecto.
 2. *Settings → Build and Deployment*: **Root Directory = `frontend`**, *Framework* = Vite.
 3. *Environment Variables*: `VITE_API_URL` = la URL de la API de preproducción (`…/api`), en **Production** (el workflow despliega con `--prod`).
-4. *Account Settings → Tokens*: crea un token solo para este proyecto, con caducidad al final del curso.
+4. *Account Settings → Tokens*: crea un token con alcance **solo el proyecto `rentit-staging`** (Vercel deja elegir un proyecto dentro del equipo) y caducidad de 90 días. Si el despliegue falla con un 403 por el alcance, crea otro con alcance el equipo entero.
 5. Con la URL del proyecto, vuelve a Render y rellena `CORS_ORIGINS`.
 
 #### P4. GitHub: secretos y variables del Environment `staging`
@@ -174,7 +175,7 @@ Necesitas cuentas en Supabase, Render y Vercel (las tres gratis y sin tarjeta) y
    | `NODE_VERSION` | `22` |
    | `DATABASE_URL` | Transaction pooler de Supabase + `?pgbouncer=true` |
    | `DIRECT_URL` | Session pooler de Supabase |
-   | `CORS_ORIGINS` | De momento vacío; en el paso 4, la URL de producción de Vercel |
+   | `CORS_ORIGINS` | La URL de producción de Vercel (paso 4). Es obligatoria: sin ella el backend no arranca, así que pon una provisional si aún no la sabes |
    | `CORS_PREVIEW_PATTERN` | Se rellena en el paso 4 |
    | `BCRYPT_ROUNDS` | `10` |
 
