@@ -21,7 +21,8 @@ Rentit es un "Airbnb de objetos" de barrio: alquiler entre vecinos con entrega, 
 - Variables, funciones y archivos de código en **inglés** (`camelCase` para variables y funciones, `PascalCase` para componentes y tipos).
 - Tablas y columnas de la BD **en español y `snake_case`**, exactamente como en `docs/modelo-datos.md` (`usuario`, `sesion`, `password_hash`…).
 - Comentarios, textos de la interfaz y mensajes de error para el usuario **en español**.
-- Usamos **GitFlow** (ver `CONTRIBUTING.md`): cada historia de usuario va en `feature/<nº historia>-<descripcion>`, que sale de `develop`; cada tarea va en `task/<nº tarea>-<descripcion>`, que sale de la rama de su historia y vuelve a ella por PR. La historia completa entra en `develop` tras un *rebase* y los tests. Todo se integra con *merge commit*, **nunca con squash**. Commits con el formato `tipo(ámbito): descripción (#issue)`; como no hay squash, cada commit tiene que compilar.
+- Usamos **GitFlow** (ver `CONTRIBUTING.md`): cada historia va en `feature/US-XX.YY-<descripcion>` (un spike, `feature/SP-NN-<descripcion>`), que sale de `develop`; cada tarea va en `task/US-XX.YY-<nº tarea>-<descripcion>`, que sale de la rama de su historia y vuelve a ella por PR. La historia completa entra en `develop` tras un *rebase* y los tests. Todo se integra con *merge commit*, **nunca con squash**. Commits con el formato `tipo(ámbito): US-XX.YY descripción (#nº tarea)`; como no hay squash, cada commit tiene que compilar. El check «Metodología» del CI rechaza lo que no cumpla.
+- **Solo se crean ramas para historias o spikes.** Nunca una rama para una pieza suelta (tabla, migración, estilos, datos de ejemplo): es una tarea de la primera historia que la usa. Si te piden algo que no encaja en ninguna historia o tarea del sprint, **para y pregúntalo** antes de crear nada. Antes de crear una rama `feature/`, comprueba que no existe ya: una sola por historia.
 - Backend en capas: `routes → middlewares → controllers → services → repositories`. Cada capa solo llama a la siguiente: los controllers no usan Prisma y los services no conocen `req` ni `res`.
 - El frontend llama a la API solo desde `frontend/src/services/`, nunca con `fetch` suelto dentro de los componentes.
 
@@ -47,6 +48,66 @@ Norma del profesor desde el Sprint 1. Detalle, plantilla y piezas en [docs/wiref
 Cuando redactes o revises una historia (issue o Trello), usa la plantilla `.github/ISSUE_TEMPLATE/historia-de-usuario.md`. Además del «Como… quiero… para…», tiene que decir **desde qué pantalla y con qué acción llega el usuario**, el flujo paso a paso, a dónde va al terminar y criterios de aceptación comprobables, incluidos los errores.
 
 **Norma fija para todas las demos (tarjetas de Trello):** antes de cada demo, cada tarjeta de historia del sprint tiene en la descripción «Cómo llega el usuario», «Flujo», «Al terminar», los errores y el wireframe, además de la lista «Acceptance criteria». Solo va a «Done Sprint N» lo que ya está en `develop`, con sus criterios marcados y sin marcar los que aún no se cumplan. La tarjeta US-01.1 se deja como está a propósito, para mostrar cómo han mejorado las tarjetas.
+
+## Sprint 2 (10/11 → 24/11): lo que hay que saber
+Demo prevista el **25/11**. Todo tiene que estar en `develop` el **20/11**, para probarlo y estudiarlo.
+
+**Antes de empezar una tarea**, lee su issue y el de su historia (`gh issue view <nº>`). La historia es la fuente de verdad: cómo llega el usuario, flujo, errores y criterios de aceptación. Programa exactamente eso. Si algo no está claro, pregunta a la persona; no lo inventes.
+
+| Orden | Historia | Issue | Tareas (issue · persona) |
+|---|---|---|---|
+| 1 | US-12.01 Métricas de tests | #274 | T1 #272 Marc (PR #302 en revisión) |
+| 1 | US-12.02 Ramas y commits con su historia | #275 | T2 #277 Marc |
+| 1 | US-12.03 Preproducción (`staging`) | #276 | T3 #278 Max · T4 #279 Max · T5 #280 Danyal |
+| 1 | US-05.01 Modo y hora de entrega | #66 | T6 #281 Alex · T7 #282 Marc · T27 #307 Marc · T8 #283 Danyal |
+| 1 | US-07.01 Registrar un pago | #72 | T9 #284 Francesc · T10 #285 Max · T11 #286 Kai · T12 #287 Danyal |
+| 1 | US-10.03 Solicitar ser rider | #304 | T34 #314 Max · T35 #315 Marc · T36 #316 Danyal |
+| 1 | US-11.03 El admin acepta o rechaza riders | #305 | T37 #317 Alex · T38 #318 Kai · T39 #319 Danyal |
+| 1 | SP-05 Armario del barrio con QR | #94 | Max |
+| 2 | US-05.02 Seguimiento por estados | #67 | T13 #288 Francesc · T14 #289 Max · T15 #290 Marc · T16 #291 Danyal |
+| 2 | US-10.01 Trabajos del rider | #78 | T17 #292 Alex · T18 #293 Kai · T19 #294 Danyal |
+| 2 | US-04.05 Cancelar una reserva con penalización | #64 | T28 #308 Alex · T29 #309 Kai · T30 #310 Danyal |
+| 2 | US-04.07 Demanda de fechas en el calendario | #303 | T31 #311 Francesc · T32 #312 Marc · T33 #313 Danyal |
+| 3 | US-08.01 Valorar un alquiler | #74 | T20 #295 Francesc · T21 #296 Kai · T22 #297 Danyal |
+| 3 | US-08.02 Valorar un usuario | #75 | T23 #298 Francesc · T24 #299 Marc |
+| 3 | US-01.4 Perfil público | #48 | T25 #300 Alex · T26 #301 Kai |
+
+El orden sigue las dependencias: la ola 2 necesita las tablas de entrega y pago de la ola 1, y la 3 necesita que el alquiler llegue a «Finalizada» (US-05.02). Cada persona hace sus tareas en ese orden. Las historias de la ola 2 que no dependen de nada (US-04.07) se pueden adelantar.
+
+**Cómo se trabaja una historia este sprint:**
+- La primera persona que empieza una tarea de la historia crea `feature/US-XX.YY-<desc>` desde `develop` y la sube; las demás sacan su `task/` de ahí.
+- Las tablas nuevas van en la tarea de backend de la historia que las usa primero:
+  - `pago`: US-07.01 (T9).
+  - `punto_recogida`, `entrega` y los modos por objeto: US-05.01 (T6).
+  - Estados de la reserva y la entrega: US-05.02 (T13).
+  - Datos de la cuenta de rider: US-10.03 (T34).
+  - Revisión del admin: US-11.03 (T37).
+  - Cancelación y penalización: US-04.05 (T28).
+  - `valoracion`: US-08.01 (T20).
+- Frontend: primero el wireframe (ver arriba). Los de las historias nuevas no existen, y los de pago, entrega, seguimiento, rider y cancelar hay que rehacerlos con lo decidido.
+- **Cada historia añade sus datos de demo** al seed en su tarea de backend: cuenta de admin, rider aprobado, alquiler finalizado, varias solicitudes pendientes en las mismas fechas… Sin ellos no se puede enseñar en la demo.
+- Una historia no entra en `develop` sin sus e2e.
+- Stripe: solo claves de prueba (`sk_test_…`, `pk_test_…`), en variables de entorno, nunca en el código. En `.env.example`, un valor de ejemplo.
+
+**Decisiones del equipo** (planning del 10/11 y reunión del 11/11):
+1. **Pagos** con Stripe en modo de prueba y sus tarjetas de prueba (`4242 4242 4242 4242` se acepta; `4000 0000 0000 0002` se rechaza). La fianza se retiene sin cobrarla. Sustituye a la pasarela simulada de SP-01: el ADR se actualiza en T10.
+2. **Rider:** cuenta aparte, creada desde «Hazte rider» (visible sin sesión) con un cuestionario. Queda pendiente hasta que un admin la acepta. Una cuenta de rider no puede solicitar ni publicar objetos.
+3. **Entrega:** el propietario puede ofrecer a la vez recogida en su domicilio, rider y punto de recogida; el arrendatario elige uno.
+4. **Calendario de la solicitud:** cada día lleva un degradado según cuántas solicitudes pendientes de otras personas lo incluyen (0 libre, 1–2 poca, 3–5 media, 6+ mucha), con leyenda. Nunca se dice de quién son.
+5. **Cancelar una reserva:** pueden las dos partes. La penalización es un % del precio del alquiler y la cobra la otra persona:
+   - Menos de 3 días para el inicio: 100 %.
+   - De 3 a 7 días: 35 %.
+   - 8 días o más: nada.
+
+   Al solicitar con menos de 3 días de margen se avisa.
+6. **Seguimiento:** solo una máquina de estados, sin mapa. El alquiler llega a «Finalizada» cuando el arrendatario marca «He devuelto el objeto», y entonces se puede valorar.
+7. **Trabajos del rider:** todos los riders ven todos los trabajos (objeto, inicio, destino, fecha y lo que cobran) y aceptan varios a la vez; si otro se adelanta en uno, ese avisa «Ya asignado a otro rider».
+8. **Sin rider a 24 h del inicio:** es del Sprint 3 (US-05.04, #306). No se hace ahora.
+
+**Pendiente de decidir** (si te afecta, pregunta antes de programarlo):
+- Si los e2e de alguna historia los hace quien hace su frontend: Danyal tiene 10 tareas.
+- Si la penalización cuando cancela el propietario solo se registra o se cobra.
+- Cómo se retiene la fianza en Stripe cuando el alquiler empieza dentro de más de 7 días.
 
 ## Restricciones permanentes
 - **No añadas dependencias nuevas** a ningún `package.json` sin que la tarea lo diga explícitamente.
