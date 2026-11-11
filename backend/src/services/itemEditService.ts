@@ -38,6 +38,8 @@ export interface ItemChanges {
   pickupPointDelivery?: boolean | undefined;
   // null borra la dirección.
   address?: string | null | undefined;
+  // Opcional: permite corregir los barrios escritos a mano de los objetos antiguos.
+  neighborhood?: string | undefined;
 }
 
 // «Mis objetos» (US-02.02, #108): los del usuario, en cualquier estado.

@@ -5,6 +5,7 @@ import { findItemDeliveryInfo } from '../repositories/itemDeliveryRepository.js'
 import { listPickupPoints } from '../repositories/pickupPointRepository.js';
 import { quoteRiderFee, type RiderQuote } from './deliveryFee.js';
 import { availableSlots } from './deliverySlots.js';
+import { selectableModes } from './itemDelivery.js';
 import { invalidFieldMessage } from './itemService.js';
 import { todayInSpain } from './reservationService.js';
 import {
@@ -74,11 +75,7 @@ export async function getDeliveryOptions(
     : [];
 
   return {
-    modes: {
-      home: item.homeDelivery,
-      rider: item.riderDelivery,
-      pickupPoint: item.pickupPointDelivery,
-    },
+    modes: selectableModes(item),
     pickupPoints,
     // Sin fecha de inicio no se filtra nada.
     slots: availableSlots(startDate === todayInSpain(now), now),
@@ -100,7 +97,7 @@ export async function getRiderQuote(
     );
   }
 
-  if (!item.riderDelivery) {
+  if (!selectableModes(item).rider) {
     throw new AppError(400, NO_RIDER_MESSAGE);
   }
 

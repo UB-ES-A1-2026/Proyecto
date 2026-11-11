@@ -8,6 +8,7 @@ export function findItemDeliveryInfo(id: string) {
     select: {
       status: true,
       neighborhood: true,
+      address: true,
       homeDelivery: true,
       riderDelivery: true,
       pickupPointDelivery: true,

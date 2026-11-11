@@ -152,6 +152,53 @@ describe('GET /api/objetos/:id/entrega', () => {
   );
 });
 
+describe('GET /api/objetos/:id/entrega: objetos antiguos sin dirección', () => {
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+  it('reports home and rider as false when the item has no address, and keeps the pickup point', async () => {
+    const ana = await createOwner();
+    const item = await createTestItem(ana.id, {
+      homeDelivery: true,
+      riderDelivery: true,
+      pickupPointDelivery: true,
+      address: null,
+    });
+
+    const response = await getOptions(item.id);
+
+    expect(response.status).toBe(200);
+    expect(response.body.modes).toEqual({
+      home: false,
+      rider: false,
+      pickupPoint: true,
+    });
+  });
+
+  it('treats an address with only spaces stored in the database as no address', async () => {
+    const ana = await createOwner();
+    const item = await createTestItem(ana.id, {
+      homeDelivery: true,
+      address: '   ',
+    });
+
+    const response = await getOptions(item.id);
+
+    expect(response.body.modes.home).toBe(false);
+  });
+
+  it('reports home and rider as true once the item has an address', async () => {
+    const ana = await createOwner();
+    const item = await createTestItem(ana.id, {
+      homeDelivery: true,
+      riderDelivery: true,
+      address: 'Carrer de Verdi, 45',
+    });
+
+    const response = await getOptions(item.id);
+
+    expect(response.body.modes).toMatchObject({ home: true, rider: true });
+  });
+});
+
 describe('GET /api/objetos/:id/entrega/tarifa', () => {
   it('returns the distance and the fee for a neighborhood, without a session', async () => {
     const ana = await createOwner();
@@ -212,6 +259,24 @@ describe('GET /api/objetos/:id/entrega/tarifa', () => {
       });
     },
   );
+
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+  it('reports home and rider as not selectable when the item has no address', async () => {
+    const ana = await createOwner();
+    const item = await createTestItem(ana.id, {
+      homeDelivery: true,
+      riderDelivery: true,
+      pickupPointDelivery: true,
+      address: null,
+    });
+
+    const response = await getQuote(item.id, { barrio: 'Gràcia' });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      error: 'Este objeto no ofrece entrega por rider.',
+    });
+  });
 
   it('returns 400 when the item does not offer rider delivery', async () => {
     const ana = await createOwner();
