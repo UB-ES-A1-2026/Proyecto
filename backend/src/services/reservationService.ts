@@ -1,6 +1,7 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
-import type { ReservationStatus } from '@prisma/client';
+import { Prisma, type ReservationStatus } from '@prisma/client';
 import { AppError } from '../errors/appError.js';
+import { findPickupPointById } from '../repositories/pickupPointRepository.js';
 import {
   findItemForReservation,
   findReservationConflict,
@@ -8,7 +9,10 @@ import {
   hasOverlappingReservation,
   insertReservationIfAvailable,
   type InsertReservationResult,
+  type ReservationDeliveryData,
 } from '../repositories/reservationRepository.js';
+import { quoteRiderFee } from './deliveryFee.js';
+import { ASAP_SLOT, availableSlots } from './deliverySlots.js';
 import {
   authorize,
   getAuthorization,
@@ -45,6 +49,10 @@ export const PAYMENT_NOT_FOUND_MESSAGE =
   'No encontramos ese pago. Vuelve a intentarlo.';
 export const PAYMENT_ALREADY_USED_MESSAGE =
   'Este pago ya se ha usado en otra solicitud.';
+export const INVALID_SLOT_MESSAGE = 'Elige una hora de entrega.';
+export const MODE_NOT_OFFERED_MESSAGE =
+  'Este objeto no ofrece ese modo de entrega.';
+export const INVALID_PICKUP_POINT_MESSAGE = 'Elige un punto de recogida.';
 export const RENTAL_TOO_LONG_MESSAGE =
   'El periodo es demasiado largo: revisa la fecha de fin.';
 
@@ -114,6 +122,61 @@ export async function checkAvailability(
   return { available: !overlapping };
 }
 
+// Entrega elegida al solicitar (US-05.01, #281), ya con la forma de los campos comprobada.
+export type ReservationDeliveryInput =
+  | { mode: 'home' }
+  | { mode: 'rider'; slot: string; address: string; neighborhood: string }
+  | { mode: 'pickup_point'; pickupPointId: string };
+
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+// Comprueba la entrega contra el objeto y calcula lo que guarda la BD. La tarifa la calcula el
+// servidor: el cliente no la envía.
+async function resolveDelivery(
+  item: {
+    neighborhood: string;
+    homeDelivery: boolean;
+    riderDelivery: boolean;
+    pickupPointDelivery: boolean;
+  },
+  delivery: ReservationDeliveryInput,
+  startDate: string,
+  now: Date,
+): Promise<ReservationDeliveryData> {
+  const offered = {
+    home: item.homeDelivery,
+    rider: item.riderDelivery,
+    pickup_point: item.pickupPointDelivery,
+  }[delivery.mode];
+  if (!offered) {
+    throw new AppError(400, MODE_NOT_OFFERED_MESSAGE, 'deliveryMode');
+  }
+
+  switch (delivery.mode) {
+    case 'home':
+      return { mode: 'home' };
+    case 'pickup_point': {
+      if (!(await findPickupPointById(delivery.pickupPointId))) {
+        throw new AppError(400, INVALID_PICKUP_POINT_MESSAGE, 'pickupPointId');
+      }
+      return { mode: 'pickup_point', pickupPointId: delivery.pickupPointId };
+    }
+    case 'rider': {
+      const slots = availableSlots(startDate === todayInSpain(now), now);
+      if (delivery.slot !== ASAP_SLOT && !slots.includes(delivery.slot)) {
+        throw new AppError(400, INVALID_SLOT_MESSAGE, 'slot');
+      }
+      return {
+        mode: 'rider',
+        // «Lo antes posible» se guarda como NULL.
+        slot: delivery.slot === ASAP_SLOT ? null : delivery.slot,
+        deliveryAddress: delivery.address,
+        deliveryNeighborhood: delivery.neighborhood,
+        fee: quoteRiderFee(item.neighborhood, delivery.neighborhood).fee,
+      };
+    }
+  }
+}
+
 // El propietario tiene 48 h para responder (#72); después la solicitud caduca (T10).
 const RESPONSE_WINDOW_MS = 48 * 60 * 60 * 1000;
 // Mínimo que Stripe puede retener: por debajo, el pago no tiene fianza.
@@ -144,6 +207,7 @@ export async function createReservation(
     // Uno de los dos: el token del formulario de pago o, tras el 3D Secure, el PaymentIntent.
     confirmationTokenId?: string;
     paymentIntentId?: string;
+    delivery: ReservationDeliveryInput;
   },
   now: Date = new Date(),
 ): Promise<ReservationDetail> {
@@ -162,6 +226,13 @@ export async function createReservation(
   if (item.ownerId === renterId) {
     throw new AppError(403, OWN_ITEM_MESSAGE);
   }
+
+  const delivery = await resolveDelivery(
+    item,
+    input.delivery,
+    input.startDate,
+    now,
+  );
 
   const startDate = toUtcDate(input.startDate);
   const endDate = toUtcDate(input.endDate);
@@ -187,8 +258,9 @@ export async function createReservation(
     throw conflictError(conflict);
   }
 
-  // Se bloquea el total: alquiler + entrega (la entrega vale 0 hasta US-05.01).
-  const amountCents = toCents(totalPrice);
+  // Se bloquea el total: alquiler + entrega (la tarifa del rider; 0 con los otros modos).
+  const deliveryAmount = new Prisma.Decimal(delivery.fee ?? 0);
+  const amountCents = toCents(totalPrice.plus(deliveryAmount));
   const metadata = {
     itemId: input.itemId,
     renterId,
@@ -221,9 +293,11 @@ export async function createReservation(
         ...reservationData,
         totalPrice,
         expiresAt: new Date(now.getTime() + RESPONSE_WINDOW_MS),
+        delivery,
       },
       {
         rentalAmount: totalPrice,
+        deliveryAmount,
         depositAmount: item.deposit,
         depositStatus: item.deposit.gte(MIN_DEPOSIT_TO_HOLD) ? 'pending' : null,
         rentalReference: reference,
@@ -247,7 +321,7 @@ export async function createReservation(
     throw conflictError(result.outcome);
   }
 
-  return toReservationDetail(result.reservation);
+  return toReservationDetail(result.reservation, 'renter');
 }
 
 // Primer paso: bloquea el importe con el token del formulario de pago.
