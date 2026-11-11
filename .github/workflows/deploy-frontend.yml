@@ -8,7 +8,8 @@
 #   producción sin avisar (docs/despliegue.md). Los jobs de producción/preview no declaran ese Environment.
 # - Los PR hacia staging NO generan preview: usaría el proyecto y el backend de producción, y el PR develop → staging
 #   ya tiene el CI y las previews de sus PR a develop; lo que se prueba en preproducción es el despliegue de staging.
-# Mientras no existan los secretos VERCEL_* (o STAGING_VERCEL_*), el job avisa y termina en verde sin desplegar.
+# Mientras no existan los secretos VERCEL_*, los jobs de producción/preview avisan y terminan en verde sin desplegar.
+# En preproducción el Environment ya existe: si falta un STAGING_VERCEL_*, el job falla (rojo).
 # Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 25/10/2026
 # Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
 name: Despliegue del frontend
@@ -128,8 +129,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: staging
-    outputs:
-      listo: ${{ steps.config.outputs.listo }}
     env:
       VERCEL_ORG_ID: ${{ secrets.STAGING_VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.STAGING_VERCEL_PROJECT_ID }}
@@ -140,30 +139,24 @@ jobs:
           node-version: 22
 
       - name: Comprobar que Vercel de preproducción está configurado
-        id: config
         env:
           VERCEL_TOKEN: ${{ secrets.STAGING_VERCEL_TOKEN }}
         run: |
           if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
-            echo "::notice::Faltan los secretos STAGING_VERCEL_* del Environment «staging» (ver docs/despliegue.md): no se despliega."
-            echo "listo=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "listo=true" >> "$GITHUB_OUTPUT"
+            echo "::error::Faltan secretos STAGING_VERCEL_* del Environment «staging» (STAGING_VERCEL_TOKEN, STAGING_VERCEL_ORG_ID o STAGING_VERCEL_PROJECT_ID). Ver docs/despliegue.md."
+            exit 1
           fi
 
       - name: Descargar la configuración del proyecto de preproducción
-        if: steps.config.outputs.listo == 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.STAGING_VERCEL_TOKEN }}
         run: npx --yes vercel@63.1.0 pull --yes --environment=production --token="$VERCEL_TOKEN"
 
       # Sin token: aquí se ejecuta el `npm run build` del código de staging.
       - name: Build
-        if: steps.config.outputs.listo == 'true'
         run: npx --yes vercel@63.1.0 build --prod
 
       - name: Guardar lo compilado
-        if: steps.config.outputs.listo == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: vercel-output-staging
@@ -174,7 +167,7 @@ jobs:
   deploy-staging:
     name: Vercel (preproducción)
     needs: build-staging
-    if: needs.build-staging.outputs.listo == 'true'
+    if: github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: staging
