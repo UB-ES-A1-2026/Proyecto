@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { adminRiderRoutes } from './adminRiderRoutes.js';
 import { authRoutes } from './authRoutes.js';
 import { categoryRoutes } from './categoryRoutes.js';
 import { healthRoutes } from './healthRoutes.js';
@@ -27,6 +28,7 @@ apiRoutes.use(userRoutes);
 apiRoutes.use(riderRoutes);
 // Después de userRoutes: «/usuarios/me» tiene que resolverse antes que «/usuarios/:id».
 apiRoutes.use(profileRoutes);
+apiRoutes.use(adminRiderRoutes);
 apiRoutes.use(itemEditRoutes);
 apiRoutes.use(itemSearchRoutes);
 apiRoutes.use(itemDetailRoutes);

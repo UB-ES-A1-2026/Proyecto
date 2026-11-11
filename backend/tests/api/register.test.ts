@@ -33,6 +33,7 @@ describe('POST /api/auth/register', () => {
         role: 'user',
         isRider: false,
         riderStatus: null,
+        riderRejectionReason: null,
       },
     });
     expect(JSON.stringify(response.body)).not.toContain('passwordHash');
