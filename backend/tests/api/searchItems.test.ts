@@ -17,6 +17,22 @@ function search(query: Record<string, string> = {}) {
 }
 
 describe('GET /api/objetos (US-03.01, #114)', () => {
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+  it('never includes the address of the owner (US-05.01, #281)', async () => {
+    const ana = await createTestUser();
+    await createTestItem(ana.id, {
+      homeDelivery: true,
+      address: 'Carrer de Verdi, 45, 2º 1ª',
+    });
+
+    const response = await search();
+
+    expect(response.status).toBe(200);
+    expect(response.body.items).toHaveLength(1);
+    expect(response.body.items[0]).not.toHaveProperty('address');
+    expect(JSON.stringify(response.body)).not.toContain('Carrer de Verdi');
+  });
+
   it('returns the published items whose title or description contain the text (criterio 2)', async () => {
     const ana = await createTestUser();
     // createTestItem pone «Taladro con maletín…» de descripción: se cambia para que solo
