@@ -11,6 +11,7 @@ import { itemPauseRoutes } from './itemPauseRoutes.js';
 import { itemWithdrawRoutes } from './itemWithdrawRoutes.js';
 import { reservationDecisionRoutes } from './reservationDecisionRoutes.js';
 import { itemRoutes } from './itemRoutes.js';
+import { neighborhoodRoutes } from './neighborhoodRoutes.js';
 import { photoRoutes } from './photoRoutes.js';
 import { userRoutes } from './userRoutes.js';
 
@@ -28,5 +29,6 @@ apiRoutes.use(itemPauseRoutes);
 apiRoutes.use(itemWithdrawRoutes);
 apiRoutes.use(reservationDecisionRoutes);
 apiRoutes.use(categoryRoutes);
+apiRoutes.use(neighborhoodRoutes);
 apiRoutes.use(itemRoutes);
 apiRoutes.use(photoRoutes);
