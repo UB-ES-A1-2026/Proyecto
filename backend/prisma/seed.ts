@@ -45,7 +45,8 @@ async function main(): Promise<void> {
   const demand = await upsertDemoDemand(prisma, [anaId, brunoId], neighbourIds);
 
   // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
-  // Dos cuentas de rider (US-10.03): carla pendiente y dani aceptada.
+  // Tres cuentas de rider (US-10.03 y US-11.03): carla pendiente, dani aceptada y eva rechazada;
+  // las dos resueltas las revisó el admin de arriba.
   const riders = await upsertDemoRiders(prisma, DEV_PASSWORD, rounds);
   // dani ya ha aceptado el trabajo de la «Hidrolimpiadora Kärcher» (US-05.02, #288).
   await assignDemoRider(prisma, [anaId, brunoId, anaId], 'dani@rentit.test');

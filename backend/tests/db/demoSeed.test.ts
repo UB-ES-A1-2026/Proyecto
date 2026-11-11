@@ -6,6 +6,7 @@ import {
   DEMO_RESERVATIONS,
 } from '../../prisma/demoData.js';
 import {
+  DEMO_ADMIN,
   DEMO_USERS,
   DEV_USERS,
   DEV_PASSWORD,
@@ -553,11 +554,18 @@ describe('demanda de fechas de la demo (US-04.07, #311)', () => {
 // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
 describe('riders de la demo (US-10.03)', () => {
   async function seedRiders() {
-    return upsertDemoRiders(prisma, DEMO_PASSWORD, 4, PRODUCTION_DEMO_RIDERS);
+    await upsertUsers(prisma, [DEMO_ADMIN], DEMO_PASSWORD, 4);
+    return upsertDemoRiders(
+      prisma,
+      DEMO_PASSWORD,
+      4,
+      PRODUCTION_DEMO_RIDERS,
+      DEMO_ADMIN.email,
+    );
   }
 
-  it('crea un rider pendiente y uno aceptado con la contraseña de la demo', async () => {
-    expect(await seedRiders()).toBe(2);
+  it('crea un rider pendiente, uno aceptado y uno rechazado con la contraseña de la demo', async () => {
+    expect(await seedRiders()).toBe(3);
 
     const riders = await prisma.user.findMany({
       where: { isRider: true },
@@ -570,6 +578,7 @@ describe('riders de la demo (US-10.03)', () => {
         riderApplication?.status,
       ]),
     ).toEqual([
+      ['bruna@demo.rentit.test', 'rejected'],
       ['nuria@demo.rentit.test', 'pending'],
       ['pau@demo.rentit.test', 'approved'],
     ]);
@@ -584,7 +593,55 @@ describe('riders de la demo (US-10.03)', () => {
     await seedRiders();
     await seedRiders();
 
-    expect(await prisma.user.count({ where: { isRider: true } })).toBe(2);
-    expect(await prisma.riderApplication.count()).toBe(2);
+    expect(await prisma.user.count({ where: { isRider: true } })).toBe(3);
+    expect(await prisma.riderApplication.count()).toBe(3);
+    expect(await prisma.user.count({ where: { role: 'admin' } })).toBe(1);
+  });
+});
+
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+describe('admin de la demo (US-11.03)', () => {
+  async function seedAdminAndRiders() {
+    await upsertUsers(prisma, [DEMO_ADMIN], DEMO_PASSWORD, 4);
+    await upsertDemoRiders(
+      prisma,
+      DEMO_PASSWORD,
+      4,
+      PRODUCTION_DEMO_RIDERS,
+      DEMO_ADMIN.email,
+    );
+  }
+
+  it('existe con rol admin y la contraseña de la demo, y no es dueño de la demo de objetos', async () => {
+    await seedAdminAndRiders();
+
+    const admin = await prisma.user.findUniqueOrThrow({
+      where: { email: 'admin@demo.rentit.test' },
+    });
+    expect(admin).toMatchObject({ username: 'admin', role: 'admin' });
+    expect(await bcrypt.compare(DEMO_PASSWORD, admin.passwordHash)).toBe(true);
+    expect(DEMO_USERS.map(({ email }) => email)).not.toContain(admin.email);
+  });
+
+  it('las solicitudes resueltas las revisó el admin; la pendiente, nadie', async () => {
+    await seedAdminAndRiders();
+
+    const admin = await prisma.user.findUniqueOrThrow({
+      where: { email: DEMO_ADMIN.email },
+    });
+    const applications = await prisma.riderApplication.findMany();
+
+    for (const application of applications) {
+      if (application.status === 'pending') {
+        expect(application.reviewedById).toBeNull();
+        expect(application.reviewedAt).toBeNull();
+      } else {
+        expect(application.reviewedById).toBe(admin.id);
+        expect(application.reviewedAt).toBeInstanceOf(Date);
+      }
+    }
+    expect(
+      applications.find(({ status }) => status === 'rejected')?.rejectionReason,
+    ).toBeTruthy();
   });
 });
