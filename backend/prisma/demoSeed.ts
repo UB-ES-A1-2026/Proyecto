@@ -3,7 +3,12 @@
 // Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 31/10/2026
 import bcrypt from 'bcrypt';
 import type { PrismaClient, UserRole } from '@prisma/client';
-import { DEMO_ITEMS, DEMO_RESERVATIONS } from './demoData.js';
+import { quoteRiderFee } from '../src/services/deliveryFee.js';
+import {
+  DEMO_ITEMS,
+  DEMO_RESERVATIONS,
+  type DemoDelivery,
+} from './demoData.js';
 
 // Contraseña de las cuentas del seed de desarrollo: está en el repo, que es público.
 export const DEV_PASSWORD = 'Rentit2026';
@@ -111,7 +116,49 @@ function daysFrom(today: Date, days: number): Date {
   return new Date(midnight + days * DAY_MS);
 }
 
-// Crea o actualiza las solicitudes de DEMO_RESERVATIONS (US-04.02 a US-04.04). Necesita que
+// Columnas de `entrega` de una solicitud de la demo (US-05.01, #281). Todas se escriben siempre,
+// con NULL las que no tocan, para que repetir el seed deje la entrega como en el catálogo.
+async function demoDeliveryData(
+  prisma: PrismaClient,
+  delivery: DemoDelivery,
+  itemNeighborhood: string,
+) {
+  const empty = {
+    pickupPointId: null,
+    slot: null,
+    deliveryAddress: null,
+    deliveryNeighborhood: null,
+    fee: null,
+  };
+
+  switch (delivery.mode) {
+    case 'home':
+      return empty;
+    case 'rider':
+      return {
+        ...empty,
+        slot: delivery.slot,
+        deliveryAddress: delivery.address,
+        deliveryNeighborhood: delivery.neighborhood,
+        fee: quoteRiderFee(itemNeighborhood, delivery.neighborhood).fee,
+      };
+    case 'pickup_point': {
+      const point = await prisma.pickupPoint.findFirst({
+        where: { name: delivery.pickupPoint },
+        select: { id: true },
+      });
+      if (!point) {
+        throw new Error(
+          `No existe el punto de recogida «${delivery.pickupPoint}»: aplica antes las migraciones (npm run db:deploy)`,
+        );
+      }
+      return { ...empty, pickupPointId: point.id };
+    }
+  }
+}
+
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+// Crea o actualiza las solicitudes de DEMO_RESERVATIONS (US-04.02 a US-04.04 y, desde US-05.01, con su entrega). Necesita que
 // existan antes los usuarios y los objetos. Hay como mucho una por objeto y arrendatario: si ya
 // existe, se le devuelven las fechas, el importe y el estado del catálogo, así que repetir el
 // seed deja otra vez pendientes las que se hayan aceptado o rechazado al probar.
@@ -131,7 +178,7 @@ export async function upsertDemoReservations(
 
     const item = await prisma.item.findFirst({
       where: { ownerId, title: reservation.item.title },
-      select: { id: true, dailyPrice: true },
+      select: { id: true, dailyPrice: true, neighborhood: true },
     });
     if (!item) {
       throw new Error(
@@ -145,6 +192,7 @@ export async function upsertDemoReservations(
       startDate: daysFrom(today, reservation.startInDays),
       endDate: daysFrom(today, reservation.startInDays + reservation.days - 1),
       totalPrice: item.dailyPrice.times(reservation.days),
+      deliveryMode: reservation.delivery.mode,
       status: reservation.status,
     };
     const existing = await prisma.reservation.findFirst({
@@ -152,11 +200,20 @@ export async function upsertDemoReservations(
       select: { id: true },
     });
 
-    if (existing) {
-      await prisma.reservation.update({ where: { id: existing.id }, data });
-    } else {
-      await prisma.reservation.create({ data });
-    }
+    const saved = existing
+      ? await prisma.reservation.update({ where: { id: existing.id }, data })
+      : await prisma.reservation.create({ data });
+
+    const delivery = await demoDeliveryData(
+      prisma,
+      reservation.delivery,
+      item.neighborhood,
+    );
+    await prisma.delivery.upsert({
+      where: { reservationId: saved.id },
+      update: delivery,
+      create: { reservationId: saved.id, ...delivery },
+    });
   }
 
   return DEMO_RESERVATIONS.length;
