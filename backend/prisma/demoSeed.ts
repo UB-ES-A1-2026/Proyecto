@@ -3,7 +3,12 @@
 // Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 31/10/2026
 import bcrypt from 'bcrypt';
 import type { PrismaClient, UserRole } from '@prisma/client';
-import { DEMO_ITEMS, DEMO_RESERVATIONS } from './demoData.js';
+import {
+  DEMO_DEMAND_ITEM,
+  DEMO_DEMAND_REQUESTS,
+  DEMO_ITEMS,
+  DEMO_RESERVATIONS,
+} from './demoData.js';
 
 // Contraseña de las cuentas del seed de desarrollo: está en el repo, que es público.
 export const DEV_PASSWORD = 'Rentit2026';
@@ -160,4 +165,66 @@ export async function upsertDemoReservations(
   }
 
   return DEMO_RESERVATIONS.length;
+}
+
+// Vecinos que solo hacen las solicitudes de DEMO_DEMAND_REQUESTS (US-04.07): uno por solicitud,
+// porque el seed guarda como mucho una solicitud por objeto y arrendatario.
+// Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 12/11/2026
+export function demandNeighbours(domain: string): SeedUser[] {
+  return DEMO_DEMAND_REQUESTS.map((_, index) => ({
+    username: `vecino${index + 1}`,
+    email: `vecino${index + 1}@${domain}`,
+  }));
+}
+
+// Crea o actualiza las solicitudes pendientes de DEMO_DEMAND_REQUESTS. Repetir el seed las
+// vuelve a dejar pendientes y con las fechas a partir de hoy.
+export async function upsertDemoDemand(
+  prisma: PrismaClient,
+  ownerIds: readonly string[],
+  neighbourIds: readonly string[],
+  today = new Date(),
+): Promise<number> {
+  const ownerId = ownerIds[DEMO_DEMAND_ITEM.owner];
+  if (!ownerId) {
+    throw new Error(`Falta el propietario de «${DEMO_DEMAND_ITEM.title}»`);
+  }
+
+  const item = await prisma.item.findFirst({
+    where: { ownerId, title: DEMO_DEMAND_ITEM.title },
+    select: { id: true, dailyPrice: true },
+  });
+  if (!item) {
+    throw new Error(
+      `No existe «${DEMO_DEMAND_ITEM.title}»: crea antes los objetos (upsertDemoItems)`,
+    );
+  }
+
+  for (const [index, request] of DEMO_DEMAND_REQUESTS.entries()) {
+    const renterId = neighbourIds[index];
+    if (!renterId) {
+      throw new Error(`Falta el vecino ${index + 1} para la demanda de fechas`);
+    }
+
+    const data = {
+      itemId: item.id,
+      renterId,
+      startDate: daysFrom(today, request.startInDays),
+      endDate: daysFrom(today, request.startInDays + request.days - 1),
+      totalPrice: item.dailyPrice.times(request.days),
+      status: 'pending' as const,
+    };
+    const existing = await prisma.reservation.findFirst({
+      where: { itemId: item.id, renterId },
+      select: { id: true },
+    });
+
+    if (existing) {
+      await prisma.reservation.update({ where: { id: existing.id }, data });
+    } else {
+      await prisma.reservation.create({ data });
+    }
+  }
+
+  return DEMO_DEMAND_REQUESTS.length;
 }

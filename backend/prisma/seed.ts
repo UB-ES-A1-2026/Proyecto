@@ -8,6 +8,8 @@ import {
   upsertDemoItems,
   upsertDemoReservations,
   upsertUsers,
+  demandNeighbours,
+  upsertDemoDemand,
 } from './demoSeed.js';
 
 const prisma = new PrismaClient();
@@ -31,9 +33,17 @@ async function main(): Promise<void> {
   const items = await upsertDemoItems(prisma, [anaId, brunoId, anaId]);
   // Las solicitudes son entre ana (0) y bruno (1).
   const reservations = await upsertDemoReservations(prisma, [anaId, brunoId]);
+  // Seis vecinos con solicitudes pendientes en las mismas fechas (US-04.07).
+  const neighbourIds = await upsertUsers(
+    prisma,
+    demandNeighbours('rentit.test'),
+    DEV_PASSWORD,
+    rounds,
+  );
+  const demand = await upsertDemoDemand(prisma, [anaId, brunoId], neighbourIds);
 
   console.info(
-    `Seed completado: ${demoUsers.length} usuarios de prueba, ${items} objetos y ${reservations} solicitudes`,
+    `Seed completado: ${demoUsers.length} usuarios de prueba, ${items} objetos y ${reservations + demand} solicitudes`,
   );
 }
 
