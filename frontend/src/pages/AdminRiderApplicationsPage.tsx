@@ -1,18 +1,16 @@
 // Generado con asistencia de IA (Claude)
-import { useCallback, useEffect, useId, useState, type FormEvent, type ReactNode } from 'react';
+import { useId, useState, type FormEvent, type ReactNode } from 'react';
+import { useAdminData } from '../components/adminData';
 import { Icon, type IconName } from '../components/Icon';
 import { useAuth } from '../context/useAuth';
 import {
   acceptRiderApplication,
-  getRiderApplications,
   rejectRiderApplication,
   type RiderApplication,
   type RiderApplicationStatus,
-  type RiderSlot,
-  type RiderVehicle,
-  type RiderWeekday,
 } from '../services/adminRiderService';
 import { ApiError } from '../services/apiClient';
+import { SLOT_LABELS, VEHICLE_LABELS, WEEKDAY_LABELS } from '../utils/riderLabels';
 
 const REASON_MAX_LENGTH = 500;
 const ALREADY_REVIEWED = 'Esta solicitud ya se ha revisado.';
@@ -23,28 +21,6 @@ const shortDateFormatter = new Intl.DateTimeFormat('es-ES', {
   month: 'short',
   year: 'numeric',
 });
-
-const VEHICLES: Record<RiderVehicle, string> = {
-  on_foot: 'A pie',
-  bike: 'Bici',
-  scooter: 'Patinete',
-  motorbike: 'Moto',
-  car: 'Coche',
-};
-const WEEKDAYS: Record<RiderWeekday, string> = {
-  monday: 'Lunes',
-  tuesday: 'Martes',
-  wednesday: 'Miércoles',
-  thursday: 'Jueves',
-  friday: 'Viernes',
-  saturday: 'Sábado',
-  sunday: 'Domingo',
-};
-const SLOTS: Record<RiderSlot, string> = {
-  morning: 'Mañana',
-  afternoon: 'Tarde',
-  night: 'Noche',
-};
 
 const STATUS: Record<
   RiderApplicationStatus,
@@ -170,7 +146,7 @@ function RiderApplicationCard({
           <span className="reservation-card-dates rider-card-meta">
             <span>{application.zone}</span>
             <span aria-hidden="true">·</span>
-            <span>{VEHICLES[application.vehicle]}</span>
+            <span>{VEHICLE_LABELS[application.vehicle]}</span>
             <span aria-hidden="true">·</span>
             <span>{shortDateFormatter.format(new Date(application.createdAt))}</span>
           </span>
@@ -189,12 +165,12 @@ function RiderApplicationCard({
               <Fact icon="mail">Correo electrónico: {application.user.email}</Fact>
               <Fact icon="info">Teléfono: {application.phone}</Fact>
               <Fact icon="location_on">Zona de reparto: {application.zone}</Fact>
-              <Fact icon="pedal_bike">Vehículo: {VEHICLES[application.vehicle]}</Fact>
+              <Fact icon="pedal_bike">Vehículo: {VEHICLE_LABELS[application.vehicle]}</Fact>
               <Fact icon="event">
-                Días: {application.days.map((day) => WEEKDAYS[day]).join(', ')}
+                Días: {application.days.map((day) => WEEKDAY_LABELS[day]).join(', ')}
               </Fact>
               <Fact icon="schedule">
-                Franjas: {application.slots.map((slot) => SLOTS[slot]).join(', ')}
+                Franjas: {application.slots.map((slot) => SLOT_LABELS[slot]).join(', ')}
               </Fact>
               <Fact icon="task_alt">
                 Aceptó las condiciones el{' '}
@@ -288,57 +264,15 @@ function RiderApplicationCard({
   );
 }
 
-// Pantalla «Riders» del admin (US-11.03, #318): revisa las solicitudes para ser rider.
-export function AdminRidersPage() {
-  const { session, clearSession } = useAuth();
-  const token = session?.token;
-  const [applications, setApplications] = useState<RiderApplication[] | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
+// Solicitudes para ser rider (US-11.03, #318): el admin las acepta o las rechaza.
+export function AdminRiderApplicationsPage() {
+  const { applications, applicationsError, replaceApplication, reloadApplications } =
+    useAdminData();
   const [filter, setFilter] = useState<RiderApplicationStatus>('pending');
   const [notice, setNotice] = useState<Notice | null>(null);
 
-  const handleLoadError = useCallback(
-    (requestError: unknown) => {
-      if (requestError instanceof ApiError && requestError.status === 401) {
-        clearSession();
-      } else if (requestError instanceof ApiError && requestError.status === 0) {
-        setLoadError(requestError.message);
-      } else {
-        setLoadError('No hemos podido cargar las solicitudes. Inténtalo de nuevo más tarde.');
-      }
-    },
-    [clearSession],
-  );
-
-  useEffect(() => {
-    if (!token) return;
-    let ignore = false;
-
-    getRiderApplications(token)
-      .then((data) => {
-        if (!ignore) setApplications(data);
-      })
-      .catch((requestError: unknown) => {
-        if (!ignore) handleLoadError(requestError);
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [token, handleLoadError]);
-
-  // Tras un aviso de «ya revisada»: vuelve a pedir la lista sin quitar la que se ve.
-  function reload() {
-    if (!token) return;
-    getRiderApplications(token).then(setApplications).catch(handleLoadError);
-  }
-
   function handleResolved(updated: RiderApplication, text: string) {
-    setApplications(
-      (current) =>
-        current &&
-        current.map((application) => (application.id === updated.id ? updated : application)),
-    );
+    replaceApplication(updated);
     setNotice({ kind: 'success', text });
   }
 
@@ -347,15 +281,15 @@ export function AdminRidersPage() {
     applications?.filter((application) => application.status === status).length ?? 0;
 
   return (
-    <section className="admin-riders">
-      <div className="page-header">
+    <section className="admin-page admin-riders">
+      <header className="admin-page-header">
         <div>
-          <h1 className="page-title">Solicitudes de rider</h1>
-          <p className="page-subtitle">
+          <h1 className="admin-page-title">Solicitudes de rider</h1>
+          <p className="admin-page-subtitle">
             Revisa quién quiere repartir y acepta solo a personas de confianza.
           </p>
         </div>
-      </div>
+      </header>
 
       {notice && (
         <p
@@ -367,10 +301,10 @@ export function AdminRidersPage() {
         </p>
       )}
 
-      {loadError ? (
+      {applicationsError ? (
         <p role="alert" className="form-error manage-notice">
           <Icon name="error" />
-          {loadError}
+          {applicationsError}
         </p>
       ) : applications === null ? (
         <>
@@ -413,7 +347,7 @@ export function AdminRidersPage() {
                   onResolved={handleResolved}
                   onOutdated={() => {
                     setNotice({ kind: 'error', text: ALREADY_REVIEWED });
-                    reload();
+                    reloadApplications();
                   }}
                 />
               ))}
