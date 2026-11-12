@@ -187,4 +187,42 @@ describe('pantalla «Mis objetos» (US-02.02, #109)', () => {
       'No se puede conectar con el servidor. Inténtalo más tarde.',
     );
   });
+  it('si un admin retiró el objeto, el propietario ve el motivo', async () => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
+    mockFetch(() =>
+      Response.json([
+        {
+          id: 'o3',
+          title: 'Consola retro',
+          dailyPrice: '8',
+          neighborhood: 'Gràcia',
+          status: 'withdrawn',
+          moderation: {
+            reason: 'scam',
+            details: 'Pide el pago por Bizum.',
+            withdrawnAt: '2026-11-12T10:00:00.000Z',
+          },
+        },
+        {
+          id: 'o4',
+          title: 'Bicicleta',
+          dailyPrice: '6',
+          neighborhood: 'Sants',
+          status: 'withdrawn',
+          moderation: null,
+        },
+      ]),
+    );
+
+    renderRoute('/mis-objetos');
+
+    const rows = await screen.findAllByRole('listitem');
+    expect(rows[0]).toHaveTextContent(
+      'Rentit ha retirado este anuncio. Motivo: Posible estafa. Pide el pago por Bizum.',
+    );
+    expect(within(rows[0]).queryByText('Ya no se puede alquilar')).not.toBeInTheDocument();
+    // Retirado por su propietario: sin aviso de Rentit.
+    expect(within(rows[1]).getByText('Ya no se puede alquilar')).toBeInTheDocument();
+    expect(rows[1]).not.toHaveTextContent('Rentit ha retirado');
+  });
 });
