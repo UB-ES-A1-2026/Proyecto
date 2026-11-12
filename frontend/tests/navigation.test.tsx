@@ -131,7 +131,7 @@ describe('layout y navegación (#21)', () => {
     expect(links).toEqual(['Inicio', 'Mis objetos', 'Mis solicitudes', 'Mi perfil']);
   });
 
-  it('solo el admin ve «Riders», antes de «Mi perfil»', () => {
+  it('solo el admin ve «Panel», antes de «Mi perfil»', () => {
     localStorage.setItem(
       'rentit.session',
       JSON.stringify({ ...SESSION, user: { ...SESSION.user, role: 'admin' } }),
@@ -141,10 +141,7 @@ describe('layout y navegación (#21)', () => {
     const links = mainNav()
       .getAllByRole('link')
       .map((link) => link.textContent);
-    expect(links).toEqual(['Inicio', 'Mis objetos', 'Mis solicitudes', 'Riders', 'Mi perfil']);
-    expect(mainNav().getByRole('link', { name: 'Riders' })).toHaveAttribute(
-      'href',
-      '/admin/riders',
-    );
+    expect(links).toEqual(['Inicio', 'Mis objetos', 'Mis solicitudes', 'Panel', 'Mi perfil']);
+    expect(mainNav().getByRole('link', { name: 'Panel' })).toHaveAttribute('href', '/admin');
   });
 });
