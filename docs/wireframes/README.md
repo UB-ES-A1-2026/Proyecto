@@ -55,6 +55,10 @@ Los wireframes son **HTML con unos estilos comunes** que se convierten en PNG co
 | `wf-chips`, `wf-chip` (`wf-activo`) | Filtros, estados y categorías |
 | `wf-calendario` (`wf-cal-mes`, `wf-cal-cabecera`, `wf-cal-pasado`, `wf-cal-rango`, `wf-cal-elegido`) | Calendario del alquiler |
 | `wf-ventana`, `wf-ventana-cuerpo`, `wf-ventana-botones` | Ventana con scroll propio y botones fijos abajo |
+| `wf-admin` (`wf-admin-menu`, `wf-admin-secciones`, `wf-admin-opcion`, `wf-contador`, `wf-admin-pie`, `wf-admin-contenido`) | Panel de administración: menú lateral y contenido, sin la cabecera de la web; en el móvil, el menú arriba |
+| `wf-cifra`, `wf-columnas wf-tres` | Número grande de un resumen y tres columnas iguales para las cifras |
+| `wf-tabla` (`wf-num`) | Tabla de datos, con las cifras alineadas a la derecha |
+| `wf-opcion` (`wf-activo`) | Opción de una lista de motivos (radio) |
 
 Si hace falta una pieza nueva, se añade a `wireframe.css` (en su propio commit) en lugar de poner estilos sueltos en un wireframe, para que todos se parezcan.
 
