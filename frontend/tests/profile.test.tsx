@@ -118,6 +118,22 @@ describe('accesos directos del perfil', () => {
     expect(shortcut(/Publicar un objeto/)).toHaveAttribute('href', '/objetos/nuevo');
   });
 
+  it('«Ver mi perfil público» lleva al perfil público de la propia cuenta (US-01.4)', async () => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
+    mockFetch((url) =>
+      url.endsWith('/usuarios/me/objetos') || url.endsWith('/usuarios/me/reservas')
+        ? Response.json([])
+        : Response.json(PROFILE),
+    );
+
+    renderRoute('/perfil');
+
+    expect(await screen.findByRole('link', { name: 'Ver mi perfil público' })).toHaveAttribute(
+      'href',
+      '/usuarios/u1',
+    );
+  });
+
   it('si fallan las cifras la página sigue funcionando y no avisa de ningún error', async () => {
     localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
     mockFetch((url) =>

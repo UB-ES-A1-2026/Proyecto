@@ -1,0 +1,202 @@
+/*
+ * Perfil público de un usuario (US-01.4, #301) y su ventana de edición.
+ * Solo usa los tokens de :root de styles.css.
+ */
+
+.public-profile {
+  max-width: 60rem;
+  margin: 0 auto;
+}
+
+.public-profile > .manage-notice {
+  margin-bottom: var(--space-md);
+}
+
+/* Foto de perfil, o la inicial del nombre */
+.user-avatar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--avatar-size, 6rem);
+  height: var(--avatar-size, 6rem);
+  overflow: hidden;
+  font-size: calc(var(--avatar-size, 6rem) * 0.42);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-on-primary);
+  background-color: var(--color-primary);
+  border-radius: var(--radius-large);
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Cabecera: foto, nombre, valoración y bio */
+.public-profile-header {
+  display: flex;
+  gap: var(--space-xl);
+  align-items: flex-start;
+  padding: var(--space-xl);
+}
+
+.public-profile-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.public-profile-name {
+  margin: 0;
+  font-size: var(--font-size-title);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.public-profile-since {
+  margin: 0;
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+.public-profile-rating {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
+  margin: var(--space-xs) 0 0;
+  color: var(--color-text);
+}
+
+.public-profile-rating .icon {
+  color: var(--color-accent);
+}
+
+.public-profile-rating-count {
+  color: var(--color-text-muted);
+}
+
+.public-profile-bio {
+  max-width: 42rem;
+  margin: var(--space-sm) 0 0;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.public-profile-bio-empty {
+  color: var(--color-text-muted);
+}
+
+/* Dos clases: styles.css se carga después de los @import y le ganaría el ancho del botón. */
+.public-profile-header .public-profile-edit {
+  align-self: flex-start;
+  width: auto;
+  margin-top: var(--space-md);
+}
+
+/* Objetos publicados */
+.public-profile-items {
+  margin-top: var(--space-2xl);
+}
+
+.public-profile-section-title {
+  margin: 0 0 var(--space-md);
+  font-size: var(--font-size-tagline);
+}
+
+.public-profile-empty {
+  max-width: 32rem;
+  margin: var(--space-2xl) auto;
+}
+
+/* Carga */
+.public-profile-skeleton-avatar {
+  flex-shrink: 0;
+  width: 6rem;
+  height: 6rem;
+}
+
+.public-profile-skeleton-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.public-profile-skeleton-name {
+  width: 12rem;
+  height: 2.25rem;
+}
+
+.public-profile-skeleton-line {
+  width: min(100%, 28rem);
+  height: 1rem;
+}
+
+/* «Ver mi perfil público», en «Mi perfil» */
+.profile-public-link {
+  margin-top: var(--space-md);
+}
+
+/* La persona que publica, en la ficha de un objeto */
+.item-owner-link {
+  font-weight: var(--font-weight-medium);
+}
+
+/* Ventana «Editar perfil» */
+.edit-profile-label {
+  display: block;
+  margin-bottom: var(--space-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.edit-profile-photo {
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+}
+
+.edit-profile-photo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.edit-profile-photo-actions button {
+  width: auto;
+}
+
+@media (max-width: 640px) {
+  .public-profile-header {
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-lg) var(--space-md);
+    text-align: center;
+  }
+
+  .public-profile-info {
+    align-items: center;
+  }
+
+  .public-profile-name {
+    font-size: 1.75rem;
+  }
+
+  .public-profile-header .public-profile-edit {
+    align-self: center;
+  }
+
+  .public-profile-skeleton-text {
+    align-items: center;
+  }
+
+  .edit-profile-photo {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
