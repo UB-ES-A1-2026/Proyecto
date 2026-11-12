@@ -78,6 +78,9 @@ export function AdminActiveRidersPage() {
                 <th scope="col">Zona</th>
                 <th scope="col">Vehículo</th>
                 <th scope="col">Disponibilidad</th>
+                <th scope="col" className="admin-table-number">
+                  Entregas
+                </th>
                 <th scope="col">Teléfono</th>
                 <th scope="col">Activo desde</th>
               </tr>
@@ -86,14 +89,14 @@ export function AdminActiveRidersPage() {
               {applications === null ? (
                 [0, 1, 2].map((row) => (
                   <tr key={row} aria-hidden="true">
-                    <td colSpan={6}>
+                    <td colSpan={7}>
                       <span className="skeleton admin-table-skeleton" />
                     </td>
                   </tr>
                 ))
               ) : visible.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="admin-table-empty">
+                  <td colSpan={7} className="admin-table-empty">
                     {active.length === 0
                       ? 'Todavía no hay riders activos.'
                       : 'Ningún rider coincide con la búsqueda.'}
@@ -134,6 +137,9 @@ export function AdminActiveRidersPage() {
                       <span className="admin-cell-meta">
                         {rider.slots.map((slot) => SLOT_LABELS[slot]).join(', ')}
                       </span>
+                    </td>
+                    <td data-label="Entregas" className="admin-table-number">
+                      {rider.deliveriesCount}
                     </td>
                     <td data-label="Teléfono">{rider.phone}</td>
                     <td data-label="Activo desde">

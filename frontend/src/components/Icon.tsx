@@ -22,6 +22,7 @@ export type IconName =
   | 'close'
   | 'credit_card'
   | 'dashboard'
+  | 'delete'
   | 'description'
   | 'devices'
   | 'directions_bike'
