@@ -11,11 +11,16 @@ const SESSION = {
   user: { id: 'u1', username: 'ana', email: 'ana@rentit.test', role: 'user' },
 };
 
+// Perfil público de ana (US-01.4): «Mi perfil» es ese perfil, y ahí está «Cerrar sesión».
 const PROFILE = {
   id: 'u1',
   username: 'ana',
-  email: 'ana@rentit.test',
-  createdAt: '2026-01-01T00:00:00.000Z',
+  bio: null,
+  photo: null,
+  memberSince: '2026-01-01T00:00:00.000Z',
+  rating: { average: null, count: 0 },
+  items: [],
+  isOwnProfile: true,
 };
 
 function mockFetch(logoutResponse: () => Response | Promise<Response>) {
@@ -23,7 +28,7 @@ function mockFetch(logoutResponse: () => Response | Promise<Response>) {
     const url = String(input);
     if (url.endsWith('/health')) return Response.json({ status: 'ok' });
     if (url.endsWith('/auth/logout')) return logoutResponse();
-    if (url.endsWith('/usuarios/me')) return Response.json(PROFILE);
+    if (url.endsWith('/usuarios/u1')) return Response.json(PROFILE);
     return Response.json({ items: [], sent: [], received: [] });
   });
 }

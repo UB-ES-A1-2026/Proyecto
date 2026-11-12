@@ -56,7 +56,7 @@ test.describe('Navegación en el móvil', () => {
     );
 
     await nav.getByRole('link', { name: 'Mi perfil' }).click();
-    await expect(page).toHaveURL('/perfil');
+    await expect(page).toHaveURL(/\/usuarios\/[\w-]+$/);
     await nav.getByRole('link', { name: 'Inicio' }).click();
     await expect(page).toHaveURL('/');
   });

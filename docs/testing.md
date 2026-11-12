@@ -326,4 +326,4 @@ En local: `node .github/scripts/bugs.mjs informe` (con `gh` autenticado).
 ## 6. Pendiente
 
 - **Smoke test en el CI:** el workflow de GitHub Actions que arranca PostgreSQL, el backend y el frontend y ejecuta `npm run test:smoke`. Se coordina con el CI general (#19, Kai). En el CI conviene servir el frontend compilado (`npm run build` + `npm run preview`) en lugar de `npm run dev`, para evitar la espera de la primera carga de Vite.
-- **E2E del perfil:** la página «Mi perfil» tiene tests unitarios pero aún no un test e2e propio (está cubierta indirectamente por el criterio 2 del login y el 5 del logout).
+- **E2E del perfil:** «Mi perfil» es el perfil público propio (US-01.4, `/usuarios/:id`; `/perfil` redirige a él). Tiene tests unitarios, pero aún no un test e2e propio de editar la foto y la bio (el perfil está cubierto indirectamente por el criterio 2 del login y el 5 del logout).

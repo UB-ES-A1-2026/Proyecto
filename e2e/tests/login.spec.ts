@@ -9,6 +9,7 @@ import { test, expect, type Page } from '@playwright/test';
 const LOGIN_PATH = '/login';
 const HOME_PATH = '/';
 const PROFILE_PATH = '/perfil'; // página privada: sin sesión redirige al login
+const OWN_PROFILE_URL = /\/usuarios\/[\w-]+$/; // con sesión, /perfil lleva al perfil público propio
 const SEARCH_PATH = '/buscar?q=taladro'; // página pública con búsqueda (#224)
 
 const EMAIL_LABEL = 'Correo electrónico';
@@ -54,7 +55,7 @@ test.describe('US-01.2 Inicio de sesión', () => {
 
     await fillAndSubmit(page, USER.email, USER.password);
 
-    await expect(page).toHaveURL(PROFILE_PATH);
+    await expect(page).toHaveURL(OWN_PROFILE_URL);
     await expectLoggedIn(page);
   });
 
