@@ -723,3 +723,22 @@
     flex: 1;
   }
 }
+
+/* «Mis objetos»: un admin ha retirado el anuncio y el propietario ve el motivo (US-11.03). */
+.item-moderation {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: flex-start;
+  margin: var(--space-xs) 0 0;
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-size-small);
+  color: var(--color-error);
+  background-color: var(--color-error-background);
+  border-radius: var(--radius-small);
+  --icon-size: 1rem;
+}
+
+.item-moderation .icon {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
