@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-11.03 Aceptar o rechazar solicitudes de rider · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-11.03 Aceptar o rechazar solicitudes de rider</h1>
+      <p class="wf-historia">
+        Como <strong>admin</strong>, quiero <strong>revisar las solicitudes para ser rider y aceptarlas o rechazarlas</strong>
+        para que <strong>solo repartan personas de confianza</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #305 · Tarea #318 · Wireframe de baja fidelidad, dibujado a partir de la pantalla implementada · Generado con
+        asistencia de IA (Claude) – pendiente de revisar por el equipo
+      </p>
+      <p class="wf-meta">
+        Cambia el flujo acordado (11/11): el admin entra a un panel propio («Panel», <code>/admin</code>) con menú lateral, y
+        las solicitudes están en <code>/admin/solicitudes</code>. Las pantallas 10 a 13 (objetos y riders activos) adelantan
+        parte de US-11.01, cuyo wireframe propone pestañas dentro de la web: hay que decidir cuál se queda.
+      </p>
+    </header>
+    <section class="wf-pantalla" data-captura="1-entrada">
+      <h2><span class="wf-paso">1</span>Punto de entrada: cualquier página con sesión de admin <code>/</code></h2>
+      <div class="wf-dispositivos">
+      <div class="wf-escritorio" data-url="rentit.app/">
+        <nav class="wf-nav">
+          <span class="wf-logo">Rentit</span>
+          <span class="wf-enlaces"><span class="wf-enlace">Inicio</span><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Panel</span><span class="wf-marca">1</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+        </nav>
+        <div class="wf-contenido">
+          <h3 class="wf-h1">Hola, ana</h3>
+          <div class="wf-caja">Buscador, categorías, novedades y cómo funciona</div>
+        </div>
+      </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Solo lo ve quien tiene el rol de admin (la cuenta se crea con el seed). Lleva a <code>/admin</code>. Sustituye a «Riders» → <code>/admin/riders</code> del flujo acordado. Al iniciar sesión, un admin que no venía de otra página entra directamente a <code>/admin</code>.</li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Clic en «Panel» (o iniciar sesión como admin)</p>
+
+    <section class="wf-pantalla" data-captura="2-resumen">
+      <h2><span class="wf-paso">2</span>Resumen del panel <code>/admin</code></h2>
+      <div class="wf-dispositivos">
+      <div class="wf-escritorio" data-url="rentit.app/admin">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-ayuda">Administración<span class="wf-marca">1</span></span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion wf-activo"><span>Resumen</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion"><span>Solicitudes</span> <span class="wf-contador">3</span></span>
+            </div>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Resumen</h3>
+            <p class="wf-texto">Jueves, 12 de noviembre de 2026</p>
+            <div class="wf-columnas wf-tres">
+              <div class="wf-tarjeta"><span class="wf-ayuda">Objetos publicados</span><span class="wf-cifra">11</span><span class="wf-ayuda">Visibles en las búsquedas</span></div>
+              <div class="wf-tarjeta"><span class="wf-ayuda">Riders activos</span><span class="wf-cifra">1</span><span class="wf-ayuda">Pueden aceptar entregas</span></div>
+              <div class="wf-tarjeta"><span class="wf-ayuda">Solicitudes pendientes <span class="wf-marca">3</span></span><span class="wf-cifra">3</span><span class="wf-ayuda"><strong>Esperan tu revisión</strong></span></div>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-columnas wf-iguales">
+              <div class="wf-tarjeta">
+                <div class="wf-fila"><strong>Solicitudes por revisar <span class="wf-marca">4</span></strong><span class="wf-enlace">Ver todas →</span></div>
+                <p class="wf-texto">jordi_rider · Gràcia · Bici · 9 nov<br />laia.m · Sants · Moto · 10 nov<br />pau_reparte · Poblenou · Patinete · 11 nov</p>
+              </div>
+              <div class="wf-tarjeta">
+                <div class="wf-fila"><strong>Últimos objetos publicados</strong><span class="wf-enlace">Ver todos →</span></div>
+                <p class="wf-texto">Carro de la compra plegable · 2,00 €/día<br />Tabla de paddle surf hinchable · 15,00 €/día<br />Silla de coche para bebé · 4,00 €/día</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="wf-movil">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <div class="wf-admin-pie"><span class="wf-enlace">Ver la web</span><span class="wf-enlace">Cerrar sesión</span></div>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion wf-activo"><span>Resumen</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion"><span>Solicitudes</span> <span class="wf-contador">3</span></span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Resumen</h3>
+            <div class="wf-tarjeta"><span class="wf-ayuda">Objetos publicados</span><span class="wf-cifra">11</span></div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta"><span class="wf-ayuda">Riders activos</span><span class="wf-cifra">1</span></div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta"><span class="wf-ayuda">Solicitudes pendientes</span><span class="wf-cifra">3</span></div>
+            <p class="wf-texto"></p>
+            <div class="wf-caja">Solicitudes por revisar y últimos objetos, uno debajo del otro</div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Menú del panel: Resumen, Objetos, Riders activos y Solicitudes, con el número de pendientes. El panel no lleva la cabecera ni el pie de la web; «Ver la web» vuelve a <code>/</code>. En el móvil, el menú pasa arriba y las secciones se deslizan en horizontal.</li>
+        <li>Las cifras son enlaces a su sección. Objetos publicados sale de la búsqueda pública; riders activos y pendientes, de <code>GET /api/admin/riders</code>.</li>
+        <li>Si hay pendientes, la cifra se resalta y dice «Esperan tu revisión»; si no, «Todo revisado».</li>
+        <li>Las 5 solicitudes pendientes más antiguas y los 5 últimos objetos publicados. Sin pendientes: «No hay solicitudes pendientes.»</li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Clic en «Solicitudes» (o en «Ver todas»)</p>
+
+    <section class="wf-pantalla" data-captura="3-solicitudes">
+      <h2><span class="wf-paso">3</span>Solicitudes pendientes <code>/admin/solicitudes</code></h2>
+      <div class="wf-dispositivos">
+      <div class="wf-escritorio" data-url="rentit.app/admin/solicitudes">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-ayuda">Administración</span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Solicitudes</span> <span class="wf-contador">3</span></span>
+            </div>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Solicitudes de rider</h3>
+            <p class="wf-texto">Revisa quién quiere repartir y acepta solo a personas de confianza.</p>
+            <div class="wf-chips"><span class="wf-chip wf-activo">Pendientes · 3</span><span class="wf-chip">Aceptadas · 1</span><span class="wf-chip">Rechazadas · 1</span><span class="wf-marca">1</span></div>
+            <div class="wf-tarjeta"><div class="wf-fila"><p class="wf-texto"><strong>jordi_rider</strong><br />Gràcia · Bici · 9 nov 2026</p><span class="wf-chip">Pendiente de revisión</span><span>⌄</span><span class="wf-marca">2</span></div></div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta"><div class="wf-fila"><p class="wf-texto"><strong>laia.m</strong><br />Sants · Moto · 10 nov 2026</p><span class="wf-chip">Pendiente de revisión</span><span>⌄</span></div></div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta"><div class="wf-fila"><p class="wf-texto"><strong>pau_reparte</strong><br />Poblenou · Patinete · 11 nov 2026</p><span class="wf-chip">Pendiente de revisión</span><span>⌄</span></div></div>
+            <p class="wf-texto"></p>
+          </div>
+        </div>
+      </div>
+      <div class="wf-movil">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <div class="wf-admin-pie"><span class="wf-enlace">Ver la web</span><span class="wf-enlace">Cerrar sesión</span></div>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Solicitudes</span> <span class="wf-contador">3</span></span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Solicitudes de rider</h3>
+            <div class="wf-chips"><span class="wf-chip wf-activo">Pendientes · 3</span><span class="wf-chip">Aceptadas · 1</span><span class="wf-chip">Rechazadas · 1</span></div>
+            <div class="wf-tarjeta"><p class="wf-texto"><strong>jordi_rider</strong><br />Gràcia · Bici · 9 nov 2026</p><span class="wf-chip">Pendiente de revisión</span></div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Filtros por estado con su número. Se abre en «Pendientes».</li>
+        <li>Criterio 2: las pendientes, de la más antigua a la más nueva, con el nombre, la zona, el vehículo y la fecha. Las aceptadas y rechazadas, la última revisada primero.</li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Clic en una solicitud</p>
+
+    <section class="wf-pantalla" data-captura="4-cuestionario">
+      <h2><span class="wf-paso">4</span>Solicitud desplegada con el cuestionario <code>/admin/solicitudes</code></h2>
+      <div class="wf-dispositivos">
+      <div class="wf-escritorio" data-url="rentit.app/admin/solicitudes">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-ayuda">Administración</span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Solicitudes</span> <span class="wf-contador">3</span></span>
+            </div>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Solicitudes de rider</h3>
+            <p class="wf-texto">Revisa quién quiere repartir y acepta solo a personas de confianza.</p>
+            <div class="wf-chips"><span class="wf-chip wf-activo">Pendientes · 3</span><span class="wf-chip">Aceptadas · 1</span><span class="wf-chip">Rechazadas · 1</span></div>
+            <div class="wf-tarjeta">
+              <div class="wf-fila"><p class="wf-texto"><strong>jordi_rider</strong><br />Gràcia · Bici · 9 nov 2026</p><span class="wf-chip">Pendiente de revisión</span><span>⌃</span></div>
+              <p class="wf-texto"><span class="wf-marca">1</span> Nombre de usuario: jordi_rider<br />Correo electrónico: jordi.rider@rentit.test<br />Teléfono: 612 345 678<br />Zona de reparto: Gràcia<br />Vehículo: Bici<br />Días: Lunes, Miércoles, Viernes<br />Franjas: Tarde<br />Aceptó las condiciones el 9 nov 2026<br />Enviada el 9 nov 2026</p>
+              <div class="wf-fila"><span class="wf-boton">Aceptar</span><span class="wf-marca">2</span><span class="wf-boton wf-secundario">Rechazar</span><span class="wf-marca">3</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 2: todas las respuestas del cuestionario de US-10.03.</li>
+        <li>Criterio 3: «Aceptar» activa la cuenta como rider. No pide confirmación; mientras se envía dice «Aceptando…».</li>
+        <li>«Rechazar» abre el motivo dentro de la misma tarjeta (pantalla 5).</li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Clic en «Rechazar»</p>
+
+    <section class="wf-pantalla" data-captura="5-rechazar">
+      <h2><span class="wf-paso">5</span>Rechazar con un motivo opcional <code>/admin/solicitudes</code></h2>
+      <div class="wf-dispositivos">
+      <div class="wf-escritorio" data-url="rentit.app/admin/solicitudes">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-ayuda">Administración</span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Solicitudes</span> <span class="wf-contador">3</span></span>
+            </div>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Solicitudes de rider</h3>
+            <p class="wf-texto">Revisa quién quiere repartir y acepta solo a personas de confianza.</p>
+            <div class="wf-chips"><span class="wf-chip wf-activo">Pendientes · 3</span><span class="wf-chip">Aceptadas · 1</span><span class="wf-chip">Rechazadas · 1</span></div>
+            <div class="wf-tarjeta">
+              <div class="wf-fila"><p class="wf-texto"><strong>jordi_rider</strong><br />Gràcia · Bici · 9 nov 2026</p><span class="wf-chip">Pendiente de revisión</span><span>⌃</span></div>
+              <div class="wf-lineas"><span></span><span></span></div>
+              <div class="wf-campo">
+                <label>Motivo del rechazo (opcional) <span class="wf-marca">1</span></label>
+                <div class="wf-input">Ahora mismo no necesitamos riders en Gràcia.</div>
+                <p class="wf-ayuda">Lo verá la persona que lo solicitó. Hasta 500 caracteres.</p>
+              </div>
+              <div class="wf-fila"><span class="wf-boton">Rechazar solicitud</span><span class="wf-boton wf-secundario">Volver</span><span class="wf-marca">2</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 3: el motivo es opcional y lo verá la persona. Si se deja vacío, en «Rechazadas» sale «Sin motivo indicado».</li>
+        <li>«Volver» cierra el motivo sin rechazar.</li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Si otro admin ya la ha resuelto</p>
+
+    <section class="wf-pantalla" data-captura="6-ya-revisada">
+      <h2><span class="wf-paso">6</span>Error: la solicitud ya se ha revisado <code>/admin/solicitudes</code></h2>
+      <div class="wf-dispositivos">
+      <div class="wf-escritorio" data-url="rentit.app/admin/solicitudes">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-ayuda">Administración</span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Solicitudes</span> <span class="wf-contador">2</span></span>
+            </div>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Solicitudes de rider</h3>
+            <p class="wf-texto">Revisa quién quiere repartir y acepta solo a personas de confianza.</p>
+            <p class="wf-aviso">Esta solicitud ya se ha revisado. <span class="wf-marca">1</span></p>
+            <div class="wf-chips"><span class="wf-chip wf-activo">Pendientes · 2</span><span class="wf-chip">Aceptadas · 2</span><span class="wf-chip">Rechazadas · 1</span></div>
+            <div class="wf-tarjeta"><div class="wf-fila"><p class="wf-texto"><strong>laia.m</strong><br />Sants · Moto · 10 nov 2026</p><span class="wf-chip">Pendiente de revisión</span><span>⌄</span></div></div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta"><div class="wf-fila"><p class="wf-texto"><strong>pau_reparte</strong><br />Poblenou · Patinete · 11 nov 2026</p><span class="wf-chip">Pendiente de revisión</span><span>⌄</span></div></div>
+            <p class="wf-texto"></p>
+          </div>
+        </div>
+      </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 4: la API responde 409. Se avisa y se vuelve a pedir la lista, donde la solicitud ya sale en su nuevo estado.</li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Si no queda ninguna pendiente</p>
+
+    <section class="wf-pantalla" data-captura="7-sin-pendientes">
+      <h2><span class="wf-paso">7</span>Sin solicitudes pendientes <code>/admin/solicitudes</code></h2>
+      <div class="wf-dispositivos">
+      <div class="wf-escritorio" data-url="rentit.app/admin/solicitudes">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-ayuda">Administración</span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Solicitudes</span></span>
+            </div>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Solicitudes de rider</h3>
+            <p class="wf-texto">Revisa quién quiere repartir y acepta solo a personas de confianza.</p>
+            <div class="wf-chips"><span class="wf-chip wf-activo">Pendientes · 0</span><span class="wf-chip">Aceptadas · 3</span><span class="wf-chip">Rechazadas · 2</span></div>
+            <div class="wf-caja">No hay solicitudes pendientes. <span class="wf-marca">1</span></div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Las otras pestañas vacías dicen «Todavía no has aceptado ninguna solicitud.» y «Todavía no has rechazado ninguna solicitud.» El menú deja de mostrar el número.</li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Si entra en <code>/admin</code> alguien sin rol de admin</p>
+
+    <section class="wf-pantalla" data-captura="8-sin-rol">
+      <h2><span class="wf-paso">8</span>Sin rol de admin: vuelve a la página de inicio <code>/</code></h2>
+      <div class="wf-dispositivos">
+      <div class="wf-escritorio" data-url="rentit.app/">
+        <nav class="wf-nav">
+          <span class="wf-logo">Rentit</span>
+          <span class="wf-enlaces"><span class="wf-enlace">Inicio</span><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-marca">1</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+        </nav>
+        <div class="wf-contenido">
+          <h3 class="wf-h1">Hola, bruno</h3>
+          <div class="wf-caja">Página de inicio</div>
+        </div>
+      </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 1: no ve «Panel». Si escribe <code>/admin/…</code> en la barra, vuelve a <code>/</code>; sin sesión, va al login y después vuelve. La API también lo rechaza (403).</li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Clic en «Aceptar» (pantalla 4) y la acción se realiza</p>
+
+    <section class="wf-pantalla" data-captura="9-aceptada">
+      <h2><span class="wf-paso">9</span>Destino: la solicitud sale de «Pendientes» <code>/admin/solicitudes</code></h2>
+      <div class="wf-dispositivos">
+      <div class="wf-escritorio" data-url="rentit.app/admin/solicitudes">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-ayuda">Administración</span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Solicitudes</span> <span class="wf-contador">2</span></span>
+            </div>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Solicitudes de rider</h3>
+            <p class="wf-texto">Revisa quién quiere repartir y acepta solo a personas de confianza.</p>
+            <p class="wf-aviso">Has aceptado a jordi_rider: ya puede hacer entregas. <span class="wf-marca">1</span></p>
+            <div class="wf-chips"><span class="wf-chip">Pendientes · 2</span><span class="wf-chip wf-activo">Aceptadas · 2</span><span class="wf-chip">Rechazadas · 1</span></div>
+            <div class="wf-tarjeta">
+              <div class="wf-fila"><p class="wf-texto"><strong>jordi_rider</strong><br />Gràcia · Bici · 9 nov 2026</p><span class="wf-chip">Aceptada</span><span>⌃</span></div>
+              <p class="wf-texto">… respuestas del cuestionario …<br /><strong>Aceptada el 12 nov 2026 por ana</strong> <span class="wf-marca">2</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Mensaje de confirmación. Al rechazar: «Has rechazado la solicitud de jordi_rider.» El resumen, el menú y «Riders activos» se actualizan sin recargar.</li>
+        <li>Al terminar: aparece en «Aceptadas» o «Rechazadas» con la fecha y el admin que la resolvió (y el motivo, si se rechazó).</li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Clic en «Riders activos»</p>
+
+    <section class="wf-pantalla" data-captura="10-riders-activos">
+      <h2><span class="wf-paso">10</span>Riders activos <code>/admin/riders</code></h2>
+      <div class="wf-dispositivos">
+      <div class="wf-escritorio" data-url="rentit.app/admin/riders">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-ayuda">Administración</span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion"><span>Solicitudes</span> <span class="wf-contador">2</span></span>
+            </div>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Riders activos</h3>
+            <p class="wf-texto">2 riders pueden aceptar entregas</p>
+            <div class="wf-input">🔍 Buscar por nombre, correo o zona <span class="wf-marca">1</span></div>
+            <p class="wf-texto"></p>
+            <table class="wf-tabla">
+              <tr><th>Rider</th><th>Zona</th><th>Vehículo</th><th>Disponibilidad <span class="wf-marca">2</span></th><th class="wf-num">Entregas <span class="wf-marca">3</span></th><th>Teléfono</th><th>Activo desde</th></tr>
+              <tr><td><strong>jordi_rider</strong><br />jordi.rider@rentit.test</td><td>Gràcia</td><td>Bici</td><td>L · X · V<br />Tarde</td><td class="wf-num">0</td><td>612 345 678</td><td>12 nov 2026</td></tr>
+              <tr><td><strong>marta_c</strong><br />marta.c@rentit.test</td><td>Sant Andreu</td><td>Coche</td><td>L · M · X · J · V<br />Mañana</td><td class="wf-num">23</td><td>699 111 000</td><td>6 nov 2026</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="wf-movil">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <div class="wf-admin-pie"><span class="wf-enlace">Ver la web</span><span class="wf-enlace">Cerrar sesión</span></div>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion"><span>Solicitudes</span> <span class="wf-contador">2</span></span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Riders activos</h3>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>marta_c</strong><br />marta.c@rentit.test</p>
+              <p class="wf-ayuda">Zona: Sant Andreu<br />Vehículo: Coche<br />Disponibilidad: L · M · X · J · V, Mañana<br />Entregas: 23<br />Teléfono: 699 111 000<br />Activo desde: 6 nov 2026</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Filtra la lista al escribir. Sin coincidencias: «Ningún rider coincide con la búsqueda.»; sin riders: «Todavía no hay riders activos.»</li>
+        <li>Días de la semana (los activos, marcados) y franjas, del cuestionario.</li>
+        <li>Entregas completadas. Contrato propuesto para #317: campo <code>deliveriesCount</code> en <code>GET /api/admin/riders</code>.</li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Clic en «Objetos»</p>
+
+    <section class="wf-pantalla" data-captura="11-objetos">
+      <h2><span class="wf-paso">11</span>Objetos publicados (adelanta US-11.01) <code>/admin/objetos</code></h2>
+      <div class="wf-dispositivos">
+      <div class="wf-escritorio" data-url="rentit.app/admin/objetos">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-ayuda">Administración</span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion"><span>Solicitudes</span> <span class="wf-contador">2</span></span>
+            </div>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Objetos publicados</h3>
+            <p class="wf-texto">11 objetos en total</p>
+            <div class="wf-fila"><div class="wf-input">🔍 Buscar por nombre o descripción</div><div class="wf-input">Todas las categorías ⌄</div><span class="wf-boton wf-secundario">Buscar</span><span class="wf-marca">1</span></div>
+            <p class="wf-texto"></p>
+            <table class="wf-tabla">
+              <tr><th>Objeto</th><th>Categoría</th><th>Barrio</th><th class="wf-num">Precio por día</th><th></th></tr>
+              <tr><td>▢ Carro de la compra plegable</td><td>Otros</td><td>Gràcia</td><td class="wf-num">2,00 €</td><td><span class="wf-enlace">Ver ficha</span> · <span class="wf-enlace">Retirar</span><span class="wf-marca">2</span></td></tr>
+              <tr><td>▢ Tabla de paddle surf hinchable</td><td>Deporte</td><td>Sant Andreu</td><td class="wf-num">15,00 €</td><td><span class="wf-enlace">Ver ficha</span> · <span class="wf-enlace">Retirar</span></td></tr>
+              <tr><td>▢ Silla de coche para bebé</td><td>Infantil</td><td>Sant Andreu</td><td class="wf-num">4,00 €</td><td><span class="wf-enlace">Ver ficha</span> · <span class="wf-enlace">Retirar</span></td></tr>
+            </table>
+            <p class="wf-ayuda">← Anterior · Página 1 de 1 · Siguiente → <span class="wf-marca">3</span></p>
+          </div>
+        </div>
+      </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Usa la búsqueda pública: de momento solo salen los objetos publicados, sin los pausados ni el propietario (eso necesita un endpoint de admin, US-11.01).</li>
+        <li>Criterio 2 de US-11.01: «Retirar» abre la ventana de la pantalla 12. «Ver ficha» abre la ficha pública.</li>
+        <li>Páginas de 20 objetos, como la búsqueda.</li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Clic en «Retirar»</p>
+
+    <section class="wf-pantalla" data-captura="12-retirar">
+      <h2><span class="wf-paso">12</span>Ventana «Retirar anuncio» <code>/admin/objetos</code></h2>
+      <div class="wf-dispositivos">
+      <div class="wf-escritorio" data-url="rentit.app/admin/objetos">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-ayuda">Administración</span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion"><span>Solicitudes</span> <span class="wf-contador">2</span></span>
+            </div>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <div class="wf-ventana">
+              <div class="wf-ventana-cuerpo">
+                <div class="wf-fila"><strong>Retirar anuncio</strong><span>✕</span></div>
+                <p class="wf-aviso">⚠ ¿Retirar «Carro de la compra plegable» de Rentit? Dejará de aparecer en las búsquedas y nadie podrá alquilarlo. El propietario recibirá un aviso con el motivo. No se puede deshacer.</p>
+                <p class="wf-texto"><strong>Motivo</strong> <span class="wf-marca">1</span></p>
+                <div class="wf-opcion wf-activo"><span><strong>Posible estafa</strong><br /><span class="wf-ayuda">Precio irreal, pide pagos fuera de Rentit…</span></span></div>
+                <div class="wf-opcion"><span><strong>Objeto prohibido o peligroso</strong><br /><span class="wf-ayuda">Armas, sustancias, objetos robados…</span></span></div>
+                <div class="wf-opcion"><span><strong>Anuncio falso o engañoso</strong><br /><span class="wf-ayuda">Las fotos o la descripción no corresponden al objeto.</span></span></div>
+                <div class="wf-opcion"><span><strong>Otro motivo</strong><br /><span class="wf-ayuda">Explícalo en los detalles.</span></span></div>
+                <div class="wf-campo">
+                  <label>Detalles (opcional) <span class="wf-marca">2</span></label>
+                  <div class="wf-input">Pide el pago por Bizum antes de entregar.</div>
+                  <p class="wf-ayuda">Lo leerá el propietario. Hasta 500 caracteres.</p>
+                </div>
+              </div>
+              <div class="wf-ventana-botones"><span class="wf-boton">Retirar anuncio</span><span class="wf-boton wf-secundario">Cancelar</span><span class="wf-marca">3</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Hay que elegir un motivo. Sin elegir: «Elige el motivo por el que retiras el anuncio.» El error sale junto a los botones.</li>
+        <li>Con «Otro motivo», los detalles son obligatorios: «Explica el motivo en los detalles.»</li>
+        <li>Contrato propuesto: <code>POST /api/admin/objetos/:id/retirar</code> con <code>{ reason, details }</code>. Deja el objeto «Retirado» (no lo borra, para conservar las reservas). «Cancelar», Esc o clic fuera no cambian nada.</li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Clic en «Retirar anuncio» y la acción se realiza</p>
+
+    <section class="wf-pantalla" data-captura="13-destino-retirado">
+      <h2><span class="wf-paso">13</span>Destino: el objeto sale de la lista y el propietario ve el motivo <code>/admin/objetos · /mis-objetos</code></h2>
+      <div class="wf-dispositivos">
+      <div class="wf-escritorio" data-url="rentit.app/admin/objetos">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-ayuda">Administración</span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion"><span>Solicitudes</span> <span class="wf-contador">2</span></span>
+            </div>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Objetos publicados</h3>
+            <p class="wf-texto">10 objetos en total</p>
+            <p class="wf-aviso">«Carro de la compra plegable» se ha retirado de Rentit. <span class="wf-marca">1</span></p>
+            <table class="wf-tabla">
+              <tr><th>Objeto</th><th>Categoría</th><th>Barrio</th><th class="wf-num">Precio por día</th><th></th></tr>
+              <tr><td>▢ Tabla de paddle surf hinchable</td><td>Deporte</td><td>Sant Andreu</td><td class="wf-num">15,00 €</td><td><span class="wf-enlace">Ver ficha</span> · <span class="wf-enlace">Retirar</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="wf-movil">
+        <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+        <div class="wf-contenido">
+          <h3 class="wf-h1">Mis objetos</h3>
+          <div class="wf-chips"><span class="wf-chip">Todos · 8</span><span class="wf-chip wf-activo">Retirados · 1</span></div>
+          <div class="wf-tarjeta">
+            <div class="wf-imagen"></div>
+            <p class="wf-texto"><strong>Carro de la compra plegable</strong> <span class="wf-chip">Retirado</span><br />2,00 € / día</p>
+            <p class="wf-aviso">⚠ <strong>Rentit ha retirado este anuncio.</strong> Motivo: Posible estafa. Pide el pago por Bizum antes de entregar. <span class="wf-marca">2</span></p>
+          </div>
+        </div>
+        <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+      </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El aviso se lleva el foco, así que se ve aunque el objeto estuviera al final de la lista. La tabla se vuelve a pedir y el objeto ya no sale.</li>
+        <li>En «Mis objetos» del propietario (US-02.02) sale como «Retirado», con el motivo en lugar de «Ya no se puede alquilar». Contrato propuesto: campo <code>moderation</code> (<code>reason</code>, <code>details</code>, <code>withdrawnAt</code>) en <code>GET /api/usuarios/me/objetos</code>.</li>
+      </ol>
+    </section>
+  </body>
+</html>
