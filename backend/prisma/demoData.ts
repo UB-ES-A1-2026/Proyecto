@@ -253,11 +253,15 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
 ];
 
 // Demanda de fechas en el calendario (US-04.07, #311). Seis vecinos tienen solicitudes pendientes
-// de la «Máquina de palomitas» (de bruno o jordi) que se solapan, para que en la demo se vean
-// todos los niveles. Contando desde hoy: el día 8 tiene 1 (poca), el 9 tiene 2 (poca), el 10
+// de la «Bicicleta de montaña talla M» (de bruno o jordi) que se solapan, para que en la demo se
+// vean todos los niveles. No es la «Máquina de palomitas»: la retira un e2e, y las pendientes lo
+// impedirían. Contando desde hoy: el día 8 tiene 1 (poca), el 9 tiene 2 (poca), el 10
 // tiene 6 (mucha), el 11 tiene 4 (media) y el 12 tiene 2 (poca).
 // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 12/11/2026
-export const DEMO_DEMAND_ITEM = { owner: 1, title: 'Máquina de palomitas' };
+export const DEMO_DEMAND_ITEM = {
+  owner: 1,
+  title: 'Bicicleta de montaña talla M',
+};
 
 export const DEMO_DEMAND_REQUESTS: readonly {
   startInDays: number;
