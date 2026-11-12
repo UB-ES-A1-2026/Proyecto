@@ -1,6 +1,7 @@
 // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 19/10/2026
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
+import { Icon } from '../components/Icon';
 import { LogoutButton } from '../components/LogoutButton';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
@@ -139,6 +140,14 @@ export function ProfilePage() {
                 <dd>{dateFormatter.format(new Date(profile.createdAt))}</dd>
               </div>
             </dl>
+            {/* El perfil público (US-01.4): lo que ven los demás y desde donde se edita la foto y la bio. */}
+            <Link
+              to={`/usuarios/${encodeURIComponent(profile.id)}`}
+              className="button-secondary profile-public-link"
+            >
+              <Icon name="visibility" />
+              Ver mi perfil público
+            </Link>
           </div>
         ) : (
           <ProfileSkeleton />

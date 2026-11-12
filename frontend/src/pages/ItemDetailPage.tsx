@@ -297,7 +297,12 @@ export function ItemDetailPage() {
           <span className="item-owner-avatar" aria-hidden="true">
             {item.owner.username.charAt(0).toUpperCase()}
           </span>
-          <p>Publicado por {item.owner.username}</p>
+          <p>
+            Publicado por{' '}
+            <Link to={`/usuarios/${encodeURIComponent(item.owner.id)}`} className="item-owner-link">
+              {item.owner.username}
+            </Link>
+          </p>
         </section>
       </div>
     </article>

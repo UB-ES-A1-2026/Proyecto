@@ -1,0 +1,208 @@
+// Generado con asistencia de IA (Claude)
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router';
+import { EditProfileDialog } from '../components/EditProfileDialog';
+import { Icon } from '../components/Icon';
+import { ItemCard } from '../components/ItemCard';
+import { UserAvatar } from '../components/UserAvatar';
+import { useAuth } from '../context/useAuth';
+import { ApiError } from '../services/apiClient';
+import { getPublicProfile, type PublicProfile } from '../services/userService';
+
+const dateFormatter = new Intl.DateTimeFormat('es-ES', { dateStyle: 'long' });
+const ratingFormatter = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 });
+
+const NOT_FOUND = 'No hemos encontrado este usuario.';
+const PHOTO_FAILED =
+  'Se han guardado los cambios, pero no se ha podido subir la foto. Inténtalo de nuevo.';
+
+type Notice = { kind: 'success' | 'error'; text: string };
+
+function ProfileSkeleton() {
+  return (
+    <div className="card public-profile-header">
+      <p role="status" className="manage-visually-hidden">
+        Cargando el perfil…
+      </p>
+      <span className="skeleton public-profile-skeleton-avatar" />
+      <div className="public-profile-skeleton-text">
+        <span className="skeleton public-profile-skeleton-name" />
+        <span className="skeleton public-profile-skeleton-line" />
+        <span className="skeleton public-profile-skeleton-line" />
+      </div>
+    </div>
+  );
+}
+
+function PublicProfileView({ id }: { id: string }) {
+  const { session, clearSession } = useAuth();
+  const token = session?.token;
+  const [profile, setProfile] = useState<PublicProfile | null>(null);
+  const [notFound, setNotFound] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [notice, setNotice] = useState<Notice | null>(null);
+
+  useEffect(() => {
+    let ignore = false;
+
+    getPublicProfile(id, token)
+      .then((data) => {
+        if (!ignore) setProfile(data);
+      })
+      .catch((requestError: unknown) => {
+        if (ignore) return;
+        // Sesión caducada: al borrarla, esta petición se repite como visitante.
+        if (requestError instanceof ApiError && requestError.status === 401) {
+          clearSession();
+        } else if (requestError instanceof ApiError && requestError.status === 404) {
+          setNotFound(true);
+        } else if (requestError instanceof ApiError) {
+          setError(requestError.message);
+        } else {
+          setError('Ha ocurrido un error inesperado.');
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [id, token, clearSession]);
+
+  const handleSaved = useCallback((updated: PublicProfile, photoFailed: boolean) => {
+    setProfile(updated);
+    setEditing(false);
+    setNotice(
+      photoFailed
+        ? { kind: 'error', text: PHOTO_FAILED }
+        : { kind: 'success', text: 'Perfil actualizado.' },
+    );
+  }, []);
+
+  if (notFound) {
+    return (
+      <div className="empty-state card public-profile-empty">
+        <Icon name="search_off" />
+        <p role="alert">{NOT_FOUND}</p>
+        <Link to="/" className="button-secondary">
+          Volver al inicio
+        </Link>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <p role="alert" className="form-error">
+        {error}
+      </p>
+    );
+  }
+
+  if (!profile) return <ProfileSkeleton />;
+
+  const { rating } = profile;
+
+  return (
+    <>
+      {notice && (
+        <p
+          role={notice.kind === 'error' ? 'alert' : 'status'}
+          className={`${notice.kind === 'error' ? 'form-error' : 'form-success'} manage-notice`}
+        >
+          <Icon name={notice.kind === 'error' ? 'error' : 'check_circle'} />
+          {notice.text}
+        </p>
+      )}
+
+      <div className="card public-profile-header">
+        <UserAvatar username={profile.username} photo={profile.photo} />
+        <div className="public-profile-info">
+          <h1 className="public-profile-name">{profile.username}</h1>
+          <p className="public-profile-since">
+            Miembro desde {dateFormatter.format(new Date(profile.memberSince))}
+          </p>
+          <p className="public-profile-rating">
+            <Icon name="star" size="1.125rem" />
+            {rating.average === null ? (
+              <span>Todavía sin valoraciones</span>
+            ) : (
+              <span>
+                Valoración media: <strong>{ratingFormatter.format(rating.average)}</strong> de 5
+                <span className="public-profile-rating-count">
+                  {' '}
+                  · {rating.count} {rating.count === 1 ? 'valoración' : 'valoraciones'}
+                </span>
+              </span>
+            )}
+          </p>
+          {profile.bio ? (
+            <p className="public-profile-bio">{profile.bio}</p>
+          ) : (
+            profile.isOwnProfile && (
+              <p className="public-profile-bio public-profile-bio-empty">
+                Añade una bio para que los demás te conozcan.
+              </p>
+            )
+          )}
+          {profile.isOwnProfile && (
+            <button
+              type="button"
+              className="button-secondary public-profile-edit"
+              onClick={() => {
+                setNotice(null);
+                setEditing(true);
+              }}
+            >
+              <Icon name="edit" />
+              Editar perfil
+            </button>
+          )}
+        </div>
+      </div>
+
+      <section className="public-profile-items" aria-labelledby="public-profile-items-title">
+        <h2 id="public-profile-items-title" className="public-profile-section-title">
+          Objetos publicados
+        </h2>
+        {profile.items.length === 0 ? (
+          <div className="empty-state card">
+            <Icon name="inventory_2" />
+            <p>
+              {profile.isOwnProfile
+                ? 'Todavía no has publicado ningún objeto.'
+                : 'Todavía no tiene objetos publicados.'}
+            </p>
+          </div>
+        ) : (
+          <ul className="item-grid stagger">
+            {profile.items.map((item) => (
+              <ItemCard key={item.id} item={item} headingLevel="h3" />
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {editing && (
+        <EditProfileDialog
+          profile={profile}
+          onClose={() => setEditing(false)}
+          onSaved={handleSaved}
+        />
+      )}
+    </>
+  );
+}
+
+// Perfil público de cualquier persona (US-01.4, #301). Se llega desde la ficha de un objeto y, la
+// propia persona, desde «Mi perfil». Con sesión propia, aparece «Editar perfil».
+export function PublicProfilePage() {
+  const { id = '' } = useParams();
+
+  // Con key, cada usuario empieza de cero: sin restos del perfil anterior.
+  return (
+    <section className="public-profile page-enter">
+      <PublicProfileView key={id} id={id} />
+    </section>
+  );
+}

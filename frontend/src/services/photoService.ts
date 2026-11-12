@@ -1,4 +1,5 @@
 import { ApiError, apiRequest } from './apiClient';
+import type { PublicProfile } from './userService';
 
 // Subida de fotos de un objeto (US-02.01, #106; ADR 0002). Para el formulario de publicar (#13):
 //   const photo = await uploadItemPhoto(itemId, file, token);
@@ -46,19 +47,27 @@ export async function resizePhoto(file: File): Promise<Blob> {
   return jpeg;
 }
 
-export async function uploadItemPhoto(
-  itemId: string,
+type UploadPaths = {
+  // Pide la URL temporal del bucket y, al final, confirma la foto subida.
+  upload: string;
+  confirm: string;
+  // Campo de los errores de la foto: 'photos' en los objetos, 'photo' en el perfil.
+  field: string;
+};
+
+async function uploadPhoto<T>(
   file: File,
   token: string,
-  resize: (file: File) => Promise<Blob> = resizePhoto,
-): Promise<ItemPhoto> {
+  paths: UploadPaths,
+  resize: (file: File) => Promise<Blob>,
+): Promise<T> {
   const photo = await resize(file);
   if (photo.size > MAX_PHOTO_BYTES) {
-    throw new ApiError(400, 'La foto no puede ocupar más de 5 MB.', 'photos');
+    throw new ApiError(400, 'La foto no puede ocupar más de 5 MB.', paths.field);
   }
 
   // 1. La API decide dónde se guarda y da una URL temporal para subirla.
-  const upload = await apiRequest<PhotoUpload>(`/objetos/${itemId}/fotos/subida`, {
+  const upload = await apiRequest<PhotoUpload>(paths.upload, {
     method: 'POST',
     token,
     body: { contentType: photo.type, size: photo.size },
@@ -79,14 +88,43 @@ export async function uploadItemPhoto(
     throw new ApiError(
       stored.status,
       'No se ha podido subir la foto. Inténtalo de nuevo.',
-      'photos',
+      paths.field,
     );
   }
 
-  // 3. La API comprueba la foto subida y la guarda en el objeto.
-  return apiRequest<ItemPhoto>(`/objetos/${itemId}/fotos`, {
-    method: 'POST',
+  // 3. La API comprueba la foto subida y la guarda.
+  return apiRequest<T>(paths.confirm, { method: 'POST', token, body: { key: upload.key } });
+}
+
+export function uploadItemPhoto(
+  itemId: string,
+  file: File,
+  token: string,
+  resize: (file: File) => Promise<Blob> = resizePhoto,
+): Promise<ItemPhoto> {
+  return uploadPhoto<ItemPhoto>(
+    file,
     token,
-    body: { key: upload.key },
-  });
+    {
+      upload: `/objetos/${itemId}/fotos/subida`,
+      confirm: `/objetos/${itemId}/fotos`,
+      field: 'photos',
+    },
+    resize,
+  );
+}
+
+// Foto de perfil (US-01.4, #300): mismo recorrido en tres pasos. Devuelve el perfil con la foto
+// nueva; la anterior se borra del bucket.
+export function uploadProfilePhoto(
+  file: File,
+  token: string,
+  resize: (file: File) => Promise<Blob> = resizePhoto,
+): Promise<PublicProfile> {
+  return uploadPhoto<PublicProfile>(
+    file,
+    token,
+    { upload: '/usuarios/me/foto/subida', confirm: '/usuarios/me/foto', field: 'photo' },
+    resize,
+  );
 }

@@ -5,8 +5,11 @@ import { Icon } from './Icon';
 
 const priceFormatter = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 
+// El perfil público (US-01.4) lista objetos sin categoría: la tarjeta sirve para los dos.
+type CardItem = Omit<SearchItem, 'category'> & { category?: SearchItem['category'] };
+
 type ItemCardProps = {
-  item: SearchItem;
+  item: CardItem;
   headingLevel?: 'h2' | 'h3';
 };
 
@@ -20,7 +23,7 @@ export function ItemCard({ item, headingLevel: Heading = 'h2' }: ItemCardProps) 
           <img src={item.photo} alt={item.title} loading="lazy" />
         ) : (
           <div className="item-card-no-photo" role="img" aria-label="Sin foto">
-            <Icon name={categoryIcon(item.category.name)} size="3rem" />
+            <Icon name={item.category ? categoryIcon(item.category.name) : 'image'} size="3rem" />
           </div>
         )}
       </div>
@@ -34,7 +37,7 @@ export function ItemCard({ item, headingLevel: Heading = 'h2' }: ItemCardProps) 
         <p className="item-card-meta">
           <Icon name="location_on" size="1rem" />
           <span>
-            {item.neighborhood} · {item.category.name}
+            {item.category ? `${item.neighborhood} · ${item.category.name}` : item.neighborhood}
           </span>
         </p>
       </div>
