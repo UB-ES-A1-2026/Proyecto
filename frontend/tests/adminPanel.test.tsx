@@ -27,6 +27,7 @@ function application(overrides: Partial<RiderApplication> = {}): RiderApplicatio
     reviewedAt: null,
     reviewedBy: null,
     rejectionReason: null,
+    deliveriesCount: 0,
     ...overrides,
   };
 }
@@ -48,6 +49,7 @@ const APPLICATIONS = [
     id: 'r2',
     status: 'approved',
     reviewedAt: '2026-11-11T10:00:00.000Z',
+    deliveriesCount: 23,
     zone: 'Eixample',
     vehicle: 'motorbike',
     days: ['friday'],
@@ -124,7 +126,7 @@ describe('panel de administración (US-11.03)', () => {
     renderRoute('/admin/objetos');
 
     const table = await screen.findByRole('table', { name: 'Objetos publicados' });
-    await within(table).findByText('Taladro');
+    await within(table).findByText('Taladro', { selector: '.admin-cell-title' });
     expect(within(table).getAllByRole('row')).toHaveLength(3);
     expect(within(table).getByRole('link', { name: /Ver ficha.*Escalera/ })).toHaveAttribute(
       'href',
@@ -151,6 +153,11 @@ describe('panel de administración (US-11.03)', () => {
     expect(within(table).queryByText('jordi')).not.toBeInTheDocument();
     expect(within(table).queryByText('xavi')).not.toBeInTheDocument();
     expect(within(table).getByText('Viernes.')).toBeInTheDocument();
+    const header = within(table)
+      .getAllByRole('columnheader')
+      .map((cell) => cell.textContent);
+    const row = within(table).getAllByRole('row')[1];
+    expect(within(row).getAllByRole('cell')[header.indexOf('Entregas')]).toHaveTextContent('23');
 
     await user.type(screen.getByLabelText('Buscar riders'), 'gràcia');
 
@@ -195,5 +202,78 @@ describe('panel de administración (US-11.03)', () => {
     await user.click(screen.getByRole('button', { name: 'Iniciar sesión' }));
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/admin'));
+  });
+  it('retira un objeto con su motivo y lo quita de la tabla', async () => {
+    localStorage.setItem('rentit.session', JSON.stringify(ADMIN));
+    let withdrawn = false;
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.endsWith('/admin/objetos/i1/retirar') && init?.method === 'POST') {
+        withdrawn = true;
+        return new Response(null, { status: 204 });
+      }
+      if (url.includes('/categorias')) return Response.json([]);
+      if (url.includes('/objetos')) {
+        const items = withdrawn
+          ? [item('i2', 'Escalera')]
+          : [item('i1', 'Taladro'), item('i2', 'Escalera')];
+        return Response.json({ items, page: 1, pageSize: 20, total: items.length });
+      }
+      return Response.json([]);
+    });
+    const user = userEvent.setup();
+
+    renderRoute('/admin/objetos');
+
+    const list = await screen.findByRole('table', { name: 'Objetos publicados' });
+    await within(list).findByText('Taladro', { selector: '.admin-cell-title' });
+    await user.click(within(list).getByRole('button', { name: 'Retirar Taladro' }));
+    const dialog = within(screen.getByRole('dialog', { name: 'Retirar anuncio' }));
+
+    // Sin motivo no deja retirarlo.
+    await user.click(dialog.getByRole('button', { name: 'Retirar anuncio' }));
+    expect(dialog.getByRole('alert')).toHaveTextContent('Elige el motivo');
+
+    await user.click(dialog.getByRole('radio', { name: /Posible estafa/ }));
+    await user.type(dialog.getByLabelText(/Detalles/), 'Pide el pago por Bizum.');
+    await user.click(dialog.getByRole('button', { name: 'Retirar anuncio' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      '«Taladro» se ha retirado de Rentit.',
+    );
+    const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/retirar'));
+    expect(call?.[1]?.headers).toMatchObject({ Authorization: 'Bearer token-de-admin' });
+    expect(JSON.parse(String(call?.[1]?.body))).toEqual({
+      reason: 'scam',
+      details: 'Pide el pago por Bizum.',
+    });
+    const table = screen.getByRole('table', { name: 'Objetos publicados' });
+    await waitFor(() =>
+      expect(
+        within(table).queryByText('Taladro', { selector: '.admin-cell-title' }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('«Otro motivo» pide detalles y «Cancelar» no retira nada', async () => {
+    localStorage.setItem('rentit.session', JSON.stringify(ADMIN));
+    const fetchMock = mockApi();
+    const user = userEvent.setup();
+
+    renderRoute('/admin/objetos');
+
+    const list = await screen.findByRole('table', { name: 'Objetos publicados' });
+    await within(list).findByText('Taladro', { selector: '.admin-cell-title' });
+    await user.click(within(list).getByRole('button', { name: 'Retirar Taladro' }));
+    const dialog = within(screen.getByRole('dialog', { name: 'Retirar anuncio' }));
+    await user.click(dialog.getByRole('radio', { name: /Otro motivo/ }));
+    await user.click(dialog.getByRole('button', { name: 'Retirar anuncio' }));
+    expect(dialog.getByRole('alert')).toHaveTextContent('Explica el motivo');
+
+    await user.click(dialog.getByRole('button', { name: 'Cancelar' }));
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/retirar'))).toBe(false);
   });
 });

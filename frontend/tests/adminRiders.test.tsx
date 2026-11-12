@@ -26,6 +26,7 @@ function application(overrides: Partial<RiderApplication> = {}): RiderApplicatio
     reviewedAt: null,
     reviewedBy: null,
     rejectionReason: null,
+    deliveriesCount: 0,
     ...overrides,
   };
 }

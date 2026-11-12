@@ -21,6 +21,7 @@ export type IconName =
   | 'child_care'
   | 'close'
   | 'dashboard'
+  | 'delete'
   | 'description'
   | 'devices'
   | 'directions_bike'

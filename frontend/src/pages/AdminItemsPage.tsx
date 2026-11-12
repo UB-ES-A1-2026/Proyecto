@@ -1,17 +1,19 @@
 // Generado con asistencia de IA (Claude)
-import { useEffect, useId, useState, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
+import { AdminWithdrawItemDialog } from '../components/AdminWithdrawItemDialog';
 import { Icon } from '../components/Icon';
 import { ApiError } from '../services/apiClient';
 import { getCategories, type Category } from '../services/categoryService';
-import { searchItems, type SearchResponse } from '../services/searchService';
+import { searchItems, type SearchItem, type SearchResponse } from '../services/searchService';
 
 const priceFormatter = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 
 type Query = { q: string; categoryId: string; page: number };
 
-// Objetos publicados, en tabla, para el admin. Usa la búsqueda pública: de momento se ven los
-// publicados; los pausados y retirados, y su propietario, llegan con el panel completo (US-11.01).
+// Objetos publicados, en tabla, para el admin, que puede retirar los que incumplen las normas.
+// Usa la búsqueda pública: de momento se ven los publicados; los pausados y retirados, y su
+// propietario, llegan con el panel completo (US-11.01).
 export function AdminItemsPage() {
   const searchId = useId();
   const categoryId = useId();
@@ -20,6 +22,14 @@ export function AdminItemsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [result, setResult] = useState<SearchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [withdrawing, setWithdrawing] = useState<SearchItem | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const noticeRef = useRef<HTMLParagraphElement>(null);
+
+  // El aviso se lleva el foco: así se ve aunque el objeto retirado estuviera más abajo.
+  useEffect(() => {
+    if (notice) noticeRef.current?.focus();
+  }, [notice]);
 
   useEffect(() => {
     getCategories()
@@ -54,6 +64,13 @@ export function AdminItemsPage() {
     setQuery((current) => ({ ...current, q: text.trim(), page: 1 }));
   }
 
+  function handleWithdrawn(item: SearchItem) {
+    setWithdrawing(null);
+    setNotice(`«${item.title}» se ha retirado de Rentit.`);
+    // Vuelve a pedir la página: el objeto retirado ya no sale en la búsqueda.
+    setQuery((current) => ({ ...current }));
+  }
+
   const pages = result ? Math.max(1, Math.ceil(result.total / result.pageSize)) : 1;
   const goTo = (page: number) => {
     setResult(null);
@@ -72,6 +89,13 @@ export function AdminItemsPage() {
           </p>
         </div>
       </header>
+
+      {notice && (
+        <p ref={noticeRef} tabIndex={-1} role="status" className="form-success manage-notice">
+          <Icon name="check_circle" />
+          {notice}
+        </p>
+      )}
 
       <div className="admin-table-card card">
         <form className="admin-toolbar" role="search" onSubmit={handleSearch}>
@@ -165,10 +189,24 @@ export function AdminItemsPage() {
                       {priceFormatter.format(Number(item.dailyPrice))}
                     </td>
                     <td className="admin-table-action">
-                      <Link to={`/objetos/${item.id}`} className="admin-table-link">
-                        Ver ficha
-                        <span className="manage-visually-hidden"> de {item.title}</span>
-                      </Link>
+                      <span className="admin-table-actions">
+                        <Link to={`/objetos/${item.id}`} className="admin-table-link">
+                          Ver ficha
+                          <span className="manage-visually-hidden"> de {item.title}</span>
+                        </Link>
+                        <button
+                          type="button"
+                          className="admin-table-danger"
+                          aria-label={`Retirar ${item.title}`}
+                          onClick={() => {
+                            setNotice(null);
+                            setWithdrawing(item);
+                          }}
+                        >
+                          <Icon name="delete" />
+                          Retirar
+                        </button>
+                      </span>
                     </td>
                   </tr>
                 ))
@@ -203,6 +241,14 @@ export function AdminItemsPage() {
           </nav>
         )}
       </div>
+
+      {withdrawing && (
+        <AdminWithdrawItemDialog
+          item={withdrawing}
+          onClose={() => setWithdrawing(null)}
+          onWithdrawn={() => handleWithdrawn(withdrawing)}
+        />
+      )}
     </section>
   );
 }
