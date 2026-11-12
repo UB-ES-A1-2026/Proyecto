@@ -98,6 +98,70 @@
   margin-top: var(--space-md);
 }
 
+/* Lo que solo ve su dueño: aviso, correo, publicar y cerrar sesión */
+.public-profile-own {
+  margin: 0;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
+}
+
+.public-profile-email {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  align-items: center;
+  margin: 0;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.public-profile-email .icon {
+  color: var(--color-text-muted);
+}
+
+.public-profile-email-note {
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+.public-profile-email-note::before {
+  content: '· ';
+}
+
+.public-profile-section-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-md);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.public-profile-section-header .public-profile-section-title {
+  margin: 0;
+}
+
+/* Dos clases: styles.css se carga después de los @import y le ganaría el ancho del botón. */
+.public-profile-section-header .public-profile-publish {
+  width: auto;
+}
+
+.public-profile-logout {
+  margin-top: var(--space-2xl);
+}
+
+.public-profile-logout .logout-button {
+  width: auto;
+  margin-left: -1rem;
+  color: var(--color-error);
+}
+
+.public-profile-logout .logout-button:hover:not(:disabled) {
+  color: var(--color-error-hover);
+  background-color: var(--color-error-background);
+}
+
 /* Objetos publicados */
 .public-profile-items {
   margin-top: var(--space-2xl);
@@ -135,11 +199,6 @@
 .public-profile-skeleton-line {
   width: min(100%, 28rem);
   height: 1rem;
-}
-
-/* «Ver mi perfil público», en «Mi perfil» */
-.profile-public-link {
-  margin-top: var(--space-md);
 }
 
 /* La persona que publica, en la ficha de un objeto */
@@ -193,6 +252,14 @@
 
   .public-profile-skeleton-text {
     align-items: center;
+  }
+
+  .public-profile-logout {
+    text-align: center;
+  }
+
+  .public-profile-logout .logout-button {
+    margin-left: 0;
   }
 
   .edit-profile-photo {

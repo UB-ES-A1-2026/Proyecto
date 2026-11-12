@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router';
 import { EditProfileDialog } from '../components/EditProfileDialog';
 import { Icon } from '../components/Icon';
 import { ItemCard } from '../components/ItemCard';
+import { LogoutButton } from '../components/LogoutButton';
 import { UserAvatar } from '../components/UserAvatar';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
@@ -118,10 +119,21 @@ function PublicProfileView({ id }: { id: string }) {
       <div className="card public-profile-header">
         <UserAvatar username={profile.username} photo={profile.photo} />
         <div className="public-profile-info">
+          {profile.isOwnProfile && (
+            <p className="public-profile-own">Tu perfil · así lo ven los demás</p>
+          )}
           <h1 className="public-profile-name">{profile.username}</h1>
           <p className="public-profile-since">
             Miembro desde {dateFormatter.format(new Date(profile.memberSince))}
           </p>
+          {/* El correo no es público: solo lo ve su dueño, y sale de la sesión. */}
+          {profile.isOwnProfile && session && (
+            <p className="public-profile-email">
+              <Icon name="mail" size="1.125rem" />
+              <span>{session.user.email}</span>
+              <span className="public-profile-email-note">solo lo ves tú</span>
+            </p>
+          )}
           <p className="public-profile-rating">
             <Icon name="star" size="1.125rem" />
             {rating.average === null ? (
@@ -162,9 +174,16 @@ function PublicProfileView({ id }: { id: string }) {
       </div>
 
       <section className="public-profile-items" aria-labelledby="public-profile-items-title">
-        <h2 id="public-profile-items-title" className="public-profile-section-title">
-          Objetos publicados
-        </h2>
+        <div className="public-profile-section-header">
+          <h2 id="public-profile-items-title" className="public-profile-section-title">
+            Objetos publicados
+          </h2>
+          {profile.isOwnProfile && (
+            <Link to="/objetos/nuevo" className="button-primary public-profile-publish">
+              Publicar un objeto
+            </Link>
+          )}
+        </div>
         {profile.items.length === 0 ? (
           <div className="empty-state card">
             <Icon name="inventory_2" />
@@ -194,15 +213,22 @@ function PublicProfileView({ id }: { id: string }) {
   );
 }
 
-// Perfil público de cualquier persona (US-01.4, #301). Se llega desde la ficha de un objeto y, la
-// propia persona, desde «Mi perfil». Con sesión propia, aparece «Editar perfil».
+// El único perfil de Rentit (US-01.4, #301): el público. Se llega desde la ficha de un objeto y, la
+// propia persona, desde «Mi perfil». Si es el tuyo, puedes editarlo, publicar un objeto y cerrar sesión.
 export function PublicProfilePage() {
   const { id = '' } = useParams();
+  const { session } = useAuth();
 
-  // Con key, cada usuario empieza de cero: sin restos del perfil anterior.
   return (
-    <section className="public-profile page-enter">
+    <section className="public-profile">
+      {/* Con key, cada usuario empieza de cero: sin restos del perfil anterior. */}
       <PublicProfileView key={id} id={id} />
+      {/* Cerrar sesión no depende de que cargue el perfil: se sabe que es el tuyo por la sesión. */}
+      {session?.user.id === id && (
+        <div className="public-profile-logout">
+          <LogoutButton />
+        </div>
+      )}
     </section>
   );
 }

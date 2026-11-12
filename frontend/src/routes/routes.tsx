@@ -1,5 +1,6 @@
 import type { RouteObject } from 'react-router';
 import { Layout } from '../components/Layout';
+import { MyProfileRedirect } from '../components/MyProfileRedirect';
 import { PrivateRoute } from '../components/PrivateRoute';
 import { ApprovedRiderRoute, GuestOnlyRoute, RenterOnlyRoute } from '../components/RiderRoutes';
 import { AuthProvider } from '../context/AuthContext';
@@ -12,7 +13,6 @@ import { LoginPage } from '../pages/LoginPage';
 import { MyItemsPage } from '../pages/MyItemsPage';
 import { MyReservationsPage } from '../pages/MyReservationsPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
-import { ProfilePage } from '../pages/ProfilePage';
 import { PublicProfilePage } from '../pages/PublicProfilePage';
 import { PublishItemPage } from '../pages/PublishItemPage';
 import { RegisterPage } from '../pages/RegisterPage';
@@ -31,6 +31,8 @@ export const routes: RouteObject[] = [
       { index: true, element: <HomePage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'registro', element: <RegisterPage /> },
+      // Perfil público (US-01.4): lo puede ver cualquiera.
+      { path: 'usuarios/:id', element: <PublicProfilePage /> },
       { path: 'ayuda', element: <HelpPage /> },
       // «Hazte rider» (US-10.03): solo sin sesión, porque la cuenta de rider es aparte.
       {
@@ -44,8 +46,6 @@ export const routes: RouteObject[] = [
         children: [
           { path: 'buscar', element: <SearchPage /> },
           { path: 'objetos/:id', element: <ItemDetailPage /> },
-          // Perfil público (US-01.4): lo puede ver cualquiera menos un rider, que no alquila ni publica.
-          { path: 'usuarios/:id', element: <PublicProfilePage /> },
           {
             element: <PrivateRoute />,
             children: [
@@ -61,7 +61,9 @@ export const routes: RouteObject[] = [
       {
         element: <PrivateRoute />,
         children: [
-          { path: 'perfil', element: <ProfilePage /> },
+          // Solo hay un perfil, el público: «Mi perfil» es el tuyo, con edición. Un rider ve en él
+          // su bloque de rider (US-10.03).
+          { path: 'perfil', element: <MyProfileRedirect /> },
           {
             element: <ApprovedRiderRoute />,
             children: [{ path: 'trabajos', element: <RiderJobsPage /> }],
