@@ -23,6 +23,8 @@ export type RiderApplication = {
   reviewedAt: string | null;
   reviewedBy: { id: string; username: string } | null;
   rejectionReason: string | null;
+  // Entregas que el rider ha completado (0 si aún no es rider). Lo calcula el backend en #317.
+  deliveriesCount: number;
 };
 
 export function getRiderApplications(token: string): Promise<RiderApplication[]> {
