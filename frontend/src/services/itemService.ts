@@ -1,4 +1,5 @@
 // Generado con asistencia de IA – revisado por Danyal, 01/11/2026
+import type { AdminWithdrawReason } from './adminItemService';
 import { apiRequest } from './apiClient';
 
 // Estados del objeto: enum ItemStatus del esquema de Prisma (#86).
@@ -44,6 +45,15 @@ export type MyItem = {
   status: ItemStatus;
   // URL de la primera foto. Pausar, reanudar y retirar no la devuelven.
   photo?: string | null;
+  // Si lo retiró un admin desde el panel: el motivo, para que el propietario sepa por qué.
+  // Propuesta de contrato para el backend (US-11.03); null o ausente si lo retiró el propietario.
+  moderation?: ItemModeration | null;
+};
+
+export type ItemModeration = {
+  reason: AdminWithdrawReason;
+  details: string | null;
+  withdrawnAt: string;
 };
 
 // Cuerpo de PATCH /api/objetos/:id (#109): los campos que se pueden editar desde el formulario.
