@@ -13,7 +13,11 @@ import { ProfilePage } from '../pages/ProfilePage';
 import { PublishItemPage } from '../pages/PublishItemPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { SearchPage } from '../pages/SearchPage';
-import { AdminRidersPage } from '../pages/AdminRidersPage';
+import { AdminActiveRidersPage } from '../pages/AdminActiveRidersPage';
+import { AdminDashboardPage } from '../pages/AdminDashboardPage';
+import { AdminItemsPage } from '../pages/AdminItemsPage';
+import { AdminRiderApplicationsPage } from '../pages/AdminRiderApplicationsPage';
+import { AdminLayout } from '../components/AdminLayout';
 import { AdminRoute } from '../components/AdminRoute';
 
 export const routes: RouteObject[] = [
@@ -44,7 +48,18 @@ export const routes: RouteObject[] = [
       },
       {
         element: <AdminRoute />,
-        children: [{ path: 'admin/riders', element: <AdminRidersPage /> }],
+        children: [
+          {
+            path: 'admin',
+            element: <AdminLayout />,
+            children: [
+              { index: true, element: <AdminDashboardPage /> },
+              { path: 'objetos', element: <AdminItemsPage /> },
+              { path: 'riders', element: <AdminActiveRidersPage /> },
+              { path: 'solicitudes', element: <AdminRiderApplicationsPage /> },
+            ],
+          },
+        ],
       },
       { path: '*', element: <NotFoundPage /> },
     ],

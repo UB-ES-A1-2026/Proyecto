@@ -12,6 +12,16 @@ export function Layout() {
     ? state
     : { from: `${pathname}${search}` };
 
+  // El panel de administración tiene su propia estructura, sin la cabecera ni el pie de la web.
+  if (pathname.startsWith('/admin')) {
+    return (
+      <>
+        <Outlet />
+        <ScrollRestoration />
+      </>
+    );
+  }
+
   return (
     <>
       <header className="app-header">
@@ -37,11 +47,11 @@ export function Layout() {
                   <Icon name="receipt_long" />
                   Mis solicitudes
                 </NavLink>
-                {/* Solo el admin revisa las solicitudes para ser rider (US-11.03). */}
+                {/* Solo el admin tiene panel de administración (US-11.03). */}
                 {session.user.role === 'admin' && (
-                  <NavLink to="/admin/riders" className="nav-link">
-                    <Icon name="pedal_bike" />
-                    Riders
+                  <NavLink to="/admin" className="nav-link">
+                    <Icon name="dashboard" />
+                    Panel
                   </NavLink>
                 )}
                 <NavLink to="/perfil" className="nav-link">

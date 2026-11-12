@@ -50,13 +50,13 @@ describe('pantalla «Riders» del admin (US-11.03, #318)', () => {
     signIn({ ...ADMIN, user: { ...ADMIN.user, role: 'user' } });
     mockApi(() => Response.json({ items: [] }));
 
-    const { router } = renderRoute('/admin/riders');
+    const { router } = renderRoute('/admin/solicitudes');
 
     expect(router.state.location.pathname).toBe('/');
   });
 
   it('sin sesión lleva al login', () => {
-    const { router } = renderRoute('/admin/riders');
+    const { router } = renderRoute('/admin/solicitudes');
 
     expect(router.state.location.pathname).toBe('/login');
   });
@@ -76,7 +76,7 @@ describe('pantalla «Riders» del admin (US-11.03, #318)', () => {
     );
     const user = userEvent.setup();
 
-    renderRoute('/admin/riders');
+    renderRoute('/admin/solicitudes');
 
     const cards = await screen.findAllByRole('button', { name: /Pendiente de revisión$/ });
     expect(cards.map((card) => card.textContent)).toEqual([
@@ -117,7 +117,7 @@ describe('pantalla «Riders» del admin (US-11.03, #318)', () => {
         : Response.json([application()]),
     );
     const user = userEvent.setup();
-    renderRoute('/admin/riders');
+    renderRoute('/admin/solicitudes');
 
     await user.click(await screen.findByRole('button', { name: /jordi/ }));
     await user.click(screen.getByRole('button', { name: 'Aceptar' }));
@@ -150,7 +150,7 @@ describe('pantalla «Riders» del admin (US-11.03, #318)', () => {
         : Response.json([application()]),
     );
     const user = userEvent.setup();
-    renderRoute('/admin/riders');
+    renderRoute('/admin/solicitudes');
 
     await user.click(await screen.findByRole('button', { name: /jordi/ }));
     await user.click(screen.getByRole('button', { name: 'Rechazar' }));
@@ -173,7 +173,7 @@ describe('pantalla «Riders» del admin (US-11.03, #318)', () => {
     signIn();
     const fetchMock = mockApi(() => Response.json([application()]));
     const user = userEvent.setup();
-    renderRoute('/admin/riders');
+    renderRoute('/admin/solicitudes');
 
     await user.click(await screen.findByRole('button', { name: /jordi/ }));
     await user.click(screen.getByRole('button', { name: 'Rechazar' }));
@@ -198,7 +198,7 @@ describe('pantalla «Riders» del admin (US-11.03, #318)', () => {
       ]);
     });
     const user = userEvent.setup();
-    renderRoute('/admin/riders');
+    renderRoute('/admin/solicitudes');
 
     await user.click(await screen.findByRole('button', { name: /jordi/ }));
     await user.click(screen.getByRole('button', { name: 'Aceptar' }));
@@ -214,7 +214,7 @@ describe('pantalla «Riders» del admin (US-11.03, #318)', () => {
     signIn();
     mockApi(() => Response.json([]));
 
-    renderRoute('/admin/riders');
+    renderRoute('/admin/solicitudes');
 
     expect(await screen.findByText('No hay solicitudes pendientes.')).toBeInTheDocument();
     const filters = within(screen.getByRole('group', { name: 'Filtrar por estado' }));
@@ -225,7 +225,7 @@ describe('pantalla «Riders» del admin (US-11.03, #318)', () => {
     signIn();
     mockApi(() => Response.json({ error: 'Solo para administradores.' }, { status: 403 }));
 
-    renderRoute('/admin/riders');
+    renderRoute('/admin/solicitudes');
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'No hemos podido cargar las solicitudes. Inténtalo de nuevo más tarde.',

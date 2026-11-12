@@ -83,7 +83,10 @@ export function LoginPage() {
     try {
       const session = await login(email, password);
       saveSession(session);
-      navigate(getRedirectPath(location.state), { replace: true });
+      const target = getRedirectPath(location.state);
+      navigate(session.user.role === 'admin' && target === '/' ? '/admin' : target, {
+        replace: true,
+      });
     } catch (error) {
       if (error instanceof ApiError && isField(error.field)) {
         showFieldErrors({ [error.field]: error.message });
