@@ -33,6 +33,15 @@ export type Reservation = {
   createdAt: string;
   // Modo, hora y destino de la entrega (US-05.01, #282); null en las anteriores a la historia.
   delivery?: ReservationDelivery | null;
+  // Valoración que la persona de la sesión ha hecho de esta reserva, o null si aún no la ha
+  // valorado (US-08.01, #296). Opcional hasta que el backend (#295) la envíe.
+  myRating?: Rating | null;
+};
+
+export type Rating = {
+  score: number;
+  comment: string | null;
+  createdAt: string;
 };
 
 export type MyReservations = {
