@@ -13,6 +13,7 @@ import { reservationDecisionRoutes } from './reservationDecisionRoutes.js';
 import { itemRoutes } from './itemRoutes.js';
 import { photoRoutes } from './photoRoutes.js';
 import { userRoutes } from './userRoutes.js';
+import { itemDemandRoutes } from './itemDemandRoutes.js';
 
 export const apiRoutes = Router();
 
@@ -22,6 +23,7 @@ apiRoutes.use(userRoutes);
 apiRoutes.use(itemEditRoutes);
 apiRoutes.use(itemSearchRoutes);
 apiRoutes.use(itemDetailRoutes);
+apiRoutes.use(itemDemandRoutes);
 apiRoutes.use(myReservationsRoutes);
 apiRoutes.use(reservationRoutes);
 apiRoutes.use(itemPauseRoutes);

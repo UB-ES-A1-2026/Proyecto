@@ -139,6 +139,30 @@ Endpoints del Sprint 0:
 
 > Los nombres exactos de las rutas los fija BE al implementar; si cambian, se actualiza esta tabla en el mismo PR.
 
+### Demanda de fechas de un objeto (Sprint 2 · #311)
+
+`GET /api/objetos/:id/demanda?from=AAAA-MM-DD&to=AAAA-MM-DD` (US-04.07, #303). Requiere sesión (`requireAuth`), como el calendario de la ficha donde se usa, y nunca cuenta las solicitudes del propio usuario.
+
+```json
+{
+  "days": [
+    { "date": "2026-12-04", "pendingRequests": 1 },
+    { "date": "2026-12-05", "pendingRequests": 2 }
+  ],
+  "pendingRequests": 2
+}
+```
+
+| Campo | Qué es |
+|---|---|
+| `days` | Los días del rango con alguna solicitud **pendiente** de otras personas, ordenados por fecha. Los que no salen tienen 0 (libre). |
+| `pendingRequests` | Cuántas solicitudes distintas tocan el rango. Una del 4 al 6 cuenta en cada uno de sus días, pero solo una vez aquí. Es el número del resumen «Hay 3 solicitudes que coinciden con tus fechas». |
+
+- Solo cuentan las pendientes: las aceptadas, pagadas o en curso ya bloquean las fechas (`GET /api/reservas/disponibilidad`), y las rechazadas o canceladas no cuentan.
+- Nunca dice quién ha hecho las solicitudes: la consulta solo lee las fechas.
+- Los niveles (0 libre, 1–2 poca, 3–5 media, 6+ mucha) y los colores los decide el frontend (T32, #312).
+- Errores: 400 si `from` o `to` faltan o no son fechas reales (`field`: `from` o `to`), si `to` es anterior a `from` o si el rango pasa de 366 días (`field`: `to`). 401 sin sesión o con la sesión caducada. 404 si el objeto no existe, o si está pausado o retirado y quien pregunta no es su propietario.
+
 ## 3. Estructura de carpetas
 
 Mono-repo con el front y el back separados (ver la justificación en el [ADR 0001](adr/0001-stack.md)). Es la estructura **prevista**: los esqueletos reales los crean FE (#31) y BE (#17), y si difieren se actualiza este apartado.
