@@ -390,6 +390,77 @@
   font-weight: var(--font-weight-bold);
 }
 
+/* Paso «Entrega» de la solicitud (US-05.01, #282) */
+.rental-delivery-context {
+  margin: calc(-1 * var(--space-sm)) 0 var(--space-md);
+}
+
+.rental-delivery-fieldset {
+  min-width: 0;
+  margin: 0 0 var(--space-md);
+  padding: 0;
+  border: none;
+}
+
+.rental-delivery-fieldset legend {
+  margin-bottom: var(--space-sm);
+  padding: 0;
+  font-weight: var(--font-weight-medium);
+}
+
+.rental-delivery-option {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: flex-start;
+  margin-bottom: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  cursor: pointer;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.rental-delivery-option:has(input:checked) {
+  border-color: var(--color-primary);
+}
+
+.rental-delivery-option input {
+  margin-top: 0.2em;
+  accent-color: var(--color-primary);
+}
+
+.rental-delivery-point {
+  display: flex;
+  flex: 1;
+  gap: var(--space-sm);
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.rental-delivery-point .field-hint {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.rental-delivery-details {
+  margin-bottom: var(--space-md);
+}
+
+.rental-delivery-price p {
+  margin: 0;
+}
+
+.rental-delivery-price p + p {
+  margin-top: var(--space-xs);
+}
+
+.rental-summary-note {
+  display: block;
+  margin-top: var(--space-xs);
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
 /* Objeto no encontrado */
 .item-not-found h1 {
   margin: 0;

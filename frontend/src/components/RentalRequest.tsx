@@ -2,6 +2,11 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
+import {
+  DELIVERY_MODE_LABELS,
+  formatSlot,
+  type DeliveryRequest,
+} from '../services/deliveryService';
 import { checkAvailability, requestRental, type Reservation } from '../services/rentalService';
 import { monthOf, selectRangeDate } from '../utils/calendar';
 import {
@@ -18,6 +23,14 @@ import {
   type RentalDateErrors,
 } from '../utils/rental';
 import { DateRangeCalendar } from './DateRangeCalendar';
+import {
+  DELIVERY_ERROR_FIELDS,
+  EMPTY_DELIVERY_DRAFT,
+  type DeliveryDraft,
+  type DeliveryErrors,
+  type DeliverySelection,
+} from '../utils/delivery';
+import { DeliveryStep } from './DeliveryStep';
 import { Icon } from './Icon';
 
 export type RentalItem = {
@@ -25,6 +38,8 @@ export type RentalItem = {
   title: string;
   pricePerDay: number;
   photoUrl?: string;
+  // Barrio del objeto: con «Recoger en casa del propietario» es lo único que se ve antes de aceptar.
+  neighborhood?: string;
 };
 
 type RentalRequestProps = {
@@ -40,15 +55,39 @@ const NOT_AVAILABLE_MESSAGE = 'El objeto no está disponible en esas fechas.';
 // ignora el de unas fechas anteriores si el usuario las cambia mientras se espera la respuesta.
 type AvailabilityResult = { datesKey: string } & ({ available: boolean } | { error: string });
 
+// Lo que se envía a POST /reservas según el modo elegido en el paso «Entrega» (US-05.01, #282).
+function toDeliveryRequest(selection: DeliverySelection): DeliveryRequest {
+  switch (selection.mode) {
+    case 'home':
+      return { deliveryMode: 'home' };
+    case 'pickup_point':
+      return { deliveryMode: 'pickup_point', pickupPointId: selection.pickupPoint.id };
+    case 'rider':
+      return {
+        deliveryMode: 'rider',
+        slot: selection.slot,
+        deliveryAddress: selection.address,
+        deliveryNeighborhood: selection.neighborhood,
+      };
+  }
+}
+
+function isDeliveryField(field: string | undefined): field is keyof DeliveryErrors {
+  return DELIVERY_ERROR_FIELDS.some((deliveryField) => deliveryField === field);
+}
+
 // Selector de fechas, resumen y confirmación de US-04.01 (#121), dentro del panel lateral de la
-// ficha del objeto (#15).
+// ficha del objeto (#15). Con US-05.01 (#282), entre las fechas y el resumen está el paso «Entrega».
 export function RentalRequest({ item, onRequested, onSessionExpired }: RentalRequestProps) {
   // Lo que hay escrito en los campos («dd/mm/aaaa»). El calendario escribe en ellos al hacer clic.
   const [startText, setStartText] = useState('');
   const [endText, setEndText] = useState('');
   const [apiErrors, setApiErrors] = useState<RentalDateErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
-  const [step, setStep] = useState<'dates' | 'summary'>('dates');
+  const [step, setStep] = useState<'dates' | 'delivery' | 'summary'>('dates');
+  const [deliveryDraft, setDeliveryDraft] = useState<DeliveryDraft>(EMPTY_DELIVERY_DRAFT);
+  const [deliveryErrors, setDeliveryErrors] = useState<DeliveryErrors>({});
+  const [deliverySelection, setDeliverySelection] = useState<DeliverySelection | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [availability, setAvailability] = useState<AvailabilityResult | null>(null);
   const { session, clearSession } = useAuth();
@@ -147,13 +186,20 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
   function handleDatesSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!isAvailable) return;
-    // Un error de un envío anterior (p. ej. el 409 por solape) no se arrastra al resumen nuevo.
+    // Un error de un envío anterior (p. ej. el 409 por solape) no se arrastra al paso siguiente.
+    setFormError(null);
+    setDeliveryErrors({});
+    setStep('delivery');
+  }
+
+  function handleDeliveryContinue(selection: DeliverySelection) {
+    setDeliverySelection(selection);
     setFormError(null);
     setStep('summary');
   }
 
   async function handleConfirm() {
-    if (submitting || !session) return;
+    if (submitting || !session || !deliverySelection) return;
 
     setSubmitting(true);
     setFormError(null);
@@ -162,6 +208,7 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
         itemId: item.id,
         startDate,
         endDate,
+        ...toDeliveryRequest(deliverySelection),
       });
       onRequested(reservation);
     } catch (error) {
@@ -186,6 +233,14 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
       ) {
         setApiErrors({ [error.field]: error.message });
         setStep('dates');
+      } else if (error instanceof ApiError && error.field === 'deliveryMode') {
+        // El propietario ha dejado de ofrecer ese modo: se vuelve a elegir, con el aviso arriba.
+        setFormError(error.message);
+        setDeliveryErrors({});
+        setStep('delivery');
+      } else if (error instanceof ApiError && isDeliveryField(error.field)) {
+        setDeliveryErrors({ [error.field]: error.message });
+        setStep('delivery');
       } else if (error instanceof ApiError) {
         setFormError(error.message);
       } else {
@@ -194,7 +249,30 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
     }
   }
 
-  if (step === 'summary') {
+  if (step === 'delivery') {
+    return (
+      <DeliveryStep
+        item={item}
+        startDate={startDate}
+        endDate={endDate}
+        days={days}
+        rentalPrice={totalPrice}
+        draft={deliveryDraft}
+        onDraftChange={setDeliveryDraft}
+        initialErrors={deliveryErrors}
+        formError={formError}
+        headingRef={headingRef}
+        onBack={() => {
+          setFormError(null);
+          setStep('dates');
+        }}
+        onContinue={handleDeliveryContinue}
+      />
+    );
+  }
+
+  if (step === 'summary' && deliverySelection) {
+    const deliveryFee = deliverySelection.mode === 'rider' ? Number(deliverySelection.fee) : 0;
     return (
       <section key="summary" className="rental-request" aria-labelledby="rental-title">
         <h2 id="rental-title" ref={headingRef} tabIndex={-1}>
@@ -217,8 +295,20 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
           <dd>{formatLongDate(startDate)}</dd>
           <dt>Hasta</dt>
           <dd>{formatLongDate(endDate)}</dd>
+          <dt>Entrega</dt>
+          <dd>
+            <DeliverySummary selection={deliverySelection} />
+          </dd>
           <dt>Importe del alquiler ({days === 1 ? '1 día' : `${days} días`})</dt>
-          <dd className="rental-total">{formatPrice(totalPrice)}</dd>
+          <dd>{formatPrice(totalPrice)}</dd>
+          {deliverySelection.mode === 'rider' && (
+            <>
+              <dt>{DELIVERY_MODE_LABELS.rider}</dt>
+              <dd>{formatPrice(deliveryFee)}</dd>
+            </>
+          )}
+          <dt>Total</dt>
+          <dd className="rental-total">{formatPrice(totalPrice + deliveryFee)}</dd>
         </dl>
         <div className="rental-actions">
           <button
@@ -227,7 +317,7 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
             disabled={submitting}
             onClick={() => {
               setFormError(null);
-              setStep('dates');
+              setStep('delivery');
             }}
           >
             Volver
@@ -342,4 +432,35 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
       </form>
     </section>
   );
+}
+
+// Modo, hora y destino de la entrega en el resumen (pantalla 8 del wireframe de US-05.01).
+function DeliverySummary({ selection }: { selection: DeliverySelection }) {
+  switch (selection.mode) {
+    case 'home':
+      return (
+        <>
+          {DELIVERY_MODE_LABELS.home}
+          <span className="rental-summary-note">
+            La dirección se mostrará cuando acepten la solicitud.
+          </span>
+        </>
+      );
+    case 'pickup_point':
+      return (
+        <>
+          {DELIVERY_MODE_LABELS.pickup_point}: {selection.pickupPoint.name}
+          <span className="rental-summary-note">{selection.pickupPoint.address}</span>
+        </>
+      );
+    case 'rider':
+      return (
+        <>
+          {DELIVERY_MODE_LABELS.rider} · {formatSlot(selection.slot)}
+          <span className="rental-summary-note">
+            A: {selection.address} ({selection.neighborhood})
+          </span>
+        </>
+      );
+  }
 }

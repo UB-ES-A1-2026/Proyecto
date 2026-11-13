@@ -1,5 +1,6 @@
 // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 04/11/2026
 import { apiRequest } from './apiClient';
+import type { DeliveryRequest, ReservationDelivery } from './deliveryService';
 
 // Cuerpo de POST /api/reservas (#120). El importe no se envía: lo calcula el backend.
 export type RentalRequestInput = {
@@ -23,6 +24,8 @@ export type Reservation = {
   renter: { id: string; username: string };
   owner: { id: string; username: string };
   createdAt: string;
+  // Modo, hora y destino de la entrega (US-05.01, #282); null en las anteriores a la historia.
+  delivery?: ReservationDelivery | null;
 };
 
 // Respuesta de GET /api/reservas/disponibilidad (#204). Solo informa: POST /reservas lo vuelve a
@@ -34,6 +37,10 @@ export function checkAvailability(token: string, input: RentalRequestInput): Pro
   return apiRequest<Availability>(`/reservas/disponibilidad?${query}`, { token });
 }
 
-export function requestRental(token: string, input: RentalRequestInput): Promise<Reservation> {
+// Con US-05.01 (#282) la solicitud lleva también el modo de entrega y sus datos.
+export function requestRental(
+  token: string,
+  input: RentalRequestInput & DeliveryRequest,
+): Promise<Reservation> {
   return apiRequest<Reservation>('/reservas', { method: 'POST', body: input, token });
 }
