@@ -15,6 +15,7 @@ import {
   DEMO_DEMAND_ITEM,
   DEMO_DEMAND_REQUESTS,
   DEMO_ITEMS,
+  DEMO_MODERATIONS,
   DEMO_RESERVATIONS,
   type DemoDelivery,
 } from './demoData.js';
@@ -494,4 +495,52 @@ export async function upsertDemoRiders(
   }
 
   return riders.length;
+}
+
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 13/11/2026
+// Crea o actualiza la retirada del admin de los objetos de DEMO_MODERATIONS (US-11.03). Necesita
+// que existan antes los objetos (upsertDemoItems) y el admin. Repetirlo deja el objeto retirado
+// con el motivo del catálogo.
+export async function upsertDemoModerations(
+  prisma: PrismaClient,
+  ownerIds: readonly string[],
+  adminEmail: string,
+): Promise<number> {
+  const admin = await prisma.user.findUnique({
+    where: { email: adminEmail },
+    select: { id: true },
+  });
+  if (!admin) {
+    throw new Error(
+      `No existe el admin ${adminEmail}: crea antes los usuarios del seed`,
+    );
+  }
+
+  for (const { item: demoItem, reason, details } of DEMO_MODERATIONS) {
+    const ownerId = ownerIds[demoItem.owner];
+    const item = ownerId
+      ? await prisma.item.findFirst({
+          where: { ownerId, title: demoItem.title },
+          select: { id: true },
+        })
+      : null;
+    if (!item) {
+      throw new Error(
+        `No existe «${demoItem.title}»: crea antes los objetos (upsertDemoItems)`,
+      );
+    }
+
+    await prisma.item.update({
+      where: { id: item.id },
+      data: { status: 'withdrawn' },
+    });
+    const data = { adminId: admin.id, reason, details };
+    await prisma.itemModeration.upsert({
+      where: { itemId: item.id },
+      update: data,
+      create: { ...data, itemId: item.id },
+    });
+  }
+
+  return DEMO_MODERATIONS.length;
 }

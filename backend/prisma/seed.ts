@@ -4,9 +4,11 @@
 // contraseña está en el repo (docs/despliegue.md). Para producción está seed-demo.ts.
 import { PrismaClient } from '@prisma/client';
 import {
+  DEV_ADMIN_EMAIL,
   DEV_PASSWORD,
   DEV_USERS,
   upsertDemoItems,
+  upsertDemoModerations,
   upsertDemoReservations,
   upsertDemoRiders,
   upsertUsers,
@@ -27,6 +29,8 @@ async function main(): Promise<void> {
 
   // Los objetos son de ana y bruno; admin no publica nada.
   const items = await upsertDemoItems(prisma, [anaId, brunoId, anaId]);
+  // El admin retira un objeto de bruno con motivo (US-11.03).
+  await upsertDemoModerations(prisma, [anaId, brunoId, anaId], DEV_ADMIN_EMAIL);
   // Las solicitudes son entre ana (0) y bruno (1).
   const reservations = await upsertDemoReservations(prisma, [anaId, brunoId]);
   // Seis vecinos con solicitudes pendientes en las mismas fechas (US-04.07).
