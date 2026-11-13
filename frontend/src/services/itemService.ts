@@ -23,6 +23,9 @@ export type ItemDetail = {
   homeDelivery: boolean;
   riderDelivery: boolean;
   pickupPointDelivery: boolean;
+  // Reserva inmediata (US-07.01, #286): las solicitudes se aceptan solas y se cobran al momento.
+  // Opcional hasta que el backend lo envíe; si no viene, no tiene reserva inmediata.
+  instantBooking?: boolean;
   owner: {
     id: string;
     username: string;
@@ -52,6 +55,7 @@ export type ItemChanges = {
   description: string;
   dailyPrice: number;
   deposit: number;
+  instantBooking: boolean;
 };
 
 export function getMyItems(token: string): Promise<MyItem[]> {

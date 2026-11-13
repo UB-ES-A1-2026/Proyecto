@@ -10,6 +10,13 @@ const shortDateFormatter = new Intl.DateTimeFormat('es-ES', {
   year: 'numeric',
 });
 const longDateFormatter = new Intl.DateTimeFormat('es-ES', { dateStyle: 'long' });
+// Plazo para responder a una solicitud: «15 de noviembre, 10:30».
+const deadlineFormatter = new Intl.DateTimeFormat('es-ES', {
+  day: 'numeric',
+  month: 'long',
+  hour: '2-digit',
+  minute: '2-digit',
+});
 const priceFormatter = new Intl.NumberFormat('es-ES', {
   style: 'currency',
   currency: 'EUR',
@@ -20,6 +27,7 @@ const statusLabels: Record<ReservationStatus, string> = {
   accepted: 'Aceptada',
   rejected: 'Rechazada',
   cancelled: 'Cancelada',
+  expired: 'Caducada',
   paid: 'Pagada',
   in_progress: 'En curso',
   finished: 'Finalizada',
@@ -32,6 +40,7 @@ const statusStyles: Record<ReservationStatus, StatusStyle> = {
   accepted: { badge: 'badge-success', icon: 'check_circle' },
   rejected: { badge: 'badge-error', icon: 'cancel' },
   cancelled: { badge: 'badge-neutral', icon: 'do_not_disturb_on' },
+  expired: { badge: 'badge-neutral', icon: 'schedule' },
   paid: { badge: 'badge-success', icon: 'payments' },
   in_progress: { badge: 'badge-success', icon: 'swap_horiz' },
   finished: { badge: 'badge-neutral', icon: 'task_alt' },
@@ -151,18 +160,31 @@ export function ReservationCard({
                 Enviada el {longDateFormatter.format(new Date(reservation.createdAt))}
               </ReservationFact>
             </div>
-            {/* US-07.01 (#286): solo quien la pidió paga, y solo una solicitud aceptada. */}
-            {role === 'sent' && reservation.status === 'accepted' && (
-              <div className="reservation-pay">
-                <Link
-                  to={`/mis-solicitudes/${encodeURIComponent(reservation.id)}/pagar`}
-                  className="button-primary"
-                  aria-label={`Pagar el alquiler de ${reservation.item.title}`}
-                >
-                  <Icon name="credit_card" />
-                  Pagar
-                </Link>
-              </div>
+            {/* Pago al solicitar (US-07.01, #286): mientras espera respuesta, el importe está
+                bloqueado en la tarjeta de quien la pidió y se cobra si el propietario acepta. */}
+            {reservation.status === 'pending' && (
+              <p className="reservation-payment-note">
+                <Icon name="lock" size="1.125rem" />
+                <span>
+                  {role === 'sent'
+                    ? `Hemos bloqueado ${priceFormatter.format(Number(reservation.totalPrice))} en tu tarjeta. Se cobran si ${reservation.owner.username} acepta; si no, se liberan.`
+                    : `Si la aceptas, se cobran ${priceFormatter.format(Number(reservation.totalPrice))} al momento; si la rechazas, se liberan.`}
+                  {reservation.expiresAt &&
+                    (role === 'sent'
+                      ? ` Tiene hasta el ${deadlineFormatter.format(new Date(reservation.expiresAt))} para responder.`
+                      : ` Responde antes del ${deadlineFormatter.format(new Date(reservation.expiresAt))}: si no, caduca.`)}
+                </span>
+              </p>
+            )}
+            {reservation.status === 'expired' && (
+              <p className="reservation-payment-note">
+                <Icon name="schedule" size="1.125rem" />
+                <span>
+                  {role === 'sent'
+                    ? `${reservation.owner.username} no respondió a tiempo. Hemos liberado el importe bloqueado.`
+                    : 'No respondiste a tiempo y la solicitud ha caducado.'}
+                </span>
+              </p>
             )}
             {children}
           </div>

@@ -129,7 +129,24 @@ describe('ventana de edición de un objeto (US-02.02, #109)', () => {
       description: 'Taladro con maletín y brocas.',
       dailyPrice: 7.25,
       deposit: 20,
+      instantBooking: false,
     });
+  });
+
+  it('«Reserva inmediata» se guarda con el objeto (US-07.01, #286)', async () => {
+    const fetchMock = mockItemApi({
+      onSave: () => Response.json({ ...ITEM, instantBooking: true }),
+    });
+    const { user, save } = await openForm();
+
+    const instant = screen.getByRole('checkbox', { name: 'Reserva inmediata' });
+    expect(instant).not.toBeChecked();
+    await user.click(instant);
+    await user.click(save);
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    const patch = fetchMock.mock.calls.find(([, init]) => init?.method === 'PATCH');
+    expect(JSON.parse(String(patch?.[1]?.body))).toMatchObject({ instantBooking: true });
   });
 
   it.each([

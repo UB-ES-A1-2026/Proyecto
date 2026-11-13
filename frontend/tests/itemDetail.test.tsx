@@ -353,7 +353,11 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     expect(panel.getByText('martes, 10 de noviembre de 2026')).toBeInTheDocument();
     expect(panel.getByText('jueves, 12 de noviembre de 2026')).toBeInTheDocument();
     expect(panel.getByText('Importe del alquiler (3 días)')).toBeInTheDocument();
-    expect(container.querySelector('.rental-total')).toHaveTextContent('15,00 €');
+    expect(panel.getByText('Importe del alquiler (3 días)').nextElementSibling).toHaveTextContent(
+      '15,00 €',
+    );
+    // Pago al solicitar (US-07.01, #286): con fianza, el importe destacado es el total.
+    expect(container.querySelector('.rental-total')).toHaveTextContent('35,00 €');
     // La foto es decorativa (alt=""), así que no tiene rol «img»: se busca por su clase.
     expect(container.querySelector('.rental-item-photo')).toHaveAttribute(
       'src',
@@ -368,7 +372,7 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     expect(screen.getByLabelText('Fecha de fin')).toHaveValue('12/11/2026');
   });
 
-  it('al confirmar crea la solicitud y lleva a «Mis solicitudes»', async () => {
+  it('al enviar crea la solicitud con la tarjeta y lleva a «Mis solicitudes»', async () => {
     const fetchMock = mockApi();
     const user = userEvent.setup();
     const { router } = renderRoute('/objetos/taladro-1');
@@ -376,7 +380,11 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     await chooseDates('10/11/2026', '12/11/2026');
     await waitFor(() => expect(requestButton()).toBeEnabled());
     await user.click(requestButton());
-    await user.click(screen.getByRole('button', { name: 'Confirmar' }));
+    // Pago al solicitar (US-07.01, #286): el resumen pide la tarjeta.
+    await user.type(screen.getByLabelText('Número de tarjeta'), '4242424242424242');
+    await user.type(screen.getByLabelText('Caducidad'), '1230');
+    await user.type(screen.getByLabelText('CVC'), '123');
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/mis-solicitudes'));
     const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
@@ -384,7 +392,7 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
       itemId: ITEM.id,
       startDate: '2026-11-10',
       endDate: '2026-11-12',
-      confirmationTokenId: 'ctoken_simulado',
+      paymentMethodId: 'pm_card_visa',
     });
   });
 

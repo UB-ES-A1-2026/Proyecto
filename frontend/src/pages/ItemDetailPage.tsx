@@ -125,8 +125,21 @@ function RentalAction({ item }: { item: ItemDetail }) {
         title: item.title,
         pricePerDay: Number(item.dailyPrice),
         photoUrl: item.photos[0]?.url,
+        deposit: Number(item.deposit),
+        instantBooking: item.instantBooking === true,
+        ownerName: item.owner.username,
       }}
-      onRequested={() => navigate('/mis-solicitudes')}
+      // Pago al solicitar (US-07.01, #286): «Mis solicitudes» dice qué ha pasado con el dinero.
+      onRequested={(reservation) =>
+        navigate('/mis-solicitudes', {
+          state: {
+            notice:
+              reservation.status === 'paid'
+                ? 'Reserva confirmada. Pago registrado.'
+                : `Solicitud enviada. Hemos bloqueado el importe hasta que ${item.owner.username} responda.`,
+          },
+        })
+      }
       onSessionExpired={goToLogin}
     />
   );
@@ -263,6 +276,14 @@ export function ItemDetailPage() {
             ? 'Sin fianza'
             : `Fianza: ${formatPrice(Number(item.deposit))}`}
         </p>
+        {item.instantBooking === true && (
+          <p className="rental-panel-instant">
+            <Icon name="bolt" />
+            <span>
+              <strong>Reserva inmediata:</strong> sin esperar a que {item.owner.username} acepte.
+            </span>
+          </p>
+        )}
         <div className="rental-panel-action">
           <RentalAction item={item} />
         </div>

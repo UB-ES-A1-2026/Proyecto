@@ -1,91 +1,32 @@
 /*
- * Pantalla de pago (US-07.01, #286) y botón «Pagar» de «Mis solicitudes».
+ * Pago al solicitar y reserva inmediata (US-07.01, #286): tarjeta en el resumen de la ficha,
+ * avisos de qué pasa con el dinero y «Reserva inmediata» al publicar y editar.
  * Solo usa los tokens de :root de styles.css.
  */
 
-.payment-page {
-  max-width: 60rem;
-  margin: 0 auto;
-}
-
-.payment-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--space-xl);
-  align-items: start;
-}
-
-.payment-summary,
-.payment-form-card {
-  padding: var(--space-xl);
-}
-
-.payment-section-title {
+/* Qué pasa con el dinero, encima de la tarjeta */
+.rental-payment-note {
   display: flex;
   gap: var(--space-sm);
-  align-items: center;
-  margin: 0 0 var(--space-md);
-  font-size: var(--font-size-tagline);
+  align-items: flex-start;
+  margin: var(--space-md) 0;
+  padding: var(--space-md);
+  font-size: var(--font-size-small);
+  background-color: var(--color-primary-soft);
+  border-radius: var(--radius);
 }
 
-.payment-item {
-  margin: 0 0 var(--space-sm);
-  font-size: var(--font-size-section);
-  font-weight: var(--font-weight-medium);
-  overflow-wrap: anywhere;
+.rental-payment-note.is-instant {
+  background-color: var(--color-accent-soft);
 }
 
-.payment-fact {
-  display: flex;
-  gap: var(--space-xs);
-  align-items: center;
-  margin: 0 0 var(--space-xs);
-  color: var(--color-text-muted);
+.rental-payment-note .icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
 }
 
-/* Desglose: concepto a la izquierda, importe a la derecha */
-.payment-breakdown {
-  margin: var(--space-lg) 0 0;
-  padding-top: var(--space-md);
-  border-top: var(--border-width) solid var(--color-divider);
-}
-
-.payment-row {
-  display: flex;
-  gap: var(--space-md);
-  align-items: baseline;
-  justify-content: space-between;
-  padding: var(--space-xs) 0;
-}
-
-.payment-row dt {
-  display: flex;
-  flex-direction: column;
-}
-
-.payment-row dd {
+.rental-payment-note p {
   margin: 0;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.payment-row-detail {
-  font-size: var(--font-size-small);
-  color: var(--color-text-muted);
-}
-
-.payment-total {
-  margin-top: var(--space-sm);
-  padding-top: var(--space-sm);
-  font-size: var(--font-size-tagline);
-  font-weight: var(--font-weight-bold);
-  border-top: var(--border-width) solid var(--color-divider);
-}
-
-.payment-note {
-  margin: var(--space-md) 0 0;
-  font-size: var(--font-size-small);
-  color: var(--color-text-muted);
 }
 
 /* Tarjeta: número a todo el ancho, caducidad y CVC en la misma fila */
@@ -105,7 +46,7 @@
 }
 
 .payment-test-cards {
-  margin: 0 0 var(--space-lg);
+  margin: 0 0 var(--space-md);
   padding: var(--space-md);
   font-size: var(--font-size-small);
   background-color: var(--color-accent-soft);
@@ -130,48 +71,57 @@
   font-variant-numeric: tabular-nums;
 }
 
-.payment-secure {
+/* «Reserva inmediata» en el panel de la ficha */
+.rental-panel-instant {
   display: flex;
   gap: var(--space-xs);
-  align-items: center;
-  justify-content: center;
-  margin: var(--space-sm) 0 0;
+  align-items: flex-start;
+  margin: 0 0 var(--space-md);
   font-size: var(--font-size-small);
-  color: var(--color-text-muted);
 }
 
-.payment-blocked {
-  max-width: 32rem;
-  margin: var(--space-2xl) auto;
+.rental-panel-instant .icon {
+  flex-shrink: 0;
+  color: var(--color-accent);
 }
 
-.payment-skeleton {
-  height: 22rem;
-  border-radius: var(--radius-large);
+/* Importe bloqueado y plazo en «Mis solicitudes» */
+.reservation-payment-note {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: flex-start;
+  margin: var(--space-md) 0 0;
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-small);
+  background-color: var(--color-primary-soft);
+  border-radius: var(--radius);
 }
 
-/* Botón «Pagar» dentro de la tarjeta de una solicitud enviada y aceptada */
-.reservation-pay {
-  margin-top: var(--space-md);
+.reservation-payment-note .icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
 }
 
-/* Dos clases: styles.css se carga después de los @import y le ganaría el ancho del botón. */
-.reservation-pay .button-primary {
-  width: auto;
+/* Casilla «Reserva inmediata» en la ventana de editar */
+.form-field .edit-item-check {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+  margin-bottom: var(--space-xs);
+  cursor: pointer;
 }
 
-@media (max-width: 760px) {
-  .payment-layout {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-lg);
-  }
+/* Dos clases y la etiqueta: styles.css se carga después y le daría el estilo de un campo de texto. */
+.form-field .edit-item-check input {
+  flex-shrink: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--color-primary);
+}
 
-  .payment-summary,
-  .payment-form-card {
-    padding: var(--space-lg) var(--space-md);
-  }
-
-  .payment-skeleton + .payment-skeleton {
-    display: none;
-  }
+.edit-item-check .icon {
+  color: var(--color-accent);
 }

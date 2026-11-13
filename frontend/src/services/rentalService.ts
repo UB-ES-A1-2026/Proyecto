@@ -1,28 +1,15 @@
 // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 04/11/2026
 import { apiRequest } from './apiClient';
+import type { Reservation } from './reservationService';
 
-// Cuerpo de POST /api/reservas (#120). El importe no se envía: lo calcula el backend.
+export type { Reservation, ReservationStatus } from './reservationService';
+
+// Fechas de una solicitud: GET /reservas/disponibilidad (#204) y POST /reservas (#120).
+// El importe no se envía: lo calcula el backend.
 export type RentalRequestInput = {
   itemId: string;
   startDate: string;
   endDate: string;
-};
-
-export type ReservationStatus =
-  'pending' | 'accepted' | 'rejected' | 'cancelled' | 'paid' | 'in_progress' | 'finished';
-
-// Respuesta 201 de POST /api/reservas: la misma forma que en «Mis solicitudes» (#123, #124).
-// totalPrice llega como texto porque Prisma serializa Decimal así.
-export type Reservation = {
-  id: string;
-  item: { id: string; title: string };
-  startDate: string;
-  endDate: string;
-  totalPrice: string;
-  status: ReservationStatus;
-  renter: { id: string; username: string };
-  owner: { id: string; username: string };
-  createdAt: string;
 };
 
 // Respuesta de GET /api/reservas/disponibilidad (#204). Solo informa: POST /reservas lo vuelve a
@@ -34,14 +21,17 @@ export function checkAvailability(token: string, input: RentalRequestInput): Pro
   return apiRequest<Availability>(`/reservas/disponibilidad?${query}`, { token });
 }
 
-// Provisional hasta la T11 (#286): el formulario de pago de Stripe dará un token de verdad. Mientras
-// tanto se envía uno simulado, que la pasarela simulada del backend acepta (US-07.01, #72).
-const SIMULATED_PAYMENT_TOKEN = 'ctoken_simulado';
-
-export function requestRental(token: string, input: RentalRequestInput): Promise<Reservation> {
+// Solicitar es pagar (US-07.01, #286): con la tarjeta se bloquea el importe y se cobra cuando el
+// propietario acepta; con reserva inmediata se cobra al momento. Responde 201 con la reserva
+// («pending» o «paid»), 402 si la tarjeta se rechaza (y no se crea la reserva) o los 409 de #120.
+export function requestRental(
+  token: string,
+  input: RentalRequestInput,
+  paymentMethodId: string,
+): Promise<Reservation> {
   return apiRequest<Reservation>('/reservas', {
     method: 'POST',
-    body: { ...input, confirmationTokenId: SIMULATED_PAYMENT_TOKEN },
+    body: { ...input, paymentMethodId },
     token,
   });
 }
