@@ -23,7 +23,7 @@ import {
   EMPTY_DELIVERY_DRAFT,
   type DeliveryDraft,
   type DeliverySelection,
-} from '../utils/delivery';
+} from '../utils/deliveryDraft';
 import { DateRangeCalendar, type CalendarDemand } from './DateRangeCalendar';
 import { DeliveryStep } from './DeliveryStep';
 import { Icon } from './Icon';

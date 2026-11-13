@@ -250,21 +250,19 @@ describe('Payment Element de Stripe', () => {
 describe('doble envío', () => {
   it('dos envíos seguidos antes de pintar solo crean un pago', async () => {
     let respond: (response: Response) => void = () => {};
-    const fetchMock = vi
-      .spyOn(globalThis, 'fetch')
-      .mockImplementation((input) =>
-        String(input).includes('/reservas/disponibilidad')
-          ? Promise.resolve(Response.json({ available: true }))
-          : String(input).includes('/entrega?')
-            ? Promise.resolve(
-                Response.json({
-                  modes: { home: true, rider: false, pickupPoint: false },
-                  pickupPoints: [],
-                  slots: [],
-                }),
-              )
-            : new Promise<Response>((resolve) => (respond = resolve)),
-      );
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input) =>
+      String(input).includes('/reservas/disponibilidad')
+        ? Promise.resolve(Response.json({ available: true }))
+        : String(input).includes('/entrega?')
+          ? Promise.resolve(
+              Response.json({
+                modes: { home: true, rider: false, pickupPoint: false },
+                pickupPoints: [],
+                slots: [],
+              }),
+            )
+          : new Promise<Response>((resolve) => (respond = resolve)),
+    );
     const user = userEvent.setup();
     renderRequest();
 
