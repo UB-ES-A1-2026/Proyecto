@@ -151,6 +151,19 @@ export function ReservationCard({
                 Enviada el {longDateFormatter.format(new Date(reservation.createdAt))}
               </ReservationFact>
             </div>
+            {/* US-07.01 (#286): solo quien la pidió paga, y solo una solicitud aceptada. */}
+            {role === 'sent' && reservation.status === 'accepted' && (
+              <div className="reservation-pay">
+                <Link
+                  to={`/mis-solicitudes/${encodeURIComponent(reservation.id)}/pagar`}
+                  className="button-primary"
+                  aria-label={`Pagar el alquiler de ${reservation.item.title}`}
+                >
+                  <Icon name="credit_card" />
+                  Pagar
+                </Link>
+              </div>
+            )}
             {children}
           </div>
         </div>
