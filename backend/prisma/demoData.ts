@@ -25,7 +25,7 @@ export interface DemoItem {
   homeDelivery: boolean;
   riderDelivery: boolean;
   pickupPointDelivery: boolean;
-  status: 'published' | 'paused';
+  status: 'published' | 'paused' | 'withdrawn';
 }
 
 export const DEMO_ITEMS: readonly DemoItem[] = [
@@ -197,6 +197,22 @@ export const DEMO_ITEMS: readonly DemoItem[] = [
     pickupPointDelivery: true,
     status: 'published',
   },
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 13/11/2026
+  // Retirado por el admin (US-11.03): su motivo está en DEMO_MODERATIONS.
+  {
+    owner: 1,
+    category: 'Electrónica',
+    title: 'Reloj de lujo a mitad de precio',
+    description:
+      'Reloj de marca con certificado de autenticidad. Se entrega en mano, sin fianza.',
+    dailyPrice: 12,
+    deposit: 0,
+    neighborhood: 'Eixample',
+    homeDelivery: true,
+    riderDelivery: false,
+    pickupPointDelivery: false,
+    status: 'withdrawn',
+  },
 ];
 
 // Solicitudes de alquiler de ejemplo (US-04.02 a US-04.04). Con ellas, «Mis solicitudes» no sale
@@ -281,4 +297,20 @@ export const DEMO_DEMAND_REQUESTS: readonly {
   { startInDays: 10, days: 2 },
   { startInDays: 10, days: 3 },
   { startInDays: 10, days: 1 },
+];
+
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 13/11/2026
+// Objetos de DEMO_ITEMS retirados por el admin (US-11.03), con el motivo que ve su propietario.
+export interface DemoModeration {
+  item: { owner: number; title: string };
+  reason: 'scam' | 'prohibited' | 'misleading' | 'other';
+  details: string;
+}
+
+export const DEMO_MODERATIONS: readonly DemoModeration[] = [
+  {
+    item: { owner: 1, title: 'Reloj de lujo a mitad de precio' },
+    reason: 'scam',
+    details: 'El anuncio parece una estafa: marca de lujo a un precio irreal.',
+  },
 ];
