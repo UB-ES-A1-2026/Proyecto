@@ -2,9 +2,10 @@
 // Datos de desarrollo y de demo (#98). Se puede ejecutar varias veces: actualiza en lugar de duplicar.
 // Desde #97 también crea los objetos de ejemplo de demoData.ts. NUNCA contra producción: la
 // contraseña está en el repo (docs/despliegue.md). Para producción está seed-demo.ts.
-import { PrismaClient, UserRole } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import {
   DEV_PASSWORD,
+  DEV_USERS,
   upsertDemoItems,
   upsertDemoReservations,
   upsertUsers,
@@ -12,17 +13,11 @@ import {
 
 const prisma = new PrismaClient();
 
-const demoUsers = [
-  { username: 'ana', email: 'ana@rentit.test', role: UserRole.user },
-  { username: 'bruno', email: 'bruno@rentit.test', role: UserRole.user },
-  { username: 'admin', email: 'admin@rentit.test', role: UserRole.admin },
-];
-
 async function main(): Promise<void> {
   const rounds = Number(process.env.BCRYPT_ROUNDS ?? '10');
   const [anaId, brunoId] = await upsertUsers(
     prisma,
-    demoUsers,
+    DEV_USERS,
     DEV_PASSWORD,
     rounds,
   );
@@ -33,7 +28,7 @@ async function main(): Promise<void> {
   const reservations = await upsertDemoReservations(prisma, [anaId, brunoId]);
 
   console.info(
-    `Seed completado: ${demoUsers.length} usuarios de prueba, ${items} objetos y ${reservations} solicitudes`,
+    `Seed completado: ${DEV_USERS.length} usuarios de prueba, ${items} objetos y ${reservations} solicitudes`,
   );
 }
 

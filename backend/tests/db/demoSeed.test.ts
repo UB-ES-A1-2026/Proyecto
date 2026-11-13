@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { DEMO_ITEMS, DEMO_RESERVATIONS } from '../../prisma/demoData.js';
 import {
   DEMO_USERS,
+  DEV_USERS,
   DEV_PASSWORD,
   demoPasswordError,
   upsertDemoItems,
@@ -98,6 +99,47 @@ describe('seed de la demo', () => {
     expect(
       await bcrypt.compare('otra-contraseña-larga', laura.passwordHash),
     ).toBe(true);
+  });
+
+  // Bios de ejemplo para el perfil público (US-01.4, #300) – revisado por Alex Matos, 11/11/2026
+  it('las 3 cuentas de la demo llevan una bio corta que cabe en el perfil', async () => {
+    await seedDemo();
+
+    const users = await prisma.user.findMany();
+    expect(users).toHaveLength(DEMO_USERS.length);
+    for (const user of users) {
+      expect(user.bio).toBeTruthy();
+      expect(user.bio!.length).toBeLessThanOrEqual(500);
+    }
+  });
+
+  it('repetir el seed deja la bio de ejemplo aunque se hubiera editado', async () => {
+    await seedDemo();
+    await prisma.user.updateMany({ data: { bio: 'Cambiada' } });
+
+    await seedDemo();
+
+    const laura = await prisma.user.findUniqueOrThrow({
+      where: { email: 'laura@demo.rentit.test' },
+    });
+    expect(laura.bio).toBe(DEMO_USERS[0].bio);
+    expect(await prisma.user.count()).toBe(DEMO_USERS.length);
+  });
+
+  it('el seed de desarrollo da bio a ana y bruno, no al admin, y no duplica', async () => {
+    await upsertUsers(prisma, DEV_USERS, DEV_PASSWORD, 4);
+    await upsertUsers(prisma, DEV_USERS, DEV_PASSWORD, 4);
+
+    const bios = Object.fromEntries(
+      (await prisma.user.findMany()).map(({ username, bio }) => [
+        username,
+        bio,
+      ]),
+    );
+    expect(Object.keys(bios).sort()).toEqual(['admin', 'ana', 'bruno']);
+    expect(bios.ana).toBeTruthy();
+    expect(bios.bruno).toBeTruthy();
+    expect(bios.admin).toBeNull();
   });
 
   it('falla con un mensaje claro si falta un propietario', async () => {
