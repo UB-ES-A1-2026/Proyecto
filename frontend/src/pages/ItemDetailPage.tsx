@@ -24,9 +24,10 @@ const AVAILABILITY: Record<ItemDetail['status'], { label: string; badge: string;
     withdrawn: { label: 'Retirado', badge: 'badge-neutral', icon: 'do_not_disturb_on' },
   };
 
+// Mismos nombres que el paso «Entrega» de la solicitud (decisión 7 de #66, US-05.01).
 const DELIVERY_METHODS = [
-  { field: 'homeDelivery', label: 'Entrega a domicilio', icon: 'home' },
-  { field: 'riderDelivery', label: 'Entrega con rider', icon: 'pedal_bike' },
+  { field: 'homeDelivery', label: 'Recoger en casa del propietario', icon: 'home' },
+  { field: 'riderDelivery', label: 'Entrega por rider', icon: 'pedal_bike' },
   { field: 'pickupPointDelivery', label: 'Punto de recogida', icon: 'pin_drop' },
 ] as const;
 
@@ -125,6 +126,7 @@ function RentalAction({ item }: { item: ItemDetail }) {
         title: item.title,
         pricePerDay: Number(item.dailyPrice),
         photoUrl: item.photos[0]?.url,
+        neighborhood: item.neighborhood,
       }}
       onRequested={() => navigate('/mis-solicitudes')}
       onSessionExpired={goToLogin}

@@ -29,17 +29,25 @@ const RENTAL = {
 
 type Handler = () => Response | Promise<Response>;
 
-// GET /reservas/disponibilidad (#204) lo responde `onAvailability` (por defecto, libre); el resto
-// de peticiones, que son el POST /reservas, las responde `handler`.
+// Opciones de entrega del objeto (GET /objetos/:id/entrega, US-05.01): ofrece los tres modos.
+const DELIVERY_OPTIONS = {
+  modes: { home: true, rider: true, pickupPoint: true },
+  pickupPoints: [],
+  slots: ['09:00-11:00'],
+};
+
+// GET /reservas/disponibilidad (#204) lo responde `onAvailability` (por defecto, libre); las
+// opciones de entrega (US-05.01), DELIVERY_OPTIONS; el resto, que es el POST /reservas, `handler`.
 function mockFetch(
   handler: Handler = () => Response.json(RENTAL, { status: 201 }),
   onAvailability: Handler = () => Response.json({ available: true }),
 ) {
-  return vi
-    .spyOn(globalThis, 'fetch')
-    .mockImplementation(async (input) =>
-      String(input).includes('/reservas/disponibilidad') ? onAvailability() : handler(),
-    );
+  return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+    const url = String(input);
+    if (url.includes('/reservas/disponibilidad')) return onAvailability();
+    if (url.includes('/entrega?')) return Response.json(DELIVERY_OPTIONS);
+    return handler();
+  });
 }
 
 // Las llamadas a POST /reservas, sin las consultas de disponibilidad.
@@ -59,10 +67,17 @@ function renderRentalRequest() {
   return { onRequested, onSessionExpired, clearSession };
 }
 
-// Elige fechas válidas, pasa al resumen y pulsa «Confirmar».
+// En el paso «Entrega» (US-05.01) elige «Recoger en casa del propietario» y pasa al resumen.
+async function chooseHomeDelivery(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(await screen.findByRole('radio', { name: 'Recoger en casa del propietario' }));
+  await user.click(screen.getByRole('button', { name: 'Continuar' }));
+}
+
+// Elige fechas válidas, pasa por la entrega hasta el resumen y pulsa «Confirmar».
 async function confirmRequest(user: ReturnType<typeof userEvent.setup>) {
   await chooseAvailableDates('04/11/2026', '06/11/2026');
   await user.click(requestButton());
+  await chooseHomeDelivery(user);
   await user.click(screen.getByRole('button', { name: 'Confirmar' }));
 }
 
@@ -153,6 +168,7 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
 
     await chooseAvailableDates('04/11/2026', '06/11/2026');
     await user.click(requestButton());
+    await chooseHomeDelivery(user);
 
     // El botón pulsado ya no existe: el foco pasa al título del resumen.
     expect(screen.getByRole('heading', { name: 'Revisa tu solicitud' })).toHaveFocus();
@@ -162,10 +178,16 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
     expect(details.getByText('miércoles, 4 de noviembre de 2026')).toBeInTheDocument();
     expect(details.getByText('viernes, 6 de noviembre de 2026')).toBeInTheDocument();
     expect(details.getByText('Importe del alquiler (3 días)')).toBeInTheDocument();
-    expect(details.getByText('15,00 €')).toBeInTheDocument();
+    expect(details.getAllByText('15,00 €')).toHaveLength(2);
     expect(screen.getByText('Taladro percutor Bosch')).toBeInTheDocument();
     expect(postCalls(fetchMock)).toHaveLength(0);
 
+    // «Volver» vuelve al paso «Entrega» con lo elegido, y desde ahí a las fechas.
+    await user.click(screen.getByRole('button', { name: 'Volver' }));
+    expect(screen.getByRole('heading', { name: 'Entrega' })).toHaveFocus();
+    expect(
+      await screen.findByRole('radio', { name: 'Recoger en casa del propietario' }),
+    ).toBeChecked();
     await user.click(screen.getByRole('button', { name: 'Volver' }));
 
     expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('04/11/2026');
@@ -189,6 +211,7 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
       itemId: 'item-1',
       startDate: '2026-11-04',
       endDate: '2026-11-06',
+      deliveryMode: 'home',
     });
   });
 
@@ -298,6 +321,7 @@ describe('requestRental (#121)', () => {
         itemId: 'item-1',
         startDate: '2026-11-04',
         endDate: '2026-11-06',
+        deliveryMode: 'home',
       }),
     ).resolves.toEqual(RENTAL);
     expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/reservas$/);
@@ -335,6 +359,7 @@ describe('cambios de la revisión de #203', () => {
 
     await chooseAvailableDates('04/11/2026', '08/11/2026');
     await user.click(requestButton());
+    await chooseHomeDelivery(user);
 
     expect(screen.getByRole('heading', { name: 'Revisa tu solicitud' })).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();

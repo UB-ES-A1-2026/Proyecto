@@ -1,6 +1,11 @@
 // Generado con asistencia de IA – revisado por Danyal, 01/11/2026
 import { useId, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
+import {
+  DELIVERY_MODE_LABELS,
+  formatSlot,
+  type ReservationDelivery,
+} from '../services/deliveryService';
 import type { Reservation, ReservationStatus } from '../services/reservationService';
 import { Icon, type IconName } from './Icon';
 
@@ -83,6 +88,78 @@ function ReservationFact({ icon, children }: { icon: IconName; children: ReactNo
   );
 }
 
+// Desglose del importe (decisión de Marc, 12/11, US-05.01): alquiler, entrega si la hay, y total.
+// totalPrice es solo el alquiler; la tarifa del rider llega en delivery.fee.
+function formatAmounts(reservation: Reservation): string {
+  const rental = Number(reservation.totalPrice);
+  const fee = reservation.delivery?.fee ? Number(reservation.delivery.fee) : 0;
+  const parts = [`Alquiler: ${priceFormatter.format(rental)}`];
+  if (fee > 0) parts.push(`Entrega: ${priceFormatter.format(fee)}`);
+  parts.push(`Total: ${priceFormatter.format(rental + fee)}`);
+  return parts.join(' · ');
+}
+
+// Modo de entrega y destino de una solicitud (US-05.01, #282). Las direcciones solo llegan a
+// quien puede verlas (reglas del backend), así que aquí se enseña lo que venga.
+function DeliveryFacts({
+  delivery,
+  status,
+  role,
+}: {
+  delivery: ReservationDelivery;
+  status: ReservationStatus;
+  role: 'sent' | 'received';
+}) {
+  if (delivery.mode === 'rider') {
+    const fee = delivery.fee ? ` · ${priceFormatter.format(Number(delivery.fee))}` : '';
+    return (
+      <>
+        <ReservationFact icon="pedal_bike">
+          {DELIVERY_MODE_LABELS.rider} · {formatSlot(delivery.slot)}
+          {fee}
+        </ReservationFact>
+        {delivery.deliveryAddress ? (
+          <ReservationFact icon="pin_drop">
+            A: {delivery.deliveryAddress}
+            {delivery.deliveryNeighborhood ? ` (${delivery.deliveryNeighborhood})` : ''}
+          </ReservationFact>
+        ) : (
+          delivery.deliveryNeighborhood && (
+            <ReservationFact icon="pin_drop">
+              Barrio de entrega: {delivery.deliveryNeighborhood}
+            </ReservationFact>
+          )
+        )}
+      </>
+    );
+  }
+
+  if (delivery.mode === 'pickup_point') {
+    return (
+      <ReservationFact icon="pin_drop">
+        {DELIVERY_MODE_LABELS.pickup_point}
+        {delivery.pickupPoint
+          ? `: ${delivery.pickupPoint.name} · ${delivery.pickupPoint.address}`
+          : ''}
+      </ReservationFact>
+    );
+  }
+
+  // Recogida en casa: el arrendatario ve la dirección cuando la aceptan; mientras está pendiente,
+  // el aviso. El propietario ya sabe dónde vive.
+  let detail = '';
+  if (delivery.ownerAddress) detail = ` · ${delivery.ownerAddress}`;
+  else if (role === 'sent' && status === 'pending') {
+    detail = ' · La dirección se mostrará cuando acepten la solicitud.';
+  }
+  return (
+    <ReservationFact icon="home">
+      {DELIVERY_MODE_LABELS.home}
+      {detail}
+    </ReservationFact>
+  );
+}
+
 export function ReservationCard({
   reservation,
   role,
@@ -140,13 +217,18 @@ export function ReservationCard({
                   ? `Fecha: ${formatLongDate(reservation.startDate)}`
                   : `Fechas: Del ${formatLongDate(reservation.startDate)} al ${formatLongDate(reservation.endDate)}`}
               </ReservationFact>
-              <ReservationFact icon="payments">
-                Importe total: {priceFormatter.format(Number(reservation.totalPrice))}
-              </ReservationFact>
+              <ReservationFact icon="payments">{formatAmounts(reservation)}</ReservationFact>
               <ReservationFact icon={statusStyle.icon}>Estado: {status}</ReservationFact>
               <ReservationFact icon="person">
                 {requesterLabel}: {requester}
               </ReservationFact>
+              {reservation.delivery && (
+                <DeliveryFacts
+                  delivery={reservation.delivery}
+                  status={reservation.status}
+                  role={role}
+                />
+              )}
               <ReservationFact icon="schedule">
                 Enviada el {longDateFormatter.format(new Date(reservation.createdAt))}
               </ReservationFact>
