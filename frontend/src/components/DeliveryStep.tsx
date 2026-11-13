@@ -10,17 +10,17 @@ import {
   formatDistance,
   formatSlot,
   getDeliveryOptions,
-  getNeighborhoods,
   getRiderQuote,
   type DeliveryMode,
   type DeliveryOptions,
 } from '../services/deliveryService';
+import { getNeighborhoods } from '../services/neighborhoodService';
 import {
   DELIVERY_ERROR_FIELDS,
   type DeliveryDraft,
   type DeliveryErrors,
   type DeliverySelection,
-} from '../utils/delivery';
+} from '../utils/deliveryDraft';
 import { formatInputDate, formatPrice } from '../utils/rental';
 
 // Mismos textos que la API (#321): el frontend los comprueba antes de continuar.

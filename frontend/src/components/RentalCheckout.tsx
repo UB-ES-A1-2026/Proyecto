@@ -16,7 +16,7 @@ import {
   type DeliveryRequest,
 } from '../services/deliveryService';
 import { isStripeEnabled } from '../services/stripeService';
-import { DELIVERY_ERROR_FIELDS, type DeliverySelection } from '../utils/delivery';
+import { DELIVERY_ERROR_FIELDS, type DeliverySelection } from '../utils/deliveryDraft';
 import { calculateTotalPrice, countRentalDays, formatLongDate, formatPrice } from '../utils/rental';
 import { CardFields, TestCardsNote } from './CardFields';
 import { Icon } from './Icon';
