@@ -173,6 +173,7 @@ describe('publicar un objeto (US-02.01, #13)', () => {
         homeDelivery: false,
         riderDelivery: false,
         pickupPointDelivery: false,
+        instantBooking: false,
         status: 'published',
       },
     ]);
@@ -326,6 +327,9 @@ describe('publicar un objeto (US-02.01, #13)', () => {
     );
     const delivery = within(screen.getByRole('group', { name: 'Formas de entrega' }));
     await user.click(delivery.getByRole('checkbox', { name: 'Entrega con rider' }));
+    // Reserva inmediata (US-07.01, #286).
+    const requests = within(screen.getByRole('group', { name: 'Solicitudes' }));
+    await user.click(requests.getByRole('checkbox', { name: /Reserva inmediata/ }));
     await user.click(screen.getByRole('button', { name: 'Publicar' }));
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/objetos/item-123'));
@@ -335,6 +339,7 @@ describe('publicar un objeto (US-02.01, #13)', () => {
         homeDelivery: false,
         riderDelivery: true,
         pickupPointDelivery: false,
+        instantBooking: true,
       }),
     ]);
   });

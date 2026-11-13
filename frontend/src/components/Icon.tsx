@@ -11,6 +11,7 @@ const ICON_URLS = import.meta.glob<string>('../assets/icons/*.svg', {
 export type IconName =
   | 'add_photo_alternate'
   | 'arrow_forward'
+  | 'bolt'
   | 'build'
   | 'cancel'
   | 'category'

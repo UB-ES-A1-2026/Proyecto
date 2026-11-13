@@ -1,7 +1,11 @@
 // Generado con asistencia de IA (Claude)
-import { screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { MemoryRouter } from 'react-router';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { RentalRequest, type RentalItem } from '../src/components/RentalRequest';
+import { ReservationCard } from '../src/components/ReservationCard';
+import { AuthContext } from '../src/context/authContextValue';
 import {
   CARD_ERRORS,
   createPaymentMethod,
@@ -11,7 +15,9 @@ import {
 import type { Reservation } from '../src/services/reservationService';
 import { renderRoute } from './renderRoute';
 
-// US-07.01 Registrar un pago, frontend (#286): criterios de aceptación de la historia (#72).
+// US-07.01 Registrar un pago, frontend (#286), con la propuesta de pagar al solicitar:
+// la tarjeta se pide al solicitar, se bloquea el importe y se cobra cuando el propietario acepta;
+// con reserva inmediata se cobra al momento.
 
 const SESSION = {
   token: 'token-de-prueba',
@@ -22,74 +28,84 @@ const SESSION = {
 const VISA = '4242 4242 4242 4242';
 const DECLINED = '4000 0000 0000 0002';
 
+const ITEM: RentalItem = {
+  id: 'item-1',
+  title: 'Taladro percutor Bosch',
+  pricePerDay: 6,
+  deposit: 40,
+  ownerName: 'ana',
+};
+
 function reservation(overrides: Partial<Reservation> = {}): Reservation {
   return {
     id: 'r1',
     item: { id: 'item-1', title: 'Taladro percutor Bosch' },
-    startDate: '2026-12-10',
-    endDate: '2026-12-12',
+    startDate: '2026-11-04',
+    endDate: '2026-11-06',
     totalPrice: '18.00',
-    status: 'accepted',
+    deposit: '40.00',
+    deliveryAmount: '0.00',
+    expiresAt: '2026-11-03T12:30:00.000Z',
+    status: 'pending',
     renter: { id: 'u2', username: 'bruno' },
     owner: { id: 'u1', username: 'ana' },
-    createdAt: '2026-11-01T12:00:00.000Z',
+    createdAt: '2026-11-01T12:30:00.000Z',
     ...overrides,
   };
 }
 
-const ITEM = {
-  id: 'item-1',
-  title: 'Taladro percutor Bosch',
-  description: 'Taladro de 750 W.',
-  dailyPrice: '6.00',
-  deposit: '40.00',
-  status: 'published',
-  neighborhood: 'Gràcia',
-  category: { id: 'c1', name: 'Herramientas' },
-  photos: [],
-  homeDelivery: false,
-  riderDelivery: false,
-  pickupPointDelivery: true,
-  owner: { id: 'u1', username: 'ana' },
-};
+type Handler = () => Response | Promise<Response>;
 
-type Reply = Response | (() => Response);
-
-// Responde según el método y el final de la URL; guarda las peticiones para comprobarlas.
-function mockApi(routes: Record<string, Reply | Reply[]>) {
-  const counters = new Map<string, number>();
-  return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
-    const url = String(input);
-    const method = init?.method ?? 'GET';
-    const key = Object.keys(routes).find((candidate) => {
-      const [routeMethod, path] = candidate.split(' ');
-      return routeMethod === method && url.endsWith(path);
-    });
-    if (!key) throw new Error(`Petición inesperada: ${method} ${url}`);
-    const replies = routes[key];
-    const list = Array.isArray(replies) ? replies : [replies];
-    const index = counters.get(key) ?? 0;
-    counters.set(key, index + 1);
-    const reply = list[Math.min(index, list.length - 1)];
-    return typeof reply === 'function' ? reply() : reply.clone();
-  });
+// La disponibilidad siempre está libre; el POST /reservas lo responde `onRequest`.
+function mockRequestApi(onRequest: Handler = () => Response.json(reservation(), { status: 201 })) {
+  return vi
+    .spyOn(globalThis, 'fetch')
+    .mockImplementation(async (input) =>
+      String(input).includes('/reservas/disponibilidad')
+        ? Response.json({ available: true })
+        : onRequest(),
+    );
 }
 
-function logIn() {
-  localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+function renderRequest(item: RentalItem = ITEM) {
+  const onRequested = vi.fn();
+  render(
+    <AuthContext.Provider value={{ session: SESSION, saveSession: vi.fn(), clearSession: vi.fn() }}>
+      <RentalRequest item={item} onRequested={onRequested} onSessionExpired={vi.fn()} />
+    </AuthContext.Provider>,
+  );
+  return { onRequested };
 }
 
-async function fillCard(number: string, expiry = '12/30', cvc = '123') {
-  const user = userEvent.setup();
-  await user.type(await screen.findByLabelText('Número de tarjeta'), number);
-  await user.type(screen.getByLabelText('Caducidad'), expiry);
-  await user.type(screen.getByLabelText('CVC'), cvc);
-  return user;
+// Elige del 4 al 6 de noviembre y pasa al resumen con la tarjeta.
+async function goToSummary(user: ReturnType<typeof userEvent.setup>) {
+  fireEvent.change(screen.getByLabelText('Fecha de inicio'), { target: { value: '04/11/2026' } });
+  fireEvent.change(screen.getByLabelText('Fecha de fin'), { target: { value: '06/11/2026' } });
+  const request = screen.getByRole('button', { name: 'Solicitar alquiler' });
+  await waitFor(() => expect(request).toBeEnabled());
+  await user.click(request);
 }
+
+function fillCard(number = VISA, expiry = '12/30', cvc = '123') {
+  fireEvent.change(screen.getByLabelText('Número de tarjeta'), { target: { value: number } });
+  fireEvent.change(screen.getByLabelText('Caducidad'), { target: { value: expiry } });
+  fireEvent.change(screen.getByLabelText('CVC'), { target: { value: cvc } });
+}
+
+function postCalls(fetchMock: ReturnType<typeof mockRequestApi>) {
+  return fetchMock.mock.calls.filter(([, init]) => init?.method === 'POST');
+}
+
+beforeEach(() => {
+  // Solo se finge la fecha: «hoy» es el 1 de noviembre de 2026.
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date(2026, 10, 1, 12, 0));
+});
 
 afterEach(() => {
-  localStorage.clear();
+  vi.useRealTimers();
   vi.restoreAllMocks();
+  localStorage.clear();
 });
 
 describe('Tarjeta en modo de prueba (provisional hasta Stripe Elements, T10)', () => {
@@ -135,252 +151,210 @@ describe('Tarjeta en modo de prueba (provisional hasta Stripe Elements, T10)', (
   });
 });
 
-describe('«Pagar» en Mis solicitudes (criterio 1)', () => {
-  it('solo aparece en una solicitud enviada y aceptada, y lleva a la pantalla de pago', async () => {
-    logIn();
-    mockApi({
-      'GET /usuarios/me/reservas': Response.json({
-        sent: [
-          reservation(),
-          reservation({
-            id: 'r2',
-            item: { id: 'i2', title: 'Tienda de campaña' },
-            status: 'pending',
-          }),
-          reservation({ id: 'r3', item: { id: 'i3', title: 'Escalera' }, status: 'paid' }),
-        ],
-        received: [
-          reservation({ id: 'r4', item: { id: 'i4', title: 'Bicicleta' }, status: 'accepted' }),
-        ],
-      }),
-    });
+describe('Pagar al solicitar desde la ficha', () => {
+  it('antes de pagar muestra el alquiler, la fianza, el total y qué pasa con el dinero', async () => {
+    mockRequestApi();
+    const user = userEvent.setup();
+    renderRequest();
 
-    renderRoute('/mis-solicitudes');
+    await goToSummary(user);
 
-    await screen.findByRole('button', { name: /Taladro percutor Bosch/ });
-    const payLinks = screen.getAllByRole('link', { name: /^Pagar/, hidden: true });
-    expect(payLinks).toHaveLength(1);
-    expect(payLinks[0]).toHaveAccessibleName('Pagar el alquiler de Taladro percutor Bosch');
-    expect(payLinks[0]).toHaveAttribute('href', '/mis-solicitudes/r1/pagar');
-  });
-});
-
-describe('Pantalla de pago (US-07.01, #286)', () => {
-  it('muestra el objeto, las fechas, el alquiler, la fianza y el importe total (criterio 2)', async () => {
-    logIn();
-    mockApi({
-      'GET /usuarios/me/reservas': Response.json({ sent: [reservation()], received: [] }),
-      'GET /objetos/item-1': Response.json(ITEM),
-    });
-
-    renderRoute('/mis-solicitudes/r1/pagar');
-
-    const summary = await screen.findByRole('region', { name: 'Resumen' });
-    expect(within(summary).getByRole('link', { name: 'Taladro percutor Bosch' })).toHaveAttribute(
-      'href',
-      '/objetos/item-1',
-    );
-    expect(summary).toHaveTextContent('Del 10 de diciembre de 2026 al 12 de diciembre de 2026');
-    expect(summary).toHaveTextContent(/Precio del alquiler\s*3 días\s*18,00\s€/);
-    expect(summary).toHaveTextContent(/Fianza\s*Se retiene, no se cobra\s*40,00\s€/);
+    expect(screen.getByRole('heading', { name: 'Revisa tu solicitud' })).toBeInTheDocument();
+    const summary = document.querySelector('.rental-summary') as HTMLElement;
+    expect(summary).toHaveTextContent(/Importe del alquiler \(3 días\)\s*18,00\s€/);
+    expect(summary).toHaveTextContent(/Fianza \(se retiene, no se cobra\)\s*40,00\s€/);
     expect(summary).toHaveTextContent(/Importe total\s*58,00\s€/);
-    expect(summary).toHaveTextContent(/Ahora se cobran 18,00\s€/);
-    expect(within(summary).queryByText('Entrega')).not.toBeInTheDocument();
-    // Criterio 3: indica qué tarjetas de prueba usar.
+    expect(screen.getByText(/Bloquearemos 18,00\s€ en tu tarjeta/)).toBeInTheDocument();
+    expect(screen.getByText('Solo se cobran si ana acepta')).toBeInTheDocument();
+    // Indica qué tarjetas de prueba usar.
     expect(screen.getByText(VISA)).toBeInTheDocument();
     expect(screen.getByText(DECLINED)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Enviar solicitud' })).toBeEnabled();
   });
 
-  it('con entrega, la suma al importe total', async () => {
-    logIn();
-    mockApi({
-      'GET /usuarios/me/reservas': Response.json({
-        sent: [reservation({ deliveryAmount: '4.50' })],
-        received: [],
-      }),
-      'GET /objetos/item-1': Response.json({ ...ITEM, deposit: '0.00' }),
+  it('envía la solicitud con el método de pago, nunca con el número de la tarjeta', async () => {
+    const fetchMock = mockRequestApi();
+    const user = userEvent.setup();
+    const { onRequested } = renderRequest();
+
+    await goToSummary(user);
+    fillCard();
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+
+    await waitFor(() => expect(onRequested).toHaveBeenCalledWith(reservation()));
+    const [post] = postCalls(fetchMock);
+    const body = String((post[1] as RequestInit).body);
+    expect(JSON.parse(body)).toEqual({
+      itemId: 'item-1',
+      startDate: '2026-11-04',
+      endDate: '2026-11-06',
+      paymentMethodId: 'pm_card_visa',
     });
-
-    renderRoute('/mis-solicitudes/r1/pagar');
-
-    const summary = await screen.findByRole('region', { name: 'Resumen' });
-    expect(summary).toHaveTextContent(/Entrega\s*4,50\s€/);
-    expect(summary).toHaveTextContent(/Fianza\s*Sin fianza/);
-    expect(summary).toHaveTextContent(/Importe total\s*22,50\s€/);
-  });
-
-  it('con una tarjeta válida paga y vuelve a Mis solicitudes con la reserva «Pagada» (criterio 4)', async () => {
-    logIn();
-    const fetchMock = mockApi({
-      'GET /usuarios/me/reservas': [
-        Response.json({ sent: [reservation()], received: [] }),
-        Response.json({ sent: [reservation({ status: 'paid' })], received: [] }),
-      ],
-      'GET /objetos/item-1': Response.json(ITEM),
-      'POST /reservas/r1/pago': Response.json(reservation({ status: 'paid' })),
-    });
-
-    const { router } = renderRoute('/mis-solicitudes/r1/pagar');
-    const user = await fillCard(VISA);
-    await user.click(screen.getByRole('button', { name: 'Pagar' }));
-
-    await waitFor(() => expect(router.state.location.pathname).toBe('/mis-solicitudes'));
-    expect(await screen.findByRole('status')).toHaveTextContent('Pago registrado.');
-    expect(await screen.findByRole('button', { name: /Taladro percutor Bosch/ })).toHaveTextContent(
-      'Pagada',
-    );
-
-    const payment = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
-    expect(JSON.parse(String(payment?.[1]?.body))).toEqual({ paymentMethodId: 'pm_card_visa' });
-    expect(new Headers(payment?.[1]?.headers).get('Authorization')).toBe('Bearer token-de-prueba');
-    // El número de la tarjeta nunca sale hacia nuestra API.
-    expect(String(payment?.[1]?.body)).not.toContain('4242');
-  });
-
-  it('mientras se procesa, el botón está desactivado', async () => {
-    logIn();
-    let finish: (response: Response) => void = () => undefined;
-    mockApi({
-      'GET /usuarios/me/reservas': Response.json({ sent: [reservation()], received: [] }),
-      'GET /objetos/item-1': Response.json(ITEM),
-      'POST /reservas/r1/pago': () =>
-        new Promise<Response>((resolve) => {
-          finish = resolve;
-        }) as unknown as Response,
-    });
-
-    renderRoute('/mis-solicitudes/r1/pagar');
-    const user = await fillCard(VISA);
-    await user.click(screen.getByRole('button', { name: 'Pagar' }));
-
-    expect(await screen.findByRole('button', { name: 'Procesando el pago…' })).toBeDisabled();
-    expect(screen.getByLabelText('Número de tarjeta')).toBeDisabled();
-    finish(Response.json(reservation({ status: 'paid' })));
-  });
-
-  it('si la tarjeta es rechazada, se queda en la pantalla con el error y puede reintentar (criterio 5)', async () => {
-    logIn();
-    mockApi({
-      'GET /usuarios/me/reservas': Response.json({ sent: [reservation()], received: [] }),
-      'GET /objetos/item-1': Response.json(ITEM),
-      'POST /reservas/r1/pago': Response.json(
-        { error: 'Tu tarjeta ha sido rechazada.', field: 'paymentMethodId' },
-        { status: 402 },
-      ),
-    });
-
-    const { router } = renderRoute('/mis-solicitudes/r1/pagar');
-    const user = await fillCard(DECLINED);
-    await user.click(screen.getByRole('button', { name: 'Pagar' }));
-
-    expect(await screen.findByRole('alert')).toHaveTextContent('Tu tarjeta ha sido rechazada.');
-    expect(router.state.location.pathname).toBe('/mis-solicitudes/r1/pagar');
-    expect(screen.getByRole('button', { name: 'Pagar' })).toBeEnabled();
+    expect(body).not.toContain('4242');
   });
 
   it('con datos de tarjeta no válidos no llama a la API y marca los campos', async () => {
-    logIn();
-    const fetchMock = mockApi({
-      'GET /usuarios/me/reservas': Response.json({ sent: [reservation()], received: [] }),
-      'GET /objetos/item-1': Response.json(ITEM),
-    });
+    const fetchMock = mockRequestApi();
+    const user = userEvent.setup();
+    renderRequest();
 
-    renderRoute('/mis-solicitudes/r1/pagar');
-    const user = await fillCard('1234', '99', '1');
-    await user.click(screen.getByRole('button', { name: 'Pagar' }));
+    await goToSummary(user);
+    fillCard('1234', '99', '1');
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
 
     expect(screen.getByLabelText('Número de tarjeta')).toHaveAttribute('aria-invalid', 'true');
     expect(screen.getByText(CARD_ERRORS.number)).toBeInTheDocument();
     expect(screen.getByText(CARD_ERRORS.expiry)).toBeInTheDocument();
     expect(screen.getByText(CARD_ERRORS.cvc)).toBeInTheDocument();
-    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false);
+    expect(postCalls(fetchMock)).toHaveLength(0);
   });
 
-  it.each([
-    ['pagada', 'paid', 'Esta reserva ya está pagada.'],
-    ['pendiente', 'pending', 'Solo se puede pagar una solicitud aceptada.'],
-  ] as const)(
-    'una solicitud %s no pide el pago (criterios 1 y 6)',
-    async (_label, status, message) => {
-      logIn();
-      mockApi({
-        'GET /usuarios/me/reservas': Response.json({
-          sent: [reservation({ status })],
-          received: [],
-        }),
-      });
+  it('si la tarjeta se rechaza, se queda en el resumen con el error y puede reintentar', async () => {
+    mockRequestApi(() =>
+      Response.json(
+        { error: 'Tu tarjeta ha sido rechazada.', field: 'paymentMethodId' },
+        { status: 402 },
+      ),
+    );
+    const user = userEvent.setup();
+    const { onRequested } = renderRequest();
 
-      renderRoute('/mis-solicitudes/r1/pagar');
+    await goToSummary(user);
+    fillCard(DECLINED);
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
 
-      expect(await screen.findByRole('alert')).toHaveTextContent(message);
-      expect(screen.queryByLabelText('Número de tarjeta')).not.toBeInTheDocument();
-      expect(screen.getByRole('link', { name: 'Volver a Mis solicitudes' })).toHaveAttribute(
-        'href',
-        '/mis-solicitudes',
-      );
-    },
-  );
+    expect(await screen.findByRole('alert')).toHaveTextContent('Tu tarjeta ha sido rechazada.');
+    expect(screen.getByRole('heading', { name: 'Revisa tu solicitud' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Enviar solicitud' })).toBeEnabled();
+    expect(onRequested).not.toHaveBeenCalled();
+  });
 
-  it('una solicitud recibida o que no existe no se puede pagar', async () => {
-    logIn();
-    mockApi({
-      'GET /usuarios/me/reservas': Response.json({ sent: [], received: [reservation()] }),
+  it('con reserva inmediata dice que se cobra ahora y el botón es «Reservar y pagar»', async () => {
+    mockRequestApi(() => Response.json(reservation({ status: 'paid' }), { status: 201 }));
+    const user = userEvent.setup();
+    const { onRequested } = renderRequest({ ...ITEM, deposit: 0, instantBooking: true });
+
+    await goToSummary(user);
+
+    expect(screen.getByRole('heading', { name: 'Revisa tu reserva' })).toBeInTheDocument();
+    expect(screen.getByText('Reserva inmediata.')).toBeInTheDocument();
+    expect(screen.getByText(/Se cobran 18,00\s€ ahora/)).toBeInTheDocument();
+    // Sin fianza no hay fila de fianza ni de total: el alquiler es todo.
+    expect(screen.queryByText(/Fianza/)).not.toBeInTheDocument();
+
+    fillCard();
+    await user.click(screen.getByRole('button', { name: 'Reservar y pagar' }));
+    await waitFor(() =>
+      expect(onRequested).toHaveBeenCalledWith(expect.objectContaining({ status: 'paid' })),
+    );
+  });
+});
+
+describe('Ficha y «Mis solicitudes» con el pago al solicitar', () => {
+  const ITEM_DETAIL = {
+    id: 'item-1',
+    title: 'Taladro percutor Bosch',
+    description: 'Taladro de 750 W.',
+    dailyPrice: '6.00',
+    deposit: '40.00',
+    status: 'published',
+    neighborhood: 'Gràcia',
+    category: { id: 'c1', name: 'Herramientas' },
+    photos: [],
+    homeDelivery: false,
+    riderDelivery: false,
+    pickupPointDelivery: true,
+    instantBooking: true,
+    owner: { id: 'u1', username: 'ana' },
+    createdAt: '2026-10-01T10:00:00.000Z',
+  };
+
+  it('la ficha avisa de la reserva inmediata y, al reservar, «Mis solicitudes» confirma el pago', async () => {
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.includes('/reservas/disponibilidad')) return Response.json({ available: true });
+      if (init?.method === 'POST') {
+        return Response.json(reservation({ status: 'paid', expiresAt: null }), { status: 201 });
+      }
+      if (url.endsWith('/usuarios/me/reservas')) {
+        return Response.json({ sent: [reservation({ status: 'paid' })], received: [] });
+      }
+      return Response.json(ITEM_DETAIL);
     });
+    const user = userEvent.setup();
+    const { router } = renderRoute('/objetos/item-1');
 
-    renderRoute('/mis-solicitudes/r1/pagar');
+    const panel = await screen.findByRole('complementary', { name: 'Alquiler de este objeto' });
+    expect(panel).toHaveTextContent('Reserva inmediata: sin esperar a que ana acepte.');
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'No hemos encontrado esta solicitud.',
+    await goToSummary(user);
+    fillCard();
+    await user.click(screen.getByRole('button', { name: 'Reservar y pagar' }));
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/mis-solicitudes'));
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'Reserva confirmada. Pago registrado.',
+    );
+    expect(await screen.findByRole('button', { name: /Taladro percutor Bosch/ })).toHaveTextContent(
+      'Pagada',
     );
   });
 
-  it('si al pagar ya estaba pagada (otra pestaña), no deja volver a pagar', async () => {
-    logIn();
-    mockApi({
-      'GET /usuarios/me/reservas': Response.json({ sent: [reservation()], received: [] }),
-      'GET /objetos/item-1': Response.json(ITEM),
-      'POST /reservas/r1/pago': Response.json(
-        { error: 'Esta reserva ya está pagada.' },
-        { status: 409 },
-      ),
-    });
+  it('ya no hay botón «Pagar»: una solicitud pendiente dice cuánto hay bloqueado y hasta cuándo', () => {
+    render(
+      <MemoryRouter>
+        <ReservationCard reservation={reservation()} role="sent" />
+        <ReservationCard
+          reservation={reservation({ id: 'r2', item: { id: 'i2', title: 'Escalera' } })}
+          role="received"
+        />
+      </MemoryRouter>,
+    );
 
-    renderRoute('/mis-solicitudes/r1/pagar');
-    const user = await fillCard(VISA);
-    await user.click(screen.getByRole('button', { name: 'Pagar' }));
-
-    expect(await screen.findByRole('alert')).toHaveTextContent('Esta reserva ya está pagada.');
-    expect(screen.queryByRole('button', { name: 'Pagar' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Pagar/, hidden: true })).not.toBeInTheDocument();
+    const [sent, received] = screen.getAllByRole('article');
+    expect(sent).toHaveTextContent(
+      /Hemos bloqueado 18,00\s€ en tu tarjeta\. Se cobran si ana acepta; si no, se liberan\. Tiene hasta el 3 de noviembre, \d{2}:30 para responder\./,
+    );
+    expect(received).toHaveTextContent(
+      /Si la aceptas, se cobran 18,00\s€ al momento; si la rechazas, se liberan\. Responde antes del 3 de noviembre, \d{2}:30: si no, caduca\./,
+    );
   });
 
-  it('sin sesión lleva al login', async () => {
-    const { router } = renderRoute('/mis-solicitudes/r1/pagar');
+  it('una solicitud caducada lo dice y explica que se ha liberado el importe', () => {
+    render(
+      <MemoryRouter>
+        <ReservationCard reservation={reservation({ status: 'expired' })} role="sent" />
+      </MemoryRouter>,
+    );
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
+    const card = screen.getByRole('article');
+    expect(within(card).getByRole('button', { name: /Taladro percutor Bosch/ })).toHaveTextContent(
+      'Caducada',
+    );
+    expect(card).toHaveTextContent(
+      'ana no respondió a tiempo. Hemos liberado el importe bloqueado.',
+    );
   });
 
-  it('si la sesión ha caducado, la borra y lleva al login', async () => {
-    logIn();
-    mockApi({
-      'GET /usuarios/me/reservas': Response.json({ error: 'Sesión caducada.' }, { status: 401 }),
+  it('al aceptar una solicitud se cobra y queda «Pagada»', async () => {
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (_input, init) => {
+      if (init?.method === 'POST') return Response.json({ id: 'r1', status: 'paid' });
+      return Response.json({ sent: [], received: [reservation()] });
     });
+    const user = userEvent.setup();
+    renderRoute('/mis-solicitudes');
 
-    const { router } = renderRoute('/mis-solicitudes/r1/pagar');
+    await user.click(await screen.findByRole('button', { name: /Taladro percutor Bosch/ }));
+    await user.click(screen.getByRole('button', { name: 'Aceptar' }));
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
-    expect(localStorage.getItem('rentit.session')).toBeNull();
-  });
-
-  it('si no se puede cargar, lo dice', async () => {
-    logIn();
-    mockApi({
-      'GET /usuarios/me/reservas': Response.json({ error: 'Error' }, { status: 500 }),
-    });
-
-    renderRoute('/mis-solicitudes/r1/pagar');
-
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'No hemos podido cargar el pago. Inténtalo de nuevo más tarde.',
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'Has aceptado la solicitud. Se ha cobrado el alquiler.',
+    );
+    expect(screen.getByRole('button', { name: /Taladro percutor Bosch/ })).toHaveTextContent(
+      'Pagada',
     );
   });
 });

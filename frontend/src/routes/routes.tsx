@@ -9,7 +9,6 @@ import { LoginPage } from '../pages/LoginPage';
 import { MyItemsPage } from '../pages/MyItemsPage';
 import { MyReservationsPage } from '../pages/MyReservationsPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
-import { PaymentPage } from '../pages/PaymentPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { PublishItemPage } from '../pages/PublishItemPage';
 import { RegisterPage } from '../pages/RegisterPage';
@@ -38,7 +37,6 @@ export const routes: RouteObject[] = [
           { path: 'perfil', element: <ProfilePage /> },
           { path: 'mis-objetos', element: <MyItemsPage /> },
           { path: 'mis-solicitudes', element: <MyReservationsPage /> },
-          { path: 'mis-solicitudes/:id/pagar', element: <PaymentPage /> },
           { path: 'objetos/nuevo', element: <PublishItemPage /> },
         ],
       },

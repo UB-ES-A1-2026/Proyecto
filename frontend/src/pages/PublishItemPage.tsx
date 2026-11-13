@@ -144,6 +144,7 @@ export function PublishItemPage() {
   const [homeDelivery, setHomeDelivery] = useState(false);
   const [riderDelivery, setRiderDelivery] = useState(false);
   const [pickupPointDelivery, setPickupPointDelivery] = useState(false);
+  const [instantBooking, setInstantBooking] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -282,6 +283,7 @@ export function PublishItemPage() {
       homeDelivery,
       riderDelivery,
       pickupPointDelivery,
+      instantBooking,
       status,
     };
 
@@ -634,6 +636,29 @@ export function PublishItemPage() {
                   onChange={(event) => setPickupPointDelivery(event.target.checked)}
                 />
               </div>
+            </fieldset>
+          </div>
+
+          {/* US-07.01 (#286): con reserva inmediata, solicitar es reservar y se cobra al momento. */}
+          <div className="card publish-section">
+            <fieldset className="publish-fieldset">
+              <legend>
+                <SectionTitle>Solicitudes</SectionTitle>
+              </legend>
+              <div className="publish-item-options">
+                <OptionCard
+                  icon="bolt"
+                  label="Reserva inmediata: acepta las solicitudes automáticamente"
+                  type="checkbox"
+                  checked={instantBooking}
+                  aria-describedby="publish-item-instant-hint"
+                  onChange={(event) => setInstantBooking(event.target.checked)}
+                />
+              </div>
+              <p id="publish-item-instant-hint" className="field-hint">
+                Se cobra al reservar, sin esperar tu respuesta. Si no la marcas, cada solicitud
+                espera a que la aceptes (tienes 48 horas).
+              </p>
             </fieldset>
           </div>
 
