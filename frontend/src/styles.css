@@ -9,6 +9,7 @@
 @import './styles/payment.css';
 @import './styles/public-profile.css';
 @import './styles/rating.css';
+@import './styles/admin.css';
 
 @font-face {
   font-family: 'Inter';
