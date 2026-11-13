@@ -36,6 +36,10 @@ export type RentalItem = {
 
 const EMPTY_CARD: CardDetails = { number: '', expiry: '', cvc: '' };
 
+// Un bloqueo con tarjeta caduca a los ~7 días: hasta 6 días de alquiler la fianza se bloquea el día
+// antes de empezar; si dura más, se cobra y se devuelve al terminar (propuesta de US-07.01, #286).
+const MAX_DEPOSIT_HOLD_DAYS = 6;
+
 type RentalRequestProps = {
   item: RentalItem;
   onRequested: (reservation: Reservation) => void;
@@ -222,6 +226,7 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
     const deposit = item.deposit ?? 0;
     const instant = item.instantBooking === true;
     const owner = item.ownerName ?? 'el propietario';
+    const depositCharged = days > MAX_DEPOSIT_HOLD_DAYS;
 
     return (
       <section key="summary" className="rental-request" aria-labelledby="rental-title">
@@ -250,7 +255,11 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
           <dd className={deposit > 0 ? undefined : 'rental-total'}>{formatPrice(totalPrice)}</dd>
           {deposit > 0 && (
             <>
-              <dt>Fianza (se retiene, no se cobra)</dt>
+              <dt>
+                {depositCharged
+                  ? 'Fianza (se cobra y se devuelve al terminar)'
+                  : 'Fianza (se retiene, no se cobra)'}
+              </dt>
               <dd>{formatPrice(deposit)}</dd>
               <dt>Importe total</dt>
               <dd className="rental-total">{formatPrice(totalPrice + deposit)}</dd>
@@ -275,7 +284,9 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
               </>
             )}
             {deposit > 0 &&
-              ` La fianza se retiene el día antes de empezar y se libera al terminar el alquiler.`}
+              (depositCharged
+                ? ` Como el alquiler dura más de ${MAX_DEPOSIT_HOLD_DAYS} días, la fianza (${formatPrice(deposit)}) se cobra el día antes de empezar y se devuelve al terminar.`
+                : ` La fianza (${formatPrice(deposit)}) se bloquea el día antes de empezar y se libera al terminar, sin cobrarla.`)}
           </p>
         </div>
 
