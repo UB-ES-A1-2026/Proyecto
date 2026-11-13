@@ -258,7 +258,12 @@ describe('Pagar al solicitar desde la ficha', () => {
     fillCard(DECLINED);
     await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Tu tarjeta ha sido rechazada.');
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Tu tarjeta ha sido rechazada.');
+    // Sale justo encima de los botones, donde se mira al pulsar.
+    expect(alert.nextElementSibling).toContainElement(
+      screen.getByRole('button', { name: 'Enviar solicitud' }),
+    );
     expect(screen.getByRole('heading', { name: 'Revisa tu solicitud' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Enviar solicitud' })).toBeEnabled();
     expect(onRequested).not.toHaveBeenCalled();

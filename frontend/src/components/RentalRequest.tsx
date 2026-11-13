@@ -233,11 +233,6 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
         <h2 id="rental-title" ref={headingRef} tabIndex={-1}>
           {instant ? 'Revisa tu reserva' : 'Revisa tu solicitud'}
         </h2>
-        {formError && (
-          <p role="alert" className="form-error">
-            {formError}
-          </p>
-        )}
         <div className="rental-item">
           {item.photoUrl && <img src={item.photoUrl} alt="" className="rental-item-photo" />}
           <div>
@@ -297,6 +292,13 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
             disabled={submitting}
             onChange={handleCardChange}
           />
+          {/* Justo encima del botón: es donde se mira al pulsar (p. ej. «Tu tarjeta ha sido rechazada.»). */}
+          {formError && (
+            <p role="alert" className="form-error rental-payment-error">
+              <Icon name="error" size="1.125rem" />
+              {formError}
+            </p>
+          )}
           <div className="rental-actions">
             <button
               type="button"
