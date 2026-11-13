@@ -29,6 +29,18 @@
   margin: 0;
 }
 
+/* Error del pago (tarjeta rechazada…), justo encima de los botones */
+.rental-payment-error {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: flex-start;
+}
+
+.rental-payment-error .icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
 /* Tarjeta: número a todo el ancho, caducidad y CVC en la misma fila */
 .payment-card-fields {
   display: grid;
