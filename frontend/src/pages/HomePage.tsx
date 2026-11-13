@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, Navigate } from 'react-router';
 import { useAuth } from '../context/useAuth';
 import { Icon, type IconName } from '../components/Icon';
 import { categoryIcon } from '../utils/categoryIcons';
 import { ItemCard, ItemGridSkeleton } from '../components/ItemCard';
+import { RiderStatusCard } from '../components/RiderStatusCard';
 import { SearchBar } from '../components/SearchBar';
 import { getCategories, type Category } from '../services/categoryService';
 import { searchItems, type SearchItem } from '../services/searchService';
+import { RIDER_JOBS_PATH, isApprovedRider, isRiderSession } from '../utils/rider';
 
 const NEWEST_ITEMS_COUNT = 8;
 const MAX_CATEGORIES = 12;
@@ -37,7 +39,7 @@ const STEPS: { title: string; text: string }[] = [
 
 // Portada: buscador, categorías, últimos objetos publicados y cómo funciona. Si la API falla, la
 // portada se sigue viendo: las categorías no salen y las novedades muestran un aviso discreto.
-export function HomePage() {
+function PublicHome() {
   const { session } = useAuth();
   const [categories, setCategories] = useState<Category[] | null>(null);
   const [items, setItems] = useState<SearchItem[] | null>(null);
@@ -184,4 +186,13 @@ export function HomePage() {
       </section>
     </div>
   );
+}
+
+// Un rider no ve la portada (US-10.03, T35 #315): el aceptado va a «Trabajos» y el pendiente o
+// rechazado ve el estado de su solicitud.
+export function HomePage() {
+  const { session } = useAuth();
+  if (session && isApprovedRider(session)) return <Navigate to={RIDER_JOBS_PATH} replace />;
+  if (session && isRiderSession(session)) return <RiderStatusCard user={session.user} />;
+  return <PublicHome />;
 }
