@@ -1,0 +1,177 @@
+/*
+ * Pantalla de pago (US-07.01, #286) y botón «Pagar» de «Mis solicitudes».
+ * Solo usa los tokens de :root de styles.css.
+ */
+
+.payment-page {
+  max-width: 60rem;
+  margin: 0 auto;
+}
+
+.payment-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+.payment-summary,
+.payment-form-card {
+  padding: var(--space-xl);
+}
+
+.payment-section-title {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+  margin: 0 0 var(--space-md);
+  font-size: var(--font-size-tagline);
+}
+
+.payment-item {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--font-size-section);
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.payment-fact {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
+  margin: 0 0 var(--space-xs);
+  color: var(--color-text-muted);
+}
+
+/* Desglose: concepto a la izquierda, importe a la derecha */
+.payment-breakdown {
+  margin: var(--space-lg) 0 0;
+  padding-top: var(--space-md);
+  border-top: var(--border-width) solid var(--color-divider);
+}
+
+.payment-row {
+  display: flex;
+  gap: var(--space-md);
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--space-xs) 0;
+}
+
+.payment-row dt {
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-row dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.payment-row-detail {
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+.payment-total {
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  font-size: var(--font-size-tagline);
+  font-weight: var(--font-weight-bold);
+  border-top: var(--border-width) solid var(--color-divider);
+}
+
+.payment-note {
+  margin: var(--space-md) 0 0;
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+/* Tarjeta: número a todo el ancho, caducidad y CVC en la misma fila */
+.payment-card-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 var(--space-md);
+}
+
+.payment-field-number {
+  grid-column: 1 / -1;
+}
+
+.payment-card-fields input {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.payment-test-cards {
+  margin: 0 0 var(--space-lg);
+  padding: var(--space-md);
+  font-size: var(--font-size-small);
+  background-color: var(--color-accent-soft);
+  border-radius: var(--radius);
+}
+
+.payment-test-cards-title {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: flex-start;
+  margin: 0 0 var(--space-xs);
+}
+
+.payment-test-cards ul {
+  margin: 0;
+  padding-left: calc(1.125rem + var(--space-xs));
+  list-style: none;
+}
+
+.payment-test-cards code {
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.payment-secure {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
+  justify-content: center;
+  margin: var(--space-sm) 0 0;
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+.payment-blocked {
+  max-width: 32rem;
+  margin: var(--space-2xl) auto;
+}
+
+.payment-skeleton {
+  height: 22rem;
+  border-radius: var(--radius-large);
+}
+
+/* Botón «Pagar» dentro de la tarjeta de una solicitud enviada y aceptada */
+.reservation-pay {
+  margin-top: var(--space-md);
+}
+
+/* Dos clases: styles.css se carga después de los @import y le ganaría el ancho del botón. */
+.reservation-pay .button-primary {
+  width: auto;
+}
+
+@media (max-width: 760px) {
+  .payment-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-lg);
+  }
+
+  .payment-summary,
+  .payment-form-card {
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  .payment-skeleton + .payment-skeleton {
+    display: none;
+  }
+}

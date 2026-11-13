@@ -10,6 +10,8 @@ export type Reservation = {
   startDate: string;
   endDate: string;
   totalPrice: string;
+  // Coste de la entrega con rider: llegará con US-05.01. Mientras no venga, no hay entrega que pagar.
+  deliveryAmount?: string;
   status: ReservationStatus;
   renter: { id: string; username: string };
   owner: { id: string; username: string };
