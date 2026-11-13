@@ -1,6 +1,10 @@
 import bcrypt from 'bcrypt';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { DEMO_ITEMS, DEMO_RESERVATIONS } from '../../prisma/demoData.js';
+import {
+  DEMO_DEMAND_ITEM,
+  DEMO_ITEMS,
+  DEMO_RESERVATIONS,
+} from '../../prisma/demoData.js';
 import {
   DEMO_USERS,
   DEV_PASSWORD,
@@ -211,7 +215,17 @@ describe('demanda de fechas de la demo (US-04.07, #311)', () => {
     });
     const day10 = new Date('2026-12-11T00:00:00.000Z').getTime();
 
+    // Todas sobre la bici de bruno o jordi: ningún e2e la retira ni la solicita (las pendientes
+    // impedirían retirarla, #110).
+    const item = await prisma.item.findFirstOrThrow({
+      where: {
+        ownerId: ownerIds[DEMO_DEMAND_ITEM.owner],
+        title: 'Bicicleta de montaña talla M',
+      },
+    });
+
     expect(requests).toHaveLength(6);
+    expect(requests.every(({ itemId }) => itemId === item.id)).toBe(true);
     expect(new Set(requests.map(({ renterId }) => renterId)).size).toBe(6);
     expect(requests.every(({ status }) => status === 'pending')).toBe(true);
     expect(
