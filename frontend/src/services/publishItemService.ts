@@ -10,6 +10,8 @@ export type NewItem = {
   homeDelivery: boolean;
   riderDelivery: boolean;
   pickupPointDelivery: boolean;
+  // Solo con recogida en casa o rider (US-05.01, #307); con solo punto de recogida no se envía.
+  address?: string;
   status: 'published' | 'paused';
 };
 
