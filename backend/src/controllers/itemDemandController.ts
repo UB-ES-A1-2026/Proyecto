@@ -22,7 +22,8 @@ function isValidDate(value: unknown): value is string {
 }
 
 // GET /api/objetos/:id/demanda?from=AAAA-MM-DD&to=AAAA-MM-DD (US-04.07, #311).
-// Público; optionalAuth deja req.auth si hay sesión, para no contar las solicitudes propias.
+// Con sesión, como el calendario donde se usa: requireAuth garantiza que request.auth existe y
+// así nunca se cuentan las solicitudes propias, tampoco con un token caducado.
 export const getItemDemand: RequestHandler = async (request, response) => {
   const id = String(request.params.id);
 
@@ -44,7 +45,7 @@ export const getItemDemand: RequestHandler = async (request, response) => {
   const demand = await itemDemandService.getItemDemand(
     id,
     { from, to },
-    request.auth?.userId,
+    request.auth!.userId,
   );
 
   response.status(200).json(demand);

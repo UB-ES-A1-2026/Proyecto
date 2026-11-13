@@ -141,7 +141,7 @@ Endpoints del Sprint 0:
 
 ### Demanda de fechas de un objeto (Sprint 2 · #311)
 
-`GET /api/objetos/:id/demanda?from=AAAA-MM-DD&to=AAAA-MM-DD` (US-04.07, #303). Es pública, como la ficha del objeto. Con sesión (`optionalAuth`) no cuenta las solicitudes del propio usuario.
+`GET /api/objetos/:id/demanda?from=AAAA-MM-DD&to=AAAA-MM-DD` (US-04.07, #303). Requiere sesión (`requireAuth`), como el calendario de la ficha donde se usa, y nunca cuenta las solicitudes del propio usuario.
 
 ```json
 {
@@ -161,7 +161,7 @@ Endpoints del Sprint 0:
 - Solo cuentan las pendientes: las aceptadas, pagadas o en curso ya bloquean las fechas (`GET /api/reservas/disponibilidad`), y las rechazadas o canceladas no cuentan.
 - Nunca dice quién ha hecho las solicitudes: la consulta solo lee las fechas.
 - Los niveles (0 libre, 1–2 poca, 3–5 media, 6+ mucha) y los colores los decide el frontend (T32, #312).
-- Errores: 400 si `from` o `to` faltan o no son fechas reales (`field`: `from` o `to`), si `to` es anterior a `from` o si el rango pasa de 366 días (`field`: `to`). 404 si el objeto no existe, o si está pausado o retirado y quien pregunta no es su propietario.
+- Errores: 400 si `from` o `to` faltan o no son fechas reales (`field`: `from` o `to`), si `to` es anterior a `from` o si el rango pasa de 366 días (`field`: `to`). 401 sin sesión o con la sesión caducada. 404 si el objeto no existe, o si está pausado o retirado y quien pregunta no es su propietario.
 
 ## 3. Estructura de carpetas
 

@@ -11,12 +11,12 @@ export function findItemForDemand(itemId: string) {
 
 // Fechas de las solicitudes pendientes que tocan el rango [from, to].
 // Solo devuelve las fechas, nunca quién las ha hecho (US-04.07).
-// Si hay sesión, no cuenta las del propio usuario.
+// Nunca cuenta las del propio usuario.
 export function findPendingRequestDates(
   itemId: string,
   from: Date,
   to: Date,
-  viewerId: string | undefined,
+  viewerId: string,
 ) {
   return prisma.reservation.findMany({
     where: {
@@ -24,7 +24,7 @@ export function findPendingRequestDates(
       status: 'pending',
       startDate: { lte: to },
       endDate: { gte: from },
-      ...(viewerId ? { renterId: { not: viewerId } } : {}),
+      renterId: { not: viewerId },
     },
     select: { startDate: true, endDate: true },
   });

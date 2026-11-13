@@ -31,7 +31,7 @@ function toDateKey(date: Date): string {
 export async function getItemDemand(
   itemId: string,
   input: { from: string; to: string },
-  viewerId: string | undefined,
+  viewerId: string,
 ): Promise<ItemDemand> {
   // Las fechas son «AAAA-MM-DD»: se pueden comparar como texto.
   if (input.to < input.from) {

@@ -21,12 +21,15 @@ async function loginAs(email: string): Promise<string> {
   return response.body.token as string;
 }
 
-function getDemand(id: string, query: Record<string, string>, token?: string) {
-  const call = request(app).get(`/api/objetos/${id}/demanda`).query(query);
-  return token ? call.set('Authorization', `Bearer ${token}`) : call;
+// Pide la demanda con la sesión indicada. Requiere sesión, como el calendario donde se usa.
+function getDemand(id: string, query: Record<string, string>, token: string) {
+  return request(app)
+    .get(`/api/objetos/${id}/demanda`)
+    .query(query)
+    .set('Authorization', `Bearer ${token}`);
 }
 
-// ana publica el objeto; bruno, carla y dani son posibles arrendatarios.
+// ana publica el objeto y mira su demanda; bruno, carla y dani son posibles arrendatarios.
 async function createUsers() {
   const ana = await createTestUser();
   const bruno = await createTestUser({
@@ -57,7 +60,11 @@ describe('GET /api/objetos/:id/demanda (US-04.07, #311)', () => {
       endDate: '2026-12-05',
     });
 
-    const response = await getDemand(item.id, DECEMBER);
+    const response = await getDemand(
+      item.id,
+      DECEMBER,
+      await loginAs('ana@rentit.test'),
+    );
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -77,7 +84,11 @@ describe('GET /api/objetos/:id/demanda (US-04.07, #311)', () => {
     await createTestReservation(item.id, carla.id, { status: 'rejected' });
     await createTestReservation(item.id, dani.id, { status: 'cancelled' });
 
-    const response = await getDemand(item.id, DECEMBER);
+    const response = await getDemand(
+      item.id,
+      DECEMBER,
+      await loginAs('ana@rentit.test'),
+    );
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ days: [], pendingRequests: 0 });
@@ -104,7 +115,7 @@ describe('GET /api/objetos/:id/demanda (US-04.07, #311)', () => {
     expect(JSON.stringify(response.body)).not.toContain(carla.id);
   });
 
-  it('only returns the days inside the requested range', async () => {
+  it('cuts a request that starts before the range', async () => {
     const { ana, bruno } = await createUsers();
     const item = await createTestItem(ana.id);
     await createTestReservation(item.id, bruno.id, {
@@ -112,14 +123,39 @@ describe('GET /api/objetos/:id/demanda (US-04.07, #311)', () => {
       endDate: '2026-12-02',
     });
 
-    const response = await getDemand(item.id, {
-      from: '2026-12-01',
-      to: '2026-12-01',
-    });
+    const response = await getDemand(
+      item.id,
+      { from: '2026-12-01', to: '2026-12-01' },
+      await loginAs('ana@rentit.test'),
+    );
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
       days: [{ date: '2026-12-01', pendingRequests: 1 }],
+      pendingRequests: 1,
+    });
+  });
+
+  it('cuts a request that ends after the range', async () => {
+    const { ana, bruno } = await createUsers();
+    const item = await createTestItem(ana.id);
+    await createTestReservation(item.id, bruno.id, {
+      startDate: '2026-12-30',
+      endDate: '2027-01-02',
+    });
+
+    const response = await getDemand(
+      item.id,
+      DECEMBER,
+      await loginAs('ana@rentit.test'),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      days: [
+        { date: '2026-12-30', pendingRequests: 1 },
+        { date: '2026-12-31', pendingRequests: 1 },
+      ],
       pendingRequests: 1,
     });
   });
@@ -133,19 +169,27 @@ describe('GET /api/objetos/:id/demanda (US-04.07, #311)', () => {
       DECEMBER,
       await loginAs('ana@rentit.test'),
     );
-    const asGuest = await getDemand(item.id, DECEMBER);
+    const asOther = await getDemand(
+      item.id,
+      DECEMBER,
+      await loginAs('bruno@rentit.test'),
+    );
 
     expect(asOwner.status).toBe(200);
-    expect(asGuest.status).toBe(404);
-    expect(asGuest.body).toEqual(NOT_FOUND);
+    expect(asOther.status).toBe(404);
+    expect(asOther.body).toEqual(NOT_FOUND);
   });
 
   it('returns 404 for an item that does not exist or an id that is not a UUID', async () => {
+    await createUsers();
+    const token = await loginAs('ana@rentit.test');
+
     const missing = await getDemand(
       '00000000-0000-4000-8000-000000000000',
       DECEMBER,
+      token,
     );
-    const notUuid = await getDemand('abc', DECEMBER);
+    const notUuid = await getDemand('abc', DECEMBER, token);
 
     expect(missing.status).toBe(404);
     expect(missing.body).toEqual(NOT_FOUND);
@@ -157,11 +201,14 @@ describe('GET /api/objetos/:id/demanda (US-04.07, #311)', () => {
     const { ana } = await createUsers();
     const item = await createTestItem(ana.id);
 
-    const noFrom = await getDemand(item.id, { to: '2026-12-31' });
-    const badTo = await getDemand(item.id, {
-      from: '2026-02-01',
-      to: '2026-02-30',
-    });
+    const token = await loginAs('ana@rentit.test');
+
+    const noFrom = await getDemand(item.id, { to: '2026-12-31' }, token);
+    const badTo = await getDemand(
+      item.id,
+      { from: '2026-02-01', to: '2026-02-30' },
+      token,
+    );
 
     expect(noFrom.status).toBe(400);
     expect(noFrom.body.field).toBe('from');
@@ -173,14 +220,18 @@ describe('GET /api/objetos/:id/demanda (US-04.07, #311)', () => {
     const { ana } = await createUsers();
     const item = await createTestItem(ana.id);
 
-    const reversed = await getDemand(item.id, {
-      from: '2026-12-10',
-      to: '2026-12-01',
-    });
-    const tooLong = await getDemand(item.id, {
-      from: '2026-01-01',
-      to: '2027-01-02',
-    });
+    const token = await loginAs('ana@rentit.test');
+
+    const reversed = await getDemand(
+      item.id,
+      { from: '2026-12-10', to: '2026-12-01' },
+      token,
+    );
+    const tooLong = await getDemand(
+      item.id,
+      { from: '2026-01-01', to: '2027-01-02' },
+      token,
+    );
 
     expect(reversed.status).toBe(400);
     expect(reversed.body).toEqual({
@@ -189,5 +240,16 @@ describe('GET /api/objetos/:id/demanda (US-04.07, #311)', () => {
     });
     expect(tooLong.status).toBe(400);
     expect(tooLong.body.field).toBe('to');
+  });
+
+  it('returns 401 without a session', async () => {
+    const { ana } = await createUsers();
+    const item = await createTestItem(ana.id);
+
+    const response = await request(app)
+      .get(`/api/objetos/${item.id}/demanda`)
+      .query(DECEMBER);
+
+    expect(response.status).toBe(401);
   });
 });

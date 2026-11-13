@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { getItemDemand } from '../controllers/itemDemandController.js';
-import { optionalAuth } from '../middlewares/optionalAuth.js';
+import { requireAuth } from '../middlewares/requireAuth.js';
 
 export const itemDemandRoutes = Router();
 
-itemDemandRoutes.get('/objetos/:id/demanda', optionalAuth, getItemDemand);
+itemDemandRoutes.get('/objetos/:id/demanda', requireAuth, getItemDemand);
