@@ -13,7 +13,8 @@ export function Layout() {
     : { from: `${pathname}${search}` };
 
   // El panel de administración tiene su propia estructura, sin la cabecera ni el pie de la web.
-  if (pathname.startsWith('/admin')) {
+  // Solo /admin y sus subrutas: /administrar, por ejemplo, no es el panel.
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
     return (
       <>
         <Outlet />
