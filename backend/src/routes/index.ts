@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { adminItemRoutes } from './adminItemRoutes.js';
 import { adminRiderRoutes } from './adminRiderRoutes.js';
 import { authRoutes } from './authRoutes.js';
 import { categoryRoutes } from './categoryRoutes.js';
@@ -33,6 +34,7 @@ apiRoutes.use(riderRoutes);
 apiRoutes.use(profileRoutes);
 apiRoutes.use(eventRoutes);
 apiRoutes.use(adminRiderRoutes);
+apiRoutes.use(adminItemRoutes);
 apiRoutes.use(itemEditRoutes);
 apiRoutes.use(itemSearchRoutes);
 apiRoutes.use(itemDetailRoutes);

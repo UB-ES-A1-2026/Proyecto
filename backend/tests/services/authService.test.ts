@@ -26,14 +26,11 @@ import { logout, register } from '../../src/services/authService.js';
 import { revokeSession } from '../../src/services/sessionService.js';
 
 function uniqueConstraintError(target: string) {
-  return new Prisma.PrismaClientKnownRequestError(
-    'Unique constraint failed',
-    {
-      code: 'P2002',
-      clientVersion: Prisma.prismaVersion.client,
-      meta: { target: [target] },
-    },
-  );
+  return new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+    code: 'P2002',
+    clientVersion: Prisma.prismaVersion.client,
+    meta: { target: [target] },
+  });
 }
 
 beforeEach(() => {
