@@ -69,11 +69,6 @@ export function getRiderQuote(itemId: string, neighborhood: string): Promise<Rid
   return apiRequest<RiderQuote>(`/objetos/${encodeURIComponent(itemId)}/entrega/tarifa?${query}`);
 }
 
-// Barrios de Barcelona, ordenados (GET /api/barrios, público).
-export function getNeighborhoods(): Promise<string[]> {
-  return apiRequest<string[]>('/barrios');
-}
-
 // «asap» → «Lo antes posible»; «09:00-11:00» → «09:00 – 11:00».
 export function formatSlot(slot: string | null): string {
   if (slot === null || slot === ASAP_SLOT) return 'Lo antes posible';

@@ -10,10 +10,10 @@ import {
   formatDistance,
   formatSlot,
   getDeliveryOptions,
-  getNeighborhoods,
   getRiderQuote,
   type DeliveryOptions,
 } from '../src/services/deliveryService';
+import { getNeighborhoods } from '../src/services/neighborhoodService';
 
 const SESSION = {
   token: 'token-de-prueba',
