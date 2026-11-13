@@ -39,15 +39,16 @@ const SECTIONS: HelpSection[] = [
   },
   {
     id: 'ver-perfil',
-    title: 'Ver tu perfil',
+    title: 'Ver y editar tu perfil',
     steps: [
       <>
-        Con la sesión iniciada, pulsa «<Link to="/perfil">Mi perfil</Link>» en el menú.
+        Con la sesión iniciada, pulsa «<Link to="/perfil">Mi perfil</Link>» en el menú. Es tu perfil
+        público: lo mismo que ven los demás.
       </>,
-      'Verás tu nombre de usuario, tu correo electrónico y desde cuándo eres miembro.',
-      'También verás cuántos objetos y solicitudes tienes, con un enlace a cada lista, y podrás publicar un objeto.',
+      'Verás tu foto, tu nombre de usuario, desde cuándo eres miembro, tu valoración media, tu bio y los objetos que tienes publicados. Tu correo electrónico solo lo ves tú.',
+      'Para cambiar la foto o la bio, pulsa «Editar perfil». Puedes subir una foto JPG, PNG o WebP de hasta 5 MB o quitarla, y escribir una bio de hasta 500 caracteres. Después, pulsa «Guardar».',
     ],
-    note: 'Si no has iniciado sesión, primero se te pedirá que lo hagas y después irás a tu perfil.',
+    note: 'Cualquiera puede ver tu perfil pulsando tu nombre en la ficha de uno de tus objetos. Si no has iniciado sesión, «Mi perfil» primero te pedirá que lo hagas.',
   },
   {
     id: 'cerrar-sesion',

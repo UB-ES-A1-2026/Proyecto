@@ -7,7 +7,7 @@ import { renderRoute } from './renderRoute';
 const SECTIONS = [
   { id: 'crear-cuenta', title: 'Crear una cuenta' },
   { id: 'iniciar-sesion', title: 'Iniciar sesión' },
-  { id: 'ver-perfil', title: 'Ver tu perfil' },
+  { id: 'ver-perfil', title: 'Ver y editar tu perfil' },
   { id: 'cerrar-sesion', title: 'Cerrar sesión' },
   { id: 'buscar', title: 'Buscar un objeto' },
   { id: 'filtrar', title: 'Filtrar los resultados' },

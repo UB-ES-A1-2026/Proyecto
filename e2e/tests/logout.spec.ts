@@ -100,8 +100,9 @@ test.describe('US-01.3 Cerrar sesión', () => {
     // Navegamos dentro de la app para que el perfil quede en el historial
     await page.getByRole('link', { name: 'Mi perfil' }).click();
     await expect(page).toHaveURL(OWN_PROFILE_URL);
-    // El botón está en el perfil propio aunque el perfil aún no cargue (la API de /usuarios/:id llega con el backend de US-01.4)
-    await expect(page.getByRole('button', { name: LOGOUT_BUTTON })).toBeVisible();
+    // El perfil propio ha cargado: el correo solo se ve en el propio perfil.
+    await expect(page.getByRole('heading', { level: 1, name: 'ana' })).toBeVisible();
+    await expect(page.getByText(USER.email)).toBeVisible();
 
     // El botón está en el perfil: antes de cerrar sesión se pasa por otra pantalla privada
     await page.getByRole('link', { name: 'Mis objetos' }).first().click();
@@ -112,7 +113,7 @@ test.describe('US-01.3 Cerrar sesión', () => {
 
     await expect(page).toHaveURL(LOGIN_PATH);
     await expect(page.getByRole('heading', { name: 'Mis objetos' })).toHaveCount(0);
-    await expect(page.getByRole('heading', { name: 'Mi perfil' })).toHaveCount(0);
+    await expect(page.getByRole('heading', { level: 1, name: 'ana' })).toHaveCount(0);
     await expect(page.getByText(USER.email)).toHaveCount(0);
     await expect(page.getByRole('button', { name: LOGOUT_BUTTON })).toHaveCount(0);
   });

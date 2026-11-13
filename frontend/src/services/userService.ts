@@ -1,18 +1,5 @@
 import { apiRequest } from './apiClient';
 
-// Respuesta de GET /api/usuarios/me (#146).
-export type UserProfile = {
-  id: string;
-  username: string;
-  email: string;
-  role: string;
-  createdAt: string;
-};
-
-export function getProfile(token: string): Promise<UserProfile> {
-  return apiRequest<UserProfile>('/usuarios/me', { token });
-}
-
 // Perfil público de un usuario (US-01.4, #300): lo devuelven GET /api/usuarios/:id, PATCH
 // /api/usuarios/me y la confirmación de la foto. Nunca lleva el correo ni el rol.
 export type PublicProfile = {
@@ -21,7 +8,7 @@ export type PublicProfile = {
   bio: string | null;
   photo: string | null;
   memberSince: string;
-  // La media la calcula el backend con las valoraciones recibidas (US-08.01); sin ninguna, es null.
+  // La media la calcula el backend con las valoraciones recibidas (US-08.02, T23); sin ninguna, es null.
   rating: { average: number | null; count: number };
   // Solo los objetos publicados, del más nuevo al más antiguo.
   items: {

@@ -14,8 +14,9 @@ const dateFormatter = new Intl.DateTimeFormat('es-ES', { dateStyle: 'long' });
 const ratingFormatter = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 });
 
 const NOT_FOUND = 'No hemos encontrado este usuario.';
-const PHOTO_FAILED =
-  'Se han guardado los cambios, pero no se ha podido subir la foto. Inténtalo de nuevo.';
+// La bio se guardó pero la foto no: se dice el motivo real que da la API.
+const photoFailed = (reason: string) =>
+  `Se ha guardado la bio, pero no la foto: ${reason} Inténtalo de nuevo.`;
 
 type Notice = { kind: 'success' | 'error'; text: string };
 
@@ -38,6 +39,7 @@ function ProfileSkeleton() {
 function PublicProfileView({ id }: { id: string }) {
   const { session, clearSession } = useAuth();
   const token = session?.token;
+  const userId = session?.user.id;
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,14 +51,19 @@ function PublicProfileView({ id }: { id: string }) {
 
     getPublicProfile(id, token)
       .then((data) => {
-        if (!ignore) setProfile(data);
+        if (ignore) return;
+        // La ruta usa optionalAuth: con un token caducado no responde 401, sino el perfil como a
+        // un visitante. Si es tu propio id y no lo reconoce como tuyo, la sesión ya no vale: se
+        // borra y esta petición se repite sin sesión.
+        if (token && userId === data.id && !data.isOwnProfile) {
+          clearSession();
+          return;
+        }
+        setProfile(data);
       })
       .catch((requestError: unknown) => {
         if (ignore) return;
-        // Sesión caducada: al borrarla, esta petición se repite como visitante.
-        if (requestError instanceof ApiError && requestError.status === 401) {
-          clearSession();
-        } else if (requestError instanceof ApiError && requestError.status === 404) {
+        if (requestError instanceof ApiError && requestError.status === 404) {
           setNotFound(true);
         } else if (requestError instanceof ApiError) {
           setError(requestError.message);
@@ -68,14 +75,14 @@ function PublicProfileView({ id }: { id: string }) {
     return () => {
       ignore = true;
     };
-  }, [id, token, clearSession]);
+  }, [id, token, userId, clearSession]);
 
-  const handleSaved = useCallback((updated: PublicProfile, photoFailed: boolean) => {
+  const handleSaved = useCallback((updated: PublicProfile, photoError: string | null) => {
     setProfile(updated);
     setEditing(false);
     setNotice(
-      photoFailed
-        ? { kind: 'error', text: PHOTO_FAILED }
+      photoError
+        ? { kind: 'error', text: photoFailed(photoError) }
         : { kind: 'success', text: 'Perfil actualizado.' },
     );
   }, []);
