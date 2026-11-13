@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-10.03 Solicitar ser rider · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-10.03 Solicitar ser rider</h1>
+      <p class="wf-historia">
+        Como <strong>persona que quiere repartir</strong>, quiero <strong>solicitar ser rider desde la web rellenando un
+        cuestionario</strong> para <strong>poder hacer entregas cuando me acepten</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #304 · Tarea T35 (#315) · Contrato del backend: #322 y #325 (<code>POST /api/riders</code>) · Wireframe de
+        baja fidelidad · Generado con asistencia de IA (Claude) – pendiente de revisión por Marc Sanz, 13/11/2026
+      </p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-entrada">
+      <h2><span class="wf-paso">1</span>Punto de entrada: cualquier página sin sesión <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"
+              ><span class="wf-enlace">Hazte rider</span><span class="wf-marca">1</span><span class="wf-enlace">Iniciar sesión</span
+              ><span class="wf-enlace">Crear cuenta</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Lo que necesitas, a la vuelta de la esquina</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-campo">
+              <label>¿Qué quieres alquilar?</label>
+              <div class="wf-input">Por ejemplo, taladro <span class="wf-boton">Buscar</span></div>
+            </div>
+            <div class="wf-caja">Explora por categoría · Novedades · Cómo funciona</div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Lo que necesitas, a la vuelta de la esquina</h3>
+            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
+            <div class="wf-campo"><div class="wf-input">Por ejemplo, taladro</div></div>
+          </div>
+          <div class="wf-barra-inferior">
+            <span>Inicio</span><span>Iniciar sesión</span><span>Crear cuenta</span><span>Hazte rider</span>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          «Hazte rider» está en la cabecera de todas las páginas mientras no hay sesión (criterio 1). En el móvil va en la
+          barra inferior. Lleva a <code>/hazte-rider</code>. Con sesión no se ve (ver pregunta 5).
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Hazte rider»</p>
+
+    <section class="wf-pantalla" data-captura="2-cuestionario">
+      <h2><span class="wf-paso">2</span>Qué es un rider y cuestionario <code>/hazte-rider</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/hazte-rider">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"
+              ><span class="wf-enlace">Hazte rider</span><span class="wf-enlace">Iniciar sesión</span
+              ><span class="wf-enlace">Crear cuenta</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas wf-panel-izquierda">
+              <div class="wf-tarjeta">
+                <h3 class="wf-h1">Hazte rider</h3>
+                <p class="wf-texto">Lleva objetos entre vecinos de tu barrio cuando te vaya bien.</p>
+                <p class="wf-texto"><strong>Qué hace un rider:</strong> recoge el objeto en casa del propietario y lo entrega a quien lo alquila.</p>
+                <p class="wf-texto"><strong>Cuánto cobra:</strong> 3, 5 o 7 € por entrega, según la distancia. <span class="wf-marca">1</span></p>
+                <p class="wf-texto"><strong>Requisitos:</strong> mayor de edad, móvil y un medio para moverte.</p>
+                <p class="wf-ayuda">La cuenta de rider es aparte: no sirve para alquilar ni publicar objetos. <span class="wf-marca">2</span></p>
+              </div>
+              <div class="wf-tarjeta">
+                <h3 class="wf-h1">Tu solicitud</h3>
+                <div class="wf-campo">
+                  <label>Nombre de usuario</label>
+                  <div class="wf-input">pau.rider</div>
+                  <p class="wf-ayuda">Entre 3 y 30 caracteres: letras sin acentos, números, «.», «_» o «-».</p>
+                </div>
+                <div class="wf-campo"><label>Correo electrónico</label><div class="wf-input">pau@ejemplo.com</div></div>
+                <div class="wf-campo">
+                  <label>Contraseña</label>
+                  <div class="wf-input">•••••••• <span class="wf-boton wf-secundario">Mostrar</span></div>
+                  <p class="wf-ayuda">Mínimo 8 caracteres. Máximo 72 (las letras con acento cuentan como 2).</p>
+                </div>
+                <div class="wf-campo">
+                  <label>Teléfono <span class="wf-marca">3</span></label>
+                  <div class="wf-input">612 345 678</div>
+                  <p class="wf-ayuda">9 cifras. Puedes poner +34 delante.</p>
+                </div>
+                <div class="wf-campo">
+                  <label>Zona en la que quieres repartir</label>
+                  <div class="wf-input">Gràcia y alrededores</div>
+                  <p class="wf-ayuda">Entre 2 y 100 caracteres.</p>
+                </div>
+                <div class="wf-campo">
+                  <label>Vehículo <span class="wf-marca">4</span></label>
+                  <div class="wf-chips">
+                    <span class="wf-chip">A pie</span><span class="wf-chip wf-activo">Bici</span><span class="wf-chip">Patinete</span
+                    ><span class="wf-chip">Moto</span><span class="wf-chip">Coche</span>
+                  </div>
+                </div>
+                <div class="wf-campo">
+                  <label>Días que puedes repartir</label>
+                  <div class="wf-chips">
+                    <span class="wf-chip wf-activo">Lunes</span><span class="wf-chip">Martes</span><span class="wf-chip wf-activo">Miércoles</span
+                    ><span class="wf-chip">Jueves</span><span class="wf-chip wf-activo">Viernes</span><span class="wf-chip">Sábado</span
+                    ><span class="wf-chip">Domingo</span>
+                  </div>
+                  <p class="wf-ayuda">Marca al menos uno.</p>
+                </div>
+                <div class="wf-campo">
+                  <label>Franjas</label>
+                  <div class="wf-chips">
+                    <span class="wf-chip">Mañana (9 – 14 h)</span><span class="wf-chip wf-activo">Tarde (14 – 20 h)</span
+                    ><span class="wf-chip">Noche (20 – 23 h)</span>
+                  </div>
+                  <p class="wf-ayuda">Marca al menos una.</p>
+                </div>
+                <div class="wf-campo">
+                  <div class="wf-input"><input type="checkbox" checked /> Acepto las <span class="wf-enlace">condiciones para riders</span> <span class="wf-marca">5</span></div>
+                </div>
+                <span class="wf-boton wf-ancho">Enviar solicitud <span class="wf-marca">6</span></span>
+                <p class="wf-ayuda">¿Ya has enviado tu solicitud? <span class="wf-enlace">Inicia sesión</span> para ver cómo va.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Hazte rider</h3>
+            <p class="wf-texto">Lleva objetos entre vecinos de tu barrio. 3, 5 o 7 € por entrega.</p>
+            <div class="wf-campo"><label>Nombre de usuario</label><div class="wf-input">pau.rider</div></div>
+            <div class="wf-campo"><label>Correo electrónico</label><div class="wf-input">pau@ejemplo.com</div></div>
+            <div class="wf-campo"><label>Contraseña</label><div class="wf-input">••••••••</div></div>
+            <div class="wf-campo"><label>Teléfono</label><div class="wf-input">612 345 678</div></div>
+            <div class="wf-campo"><label>Zona</label><div class="wf-input">Gràcia y alrededores</div></div>
+            <div class="wf-campo">
+              <label>Vehículo</label>
+              <div class="wf-chips"><span class="wf-chip">A pie</span><span class="wf-chip wf-activo">Bici</span><span class="wf-chip">…</span></div>
+            </div>
+            <div class="wf-campo"><label>Días y franjas</label><div class="wf-lineas"><span></span></div></div>
+            <span class="wf-boton wf-ancho">Enviar solicitud</span>
+          </div>
+          <div class="wf-barra-inferior">
+            <span>Inicio</span><span>Iniciar sesión</span><span>Crear cuenta</span><span>Hazte rider</span>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Lo que cobra el rider no está decidido: 3, 5 o 7 € es la tarifa que paga el arrendatario por la entrega (US-05.01,
+          #321). Ver pregunta 1.
+        </li>
+        <li>Decisión 2 del equipo: cuenta aparte, pendiente hasta que un admin la acepte, sin alquilar ni publicar.</li>
+        <li>
+          Las mismas reglas que el backend (<code>riderBody.ts</code>): teléfono de 9 cifras, con <code>+34</code> o
+          <code>0034</code> opcional y espacios permitidos; zona de 2 a 100 caracteres. Cuenta: las mismas reglas que el registro
+          (US-01.1).
+        </li>
+        <li>
+          Se envían los valores en inglés: <code>vehicle</code> = on_foot | bike | scooter | motorbike | car;
+          <code>days</code> = monday … sunday; <code>slots</code> = morning | afternoon | night. Vehículo: uno; días y franjas:
+          al menos uno, sin repetir.
+        </li>
+        <li>Obligatorio (<code>acceptedTerms: true</code>). El texto de las condiciones no existe todavía: ver pregunta 2.</li>
+        <li>
+          Al pulsar se valida todo a la vez. Mientras se envía, el botón dice «Enviando solicitud…» y está desactivado.
+          <code>POST /api/riders</code> no inicia sesión.
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Algún dato no es válido, falta aceptar las condiciones o el correo ya existe</p>
+
+    <section class="wf-pantalla" data-captura="3-errores">
+      <h2><span class="wf-paso">3</span>Cuestionario con errores <code>/hazte-rider</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/hazte-rider">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"
+              ><span class="wf-enlace">Hazte rider</span><span class="wf-enlace">Iniciar sesión</span
+              ><span class="wf-enlace">Crear cuenta</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <h3 class="wf-h1">Tu solicitud</h3>
+              <div class="wf-campo">
+                <label>Correo electrónico <span class="wf-marca">1</span></label>
+                <div class="wf-input wf-con-error">ana@rentit.test</div>
+                <p class="wf-error">Ya existe una cuenta con este correo.</p>
+              </div>
+              <div class="wf-campo">
+                <label>Teléfono</label>
+                <div class="wf-input wf-con-error">6123</div>
+                <p class="wf-ayuda">9 cifras. Puedes poner +34 delante.</p>
+                <p class="wf-error">El campo "teléfono" no es correcto, revísalo.</p>
+              </div>
+              <div class="wf-campo">
+                <label>Zona en la que quieres repartir</label>
+                <div class="wf-input wf-con-error"></div>
+                <p class="wf-error">El campo "zona" no es correcto, revísalo.</p>
+              </div>
+              <div class="wf-campo">
+                <label>Vehículo</label>
+                <div class="wf-chips"><span class="wf-chip">A pie</span><span class="wf-chip">Bici</span><span class="wf-chip">Patinete</span><span class="wf-chip">Moto</span><span class="wf-chip">Coche</span></div>
+                <p class="wf-error">El campo "vehículo" no es correcto, revísalo.</p>
+              </div>
+              <div class="wf-campo">
+                <label>Días que puedes repartir</label>
+                <div class="wf-chips"><span class="wf-chip">Lunes</span><span class="wf-chip">…</span><span class="wf-chip">Domingo</span></div>
+                <p class="wf-error">El campo "días" no es correcto, revísalo.</p>
+              </div>
+              <div class="wf-campo">
+                <label>Franjas</label>
+                <div class="wf-chips"><span class="wf-chip">Mañana (9 – 14 h)</span><span class="wf-chip">Tarde (14 – 20 h)</span><span class="wf-chip">Noche (20 – 23 h)</span></div>
+                <p class="wf-error">El campo "franjas" no es correcto, revísalo.</p>
+              </div>
+              <div class="wf-campo">
+                <div class="wf-input wf-con-error"><input type="checkbox" /> Acepto las condiciones para riders</div>
+                <p class="wf-error">Tienes que aceptar las condiciones.</p>
+              </div>
+              <span class="wf-boton wf-ancho">Enviar solicitud <span class="wf-marca">2</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Cada error sale debajo de su campo, con el texto exacto de la API (<code>field</code> dice cuál). Correo repetido
+          (409): «Ya existe una cuenta con este correo.»; nombre de usuario repetido (409): «Este nombre de usuario ya está en
+          uso.». Usuario, correo y contraseña no válidos: los mismos textos que el registro (US-01.1), por ejemplo «El campo
+          "correo electrónico" no está correctamente introducido, prueba a revisarlo.».
+        </li>
+        <li>
+          No se crea nada y se queda en <code>/hazte-rider</code> sin perder lo escrito. El foco va al primer campo con error
+          y cada error desaparece al editar su campo. Si el fallo no es de un campo, el aviso sale encima: «No se puede
+          conectar con el servidor. Inténtalo más tarde.».
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Todo es válido → la API responde 201</p>
+
+    <section class="wf-pantalla" data-captura="4-confirmacion">
+      <h2><span class="wf-paso">4</span>Solicitud enviada <code>/hazte-rider</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/hazte-rider">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"
+              ><span class="wf-enlace">Hazte rider</span><span class="wf-enlace">Iniciar sesión</span
+              ><span class="wf-enlace">Crear cuenta</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <h3 class="wf-h1">Solicitud enviada</h3>
+              <p class="wf-aviso">Hemos recibido tu solicitud. Un admin la revisará pronto. <span class="wf-marca">1</span></p>
+              <p class="wf-texto">Tu cuenta queda «Pendiente de revisión». Puedes iniciar sesión con tu correo para ver cómo va.</p>
+              <span class="wf-boton wf-ancho">Iniciar sesión <span class="wf-marca">2</span></span>
+              <span class="wf-boton wf-secundario wf-ancho">Volver al inicio</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Texto exacto de la respuesta 201 (<code>message</code>). La API no crea sesión (criterio 3).</li>
+        <li>Lleva a <code>/login</code> con el correo ya puesto.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Inicia sesión antes de que un admin la revise (<code>riderStatus: "pending"</code>)</p>
+
+    <section class="wf-pantalla" data-captura="5-pendiente">
+      <h2><span class="wf-paso">5</span>Rider pendiente: solo ve el estado de su solicitud <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"
+              ><span class="wf-enlace">Cerrar sesión</span><span class="wf-marca">1</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <h3 class="wf-h1">Hola, pau.rider</h3>
+              <div class="wf-chips"><span class="wf-chip wf-activo">Pendiente de revisión</span></div>
+              <p class="wf-texto">Un admin está revisando tu solicitud para ser rider. Cuando la acepte, aquí verás los trabajos disponibles. <span class="wf-marca">2</span></p>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Hola, pau.rider</h3>
+            <div class="wf-chips"><span class="wf-chip wf-activo">Pendiente de revisión</span></div>
+            <p class="wf-texto">Un admin está revisando tu solicitud.</p>
+            <span class="wf-boton wf-secundario wf-ancho">Cerrar sesión</span>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Con <code>isRider: true</code> no se ven «Mis objetos», «Mis solicitudes», «Publicar un objeto» ni el buscador
+          (criterio 5); tampoco «Trabajos» mientras no esté aceptada (criterio 4). Ver pregunta 3 sobre la ruta.
+        </li>
+        <li>Después del login, un rider va a esta pantalla en lugar de la página inicial.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Un admin la rechaza (US-11.03) y el rider vuelve a iniciar sesión</p>
+
+    <section class="wf-pantalla" data-captura="6-rechazada">
+      <h2><span class="wf-paso">6</span>Rider rechazado, con el motivo <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Cerrar sesión</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <h3 class="wf-h1">Hola, pau.rider</h3>
+              <div class="wf-chips"><span class="wf-chip">Solicitud rechazada</span></div>
+              <p class="wf-texto">Un admin ha rechazado tu solicitud para ser rider.</p>
+              <p class="wf-aviso">Motivo: la zona indicada está fuera de la ciudad. <span class="wf-marca">1</span></p>
+              <p class="wf-ayuda">Si crees que es un error, escríbenos desde la página de ayuda. <span class="wf-marca">2</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          El motivo es opcional: sin motivo, no sale esta línea. El login solo devuelve <code>riderStatus: "rejected"</code>;
+          el motivo (<code>rejectionReason</code>, T37) todavía no llega al propio rider. Ver pregunta 4.
+        </li>
+        <li>No hay forma de volver a pedirlo desde aquí: queda fuera de esta historia.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Si un admin la acepta (<code>riderStatus: "approved"</code>) → destino</p>
+
+    <section class="wf-pantalla" data-captura="7-aceptada">
+      <h2><span class="wf-paso">7</span>Destino: rider aceptado, sin «Alquilar» ni «Publicar» <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"
+              ><span class="wf-enlace">Trabajos</span><span class="wf-marca">1</span><span class="wf-enlace">Cerrar sesión</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+            >
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Hola, pau.rider</h3>
+            <div class="wf-chips"><span class="wf-chip wf-activo">Rider activo</span></div>
+            <p class="wf-texto">Ya puedes elegir trabajos de entrega.</p>
+            <span class="wf-boton">Ver trabajos</span>
+            <p class="wf-ayuda">Esta cuenta no puede alquilar ni publicar objetos. Para alquilar, usa otra cuenta. <span class="wf-marca">2</span></p>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Hola, pau.rider</h3>
+            <div class="wf-chips"><span class="wf-chip wf-activo">Rider activo</span></div>
+            <span class="wf-boton wf-ancho">Ver trabajos</span>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Trabajos</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>«Trabajos» y su pantalla son de US-10.01 (#78). Aquí solo se ve el enlace.</li>
+        <li>
+          Criterio 5: no aparecen «Publicar un objeto», «Mis objetos» ni «Mis solicitudes». Si aun así llega a solicitar o
+          publicar (por ejemplo, desde una ficha o por la API), sale el error de la API: «Las cuentas de rider no pueden
+          solicitar ni publicar objetos.».
+        </li>
+      </ol>
+    </section>
+
+    <section class="wf-pantalla">
+      <h2><span class="wf-paso">?</span>Preguntas abiertas para el equipo</h2>
+      <ol class="wf-notas">
+        <li>¿Cuánto cobra el rider por trabajo? La historia pide mostrarlo y no está decidido (¿toda la tarifa de 3/5/7 €?).</li>
+        <li>¿Qué dicen las «condiciones para riders»? ¿Una página o un texto desplegable?</li>
+        <li>¿El estado de la solicitud va en <code>/</code> o en una ruta propia (<code>/hazte-rider/estado</code>)?</li>
+        <li>
+          ¿De dónde saca el rider rechazado su motivo? Hace falta que el login o <code>/api/usuarios/me</code> devuelvan
+          <code>rejectionReason</code>, o un <code>GET /api/riders/me</code> (Max, T34, o Alex, T37).
+        </li>
+        <li>Con una sesión normal (no rider), ¿se oculta «Hazte rider»? Aquí se oculta, porque la cuenta de rider es aparte.</li>
+        <li>¿Un rider puede buscar y ver fichas de objetos, o solo ve su estado y «Trabajos»?</li>
+      </ol>
+    </section>
+  </body>
+</html>
