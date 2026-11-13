@@ -25,6 +25,21 @@ const SECTIONS: HelpSection[] = [
     ],
     note: 'Si un dato no es válido, verás el error debajo del campo. Con «Mostrar» puedes ver la contraseña que has escrito.',
   },
+  // «Hazte rider» (US-10.03, T35 #315): generado con asistencia de IA (Claude) – revisado por Marc Sanz, 13/11/2026
+  {
+    id: 'hazte-rider',
+    title: 'Hacerte rider',
+    steps: [
+      <>
+        Sin iniciar sesión, pulsa «<Link to="/hazte-rider">Hazte rider</Link>» en el menú. Una
+        cuenta de rider es aparte de la de alquilar: usa otro correo.
+      </>,
+      'Rellena el cuestionario: nombre de usuario, correo, contraseña, teléfono, la zona en la que quieres repartir, tu vehículo y los días y franjas en que puedes. Lee las condiciones para riders y acéptalas.',
+      'Pulsa «Enviar solicitud». Un admin la revisará; mientras tanto, al iniciar sesión verás «Tu solicitud para ser rider» con su estado.',
+      'Cuando te acepten, al iniciar sesión irás a «Trabajos». Si la rechazan, verás el motivo si el admin lo ha escrito.',
+    ],
+    note: 'Una cuenta de rider no puede buscar, alquilar ni publicar objetos: solo ve el estado de su solicitud y sus trabajos.',
+  },
   {
     id: 'iniciar-sesion',
     title: 'Iniciar sesión',
