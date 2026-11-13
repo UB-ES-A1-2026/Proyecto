@@ -12,6 +12,7 @@ import {
   demoPasswordError,
   upsertDemoDemand,
   upsertDemoItems,
+  upsertDemoModerations,
   upsertDemoReservations,
   upsertDemoRiders,
   upsertUsers,
@@ -42,6 +43,8 @@ async function main(): Promise<void> {
 
   // El admin revisa los riders de la demo: se crea antes que ellos.
   await upsertUsers(prisma, [DEMO_ADMIN], password, rounds);
+  // El admin retira de la demo un objeto sospechoso (US-11.03).
+  await upsertDemoModerations(prisma, ownerIds, DEMO_ADMIN.email);
   const riders = await upsertDemoRiders(
     prisma,
     password,
