@@ -1,6 +1,6 @@
 // Generado con asistencia de IA (Claude)
 import type { RentalDates } from '../components/RentalRequest';
-import type { DeliveryDraft, DeliverySelection } from './delivery';
+import type { DeliveryDraft, DeliverySelection } from './deliveryDraft';
 
 // Las fechas elegidas viajan en la dirección (`?inicio=2026-12-05&fin=2026-12-06`) entre la ficha y
 // la página «Confirmar y pagar» (US-07.01): recargar o volver atrás no las pierde.
