@@ -65,12 +65,15 @@ test.describe('Navegación en el móvil', () => {
     await logIn(page);
     await page.goto('/perfil');
     await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toBeVisible();
+    // Se mide con el perfil ya cargado (US-01.4): si no, la página crece después de medir.
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
 
     const footer = await page.getByRole('contentinfo').boundingBox();
     const bar = await mainNav(page).boundingBox();
-    expect((footer?.y ?? 0) + (footer?.height ?? 0)).toBeLessThanOrEqual(bar?.y ?? 0);
+    // Margen de 1 px por el redondeo de los subpíxeles (p. ej. 784,03 frente a 784).
+    expect((footer?.y ?? 0) + (footer?.height ?? 0)).toBeLessThanOrEqual((bar?.y ?? 0) + 1);
 
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,

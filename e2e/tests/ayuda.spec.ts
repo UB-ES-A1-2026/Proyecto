@@ -14,7 +14,7 @@ const HELP_PATH = '/ayuda';
 const DELIVERED_FLOWS = [
   'Crear una cuenta',
   'Iniciar sesión',
-  'Ver tu perfil',
+  'Ver y editar tu perfil',
   'Cerrar sesión',
   'Buscar un objeto',
   'Filtrar los resultados',
