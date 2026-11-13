@@ -13,244 +13,412 @@
         objeto</strong>.
       </p>
       <p class="wf-meta">
-        Issue #72 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Generado con
-        asistencia de IA (Claude) – pendiente de revisar por el equipo en el Sprint Planning
+        Issue #72 · Tarea de frontend #286 · Wireframe de baja fidelidad · Actualizado con asistencia de IA (Claude),
+        pendiente de revisar por el equipo
       </p>
-      <p class="wf-meta">Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo</p>
+      <p class="wf-meta">
+        <strong>Flujo propuesto: pagar al solicitar y reserva inmediata</strong> (propuesta en el issue #72, pendiente de
+        que el equipo la acepte). La tarjeta se pide al solicitar: se <strong>bloquea</strong> el importe del alquiler y se
+        <strong>cobra cuando el propietario acepta</strong>; si la rechaza o no responde en 48 h, se libera. Con
+        <strong>reserva inmediata</strong> se cobra al momento. Ya no hay que volver a «Mis solicitudes» para pagar.
+      </p>
+      <p class="wf-meta">
+        Fianza: hasta 6 días de alquiler se bloquea el día antes de empezar y se libera al terminar; si dura más, se cobra
+        y se devuelve al terminar (un bloqueo con tarjeta caduca a los ~7 días).
+      </p>
     </header>
 
-    <section class="wf-pantalla" data-captura="1-entrada">
-      <h2><span class="wf-paso">1</span>Punto de entrada: Mis solicitudes <code>/mis-solicitudes</code></h2>
+    <section class="wf-pantalla" data-captura="1-entrada-ficha">
+      <h2><span class="wf-paso">1</span>Punto de entrada: ficha del objeto, con las fechas elegidas <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-imagen"></div>
+                <p class="wf-texto"></p>
+                <h3 class="wf-h1">Hidrolimpiadora Kärcher</h3>
+                <p class="wf-texto">Sant Andreu · Hogar y jardín</p>
+                <div class="wf-lineas"><span></span><span></span></div>
+              </div>
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>8,00 € / día</strong> · Disponible<br />Fianza: 50,00 €</p>
+                <div class="wf-fila">
+                  <div class="wf-campo"><label>Fecha de inicio</label><div class="wf-input">05/12/2026</div></div>
+                  <div class="wf-campo"><label>Fecha de fin</label><div class="wf-input">06/12/2026</div></div>
+                </div>
+                <div class="wf-caja">Calendario</div>
+                <p class="wf-texto">2 días × 8,00 € = <strong>16,00 €</strong></p>
+                <p class="wf-ayuda">✓ Fechas disponibles</p>
+                <span class="wf-boton wf-ancho">Solicitar alquiler</span><span class="wf-marca">1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Igual que hoy (US-04.01): con las fechas libres se activa «Solicitar alquiler». Pasa al resumen en el mismo panel, que ahora incluye el pago.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Solicitar alquiler»</p>
+
+    <section class="wf-pantalla" data-captura="2-resumen-con-tarjeta">
+      <h2><span class="wf-paso">2</span>Resumen y tarjeta: solicitar es pagar <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-imagen"></div>
+                <p class="wf-texto"></p>
+                <h3 class="wf-h1">Hidrolimpiadora Kärcher</h3>
+                <div class="wf-lineas"><span></span><span></span></div>
+              </div>
+              <div class="wf-tarjeta">
+                <h3 class="wf-h1">Revisa tu solicitud</h3>
+                <p class="wf-texto"><strong>Hidrolimpiadora Kärcher</strong> · 8,00 € / día</p>
+                <p class="wf-ayuda">Desde: sábado, 5 de diciembre de 2026<br />Hasta: domingo, 6 de diciembre de 2026</p>
+                <p class="wf-texto">Importe del alquiler (2 días): 16,00 €<br />Fianza (se retiene, no se cobra): 50,00 €</p>
+                <p class="wf-texto"><strong>Importe total: 66,00 €</strong> <span class="wf-marca">1</span></p>
+                <p class="wf-aviso">🔒 Bloquearemos 16,00 € en tu tarjeta. <strong>Solo se cobran si ana acepta</strong>; si la rechaza o no responde en 48 horas, se liberan. La fianza (50,00 €) se bloquea el día antes de empezar y se libera al terminar, sin cobrarla. <span class="wf-marca">2</span></p>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Formulario de Stripe</strong> <span class="wf-marca">3</span></p>
+                  <div class="wf-fila"><span class="wf-boton wf-secundario">Apple Pay</span><span class="wf-boton wf-secundario">Google Pay</span></div>
+                  <p class="wf-ayuda">o con tarjeta</p>
+                  <div class="wf-campo"><label>Número de tarjeta</label><div class="wf-input">1234 1234 1234 1234</div></div>
+                  <div class="wf-fila">
+                    <div class="wf-campo"><label>Caducidad</label><div class="wf-input">MM/AA</div></div>
+                    <div class="wf-campo"><label>CVC</label><div class="wf-input">123</div></div>
+                  </div>
+                </div>
+                <p class="wf-ayuda">Modo de prueba: no se mueve dinero real.<br /><code>4242 4242 4242 4242</code> se acepta · <code>4000 0000 0000 0002</code> se rechaza</p>
+                <div class="wf-fila">
+                  <span class="wf-boton wf-secundario">Volver</span>
+                  <span class="wf-boton">Enviar solicitud</span><span class="wf-marca">4</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <div class="wf-tarjeta">
+              <h3 class="wf-h1">Revisa tu solicitud</h3>
+              <p class="wf-ayuda">5 – 6 de diciembre de 2026</p>
+              <p class="wf-texto">Alquiler (2 días): 16,00 €<br />Fianza: 50,00 €<br /><strong>Importe total: 66,00 €</strong></p>
+              <p class="wf-aviso">🔒 Bloquearemos 16,00 €. Solo se cobran si ana acepta.</p>
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>Formulario de Stripe</strong></p>
+                <span class="wf-boton wf-secundario wf-ancho">Apple Pay</span>
+                <p class="wf-ayuda">o con tarjeta</p>
+                <div class="wf-campo"><label>Número de tarjeta</label><div class="wf-input">1234 1234 1234 1234</div></div>
+                <div class="wf-fila">
+                  <div class="wf-campo"><label>Caducidad</label><div class="wf-input">MM/AA</div></div>
+                  <div class="wf-campo"><label>CVC</label><div class="wf-input">123</div></div>
+                </div>
+              </div>
+              <p class="wf-texto"></p>
+              <span class="wf-boton wf-ancho">Enviar solicitud</span>
+              <p class="wf-texto"></p>
+              <span class="wf-boton wf-secundario wf-ancho">Volver</span>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Criterio 2: objeto, fechas, precio del alquiler, fianza e importe total (alquiler + fianza + entrega si hay
+          rider, US-05.01). El importe destacado es el total.
+        </li>
+        <li>Qué pasa con el dinero, antes de meter la tarjeta: se bloquea, no se cobra hasta que el propietario acepta.</li>
+        <li>
+          Criterio 3: el <strong>Payment Element de Stripe</strong> en modo de prueba, con las tarjetas de prueba
+          indicadas. Muestra lo que admite el dispositivo: tarjeta, Apple Pay (Safari) o Google Pay (Chrome). Los
+          wallets solo salen con HTTPS y el dominio registrado en Stripe, no en <code>localhost</code>. Los datos van del
+          navegador a Stripe: Rentit solo recibe un token. Hasta que T10 tenga Stripe, la web usa campos de tarjeta
+          provisionales.
+        </li>
+        <li>
+          Envía la solicitud con el token de Stripe (<code>POST /reservas</code> con <code>confirmationTokenId</code>).
+          Mientras se procesa dice «Procesando el pago…» y los botones están desactivados. Si el banco pide verificación
+          (3D Secure), Stripe la muestra encima y después se termina de enviar. Con datos no válidos, el error sale en el
+          formulario de Stripe y no se llama a la API.
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Si la tarjeta se rechaza</p>
+
+    <section class="wf-pantalla" data-captura="3-tarjeta-rechazada">
+      <h2><span class="wf-paso">3</span>Error: tarjeta rechazada <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <h3 class="wf-h1">Revisa tu solicitud</h3>
+              <p class="wf-texto"><strong>Importe total: 66,00 €</strong></p>
+              <div class="wf-caja">Formulario de Stripe con la tarjeta 4000 0000 0000 0002</div>
+              <p class="wf-texto"></p>
+              <p class="wf-aviso">⚠ Tu tarjeta ha sido rechazada. <span class="wf-marca">1</span></p>
+              <div class="wf-fila">
+                <span class="wf-boton wf-secundario">Volver</span>
+                <span class="wf-boton">Enviar solicitud</span><span class="wf-marca">2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Criterio 5: el mensaje viene de la API (<code>402</code>) y sale justo encima de los botones, donde se mira al
+          pulsar. <strong>No se crea la solicitud</strong> y no se bloquea nada.
+        </li>
+        <li>Sigue en el resumen, con el botón activo, para probar con otra tarjeta.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Con una tarjeta válida: la solicitud se envía con el importe bloqueado</p>
+
+    <section class="wf-pantalla" data-captura="4-destino-solicitud-enviada">
+      <h2><span class="wf-paso">4</span>Destino: Mis solicitudes, enviada y pendiente <code>/mis-solicitudes</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Mis solicitudes</h3>
-            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <p class="wf-aviso">✓ Solicitud enviada. Hemos bloqueado el importe hasta que ana responda. <span class="wf-marca">1</span></p>
             <div class="wf-columnas wf-iguales">
               <div>
-                <h4>Enviadas <span class="wf-chip">2</span></h4>
+                <p class="wf-texto"><strong>Enviadas</strong></p>
                 <div class="wf-tarjeta">
-                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Aceptada</span><span>▴</span></div>
-                  <p class="wf-ayuda">10–12 nov. 2026</p>
-                  <p class="wf-texto"></p>
-                  <div class="wf-rejilla">
-                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
-                    <p class="wf-texto">Fechas: Del 10 de noviembre de 2026 al 12 de noviembre de 2026</p>
-                    <p class="wf-texto">Importe total: 18,00 €</p>
-                    <p class="wf-texto">Estado: Aceptada</p>
-                    <p class="wf-texto">Propietario: ana</p>
-                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
-                  </div>
-                  <p class="wf-texto"></p>
-                  <span class="wf-boton">Pagar</span><span class="wf-marca">1</span>
+                  <p class="wf-texto"><strong>Hidrolimpiadora Kärcher</strong> · 5–6 dic. 2026 · <span class="wf-chip">Pendiente</span></p>
+                  <p class="wf-ayuda">Importe total: 16,00 € · Propietario: ana</p>
+                  <p class="wf-aviso">🔒 Hemos bloqueado 16,00 € en tu tarjeta. Se cobran si ana acepta; si no, se liberan. Tiene hasta el 15 de noviembre a las 10:35 para responder. <span class="wf-marca">2</span></p>
                 </div>
+              </div>
+              <div>
+                <p class="wf-texto"><strong>Recibidas</strong></p>
+                <div class="wf-caja">Solicitudes recibidas</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Aviso al volver de la ficha. Desaparece al recargar la página.</li>
+        <li>
+          Ya no hay botón «Pagar»: no hace falta volver para pagar. Se ve cuánto hay bloqueado y el plazo del propietario
+          (<code>expiresAt</code>, 48 h desde la solicitud).
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Mientras tanto, el propietario la ve en sus solicitudes recibidas</p>
+
+    <section class="wf-pantalla" data-captura="5-propietario-acepta">
+      <h2><span class="wf-paso">5</span>Propietario: aceptar cobra el alquiler <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas wf-iguales">
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>Hidrolimpiadora Kärcher</strong> · 5–6 dic. 2026 · <span class="wf-chip">Pendiente</span></p>
+                <p class="wf-ayuda">Solicitada por bruno</p>
+                <p class="wf-aviso">🔒 Si la aceptas, se cobran 16,00 € al momento; si la rechazas, se liberan. Responde antes del 15 de noviembre a las 10:35: si no, caduca. <span class="wf-marca">1</span></p>
+                <div class="wf-fila"><span class="wf-boton">Aceptar</span><span class="wf-boton wf-secundario">Rechazar</span></div>
+              </div>
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>Hidrolimpiadora Kärcher</strong> · 5–6 dic. 2026 · <span class="wf-chip">Pagada</span></p>
+                <p class="wf-ayuda">Solicitada por bruno</p>
+                <p class="wf-aviso">✓ Has aceptado la solicitud. Se ha cobrado el alquiler. <span class="wf-marca">2</span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Antes de responder: qué pasa con el dinero y hasta cuándo puede responder.</li>
+        <li>
+          Después de «Aceptar»: se cobra lo bloqueado y la solicitud pasa directamente a «Pagada». Con «Rechazar», el
+          aviso es «Has rechazado la solicitud. Se ha liberado el importe bloqueado.» y queda «Rechazada».
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Si el propietario no responde en 48 horas</p>
+
+    <section class="wf-pantalla" data-captura="6-caducada">
+      <h2><span class="wf-paso">6</span>Solicitud caducada <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <p class="wf-texto"><strong>Tabla de paddle surf hinchable</strong> · 13–15 nov. 2026 · <span class="wf-chip">Caducada</span> <span class="wf-marca">1</span></p>
+              <p class="wf-aviso">🕑 ana no respondió a tiempo. Hemos liberado el importe bloqueado.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Estado nuevo «Caducada» (<code>expired</code>). Al propietario le dice «No respondiste a tiempo y la solicitud
+          ha caducado.»
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Otra entrada: un objeto con reserva inmediata</p>
+
+    <section class="wf-pantalla" data-captura="7-reserva-inmediata">
+      <h2><span class="wf-paso">7</span>Reserva inmediata: se cobra al momento <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/0dd8…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-imagen"></div>
+                <p class="wf-texto"></p>
+                <h3 class="wf-h1">Taladro percutor Bosch</h3>
+                <div class="wf-lineas"><span></span><span></span></div>
+              </div>
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>6,00 € / día</strong> · Disponible<br />Fianza: 40,00 €</p>
+                <p class="wf-ayuda">⚡ <strong>Reserva inmediata:</strong> sin esperar a que ana acepte. <span class="wf-marca">1</span></p>
+                <h3 class="wf-h1">Revisa tu reserva</h3>
+                <p class="wf-texto">Importe del alquiler (3 días): 18,00 €<br />Fianza (se retiene, no se cobra): 40,00 €<br /><strong>Importe total: 58,00 €</strong></p>
+                <p class="wf-aviso">⚡ <strong>Reserva inmediata.</strong> Se cobran 18,00 € ahora y la reserva queda confirmada, sin esperar a ana. <span class="wf-marca">2</span></p>
+                <div class="wf-caja">Formulario de Stripe, como en la pantalla 2</div>
+                <p class="wf-texto"></p>
+                <span class="wf-boton wf-ancho">Reservar y pagar</span><span class="wf-marca">3</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El propietario lo marca al publicar o editar el objeto (pantalla 10).</li>
+        <li>El título pasa a «Revisa tu reserva» y el aviso dice que se cobra ahora.</li>
+        <li>Lleva a «Mis solicitudes» con la reserva ya «Pagada» (pantalla 8).</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Reservar y pagar» con una tarjeta válida</p>
+
+    <section class="wf-pantalla" data-captura="8-destino-reserva-confirmada">
+      <h2><span class="wf-paso">8</span>Destino: reserva confirmada y pagada <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-aviso">✓ Reserva confirmada. Pago registrado. <span class="wf-marca">1</span></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>Taladro percutor Bosch</strong> · 2–4 dic. 2026 · <span class="wf-chip">Pagada</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 4: el pago queda registrado, la fianza retenida y la reserva «Pagada». Criterio 6: no se vuelve a pedir el pago.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Variante del resumen: un alquiler de más de 6 días</p>
+
+    <section class="wf-pantalla" data-captura="9-alquiler-largo">
+      <h2><span class="wf-paso">9</span>Alquiler de más de 6 días: la fianza se cobra y se devuelve <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/30c7…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <h3 class="wf-h1">Revisa tu solicitud</h3>
+              <p class="wf-ayuda">Del 14 al 21 de diciembre de 2026</p>
+              <p class="wf-texto">Importe del alquiler (8 días): 32,00 €<br />Fianza (se cobra y se devuelve al terminar): 40,00 € <span class="wf-marca">1</span><br /><strong>Importe total: 72,00 €</strong></p>
+              <p class="wf-aviso">🔒 Bloquearemos 32,00 € en tu tarjeta. Solo se cobran si ana acepta; si la rechaza o no responde en 48 horas, se liberan. Como el alquiler dura más de 6 días, la fianza (40,00 €) se cobra el día antes de empezar y se devuelve al terminar. <span class="wf-marca">2</span></p>
+              <div class="wf-caja">Formulario de Stripe y botones, como en la pantalla 2</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Hasta 6 días dice «Fianza (se retiene, no se cobra)»; desde 7, «se cobra y se devuelve al terminar».</li>
+        <li>Un bloqueo con tarjeta caduca a los ~7 días: en un alquiler largo no cubriría la fianza hasta el final.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Desde el lado del propietario: activar la reserva inmediata</p>
+
+    <section class="wf-pantalla" data-captura="10-publicar-reserva-inmediata">
+      <h2><span class="wf-paso">10</span>Publicar o editar: «Reserva inmediata» <code>/objetos/nuevo</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/nuevo">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-caja">Nombre, descripción, categoría, precio, fianza, barrio y fotos (como hoy)</div>
+              </div>
+              <div>
+                <div class="wf-tarjeta"><p class="wf-texto"><strong>Disponibilidad</strong></p><div class="wf-lineas"><span></span></div></div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta"><p class="wf-texto"><strong>Formas de entrega</strong></p><div class="wf-lineas"><span></span></div></div>
                 <p class="wf-texto"></p>
                 <div class="wf-tarjeta">
-                  <div class="wf-fila"><strong>Bicicleta de paseo</strong><span class="wf-chip">Pendiente</span><span>▴</span></div>
-                  <p class="wf-ayuda">20–21 nov. 2026</p>
-                  <p class="wf-texto"></p>
-                  <div class="wf-rejilla">
-                    <p class="wf-texto">Objeto: <span class="wf-enlace">Bicicleta de paseo</span></p>
-                    <p class="wf-texto">Fechas: Del 20 de noviembre de 2026 al 21 de noviembre de 2026</p>
-                    <p class="wf-texto">Importe total: 16,00 €</p>
-                    <p class="wf-texto">Estado: Pendiente</p>
-                    <p class="wf-texto">Propietario: bruno<span class="wf-marca">2</span></p>
-                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
-                  </div>
+                  <p class="wf-texto"><strong>Solicitudes</strong></p>
+                  <div class="wf-input">⚡ Reserva inmediata: acepta las solicitudes automáticamente ☐ <span class="wf-marca">1</span></div>
+                  <p class="wf-ayuda">Se cobra al reservar, sin esperar tu respuesta. Si no la marcas, cada solicitud espera a que la aceptes (tienes 48 horas).</p>
                 </div>
-              </div>
-              <div>
-                <h4>Recibidas <span class="wf-chip">1</span></h4>
-                <div class="wf-tarjeta">
-                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
-                  <p class="wf-ayuda">9 nov. 2026</p>
-                </div>
+                <p class="wf-texto"></p>
+                <span class="wf-boton wf-ancho">Publicar</span>
               </div>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Criterio 1: «Pagar» solo aparece en una solicitud «Aceptada» de «Enviadas». Lleva a la pantalla de pago.</li>
-        <li>Solicitud no aceptada: no aparece «Pagar». La API también lo rechaza si se intenta.</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Clic en «Pagar»</p>
-
-    <section class="wf-pantalla" data-captura="2-pantalla-pago">
-      <h2><span class="wf-paso">2</span>Pantalla de pago <code>/mis-solicitudes/:id/pagar</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes/5ac9…/pagar">
-          <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <div class="wf-centrado">
-              <h3 class="wf-h1">Pagar el alquiler <span class="wf-marca">1</span></h3>
-              <div class="wf-tarjeta">
-                <p class="wf-texto"><strong>Taladro percutor Bosch</strong></p>
-                <p class="wf-texto">Del 10/11/2026 al 12/11/2026</p>
-                <p class="wf-texto">Precio del alquiler: 18,00 € <span class="wf-marca">2</span></p>
-                <p class="wf-texto">Fianza: 40,00 €</p>
-                <p class="wf-texto"><strong>Importe total: 58,00 €</strong></p>
-              </div>
-              <p class="wf-texto"></p>
-              <div class="wf-campo">
-                <label>Método de pago <span class="wf-marca">3</span></label>
-                <div class="wf-input"><strong>● Visa de prueba 4242 (aprobada)</strong></div>
-              </div>
-              <div class="wf-campo"><div class="wf-input">○ Visa de prueba 0002 (rechazada)</div></div>
-              <div class="wf-campo"><div class="wf-input">○ Visa de prueba 9995 (sin fondos)</div></div>
-              <p class="wf-ayuda">Pago simulado: no se mueve dinero real.</p>
-              <p class="wf-texto"></p>
-              <span class="wf-boton wf-ancho">Pagar</span><span class="wf-marca">4</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>Ruta propuesta. Sin sesión, lleva al login. No se define «Cancelar»: se sale con la cabecera.</li>
-        <li>Criterio 2: objeto, fechas, precio del alquiler, fianza e importe total. Si el modo es rider, se añade el coste de la entrega (US-05.01).</li>
         <li>
-          Criterio 3: método de pago disponible. Las opciones son las de la pasarela simulada propuesta en el ADR 0003
-          (decisión 3): no se teclea ningún número de tarjeta.
-        </li>
-        <li>Criterio 3: confirma el pago.</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Clic en «Pagar»</p>
-
-    <section class="wf-pantalla" data-captura="3-procesando">
-      <h2><span class="wf-paso">3</span>Procesando el pago <code>/mis-solicitudes/:id/pagar</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes/5ac9…/pagar">
-          <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <div class="wf-centrado">
-              <h3 class="wf-h1">Pagar el alquiler</h3>
-              <div class="wf-tarjeta">
-                <p class="wf-texto"><strong>Importe total: 58,00 €</strong></p>
-              </div>
-              <p class="wf-texto"></p>
-              <div class="wf-campo">
-                <label>Método de pago</label>
-                <div class="wf-input"><strong>● Visa de prueba 4242 (aprobada)</strong></div>
-              </div>
-              <span class="wf-boton wf-desactivado wf-ancho">Pagar</span><span class="wf-marca">1</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>Mientras se procesa, el botón está desactivado.</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Si el pago no es válido o se rechaza</p>
-
-    <section class="wf-pantalla" data-captura="4-pago-rechazado">
-      <h2><span class="wf-paso">4</span>Error: pago rechazado <code>/mis-solicitudes/:id/pagar</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes/5ac9…/pagar">
-          <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <div class="wf-centrado">
-              <h3 class="wf-h1">Pagar el alquiler</h3>
-              <p class="wf-aviso">La tarjeta ha sido rechazada. <span class="wf-marca">1</span></p>
-              <div class="wf-tarjeta">
-                <p class="wf-texto"><strong>Importe total: 58,00 €</strong></p>
-              </div>
-              <p class="wf-texto"></p>
-              <div class="wf-campo">
-                <label>Método de pago</label>
-                <div class="wf-input"><strong>● Visa de prueba 0002 (rechazada)</strong></div>
-              </div>
-              <span class="wf-boton wf-ancho">Pagar</span><span class="wf-marca">2</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>Criterio 5: el mensaje viene de la API. La reserva no se marca como pagada y sigue «Aceptada».</li>
-        <li>Sigue en esta pantalla, con el botón activo, y puede elegir otro método y volver a pagar.</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Desde la pantalla 3: el pago es válido y queda registrado</p>
-
-    <section class="wf-pantalla" data-captura="5-destino-pagado">
-      <h2><span class="wf-paso">5</span>Destino: Mis solicitudes, reserva pagada <code>/mis-solicitudes</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
-          <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <h3 class="wf-h1">Mis solicitudes</h3>
-            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
-            <p class="wf-aviso">El pago se ha registrado. <span class="wf-marca">1</span></p>
-            <div class="wf-columnas wf-iguales">
-              <div>
-                <h4>Enviadas <span class="wf-chip">1</span></h4>
-                <div class="wf-tarjeta">
-                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pagado</span><span>▴</span></div>
-                  <p class="wf-ayuda">10–12 nov. 2026</p>
-                  <p class="wf-texto"></p>
-                  <div class="wf-rejilla">
-                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
-                    <p class="wf-texto">Fechas: Del 10 de noviembre de 2026 al 12 de noviembre de 2026</p>
-                    <p class="wf-texto">Importe total: 18,00 €</p>
-                    <p class="wf-texto">Estado: Pagado</p>
-                    <p class="wf-texto">Propietario: ana<span class="wf-marca">2</span></p>
-                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h4>Recibidas <span class="wf-chip">1</span></h4>
-                <div class="wf-tarjeta">
-                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
-                  <p class="wf-ayuda">9 nov. 2026</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>El flujo pide un mensaje de que el pago se ha registrado; el texto exacto es una propuesta.</li>
-        <li>
-          Criterios 4 y 6: la reserva muestra «Pagado» y ya no aparece «Pagar». Si se vuelve a abrir la URL de pago o se
-          repite la petición, no se vuelve a pedir ni a cobrar: la API lo rechaza.
+          Desmarcada por defecto. En «Editar objeto» (US-02.02) hay la misma casilla «Reserva inmediata», debajo de la
+          fianza. Se guarda como <code>instantBooking</code>.
         </li>
       </ol>
     </section>
