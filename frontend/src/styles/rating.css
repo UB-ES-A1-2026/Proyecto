@@ -1,0 +1,185 @@
+/*
+ * Valorar un alquiler (US-08.01, #296): estrellas, formulario y la valoración en «Mis solicitudes».
+ * Solo usa los tokens de :root de styles.css.
+ */
+
+.rate-page {
+  max-width: 40rem;
+  margin: 0 auto;
+}
+
+.rate-card {
+  padding: var(--space-xl);
+}
+
+/* El alquiler que se valora */
+.rate-summary {
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-md);
+  border-bottom: var(--border-width) solid var(--color-divider);
+}
+
+.rate-summary-item {
+  margin: 0 0 var(--space-xs);
+  font-size: var(--font-size-section);
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.rate-summary-fact {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
+  margin: 0 0 var(--space-xs);
+  color: var(--color-text-muted);
+}
+
+/* Estrellas */
+.star-rating {
+  margin: 0 0 var(--space-lg);
+  padding: 0;
+  border: 0;
+}
+
+.star-rating-legend {
+  margin-bottom: var(--space-sm);
+  padding: 0;
+  font-weight: var(--font-weight-medium);
+}
+
+.star-rating-stars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  align-items: center;
+}
+
+.star-rating-star {
+  display: inline-flex;
+  padding: 0.125rem;
+  color: var(--color-border);
+  border-radius: var(--radius-small);
+  cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.star-rating-star.is-on {
+  color: var(--color-accent);
+}
+
+.star-rating-star:hover {
+  transform: scale(1.1);
+}
+
+.star-rating-star:has(.star-rating-input:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.star-rating:disabled .star-rating-star {
+  cursor: default;
+}
+
+/* El botón de opción y su texto existen, pero no se ven: se ve la estrella. */
+.star-rating-input,
+.star-rating-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.star-rating-value {
+  margin-left: var(--space-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.star-rating[aria-invalid='true'] .star-rating-star:not(.is-on) {
+  color: var(--color-error);
+}
+
+/* Error al publicar, justo encima de los botones */
+.rate-error {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: flex-start;
+}
+
+.rate-error .icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+/* Dos clases: styles.css se carga después de los @import y le ganaría el ancho del botón. */
+.rate-actions .button-primary,
+.rate-actions .button-secondary {
+  width: auto;
+}
+
+/* Valoración de solo lectura */
+.stars-display {
+  display: inline-flex;
+  gap: 0.125rem;
+  color: var(--color-accent);
+}
+
+.rate-blocked {
+  max-width: 32rem;
+  margin: var(--space-2xl) auto;
+}
+
+.rate-done {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  align-items: center;
+}
+
+.rate-done-comment {
+  margin: 0;
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
+.rate-skeleton {
+  height: 24rem;
+  border-radius: var(--radius-large);
+}
+
+/* En la tarjeta de «Mis solicitudes» */
+.reservation-rating {
+  margin-top: var(--space-md);
+}
+
+.reservation-rating .button-primary {
+  width: auto;
+}
+
+.reservation-rating-title {
+  margin: 0 0 var(--space-xs);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.reservation-rating-comment {
+  margin: var(--space-xs) 0 0;
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .rate-card {
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  .star-rating-value {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+}
