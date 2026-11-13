@@ -13,397 +13,496 @@
         <strong>mantener la plataforma segura</strong>.
       </p>
       <p class="wf-meta">
-        Issue #80 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Generado con
-        asistencia de IA (Claude) – pendiente de revisar por el equipo en el Sprint Planning
+        Issue #80 · Wireframe de baja fidelidad · Generado con asistencia de IA (Claude) – pendiente de revisar por el equipo
       </p>
-      <p class="wf-meta">Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo</p>
+      <p class="wf-meta">
+        Rehecho el 12/11/2026 sobre el panel de US-11.03 (<a href="../US-11.03-admin-riders/">wireframe</a>): en lugar de
+        pestañas dentro de la web, el admin tiene un panel propio con menú lateral, y Usuarios e Incidencias son dos secciones
+        más. Sustituye a la versión con pestañas del 03/11. Objetos y su ventana «Retirar anuncio» ya están programados en
+        US-11.03; lo demás es propuesta.
+      </p>
     </header>
-
     <section class="wf-pantalla" data-captura="1-entrada">
       <h2><span class="wf-paso">1</span>Punto de entrada: cualquier página con sesión de admin <code>/</code></h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/">
-          <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Administración</span><span class="wf-marca">1</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <h3 class="wf-h1">Hola, admin</h3>
-            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
-            <div class="wf-caja">Buscador, categorías, novedades y cómo funciona</div>
-          </div>
+      <div class="wf-escritorio" data-url="rentit.app/">
+        <nav class="wf-nav">
+          <span class="wf-logo">Rentit</span>
+          <span class="wf-enlaces"><span class="wf-enlace">Inicio</span><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Panel</span><span class="wf-marca">1</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+        </nav>
+        <div class="wf-contenido">
+          <h3 class="wf-h1">Hola, ana</h3>
+          <div class="wf-caja">Buscador, categorías, novedades y cómo funciona</div>
         </div>
       </div>
+      </div>
       <ol class="wf-notas">
-        <li>Solo lo ve quien tiene el rol de admin, que se asigna directamente en la base de datos. Lleva a <code>/admin</code>.</li>
+        <li>Solo lo ve quien tiene el rol de admin, que se asigna en la base de datos. Lleva a <code>/admin</code>. Al iniciar sesión, un admin que no venía de otra página entra directamente al panel.</li>
       </ol>
     </section>
+    <p class="wf-flecha">Clic en «Panel»</p>
 
-    <p class="wf-flecha">Clic en «Administración»</p>
-
-    <section class="wf-pantalla" data-captura="2-usuarios">
-      <h2><span class="wf-paso">2</span>Pestaña Usuarios <code>/admin</code></h2>
+    <section class="wf-pantalla" data-captura="2-resumen">
+      <h2><span class="wf-paso">2</span>Resumen del panel <code>/admin</code></h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/admin">
-          <nav class="wf-nav">
+      <div class="wf-escritorio" data-url="rentit.app/admin">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Administración</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <h3 class="wf-h1">Administración</h3>
-            <div class="wf-fila">
-              <span class="wf-boton">Usuarios</span>
-              <span class="wf-boton wf-secundario">Artículos</span>
-              <span class="wf-boton wf-secundario">Incidencias</span><span class="wf-marca">1</span>
+            <span class="wf-ayuda">Administración<span class="wf-marca">1</span></span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion wf-activo"><span>Resumen</span></span>
+              <span class="wf-admin-opcion"><span>Usuarios</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Incidencias</span> <span class="wf-contador">1</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion"><span>Solicitudes</span> <span class="wf-contador">2</span></span>
             </div>
-            <p class="wf-texto"></p>
-            <div class="wf-campo">
-              <label>Buscar <span class="wf-marca">2</span></label>
-              <div class="wf-input">Nombre de usuario</div>
-            </div>
-            <div class="wf-tarjeta">
-              <div class="wf-fila">
-                <p class="wf-texto"><strong>ana</strong> · Activo</p>
-                <span class="wf-boton wf-secundario">Bloquear</span>
-              </div>
-            </div>
-            <p class="wf-texto"></p>
-            <div class="wf-tarjeta">
-              <div class="wf-fila">
-                <p class="wf-texto"><strong>bruno</strong> · Activo</p>
-                <span class="wf-boton wf-secundario">Bloquear</span><span class="wf-marca">3</span>
-              </div>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
             </div>
           </div>
-        </div>
-        <div class="wf-movil">
-          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
-          <div class="wf-contenido">
-            <h3 class="wf-h1">Administración</h3>
-            <div class="wf-fila">
-              <span class="wf-boton wf-ancho">Usuarios</span>
-              <span class="wf-boton wf-secundario wf-ancho">Artículos</span>
-              <span class="wf-boton wf-secundario wf-ancho">Incidencias</span>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Resumen</h3>
+            <p class="wf-texto">Jueves, 12 de noviembre de 2026</p>
+            <div class="wf-columnas wf-tres">
+              <div class="wf-tarjeta"><span class="wf-ayuda">Objetos publicados</span><span class="wf-cifra">11</span><span class="wf-ayuda">Visibles en las búsquedas</span></div>
+              <div class="wf-tarjeta"><span class="wf-ayuda">Incidencias abiertas <span class="wf-marca">2</span></span><span class="wf-cifra">1</span><span class="wf-ayuda"><strong>Esperan tu revisión</strong></span></div>
+              <div class="wf-tarjeta"><span class="wf-ayuda">Solicitudes pendientes</span><span class="wf-cifra">2</span><span class="wf-ayuda"><strong>Esperan tu revisión</strong></span></div>
             </div>
             <p class="wf-texto"></p>
-            <div class="wf-campo">
-              <label>Buscar</label>
-              <div class="wf-input">Nombre de usuario</div>
-            </div>
-            <div class="wf-tarjeta">
-              <p class="wf-texto"><strong>bruno</strong> · Activo</p>
-              <span class="wf-boton wf-secundario wf-ancho">Bloquear</span>
+            <div class="wf-columnas wf-iguales">
+              <div class="wf-tarjeta"><strong>Incidencias por resolver</strong><p class="wf-texto">Taladro percutor Bosch · Daño · 10 dic</p></div>
+              <div class="wf-tarjeta"><strong>Solicitudes por revisar</strong><p class="wf-texto">laia.m · Sants · Moto · 10 nov<br />pau_reparte · Poblenou · Patinete · 11 nov</p></div>
             </div>
           </div>
-          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
         </div>
       </div>
+      <div class="wf-movil">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <div class="wf-admin-pie"><span class="wf-enlace">Ver la web</span><span class="wf-enlace">Cerrar sesión</span></div>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion wf-activo"><span>Resumen</span></span>
+              <span class="wf-admin-opcion"><span>Usuarios</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Incidencias</span> <span class="wf-contador">1</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion"><span>Solicitudes</span> <span class="wf-contador">2</span></span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Resumen</h3>
+            <div class="wf-tarjeta"><span class="wf-ayuda">Objetos publicados</span><span class="wf-cifra">11</span></div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta"><span class="wf-ayuda">Incidencias abiertas</span><span class="wf-cifra">1</span></div>
+            <p class="wf-texto"></p>
+            <div class="wf-caja">Las demás cifras y listas, una debajo de otra</div>
+          </div>
+        </div>
+      </div>
+      </div>
       <ol class="wf-notas">
-        <li>Criterio 1: listados de usuarios, artículos e incidencias, cada uno en su pestaña.</li>
-        <li>Criterio 1: búsqueda en el listado de la pestaña activa.</li>
-        <li>Criterio 2: abre la ventana de confirmación (pantalla 3).</li>
+        <li>Criterio 1: cada listado es una sección del menú, con el número de lo que espera revisión. En el móvil, el menú pasa arriba y las secciones se deslizan en horizontal.</li>
+        <li>Propuesta: el resumen añade las incidencias abiertas (y su lista) a lo que ya hay en US-11.03.</li>
       </ol>
     </section>
+    <p class="wf-flecha">Clic en «Usuarios»</p>
 
+    <section class="wf-pantalla" data-captura="3-usuarios">
+      <h2><span class="wf-paso">3</span>Usuarios <code>/admin/usuarios</code></h2>
+      <div class="wf-dispositivos">
+      <div class="wf-escritorio" data-url="rentit.app/admin/usuarios">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-ayuda">Administración</span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Usuarios</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Incidencias</span> <span class="wf-contador">1</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion"><span>Solicitudes</span> <span class="wf-contador">2</span></span>
+            </div>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Usuarios</h3>
+            <p class="wf-texto">12 usuarios</p>
+            <div class="wf-fila"><div class="wf-input">🔍 Buscar por nombre o correo <span class="wf-marca">1</span></div><div class="wf-input">Todos los estados ⌄</div></div>
+            <p class="wf-texto"></p>
+            <table class="wf-tabla">
+              <tr><th>Usuario</th><th>Correo electrónico</th><th>Alta</th><th class="wf-num">Objetos</th><th>Estado</th><th></th></tr>
+              <tr><td><strong>ana</strong></td><td>ana@rentit.test</td><td>1 oct 2026</td><td class="wf-num">8</td><td><span class="wf-chip">Activo</span></td><td><span class="wf-enlace">Bloquear</span></td></tr>
+              <tr><td><strong>bruno</strong></td><td>bruno@rentit.test</td><td>3 oct 2026</td><td class="wf-num">4</td><td><span class="wf-chip">Activo</span></td><td><span class="wf-enlace">Bloquear</span><span class="wf-marca">2</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="wf-movil">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <div class="wf-admin-pie"><span class="wf-enlace">Ver la web</span><span class="wf-enlace">Cerrar sesión</span></div>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Usuarios</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Incidencias</span> <span class="wf-contador">1</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion"><span>Solicitudes</span> <span class="wf-contador">2</span></span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Usuarios</h3>
+            <div class="wf-input">🔍 Buscar por nombre o correo</div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta"><p class="wf-texto"><strong>bruno</strong><br />bruno@rentit.test</p><p class="wf-ayuda">Alta: 3 oct 2026<br />Objetos: 4<br />Estado: Activo</p><span class="wf-enlace">Bloquear</span></div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 1: búsqueda opcional, hasta 100 caracteres, y filtro por estado (Activo o Bloqueado). En el móvil, cada fila es una ficha, como en las otras tablas del panel.</li>
+        <li>Criterio 2: abre la ventana de la pantalla 4. Un admin no se puede bloquear a sí mismo.</li>
+      </ol>
+    </section>
     <p class="wf-flecha">Clic en «Bloquear»</p>
 
-    <section class="wf-pantalla" data-captura="3-confirmar-bloqueo">
-      <h2><span class="wf-paso">3</span>Ventana de confirmación <code>/admin</code></h2>
+    <section class="wf-pantalla" data-captura="4-bloquear">
+      <h2><span class="wf-paso">4</span>Ventana «Bloquear usuario» <code>/admin/usuarios</code></h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/admin">
-          <nav class="wf-nav">
+      <div class="wf-escritorio" data-url="rentit.app/admin/usuarios">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Administración</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <div class="wf-centrado wf-tarjeta">
-              <h3 class="wf-h1">Bloquear usuario</h3>
-              <p class="wf-texto">¿Quieres bloquear a bruno? <span class="wf-marca">1</span></p>
-              <div class="wf-fila">
-                <span class="wf-boton">Confirmar</span>
-                <span class="wf-boton wf-secundario">Cancelar</span><span class="wf-marca">2</span>
-              </div>
+            <span class="wf-ayuda">Administración</span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Usuarios</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Incidencias</span> <span class="wf-contador">1</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion"><span>Solicitudes</span> <span class="wf-contador">2</span></span>
+            </div>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
             </div>
           </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>«Retirar» en la pestaña Artículos abre la misma ventana. Texto propuesto.</li>
-        <li>«Cancelar» cierra la ventana y la fila no cambia.</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Clic en la pestaña «Artículos»</p>
-
-    <section class="wf-pantalla" data-captura="4-articulos">
-      <h2><span class="wf-paso">4</span>Pestaña Artículos <code>/admin</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/admin">
-          <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Administración</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <h3 class="wf-h1">Administración</h3>
-            <div class="wf-fila">
-              <span class="wf-boton wf-secundario">Usuarios</span>
-              <span class="wf-boton">Artículos</span>
-              <span class="wf-boton wf-secundario">Incidencias</span>
-            </div>
-            <p class="wf-texto"></p>
-            <div class="wf-campo">
-              <label>Buscar</label>
-              <div class="wf-input">Nombre del artículo</div>
-            </div>
-            <div class="wf-tarjeta">
-              <div class="wf-fila">
-                <p class="wf-texto"><strong>Taladro percutor Bosch</strong> · ana · Publicado</p>
-                <span class="wf-boton wf-secundario">Retirar</span><span class="wf-marca">1</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>Criterio 2: retirar un artículo. Se confirma en la ventana y la fila pasa a Retirado.</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Clic en la pestaña «Incidencias»</p>
-
-    <section class="wf-pantalla" data-captura="5-incidencias">
-      <h2><span class="wf-paso">5</span>Pestaña Incidencias <code>/admin</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/admin">
-          <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Administración</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <h3 class="wf-h1">Administración</h3>
-            <div class="wf-fila">
-              <span class="wf-boton wf-secundario">Usuarios</span>
-              <span class="wf-boton wf-secundario">Artículos</span>
-              <span class="wf-boton">Incidencias</span>
-            </div>
-            <p class="wf-texto"></p>
-            <div class="wf-campo">
-              <label>Buscar</label>
-              <div class="wf-input">Objeto o usuario</div>
-            </div>
-            <div class="wf-tarjeta">
-              <div class="wf-fila">
-                <p class="wf-texto"><strong>Taladro percutor Bosch</strong> · Daño · Abierta · Fianza: Retenida<br />Abierta por bruno: El taladro se ha entregado con el portabrocas roto.</p>
-                <span class="wf-boton wf-secundario">Resolver</span><span class="wf-marca">2</span>
-              </div>
-              <h4>Fotos de check-in y check-out <span class="wf-marca">1</span></h4>
-              <div class="wf-rejilla">
-                <div><div class="wf-imagen"></div><p class="wf-ayuda">Check-in · 8 dic. 2026, 10:15</p></div>
-                <div><div class="wf-imagen"></div><p class="wf-ayuda">Check-out · 10 dic. 2026, 19:40</p></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>Criterio 2 de US-09.01: la incidencia aparece aquí con las fotos de check-in y check-out (US-09.02).</li>
-        <li>Criterio 2: resolver la incidencia abre la ventana de la pantalla 6.</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Clic en «Resolver»</p>
-
-    <section class="wf-pantalla" data-captura="6-resolver">
-      <h2><span class="wf-paso">6</span>Ventana «Resolver incidencia» <code>/admin</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/admin">
-          <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Administración</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <div class="wf-centrado wf-tarjeta">
-              <h3 class="wf-h1">Resolver incidencia</h3>
-              <p class="wf-texto">Taladro percutor Bosch · Daño</p>
-              <div class="wf-campo">
-                <label>Fianza <span class="wf-marca">1</span></label>
-                <div class="wf-fila">
-                  <span class="wf-boton">Liberar</span>
-                  <span class="wf-boton wf-secundario">Retener</span>
+          <div class="wf-admin-contenido">
+            <div class="wf-ventana">
+              <div class="wf-ventana-cuerpo">
+                <strong>Bloquear usuario</strong>
+                <p class="wf-aviso">⚠ ¿Bloquear a bruno? No podrá iniciar sesión, y sus objetos dejarán de aparecer en las búsquedas. <span class="wf-marca">1</span></p>
+                <div class="wf-campo">
+                  <label>Motivo <span class="wf-marca">2</span></label>
+                  <div class="wf-input">Varios anuncios retirados por estafa.</div>
+                  <p class="wf-ayuda">Lo leerá el usuario. Hasta 500 caracteres.</p>
                 </div>
               </div>
-              <div class="wf-fila">
-                <span class="wf-boton">Confirmar</span>
-                <span class="wf-boton wf-secundario">Cancelar</span>
+              <div class="wf-ventana-botones"><span class="wf-boton">Bloquear usuario</span><span class="wf-boton wf-secundario">Cancelar</span><span class="wf-marca">3</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Texto propuesto. Qué pasa con sus reservas activas lo decide el backend.</li>
+        <li>Propuesta: motivo obligatorio, como al retirar un objeto, para que el usuario sepa por qué.</li>
+        <li>«Cancelar», Esc o clic fuera no cambian nada.</li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Clic en «Objetos»</p>
+
+    <section class="wf-pantalla" data-captura="5-objetos">
+      <h2><span class="wf-paso">5</span>Objetos <code>/admin/objetos</code></h2>
+      <div class="wf-dispositivos">
+      <div class="wf-escritorio" data-url="rentit.app/admin/objetos">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-ayuda">Administración</span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion"><span>Usuarios</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Incidencias</span> <span class="wf-contador">1</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion"><span>Solicitudes</span> <span class="wf-contador">2</span></span>
+            </div>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Objetos</h3>
+            <p class="wf-texto">12 objetos</p>
+            <div class="wf-fila"><div class="wf-input">🔍 Buscar por nombre o descripción</div><div class="wf-input">Todas las categorías ⌄</div><div class="wf-input">Todos los estados ⌄</div><span class="wf-marca">1</span></div>
+            <p class="wf-texto"></p>
+            <table class="wf-tabla">
+              <tr><th>Objeto</th><th>Propietario <span class="wf-marca">2</span></th><th>Categoría</th><th>Estado</th><th class="wf-num">Precio por día</th><th></th></tr>
+              <tr><td>▢ Taladro percutor Bosch</td><td>ana</td><td>Herramientas</td><td><span class="wf-chip">Publicado</span></td><td class="wf-num">6,00 €</td><td><span class="wf-enlace">Ver ficha</span> · <span class="wf-enlace">Retirar</span><span class="wf-marca">3</span></td></tr>
+              <tr><td>▢ Tienda de campaña</td><td>ana</td><td>Camping</td><td><span class="wf-chip">Pausado</span></td><td class="wf-num">12,00 €</td><td><span class="wf-enlace">Ver ficha</span> · <span class="wf-enlace">Retirar</span></td></tr>
+              <tr><td>▢ Carro de la compra</td><td>bruno</td><td>Otros</td><td><span class="wf-chip">Retirado</span></td><td class="wf-num">2,00 €</td><td><span class="wf-enlace">Ver ficha</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 1: búsqueda y filtros por categoría y estado. Ya programado en US-11.03 con la búsqueda pública (solo publicados); los demás estados necesitan el endpoint de admin.</li>
+        <li>Propuesta: el propietario enlaza a su perfil público (US-01.4).</li>
+        <li>Criterio 2: «Retirar» abre la ventana «Retirar anuncio» con el motivo (pantalla 12 de US-11.03). Un objeto retirado ya no tiene la acción.</li>
+      </ol>
+    </section>
+    <p class="wf-flecha">Clic en «Incidencias»</p>
+
+    <section class="wf-pantalla" data-captura="6-incidencias">
+      <h2><span class="wf-paso">6</span>Incidencias <code>/admin/incidencias</code></h2>
+      <div class="wf-dispositivos">
+      <div class="wf-escritorio" data-url="rentit.app/admin/incidencias">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-ayuda">Administración</span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion"><span>Usuarios</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Incidencias</span> <span class="wf-contador">1</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion"><span>Solicitudes</span> <span class="wf-contador">2</span></span>
+            </div>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Incidencias</h3>
+            <div class="wf-chips"><span class="wf-chip wf-activo">Abiertas · 1</span><span class="wf-chip">Resueltas · 3</span><span class="wf-marca">1</span></div>
+            <div class="wf-fila"><div class="wf-input">🔍 Buscar por objeto o usuario</div></div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta">
+              <div class="wf-fila"><p class="wf-texto"><strong>Taladro percutor Bosch</strong> · Daño · Fianza: retenida<br />Abierta por bruno el 10 dic 2026: El taladro se ha entregado con el portabrocas roto.</p><span class="wf-boton wf-secundario">Resolver</span><span class="wf-marca">3</span></div>
+              <p class="wf-texto"><strong>Fotos de check-in y check-out</strong> <span class="wf-marca">2</span></p>
+              <div class="wf-rejilla">
+                <div><div class="wf-imagen"></div><p class="wf-ayuda">Check-in · 8 dic 2026, 10:15</p></div>
+                <div><div class="wf-imagen"></div><p class="wf-ayuda">Check-out · 10 dic 2026, 19:40</p></div>
               </div>
             </div>
           </div>
         </div>
       </div>
+      </div>
       <ol class="wf-notas">
-        <li>Criterio 2: resolver es liberar o retener la fianza. La incidencia pasa a Resuelta.</li>
+        <li>Filtro por estado, como en Solicitudes. Se abre en «Abiertas», de la más antigua a la más nueva.</li>
+        <li>Criterio 2 de US-09.01: la incidencia sale con las fotos de check-in y check-out (US-09.02).</li>
+        <li>Criterio 2: abre la ventana de la pantalla 7.</li>
       </ol>
     </section>
+    <p class="wf-flecha">Clic en «Resolver»</p>
 
+    <section class="wf-pantalla" data-captura="7-resolver">
+      <h2><span class="wf-paso">7</span>Ventana «Resolver incidencia» <code>/admin/incidencias</code></h2>
+      <div class="wf-dispositivos">
+      <div class="wf-escritorio" data-url="rentit.app/admin/incidencias">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-ayuda">Administración</span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion"><span>Usuarios</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Incidencias</span> <span class="wf-contador">1</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion"><span>Solicitudes</span> <span class="wf-contador">2</span></span>
+            </div>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <div class="wf-ventana">
+              <div class="wf-ventana-cuerpo">
+                <strong>Resolver incidencia</strong>
+                <p class="wf-texto">Taladro percutor Bosch · Daño · Fianza de 30,00 €</p>
+                <p class="wf-texto"><strong>Fianza</strong> <span class="wf-marca">1</span></p>
+                <div class="wf-opcion"><span><strong>Liberar la fianza</strong><br /><span class="wf-ayuda">Vuelve a quien alquiló el objeto.</span></span></div>
+                <div class="wf-opcion wf-activo"><span><strong>Retener la fianza</strong><br /><span class="wf-ayuda">Pasa al propietario para cubrir el daño.</span></span></div>
+                <div class="wf-campo">
+                  <label>Explicación (opcional) <span class="wf-marca">2</span></label>
+                  <div class="wf-input">Las fotos del check-out muestran el portabrocas roto.</div>
+                  <p class="wf-ayuda">La leerán las dos personas. Hasta 500 caracteres.</p>
+                </div>
+              </div>
+              <div class="wf-ventana-botones"><span class="wf-boton">Resolver incidencia</span><span class="wf-boton wf-secundario">Cancelar</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Criterio 2: hay que elegir liberar o retener la fianza. Sin elegir: «Elige qué pasa con la fianza.» (texto propuesto), junto a los botones.</li>
+        <li>Propuesta, igual que el motivo al retirar un objeto.</li>
+      </ol>
+    </section>
     <p class="wf-flecha">Si una búsqueda no encuentra nada</p>
 
-    <section class="wf-pantalla" data-captura="7-sin-resultados">
-      <h2><span class="wf-paso">7</span>Búsqueda sin resultados <code>/admin</code></h2>
+    <section class="wf-pantalla" data-captura="8-sin-resultados">
+      <h2><span class="wf-paso">8</span>Búsqueda sin resultados <code>/admin/usuarios</code></h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/admin">
-          <nav class="wf-nav">
+      <div class="wf-escritorio" data-url="rentit.app/admin/usuarios">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Administración</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <h3 class="wf-h1">Administración</h3>
-            <div class="wf-fila">
-              <span class="wf-boton">Usuarios</span>
-              <span class="wf-boton wf-secundario">Artículos</span>
-              <span class="wf-boton wf-secundario">Incidencias</span>
+            <span class="wf-ayuda">Administración</span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Usuarios</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Incidencias</span> <span class="wf-contador">1</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion"><span>Solicitudes</span> <span class="wf-contador">2</span></span>
             </div>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Usuarios</h3>
+            <div class="wf-fila"><div class="wf-input">🔍 zzzz</div></div>
             <p class="wf-texto"></p>
-            <div class="wf-campo">
-              <label>Buscar</label>
-              <div class="wf-input">zzzz</div>
-            </div>
-            <p class="wf-texto">No hay coincidencias para «zzzz». <span class="wf-marca">1</span></p>
+            <div class="wf-caja">No hay coincidencias para «zzzz». <span class="wf-marca">1</span></div>
           </div>
         </div>
       </div>
+      </div>
       <ol class="wf-notas">
-        <li>Texto propuesto.</li>
+        <li>Texto propuesto, igual en las demás secciones. En Riders activos ya dice «Ningún rider coincide con la búsqueda.»</li>
       </ol>
     </section>
+    <p class="wf-flecha">Si al confirmar la acción falla</p>
 
-    <p class="wf-flecha">Si al pulsar «Confirmar» la acción falla</p>
-
-    <section class="wf-pantalla" data-captura="8-error-accion">
-      <h2><span class="wf-paso">8</span>Error: la acción falla <code>/admin</code></h2>
+    <section class="wf-pantalla" data-captura="9-error-accion">
+      <h2><span class="wf-paso">9</span>Error: la acción falla <code>/admin/usuarios</code></h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/admin">
-          <nav class="wf-nav">
+      <div class="wf-escritorio" data-url="rentit.app/admin/usuarios">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Administración</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <h3 class="wf-h1">Administración</h3>
-            <div class="wf-fila">
-              <span class="wf-boton">Usuarios</span>
-              <span class="wf-boton wf-secundario">Artículos</span>
-              <span class="wf-boton wf-secundario">Incidencias</span>
+            <span class="wf-ayuda">Administración</span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Usuarios</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Incidencias</span> <span class="wf-contador">1</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion"><span>Solicitudes</span> <span class="wf-contador">2</span></span>
             </div>
-            <p class="wf-texto"></p>
-            <p class="wf-aviso">Motivo que devuelve la API. <span class="wf-marca">1</span></p>
-            <div class="wf-tarjeta">
-              <div class="wf-fila">
-                <p class="wf-texto"><strong>bruno</strong> · Activo</p>
-                <span class="wf-boton wf-secundario">Bloquear</span>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <div class="wf-ventana">
+              <div class="wf-ventana-cuerpo">
+                <strong>Bloquear usuario</strong>
+                <p class="wf-texto">¿Bloquear a bruno? …</p>
+                <div class="wf-lineas"><span></span><span></span></div>
+                <p class="wf-aviso">Motivo que devuelve la API. <span class="wf-marca">1</span></p>
               </div>
+              <div class="wf-ventana-botones"><span class="wf-boton">Bloquear usuario</span><span class="wf-boton wf-secundario">Cancelar</span></div>
             </div>
           </div>
         </div>
       </div>
+      </div>
       <ol class="wf-notas">
-        <li>Se indica el motivo y la fila no cambia. Cada motivo lo define la API.</li>
+        <li>El motivo sale dentro de la ventana, junto a los botones, y la fila no cambia. Si otro admin ya lo había hecho (409), la ventana se cierra, se avisa y se vuelve a pedir la lista, como en Solicitudes.</li>
       </ol>
     </section>
-
     <p class="wf-flecha">Si entra en <code>/admin</code> alguien sin rol de admin</p>
 
-    <section class="wf-pantalla" data-captura="9-sin-rol">
-      <h2><span class="wf-paso">9</span>Sin rol de admin <code>/admin</code></h2>
+    <section class="wf-pantalla" data-captura="10-sin-rol">
+      <h2><span class="wf-paso">10</span>Sin rol de admin: vuelve a la página de inicio <code>/</code></h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/admin">
-          <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <h3 class="wf-h1">No tienes permiso para ver esta página</h3>
-            <p class="wf-texto">No se muestra ningún listado. <span class="wf-marca">1</span></p>
-          </div>
+      <div class="wf-escritorio" data-url="rentit.app/">
+        <nav class="wf-nav">
+          <span class="wf-logo">Rentit</span>
+          <span class="wf-enlaces"><span class="wf-enlace">Inicio</span><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-marca">1</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+        </nav>
+        <div class="wf-contenido">
+          <h3 class="wf-h1">Hola, bruno</h3>
+          <div class="wf-caja">Página de inicio</div>
         </div>
       </div>
+      </div>
       <ol class="wf-notas">
-        <li>No ve el enlace «Administración», y la ruta y la API lo rechazan. Título propuesto.</li>
+        <li>No ve «Panel». Si escribe <code>/admin/…</code>, vuelve a <code>/</code>; sin sesión, va al login. La API también lo rechaza (403). Ya programado en US-11.03.</li>
       </ol>
     </section>
+    <p class="wf-flecha">Clic en «Bloquear usuario» (pantalla 4) y la acción se realiza</p>
 
-    <p class="wf-flecha">Clic en «Confirmar» y la acción se realiza (pantalla 3 o 6)</p>
-
-    <section class="wf-pantalla" data-captura="10-destino">
-      <h2><span class="wf-paso">10</span>Destino: mismo listado, con la fila actualizada <code>/admin</code></h2>
+    <section class="wf-pantalla" data-captura="11-destino">
+      <h2><span class="wf-paso">11</span>Destino: mismo listado, con la fila actualizada <code>/admin/usuarios</code></h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/admin">
-          <nav class="wf-nav">
+      <div class="wf-escritorio" data-url="rentit.app/admin/usuarios">
+        <div class="wf-admin">
+          <div class="wf-admin-menu">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Administración</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <h3 class="wf-h1">Administración</h3>
-            <div class="wf-fila">
-              <span class="wf-boton">Usuarios</span>
-              <span class="wf-boton wf-secundario">Artículos</span>
-              <span class="wf-boton wf-secundario">Incidencias</span>
+            <span class="wf-ayuda">Administración</span>
+            <div class="wf-admin-secciones">
+              <span class="wf-admin-opcion"><span>Resumen</span></span>
+              <span class="wf-admin-opcion wf-activo"><span>Usuarios</span></span>
+              <span class="wf-admin-opcion"><span>Objetos</span></span>
+              <span class="wf-admin-opcion"><span>Incidencias</span> <span class="wf-contador">1</span></span>
+              <span class="wf-admin-opcion"><span>Riders activos</span></span>
+              <span class="wf-admin-opcion"><span>Solicitudes</span> <span class="wf-contador">2</span></span>
             </div>
-            <p class="wf-texto"></p>
+            <div class="wf-admin-pie">
+              <span class="wf-enlace">Ver la web</span>
+              <span><strong>ana</strong><br />Administrador</span>
+              <span class="wf-enlace">Cerrar sesión</span>
+            </div>
+          </div>
+          <div class="wf-admin-contenido">
+            <h3 class="wf-h1">Usuarios</h3>
             <p class="wf-aviso">Se ha bloqueado a bruno. <span class="wf-marca">1</span></p>
-            <div class="wf-tarjeta">
-              <div class="wf-fila">
-                <p class="wf-texto"><strong>ana</strong> · Activo</p>
-                <span class="wf-boton wf-secundario">Bloquear</span>
-              </div>
-            </div>
+            <div class="wf-fila"><div class="wf-input">🔍 Buscar por nombre o correo</div></div>
             <p class="wf-texto"></p>
-            <div class="wf-tarjeta">
-              <p class="wf-texto"><strong>bruno</strong> · Bloqueado <span class="wf-marca">2</span></p>
-            </div>
+            <table class="wf-tabla">
+              <tr><th>Usuario</th><th>Correo electrónico</th><th>Alta</th><th class="wf-num">Objetos</th><th>Estado</th><th></th></tr>
+              <tr><td><strong>ana</strong></td><td>ana@rentit.test</td><td>1 oct 2026</td><td class="wf-num">8</td><td><span class="wf-chip">Activo</span></td><td><span class="wf-enlace">Bloquear</span></td></tr>
+              <tr><td><strong>bruno</strong></td><td>bruno@rentit.test</td><td>3 oct 2026</td><td class="wf-num">4</td><td><span class="wf-chip wf-activo">Bloqueado</span></td><td><span class="wf-enlace">Desbloquear</span><span class="wf-marca">2</span></td></tr>
+            </table>
           </div>
         </div>
       </div>
+      </div>
       <ol class="wf-notas">
-        <li>Mensaje de confirmación (texto propuesto). Igual para las otras acciones.</li>
-        <li>La fila queda en su estado nuevo. Igual en las otras pestañas: Retirado, o Resuelta con la fianza liberada o retenida.</li>
+        <li>Mensaje de confirmación (texto propuesto). Al resolver: «Se ha resuelto la incidencia del Taladro percutor Bosch.»; al retirar, el de US-11.03.</li>
+        <li>La fila queda en su estado nuevo: Bloqueado, Retirado o Resuelta. Propuesta: poder desbloquear, con la misma ventana.</li>
       </ol>
     </section>
   </body>

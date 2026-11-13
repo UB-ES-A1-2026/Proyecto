@@ -8,6 +8,7 @@
 @import './styles/manage.css';
 @import './styles/payment.css';
 @import './styles/public-profile.css';
+@import './styles/admin.css';
 
 @font-face {
   font-family: 'Inter';
