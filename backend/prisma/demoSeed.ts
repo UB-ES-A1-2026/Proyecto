@@ -2,13 +2,13 @@
 // varias veces. Las usan seed.ts (desarrollo) y seed-demo.ts (demo en producción).
 // Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 31/10/2026
 import bcrypt from 'bcrypt';
-import type {
-  PrismaClient,
-  RiderApplicationStatus,
-  RiderSlot,
-  RiderVehicle,
-  RiderWeekday,
+import {
   UserRole,
+  type PrismaClient,
+  type RiderApplicationStatus,
+  type RiderSlot,
+  type RiderVehicle,
+  type RiderWeekday,
 } from '@prisma/client';
 import {
   DEMO_DEMAND_ITEM,
@@ -24,15 +24,46 @@ export const DEMO_PASSWORD_MIN_LENGTH = 12;
 
 // Cuentas de la demo en producción. Su contraseña llega por DEMO_PASSWORD, nunca desde el repo.
 export const DEMO_USERS = [
-  { username: 'laura', email: 'laura@demo.rentit.test' },
-  { username: 'jordi', email: 'jordi@demo.rentit.test' },
-  { username: 'marta', email: 'marta@demo.rentit.test' },
+  {
+    username: 'laura',
+    email: 'laura@demo.rentit.test',
+    bio: 'Vivo en Gràcia y me encanta el bricolaje. Presto mis herramientas a los vecinos.',
+  },
+  {
+    username: 'jordi',
+    email: 'jordi@demo.rentit.test',
+    bio: 'Aficionado al camping y a la montaña. Todo mi material está cuidado y listo para usar.',
+  },
+  {
+    username: 'marta',
+    email: 'marta@demo.rentit.test',
+    bio: 'Madre de dos peques: alquilo cosas de bebé y de fiestas que ya no uso a diario.',
+  },
 ] as const;
+
+// Cuentas del seed de desarrollo (seed.ts), con la bio de ejemplo de US-01.4 (#300).
+export const DEV_USERS: readonly SeedUser[] = [
+  {
+    username: 'ana',
+    email: 'ana@rentit.test',
+    role: UserRole.user,
+    bio: 'Vecina de Sants. Alquilo herramientas y cosas de jardín.',
+  },
+  {
+    username: 'bruno',
+    email: 'bruno@rentit.test',
+    role: UserRole.user,
+    bio: 'Me gusta el deporte y viajar ligero. Pregúntame por mi material.',
+  },
+  { username: 'admin', email: 'admin@rentit.test', role: UserRole.admin },
+];
 
 export interface SeedUser {
   username: string;
   email: string;
   role?: UserRole;
+  // Bio de ejemplo (US-01.4, #300). Si no se indica, la bio existente no se toca.
+  bio?: string;
 }
 
 // Comprueba la contraseña de la demo antes de tocar la BD. Devuelve el mensaje de error o null.
@@ -62,7 +93,12 @@ export async function upsertUsers(
   for (const user of users) {
     const saved = await prisma.user.upsert({
       where: { email: user.email },
-      update: { username: user.username, role: user.role, passwordHash },
+      update: {
+        username: user.username,
+        role: user.role,
+        bio: user.bio,
+        passwordHash,
+      },
       create: { ...user, passwordHash },
     });
     ids.push(saved.id);
