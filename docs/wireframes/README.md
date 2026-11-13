@@ -54,6 +54,8 @@ Los wireframes son **HTML con unos estilos comunes** que se convierten en PNG co
 | `wf-columnas` (`wf-panel-izquierda`, `wf-iguales`) | Contenido con un panel lateral o dos columnas iguales; en el móvil, una debajo de otra |
 | `wf-chips`, `wf-chip` (`wf-activo`) | Filtros, estados y categorías |
 | `wf-calendario` (`wf-cal-mes`, `wf-cal-cabecera`, `wf-cal-pasado`, `wf-cal-rango`, `wf-cal-elegido`) | Calendario del alquiler |
+| `wf-demanda-1` … `wf-demanda-3`, `wf-leyenda`, `wf-muestra` | Niveles de demanda de un día del calendario (poca, media y mucha) y su leyenda (US-04.07) |
+| `wf-cal-reservado` | Día ya reservado del calendario, que no se puede elegir; también en la leyenda con `wf-muestra` (US-04.07) |
 | `wf-ventana`, `wf-ventana-cuerpo`, `wf-ventana-botones` | Ventana con scroll propio y botones fijos abajo |
 
 Si hace falta una pieza nueva, se añade a `wireframe.css` (en su propio commit) en lugar de poner estilos sueltos en un wireframe, para que todos se parezcan.

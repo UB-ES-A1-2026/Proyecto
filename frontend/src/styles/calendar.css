@@ -235,3 +235,69 @@
     transition: none;
   }
 }
+
+/*
+ * Demanda de fechas (US-04.07, #312): de menos a más naranja según las solicitudes pendientes,
+ * y los días ya reservados rayados y tachados. El número de cada día también va en texto
+ * (aria-label y la línea de debajo), no solo en el color.
+ */
+.calendar-day.has-demand-1:not(.is-selected),
+.calendar-swatch.has-demand-1 {
+  background-color: var(--color-accent-soft);
+}
+
+.calendar-day.has-demand-2:not(.is-selected),
+.calendar-swatch.has-demand-2 {
+  background-color: var(--color-demand-medium);
+}
+
+.calendar-day.has-demand-3:not(.is-selected),
+.calendar-swatch.has-demand-3 {
+  background-color: var(--color-accent);
+}
+
+.calendar-day.is-booked,
+.calendar-swatch.is-booked {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-surface) 0 4px,
+    var(--color-border-soft) 4px 7px
+  );
+}
+
+.calendar-day.is-booked {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+.calendar-day-demand {
+  min-height: 1.25rem;
+  margin: var(--space-xs) 0 0;
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-sm);
+  padding: 0;
+  margin: var(--space-xs) 0 0;
+  font-size: var(--font-size-small);
+  list-style: none;
+}
+
+.calendar-legend li {
+  display: inline-flex;
+  gap: 0.375rem;
+  align-items: center;
+}
+
+.calendar-swatch {
+  display: inline-block;
+  width: 0.875rem;
+  height: 0.875rem;
+  background-color: transparent;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 3px;
+}
