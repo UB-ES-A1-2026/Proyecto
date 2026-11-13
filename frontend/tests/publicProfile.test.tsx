@@ -320,8 +320,9 @@ describe('editar el propio perfil (US-01.4, #301)', () => {
     await user.type(screen.getByLabelText('Bio'), ' y más');
     await user.click(screen.getByRole('button', { name: 'Guardar' }));
 
+    // Con el motivo real que da la API.
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Se han guardado los cambios, pero no se ha podido subir la foto.',
+      'Se ha guardado la bio, pero no la foto: Sin almacenamiento. Inténtalo de nuevo.',
     );
     expect(screen.getByText('Bio nueva')).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();

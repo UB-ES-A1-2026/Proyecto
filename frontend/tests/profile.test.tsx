@@ -113,13 +113,11 @@ describe('«Mi perfil» es tu perfil público (US-01.4, #301)', () => {
     expect(screen.getByRole('button', { name: 'Cerrar sesión' })).toBeInTheDocument();
   });
 
-  it('si la sesión ya no es válida (401) la borra y enseña el perfil como a un visitante', async () => {
+  it('si la sesión ya no es válida la borra y enseña el perfil como a un visitante', async () => {
     localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
-    mockFetch((_url, init) =>
-      new Headers(init?.headers).has('Authorization')
-        ? Response.json({ error: 'Sesión no válida o caducada.' }, { status: 401 })
-        : Response.json(profile({ isOwnProfile: false })),
-    );
+    // La ruta usa optionalAuth: con un token caducado el backend no da 401, sino el perfil sin
+    // reconocerlo como propio aunque el id sea el de la sesión.
+    mockFetch(() => Response.json(profile({ isOwnProfile: false })));
 
     renderRoute('/usuarios/u1');
 

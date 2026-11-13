@@ -26,7 +26,7 @@ export type PublicProfile = {
   bio: string | null;
   photo: string | null;
   memberSince: string;
-  // La media la calcula el backend con las valoraciones recibidas (US-08.01); sin ninguna, es null.
+  // La media la calcula el backend con las valoraciones recibidas (US-08.02, T23); sin ninguna, es null.
   rating: { average: number | null; count: number };
   // Solo los objetos publicados, del más nuevo al más antiguo.
   items: {

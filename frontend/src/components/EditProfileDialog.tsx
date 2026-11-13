@@ -16,8 +16,8 @@ const PHOTO_TYPE_ERROR = 'Solo se pueden subir fotos JPG, PNG o WebP.';
 type EditProfileDialogProps = {
   profile: PublicProfile;
   onClose: () => void;
-  // photoFailed: la bio se guardó pero la foto no.
-  onSaved: (profile: PublicProfile, photoFailed: boolean) => void;
+  // photoError: la bio se guardó pero la foto no, con el motivo; null si todo fue bien.
+  onSaved: (profile: PublicProfile, photoError: string | null) => void;
 };
 
 type NewPhoto = { file: File; previewUrl?: string };
@@ -109,18 +109,17 @@ export function EditProfileDialog({ profile, onClose, onSaved }: EditProfileDial
         clearSession();
         return;
       }
+      const reason = error instanceof ApiError ? error.message : 'No se ha podido guardar la foto.';
       if (bioChanged) {
-        onSaved(latest, true);
+        onSaved(latest, reason);
       } else {
-        setPhotoError(
-          error instanceof ApiError ? error.message : 'No se ha podido guardar la foto.',
-        );
+        setPhotoError(reason);
         setSubmitting(false);
       }
       return;
     }
 
-    onSaved(latest, false);
+    onSaved(latest, null);
   }
 
   function handleFailure(error: unknown) {
