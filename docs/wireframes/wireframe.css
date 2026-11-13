@@ -513,6 +513,57 @@ body {
   background: var(--relleno);
 }
 
+/*
+ * Demanda de fechas (US-04.07): de más claro a más oscuro, en grises como el resto. Sirven para
+ * los días del calendario y para las muestras de la leyenda (.wf-muestra). Van entre el rango y
+ * el elegido: un día del rango conserva su demanda con un borde, y el inicio y el fin se ven igual.
+ */
+.wf-calendario > .wf-demanda-1,
+.wf-muestra.wf-demanda-1 {
+  background: #e0e0e0;
+}
+
+.wf-calendario > .wf-demanda-2,
+.wf-muestra.wf-demanda-2 {
+  background: #b5b5b5;
+}
+
+.wf-calendario > .wf-demanda-3,
+.wf-muestra.wf-demanda-3 {
+  background: #858585;
+  color: var(--pantalla);
+}
+
+.wf-calendario > .wf-cal-rango.wf-demanda-1,
+.wf-calendario > .wf-cal-rango.wf-demanda-2,
+.wf-calendario > .wf-cal-rango.wf-demanda-3 {
+  box-shadow: inset 0 0 0 2px var(--tinta);
+}
+
+/* Leyenda de un calendario o de un gráfico: muestra + texto */
+.wf-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 10px;
+  font-size: 11.5px;
+}
+
+.wf-leyenda > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.wf-muestra {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--gris-claro);
+  border-radius: 3px;
+  background: var(--pantalla);
+}
+
 .wf-calendario > .wf-cal-elegido {
   background: var(--tinta);
   color: var(--pantalla);
