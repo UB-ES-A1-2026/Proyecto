@@ -4,17 +4,26 @@ import { EditItemDialog } from '../components/EditItemDialog';
 import { Icon } from '../components/Icon';
 import { WithdrawItemDialog } from '../components/WithdrawItemDialog';
 import { useAuth } from '../context/useAuth';
+import { WITHDRAW_REASONS } from '../services/adminItemService';
 import { ApiError } from '../services/apiClient';
 import {
   getMyItems,
   pauseItem,
   resumeItem,
   type ItemDetail,
+  type ItemModeration,
   type ItemStatus,
   type MyItem,
 } from '../services/itemService';
 
 const priceFormatter = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
+
+// Motivo de una retirada hecha por un admin, como lo lee el propietario.
+function moderationReason(moderation: ItemModeration) {
+  if (moderation.reason === 'other') return moderation.details ?? 'Incumple las normas de Rentit.';
+  const label = WITHDRAW_REASONS.find((option) => option.value === moderation.reason)?.label;
+  return moderation.details ? `${label}. ${moderation.details}` : `${label}.`;
+}
 
 const STATUS_LABELS: Record<ItemStatus, string> = {
   published: 'Publicado',
@@ -262,7 +271,17 @@ export function MyItemsPage() {
                     <p className="item-price">
                       <strong>{priceFormatter.format(Number(item.dailyPrice))}</strong> / día
                     </p>
-                    <p className="item-hint">{STATUS_HINTS[item.status]}</p>
+                    {item.status === 'withdrawn' && item.moderation ? (
+                      <p className="item-moderation">
+                        <Icon name="warning" />
+                        <span>
+                          <strong>Rentit ha retirado este anuncio.</strong> Motivo:{' '}
+                          {moderationReason(item.moderation)}
+                        </span>
+                      </p>
+                    ) : (
+                      <p className="item-hint">{STATUS_HINTS[item.status]}</p>
+                    )}
                   </div>
                   {/* Retirar es definitivo: un objeto retirado no se puede editar (409, #202)
                       ni pausar, reanudar o volver a retirar. */}

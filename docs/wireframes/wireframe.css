@@ -547,3 +547,175 @@ body {
 .wf-movil .wf-columnas.wf-iguales {
   grid-template-columns: minmax(0, 1fr);
 }
+
+/* ---------- Panel de administración (US-11.03) ---------- */
+
+/* Zona aparte de la web: menú lateral a la izquierda y contenido; sin la cabecera de la web.
+   En el móvil, el menú pasa arriba y sus secciones quedan en una fila. */
+.wf-admin {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  min-height: 380px;
+}
+
+.wf-admin-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 12px;
+  border-right: 1.5px solid var(--gris-claro);
+  background: var(--relleno);
+  font-size: 13.5px;
+}
+
+.wf-admin-menu .wf-logo {
+  align-self: flex-start;
+  margin-bottom: 14px;
+}
+
+.wf-admin-opcion {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: var(--radio);
+}
+
+.wf-admin-opcion.wf-activo {
+  background: var(--tinta);
+  color: var(--pantalla);
+  font-weight: 600;
+}
+
+/* Contador de la sección (por ejemplo, solicitudes pendientes) */
+.wf-contador {
+  min-width: 18px;
+  padding: 0 5px;
+  border: 1.5px solid currentColor;
+  border-radius: 9px;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.wf-admin-secciones {
+  display: grid;
+  gap: 4px;
+}
+
+.wf-admin-pie {
+  display: grid;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--gris-claro);
+  font-size: 12.5px;
+}
+
+.wf-admin-contenido {
+  min-width: 0;
+  padding: 22px 24px 28px;
+}
+
+.wf-movil .wf-admin {
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+}
+
+.wf-movil .wf-admin-menu {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 10px 12px;
+  border-right: none;
+  border-bottom: 1.5px solid var(--gris-claro);
+}
+
+.wf-movil .wf-admin-menu .wf-logo {
+  margin: 0 auto 0 0;
+}
+
+.wf-movil .wf-admin-pie {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.wf-movil .wf-admin-secciones {
+  display: flex;
+  flex-basis: 100%;
+  gap: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.wf-movil .wf-admin-contenido {
+  padding: 16px;
+}
+
+/* Tres columnas iguales, como las cifras de un resumen; en el móvil, una debajo de otra */
+.wf-columnas.wf-tres {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.wf-movil .wf-columnas.wf-tres {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Cifra grande de un resumen */
+.wf-cifra {
+  display: block;
+  margin: 4px 0;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+/* Tabla de datos; en el móvil cada fila es una ficha (ver la pantalla del móvil) */
+.wf-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.wf-tabla th,
+.wf-tabla td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--gris-claro);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.wf-tabla th {
+  color: var(--gris);
+  font-weight: 600;
+  background: var(--relleno);
+}
+
+.wf-tabla .wf-num {
+  text-align: right;
+}
+
+/* Opción de una lista de motivos (radio) */
+.wf-opcion {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-bottom: 6px;
+  padding: 7px 10px;
+  border: 1.5px solid var(--gris-claro);
+  border-radius: var(--radio);
+  font-size: 13px;
+}
+
+.wf-opcion::before {
+  content: '○';
+}
+
+.wf-opcion.wf-activo {
+  border-color: var(--tinta);
+}
+
+.wf-opcion.wf-activo::before {
+  content: '◉';
+}

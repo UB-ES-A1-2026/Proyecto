@@ -6,6 +6,7 @@
 @import './styles/item.css';
 @import './styles/account.css';
 @import './styles/manage.css';
+@import './styles/admin.css';
 
 @font-face {
   font-family: 'Inter';

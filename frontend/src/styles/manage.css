@@ -49,14 +49,16 @@
   width: auto;
 }
 
-.my-items .filter-chips {
+.my-items .filter-chips,
+.admin-riders .filter-chips {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-sm);
   margin-bottom: var(--space-lg);
 }
 
-.my-items .filter-chip {
+.my-items .filter-chip,
+.admin-riders .filter-chip {
   padding: var(--space-sm) var(--space-md);
   font: inherit;
   font-size: var(--font-size-small);
@@ -73,15 +75,18 @@
     transform var(--duration-fast) var(--ease-out);
 }
 
-.my-items .filter-chip:hover {
+.my-items .filter-chip:hover,
+.admin-riders .filter-chip:hover {
   border-color: var(--color-primary);
 }
 
-.my-items .filter-chip:active {
+.my-items .filter-chip:active,
+.admin-riders .filter-chip:active {
   transform: scale(0.96);
 }
 
-.my-items .filter-chip[aria-pressed='true'] {
+.my-items .filter-chip[aria-pressed='true'],
+.admin-riders .filter-chip[aria-pressed='true'] {
   color: var(--color-on-primary);
   background-color: var(--color-primary);
   border-color: var(--color-primary);
@@ -682,4 +687,58 @@
       'status chevron';
     grid-template-columns: minmax(0, 1fr) auto;
   }
+}
+
+/* Solicitudes de rider del admin (US-11.03): misma tarjeta desplegable que «Mis solicitudes». */
+.rider-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-xs);
+}
+
+.rider-card-skeleton {
+  height: 4.5rem;
+}
+
+.rider-decision {
+  margin-top: var(--space-md);
+}
+
+.rider-decision-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.rider-decision-actions > button {
+  width: auto;
+}
+
+.rider-reject-form .form-field textarea {
+  resize: vertical;
+}
+
+@media (max-width: 560px) {
+  .rider-decision-actions > button {
+    flex: 1;
+  }
+}
+
+/* «Mis objetos»: un admin ha retirado el anuncio y el propietario ve el motivo (US-11.03). */
+.item-moderation {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: flex-start;
+  margin: var(--space-xs) 0 0;
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-size-small);
+  color: var(--color-error);
+  background-color: var(--color-error-background);
+  border-radius: var(--radius-small);
+  --icon-size: 1rem;
+}
+
+.item-moderation .icon {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
 }
