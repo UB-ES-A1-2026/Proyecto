@@ -29,7 +29,7 @@ export const NO_DELIVERY_MODE_ERROR = 'Elige al menos un modo de entrega.';
 export const ADDRESS_ERROR = 'El campo "dirección" no es correcto, revísalo.';
 export const DELIVERY_HINT = 'Marca todas las formas que ofreces. El arrendatario elegirá una.';
 export const ADDRESS_HINT =
-  'Solo la ves tú. El arrendatario la verá cuando aceptes su solicitud, y el rider, cuando acepte el trabajo.';
+  'Solo la ves tú. Si el arrendatario elige recogerlo en tu casa, la verá cuando aceptes su solicitud; con rider, solo la ve el rider.';
 export const PICKUP_ONLY_HINT = 'Solo punto de recogida: no hace falta tu dirección.';
 
 // La dirección solo hace falta (y solo se ve) con recogida en casa o con rider.
