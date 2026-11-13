@@ -99,3 +99,47 @@ export function formatDayLabel(isoDate: string): string {
 export function formatMonthLabel(month: string): string {
   return monthLabelFormatter.format(new Date(toUtcTime(`${month}-01`)));
 }
+
+// Demanda de fechas (US-04.07, #312). Generado con asistencia de IA (Claude) – revisado por Marc
+// Sanz, 13/11/2026.
+
+// Nivel de demanda de un día según sus solicitudes pendientes (decisión 4 del equipo):
+// 0 libre, 1–2 poca, 3–5 media y 6 o más mucha.
+export type DemandLevel = 0 | 1 | 2 | 3;
+
+export function demandLevel(pendingRequests: number): DemandLevel {
+  if (pendingRequests >= 6) return 3;
+  if (pendingRequests >= 3) return 2;
+  if (pendingRequests >= 1) return 1;
+  return 0;
+}
+
+export const DEMAND_LEVEL_LABELS: Record<DemandLevel, string> = {
+  0: 'Libre',
+  1: 'Poca demanda (1–2)',
+  2: 'Demanda media (3–5)',
+  3: 'Mucha demanda (6 o más)',
+};
+
+export const BOOKED_LABEL = 'Reservado';
+
+// Primer y último día de un mes «AAAA-MM».
+export function monthBounds(month: string): { from: string; to: string } {
+  return { from: `${month}-01`, to: addDays(`${addMonths(month, 1)}-01`, -1) };
+}
+
+// «6 solicitudes para este día», «1 solicitud para este día» o «Ninguna solicitud para este día».
+export function formatDayDemand(pendingRequests: number): string {
+  if (pendingRequests === 0) return 'Ninguna solicitud para este día';
+  if (pendingRequests === 1) return '1 solicitud para este día';
+  return `${pendingRequests} solicitudes para este día`;
+}
+
+// Aviso al elegir las fechas. Con 0 no se dice nada.
+export function formatMatchingRequests(pendingRequests: number): string | null {
+  if (pendingRequests <= 0) return null;
+  if (pendingRequests === 1) {
+    return 'Hay 1 solicitud que coincide con tus fechas. Es posible que no te acepten.';
+  }
+  return `Hay ${pendingRequests} solicitudes que coinciden con tus fechas. Es posible que no te acepten.`;
+}

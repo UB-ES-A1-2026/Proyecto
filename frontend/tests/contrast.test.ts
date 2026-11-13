@@ -50,6 +50,10 @@ describe('contraste de la paleta (WCAG AA)', () => {
     ['color-warning', 'color-warning-soft'],
     ['color-on-accent', 'color-accent'],
     ['color-on-accent', 'color-accent-hover'],
+    // Días del calendario con demanda (US-04.07, #312).
+    ['color-text', 'color-accent-soft'],
+    ['color-text', 'color-demand-medium'],
+    ['color-text', 'color-accent'],
   ])('--%s sobre --%s', (foreground, background) => {
     expect(contrast(foreground, background)).toBeGreaterThanOrEqual(MIN_CONTRAST);
   });
