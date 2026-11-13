@@ -155,6 +155,8 @@ describe('GET /api/admin/riders', () => {
       reviewedAt: null,
       reviewedBy: null,
       rejectionReason: null,
+      // El recuento real llega con los trabajos del rider (T17).
+      deliveriesCount: 0,
     });
     expect(response.body[1].id).toBe((await applicationOf(newer.id)).id);
     expect(JSON.stringify(response.body)).not.toContain('passwordHash');
@@ -269,6 +271,7 @@ describe('POST /api/admin/riders/:id/aceptar', () => {
       reviewedAt: expect.any(String),
       reviewedBy: { id: admin.id, username: 'admin' },
       rejectionReason: null,
+      deliveriesCount: 0,
     });
     expect(await isApprovedRider(rider.id)).toBe(true);
     expect((await applicationOf(rider.id)).reviewedById).toBe(admin.id);
