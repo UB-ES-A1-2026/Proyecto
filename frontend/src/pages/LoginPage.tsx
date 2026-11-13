@@ -47,15 +47,24 @@ function validate(email: string, password: string): FieldErrors {
   return errors;
 }
 
+// Correo que llega ya puesto desde la confirmación de «Hazte rider» (US-10.03, #315).
+function getInitialEmail(state: unknown): string {
+  if (typeof state === 'object' && state !== null && 'email' in state) {
+    const { email } = state;
+    if (typeof email === 'string') return email;
+  }
+  return '';
+}
+
 export function LoginPage() {
-  const [email, setEmail] = useState('');
+  const location = useLocation();
+  const [email, setEmail] = useState(() => getInitialEmail(location.state));
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const { saveSession } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 

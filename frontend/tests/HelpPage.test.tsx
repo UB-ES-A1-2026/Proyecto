@@ -6,6 +6,7 @@ import { renderRoute } from './renderRoute';
 
 const SECTIONS = [
   { id: 'crear-cuenta', title: 'Crear una cuenta' },
+  { id: 'hazte-rider', title: 'Hacerte rider' },
   { id: 'iniciar-sesion', title: 'Iniciar sesión' },
   { id: 'ver-perfil', title: 'Ver tu perfil' },
   { id: 'cerrar-sesion', title: 'Cerrar sesión' },

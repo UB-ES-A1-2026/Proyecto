@@ -636,3 +636,63 @@
     min-height: 11rem;
   }
 }
+
+/* «Hazte rider» y estado de la solicitud (US-10.03, #315) */
+.rider-signup {
+  display: grid;
+  grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
+  gap: var(--space-lg);
+  align-items: start;
+  max-width: 64rem;
+  margin: var(--space-lg) auto;
+}
+
+.rider-signup-info,
+.rider-signup-form {
+  padding: var(--space-xl);
+}
+
+.rider-signup-info h1 {
+  margin-top: 0;
+}
+
+.rider-signup-form h2 {
+  margin-top: 0;
+}
+
+.rider-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: var(--space-sm);
+}
+
+.rider-terms {
+  margin-bottom: var(--space-lg);
+}
+
+.rider-terms summary {
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.rider-terms ul {
+  margin: var(--space-sm) 0 0;
+  padding-left: 1.25rem;
+  color: var(--color-text-muted);
+}
+
+.rider-signup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.rider-status h1 {
+  margin-top: 0;
+}
+
+@media (max-width: 760px) {
+  .rider-signup {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
