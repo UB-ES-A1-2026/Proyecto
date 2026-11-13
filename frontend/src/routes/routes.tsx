@@ -17,6 +17,12 @@ import { PublishItemPage } from '../pages/PublishItemPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { RiderJobsPage } from '../pages/RiderJobsPage';
 import { SearchPage } from '../pages/SearchPage';
+import { AdminActiveRidersPage } from '../pages/AdminActiveRidersPage';
+import { AdminDashboardPage } from '../pages/AdminDashboardPage';
+import { AdminItemsPage } from '../pages/AdminItemsPage';
+import { AdminRiderApplicationsPage } from '../pages/AdminRiderApplicationsPage';
+import { AdminLayout } from '../components/AdminLayout';
+import { AdminRoute } from '../components/AdminRoute';
 
 export const routes: RouteObject[] = [
   {
@@ -62,6 +68,21 @@ export const routes: RouteObject[] = [
           {
             element: <ApprovedRiderRoute />,
             children: [{ path: 'trabajos', element: <RiderJobsPage /> }],
+          },
+        ],
+      },
+      {
+        element: <AdminRoute />,
+        children: [
+          {
+            path: 'admin',
+            element: <AdminLayout />,
+            children: [
+              { index: true, element: <AdminDashboardPage /> },
+              { path: 'objetos', element: <AdminItemsPage /> },
+              { path: 'riders', element: <AdminActiveRidersPage /> },
+              { path: 'solicitudes', element: <AdminRiderApplicationsPage /> },
+            ],
           },
         ],
       },
