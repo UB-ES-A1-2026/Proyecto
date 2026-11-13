@@ -30,12 +30,19 @@ const RENTAL = {
 
 type Handler = () => Response | Promise<Response>;
 
+// Opciones de entrega del objeto (GET /objetos/:id/entrega, US-05.01): ofrece los tres modos.
+const DELIVERY_OPTIONS = {
+  modes: { home: true, rider: true, pickupPoint: true },
+  pickupPoints: [],
+  slots: ['09:00-11:00'],
+};
+
 // Sin demanda en el calendario (US-04.07, #312).
 const NO_DEMAND = { days: [], pendingRequests: 0, bookedDays: [] };
 
-// GET /reservas/disponibilidad (#204) lo responde `onAvailability` (por defecto, libre) y la demanda
-// del calendario sale vacía; el resto de peticiones, que son el POST /reservas, las responde
-// `handler`. Así la demanda no gasta las respuestas preparadas para el POST.
+// GET /reservas/disponibilidad (#204) lo responde `onAvailability` (por defecto, libre); las
+// opciones de entrega (US-05.01), DELIVERY_OPTIONS, y la demanda del calendario sale vacía; el resto,
+// que es el POST /reservas, `handler`. Así ni la demanda ni la entrega gastan las respuestas del POST.
 function mockFetch(
   handler: Handler = () => Response.json(RENTAL, { status: 201 }),
   onAvailability: Handler = () => Response.json({ available: true }),
@@ -43,6 +50,7 @@ function mockFetch(
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
     const url = String(input);
     if (url.includes('/reservas/disponibilidad')) return onAvailability();
+    if (url.includes('/entrega?')) return Response.json(DELIVERY_OPTIONS);
     if (url.includes('/demanda')) return Response.json(NO_DEMAND);
     return handler();
   });
@@ -79,10 +87,17 @@ function fillCard() {
   fireEvent.change(screen.getByLabelText('CVC'), { target: { value: '123' } });
 }
 
-// Elige fechas válidas, pasa al pago, escribe la tarjeta y pulsa «Confirmar y enviar solicitud».
+// En el paso «Entrega» (US-05.01) elige «Recoger en casa del propietario» y pasa al resumen.
+async function chooseHomeDelivery(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(await screen.findByRole('radio', { name: 'Recoger en casa del propietario' }));
+  await user.click(screen.getByRole('button', { name: 'Continuar' }));
+}
+
+// Elige fechas válidas, elige la entrega, escribe la tarjeta y pulsa «Confirmar y enviar solicitud».
 async function confirmRequest(user: ReturnType<typeof userEvent.setup>) {
   await chooseAvailableDates('04/11/2026', '06/11/2026');
   await user.click(requestButton());
+  await chooseHomeDelivery(user);
   fillCard();
   await user.click(screen.getByRole('button', { name: 'Confirmar y enviar solicitud' }));
 }
@@ -174,6 +189,7 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
 
     await chooseAvailableDates('04/11/2026', '06/11/2026');
     await user.click(requestButton());
+    await chooseHomeDelivery(user);
 
     expect(screen.getByRole('heading', { name: 'Tu solicitud' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Pago' })).toBeInTheDocument();
@@ -229,6 +245,7 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
       startDate: '2026-11-04',
       endDate: '2026-11-06',
       confirmationTokenId: 'ctoken_simulado',
+      deliveryMode: 'home',
     });
   });
 
@@ -332,7 +349,7 @@ describe('requestRental (#121)', () => {
     await expect(
       requestRental(
         'token-de-prueba',
-        { itemId: 'item-1', startDate: '2026-11-04', endDate: '2026-11-06' },
+        { itemId: 'item-1', startDate: '2026-11-04', endDate: '2026-11-06', deliveryMode: 'home' },
         'ctoken_simulado',
       ),
     ).resolves.toEqual(RENTAL);
@@ -342,6 +359,7 @@ describe('requestRental (#121)', () => {
       itemId: 'item-1',
       startDate: '2026-11-04',
       endDate: '2026-11-06',
+      deliveryMode: 'home',
       confirmationTokenId: 'ctoken_simulado',
     });
   });

@@ -10,7 +10,13 @@ import {
   type PaymentCredential,
   type Reservation,
 } from '../services/rentalService';
+import {
+  DELIVERY_MODE_LABELS,
+  formatSlot,
+  type DeliveryRequest,
+} from '../services/deliveryService';
 import { isStripeEnabled } from '../services/stripeService';
+import { DELIVERY_ERROR_FIELDS, type DeliverySelection } from '../utils/delivery';
 import { calculateTotalPrice, countRentalDays, formatLongDate, formatPrice } from '../utils/rental';
 import { CardFields, TestCardsNote } from './CardFields';
 import { Icon } from './Icon';
@@ -31,11 +37,19 @@ type RentalCheckoutProps = {
   endDate: string;
   // La ficha con estas fechas: «Cambiar» y «Elegir otras fechas» vuelven a ella.
   datesPath: string;
+  // Modo, hora y destino de la entrega elegidos en la ficha (US-05.01).
+  delivery: DeliverySelection;
   onRequested: (reservation: Reservation) => void;
   onSessionExpired: () => void;
 };
 
-type CheckoutError = { message: string; dates: boolean };
+// Si el error es de las fechas o de la entrega, se ofrece volver a la ficha a cambiarlas.
+type CheckoutError = { message: string; change: 'dates' | 'delivery' | null };
+
+function changeFor(field: string | undefined): CheckoutError['change'] {
+  if (field === 'startDate' || field === 'endDate') return 'dates';
+  return DELIVERY_ERROR_FIELDS.some((deliveryField) => deliveryField === field) ? 'delivery' : null;
+}
 
 // Resumen y pago de la página «Confirmar y pagar» (US-07.01): antes estaban en el panel de la
 // ficha, después de las fechas, y no se notaba que ahí se confirma y se paga.
@@ -44,6 +58,7 @@ export function RentalCheckout({
   startDate,
   endDate,
   datesPath,
+  delivery,
   onRequested,
   onSessionExpired,
 }: RentalCheckoutProps) {
@@ -60,7 +75,10 @@ export function RentalCheckout({
   const useStripeForm = isStripeEnabled();
 
   const days = countRentalDays(startDate, endDate);
-  const totalPrice = calculateTotalPrice(item.pricePerDay, days);
+  const rentalPrice = calculateTotalPrice(item.pricePerDay, days);
+  // El rider se paga con el alquiler: se bloquea y se cobra junto con él.
+  const deliveryFee = delivery.mode === 'rider' ? Number(delivery.fee) : 0;
+  const totalPrice = rentalPrice + deliveryFee;
   const deposit = (item.deposit ?? 0) >= MIN_DEPOSIT_TO_HOLD ? (item.deposit ?? 0) : 0;
   const owner = item.ownerName ?? 'el propietario';
   const depositCharged = days > MAX_DEPOSIT_HOLD_DAYS;
@@ -95,7 +113,7 @@ export function RentalCheckout({
     submittingRef.current = true;
     setSubmitting(true);
     try {
-      const input = { itemId: item.id, startDate, endDate };
+      const input = { itemId: item.id, startDate, endDate, ...toDeliveryRequest(delivery) };
       let credential: PaymentCredential = simulatedToken;
       if (useStripeForm) {
         const confirmer = stripeConfirmer.current;
@@ -133,16 +151,13 @@ export function RentalCheckout({
         onSessionExpired();
         return;
       }
-      // Errores de #120. Si el problema está en las fechas (409 por solape, fecha no válida), se
-      // ofrece volver a la ficha a elegir otras; si no (tarjeta rechazada, objeto propio, no
+      // Errores de #120. Si el problema está en las fechas (409 por solape, fecha no válida) o en
+      // la entrega (US-05.01), se ofrece volver a la ficha a cambiarlas; si no (tarjeta rechazada, objeto propio, no
       // publicado, solicitud duplicada…), se queda aquí con el mensaje de la API para reintentar.
       if (requestError instanceof ApiError) {
-        setError({
-          message: requestError.message,
-          dates: requestError.field === 'startDate' || requestError.field === 'endDate',
-        });
+        setError({ message: requestError.message, change: changeFor(requestError.field) });
       } else {
-        setError({ message: 'Ha ocurrido un error inesperado.', dates: false });
+        setError({ message: 'Ha ocurrido un error inesperado.', change: null });
       }
     }
   }
@@ -172,9 +187,19 @@ export function RentalCheckout({
               Cambiar
             </Link>
           </dd>
+          <dt>Entrega</dt>
+          <dd>
+            <DeliverySummary selection={delivery} />
+          </dd>
           <dt>Importe del alquiler ({days === 1 ? '1 día' : `${days} días`})</dt>
-          <dd>{formatPrice(totalPrice)}</dd>
-          {/* El importe destacado es lo que se paga: sin la fianza. */}
+          <dd>{formatPrice(rentalPrice)}</dd>
+          {delivery.mode === 'rider' && (
+            <>
+              <dt>{DELIVERY_MODE_LABELS.rider}</dt>
+              <dd>{formatPrice(deliveryFee)}</dd>
+            </>
+          )}
+          {/* El importe destacado es lo que se paga: alquiler y entrega, sin la fianza. */}
           <dt>Total</dt>
           <dd className="rental-total">{formatPrice(totalPrice)}</dd>
         </dl>
@@ -233,10 +258,12 @@ export function RentalCheckout({
               <Icon name="error" size="1.125rem" />
               <span>
                 {error.message}
-                {error.dates && (
+                {error.change && (
                   <>
                     {' '}
-                    <Link to={datesPath}>Elegir otras fechas</Link>
+                    <Link to={datesPath}>
+                      {error.change === 'dates' ? 'Elegir otras fechas' : 'Cambiar la entrega'}
+                    </Link>
                   </>
                 )}
               </span>
@@ -252,4 +279,52 @@ export function RentalCheckout({
       </section>
     </div>
   );
+}
+
+// Lo que se envía a POST /reservas según el modo elegido en el paso «Entrega» (US-05.01, #282).
+function toDeliveryRequest(selection: DeliverySelection): DeliveryRequest {
+  switch (selection.mode) {
+    case 'home':
+      return { deliveryMode: 'home' };
+    case 'pickup_point':
+      return { deliveryMode: 'pickup_point', pickupPointId: selection.pickupPoint.id };
+    case 'rider':
+      return {
+        deliveryMode: 'rider',
+        slot: selection.slot,
+        deliveryAddress: selection.address,
+        deliveryNeighborhood: selection.neighborhood,
+      };
+  }
+}
+
+// Modo, hora y destino de la entrega en «Tu solicitud» (pantalla 8 del wireframe de US-05.01).
+function DeliverySummary({ selection }: { selection: DeliverySelection }) {
+  switch (selection.mode) {
+    case 'home':
+      return (
+        <>
+          {DELIVERY_MODE_LABELS.home}
+          <span className="rental-summary-note">
+            La dirección se mostrará cuando acepten la solicitud.
+          </span>
+        </>
+      );
+    case 'pickup_point':
+      return (
+        <>
+          {DELIVERY_MODE_LABELS.pickup_point}: {selection.pickupPoint.name}
+          <span className="rental-summary-note">{selection.pickupPoint.address}</span>
+        </>
+      );
+    case 'rider':
+      return (
+        <>
+          {DELIVERY_MODE_LABELS.rider} · {formatSlot(selection.slot)}
+          <span className="rental-summary-note">
+            A: {selection.address} ({selection.neighborhood})
+          </span>
+        </>
+      );
+  }
 }

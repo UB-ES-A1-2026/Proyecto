@@ -1,7 +1,7 @@
 // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 03/11/2026
 // Demanda de fechas en el calendario (US-04.07, #312): generado con asistencia de IA (Claude) –
 // revisado por Marc Sanz, 13/11/2026
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import { getItemDemand } from '../services/demandService';
@@ -19,7 +19,13 @@ import {
   validateRentalDates,
   type RentalDateErrors,
 } from '../utils/rental';
+import {
+  EMPTY_DELIVERY_DRAFT,
+  type DeliveryDraft,
+  type DeliverySelection,
+} from '../utils/delivery';
 import { DateRangeCalendar, type CalendarDemand } from './DateRangeCalendar';
+import { DeliveryStep } from './DeliveryStep';
 import { Icon } from './Icon';
 
 export type RentalItem = {
@@ -30,16 +36,24 @@ export type RentalItem = {
   // Pago al solicitar (US-07.01, #286).
   deposit?: number;
   ownerName?: string;
+  // Barrio del objeto: con «Recoger en casa del propietario» es lo único que se ve antes de aceptar.
+  neighborhood?: string;
 };
 
 export type RentalDates = { startDate: string; endDate: string };
+
+// Lo que pasa a «Confirmar y pagar»: las fechas y la entrega elegida en el paso «Entrega»
+// (US-05.01). El borrador sirve para volver al panel con lo que se había elegido.
+export type RentalChoice = RentalDates & { delivery: DeliverySelection; draft: DeliveryDraft };
 
 type RentalRequestProps = {
   item: RentalItem;
   // Las fechas con las que se vuelve de «Confirmar y pagar» (están en la dirección de la ficha).
   initialDates?: RentalDates;
-  // Con las fechas libres, «Solicitar alquiler» lleva a la página «Confirmar y pagar».
-  onContinue: (dates: RentalDates) => void;
+  initialDraft?: DeliveryDraft;
+  // Con las fechas libres, «Solicitar alquiler» pasa al paso «Entrega» y, de ahí, a la página
+  // «Confirmar y pagar».
+  onContinue: (choice: RentalChoice) => void;
   onSessionExpired: () => void;
 };
 
@@ -62,6 +76,7 @@ const DEMAND_ERROR_MESSAGE = 'No se ha podido cargar la demanda de las fechas.';
 export function RentalRequest({
   item,
   initialDates,
+  initialDraft,
   onContinue,
   onSessionExpired,
 }: RentalRequestProps) {
@@ -73,11 +88,24 @@ export function RentalRequest({
     initialDates ? formatInputDate(initialDates.endDate) : '',
   );
   const [apiErrors, setApiErrors] = useState<RentalDateErrors>({});
+  const [step, setStep] = useState<'dates' | 'delivery'>('dates');
+  const [deliveryDraft, setDeliveryDraft] = useState<DeliveryDraft>(
+    initialDraft ?? EMPTY_DELIVERY_DRAFT,
+  );
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const previousStep = useRef(step);
   const [availability, setAvailability] = useState<AvailabilityResult | null>(null);
   const [monthDemand, setMonthDemand] = useState<MonthDemandResult | null>(null);
   const [rangeDemand, setRangeDemand] = useState<RangeDemandResult | null>(null);
   const { session, clearSession } = useAuth();
   const token = session?.token;
+
+  // El botón pulsado desaparece al cambiar de paso: el foco pasa al título del paso nuevo.
+  useEffect(() => {
+    if (previousStep.current === step) return;
+    previousStep.current = step;
+    headingRef.current?.focus({ preventScroll: true });
+  }, [step]);
 
   const today = todayIso();
   const [calendarMonth, setCalendarMonth] = useState(() =>
@@ -216,12 +244,36 @@ export function RentalRequest({
   function handleDatesSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!isAvailable) return;
-    onContinue({ startDate, endDate });
+    setStep('delivery');
+  }
+
+  // Paso «Entrega» (US-05.01, #282): modo, hora y destino. Al continuar se abre la página de pago.
+  if (step === 'delivery') {
+    return (
+      <DeliveryStep
+        item={item}
+        startDate={startDate}
+        endDate={endDate}
+        days={days}
+        rentalPrice={totalPrice}
+        draft={deliveryDraft}
+        onDraftChange={setDeliveryDraft}
+        initialErrors={{}}
+        formError={null}
+        headingRef={headingRef}
+        onBack={() => setStep('dates')}
+        onContinue={(delivery) =>
+          onContinue({ startDate, endDate, delivery, draft: deliveryDraft })
+        }
+      />
+    );
   }
 
   return (
     <section className="rental-request" aria-labelledby="rental-title">
-      <h2 id="rental-title">Elige las fechas</h2>
+      <h2 id="rental-title" ref={headingRef} tabIndex={-1}>
+        Elige las fechas
+      </h2>
       <form onSubmit={handleDatesSubmit} noValidate>
         <div className="rental-dates">
           <div className="form-field">

@@ -81,6 +81,14 @@ function mockApi(onPost: Handler) {
     if (String(input).includes('/reservas/disponibilidad')) {
       return Response.json({ available: true });
     }
+    // Paso «Entrega» (US-05.01): el objeto solo ofrece recogerlo en casa del propietario.
+    if (String(input).includes('/entrega?')) {
+      return Response.json({
+        modes: { home: true, rider: false, pickupPoint: false },
+        pickupPoints: [],
+        slots: [],
+      });
+    }
     return onPost(JSON.parse(String(init?.body)) as Record<string, unknown>);
   });
 }
@@ -107,6 +115,9 @@ async function goToSummary(user: ReturnType<typeof userEvent.setup>) {
   const request = screen.getByRole('button', { name: 'Solicitar alquiler' });
   await waitFor(() => expect(request).toBeEnabled());
   await user.click(request);
+  // Paso «Entrega» (US-05.01): recoger en casa del propietario.
+  await user.click(await screen.findByRole('radio', { name: 'Recoger en casa del propietario' }));
+  await user.click(screen.getByRole('button', { name: 'Continuar' }));
 }
 
 const submitButton = () => screen.getByRole('button', { name: 'Confirmar y enviar solicitud' });
@@ -166,6 +177,7 @@ describe('Payment Element de Stripe', () => {
         itemId: 'item-1',
         startDate: '2026-11-04',
         endDate: '2026-11-06',
+        deliveryMode: 'home',
         confirmationTokenId: 'ctoken_real',
       },
     ]);
@@ -213,7 +225,15 @@ describe('Payment Element de Stripe', () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) =>
       String(input).includes('/reservas/disponibilidad')
         ? Promise.resolve(Response.json({ available: true }))
-        : new Promise<Response>((resolve) => (respond = resolve)),
+        : String(input).includes('/entrega?')
+          ? Promise.resolve(
+              Response.json({
+                modes: { home: true, rider: false, pickupPoint: false },
+                pickupPoints: [],
+                slots: [],
+              }),
+            )
+          : new Promise<Response>((resolve) => (respond = resolve)),
     );
     const user = userEvent.setup();
     renderRequest();
@@ -235,7 +255,15 @@ describe('doble envío', () => {
       .mockImplementation((input) =>
         String(input).includes('/reservas/disponibilidad')
           ? Promise.resolve(Response.json({ available: true }))
-          : new Promise<Response>((resolve) => (respond = resolve)),
+          : String(input).includes('/entrega?')
+            ? Promise.resolve(
+                Response.json({
+                  modes: { home: true, rider: false, pickupPoint: false },
+                  pickupPoints: [],
+                  slots: [],
+                }),
+              )
+            : new Promise<Response>((resolve) => (respond = resolve)),
       );
     const user = userEvent.setup();
     renderRequest();
@@ -277,6 +305,7 @@ describe('3D Secure en dos pasos', () => {
         itemId: 'item-1',
         startDate: '2026-11-04',
         endDate: '2026-11-06',
+        deliveryMode: 'home',
         paymentIntentId: 'pi_1',
       },
     ]);
