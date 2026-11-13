@@ -155,6 +155,26 @@ describe('paso «Entrega» (US-05.01, #282)', () => {
     expect(screen.getAllByRole('radio')).toHaveLength(1);
   });
 
+  it('si el objeto no ofrece ningún modo, lo dice y solo deja volver', async () => {
+    mockFetch({
+      options: () =>
+        Response.json({ ...ALL_MODES, modes: { home: false, rider: false, pickupPoint: false } }),
+    });
+    const user = userEvent.setup();
+    renderRentalRequest();
+
+    await openDeliveryStep(user);
+
+    expect(
+      await screen.findByText('Este objeto no ofrece ningún modo de entrega ahora mismo.'),
+    ).toBeVisible();
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Continuar' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Volver' }));
+    expect(screen.getByRole('heading', { name: 'Elige las fechas' })).toBeInTheDocument();
+  });
+
   it('mientras carga lo dice, y si falla enseña el error y deja volver a las fechas', async () => {
     let respond: (response: Response) => void = () => {};
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
