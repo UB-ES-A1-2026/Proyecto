@@ -1,3 +1,4 @@
+// Apartado «Entrega» (barrio de la lista, modos y dirección; US-05.01, T27 #307): generado con asistencia de IA (Claude) – revisado por Marc Sanz, 13/11/2026
 import {
   useEffect,
   useRef,
