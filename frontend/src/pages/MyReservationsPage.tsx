@@ -1,5 +1,6 @@
 // Generado con asistencia de IA – revisado por Danyal, 01/11/2026
 import { useEffect, useState, type ReactNode } from 'react';
+import { useLocation, useNavigate } from 'react-router';
 import { Icon, type IconName } from '../components/Icon';
 import { ReservationCard } from '../components/ReservationCard';
 import { ReservationDecision } from '../components/ReservationDecision';
@@ -49,6 +50,20 @@ export function MyReservationsPage() {
   const token = session?.token;
   const [reservations, setReservations] = useState<MyReservations | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Aviso que deja otra pantalla al volver aquí, como «Pago registrado.» (US-07.01, #286).
+  const [notice] = useState<string | null>(() => {
+    const state: unknown = location.state;
+    return typeof state === 'object' && state !== null && 'notice' in state
+      ? String(state.notice)
+      : null;
+  });
+
+  // Se borra del historial para que no vuelva a salir al recargar la página.
+  useEffect(() => {
+    if (notice) void navigate('.', { replace: true, state: null });
+  }, [notice, navigate]);
 
   useEffect(() => {
     if (!token) return;
@@ -107,6 +122,12 @@ export function MyReservationsPage() {
           </p>
         </div>
       </div>
+      {notice && (
+        <p role="status" className="form-success manage-notice">
+          <Icon name="check_circle" />
+          {notice}
+        </p>
+      )}
       {error ? (
         <p role="alert" className="form-error manage-notice">
           <Icon name="error" />

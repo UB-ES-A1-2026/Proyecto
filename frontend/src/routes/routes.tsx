@@ -11,6 +11,7 @@ import { MyReservationsPage } from '../pages/MyReservationsPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { PublishItemPage } from '../pages/PublishItemPage';
+import { RateReservationPage } from '../pages/RateReservationPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { SearchPage } from '../pages/SearchPage';
 
@@ -37,6 +38,7 @@ export const routes: RouteObject[] = [
           { path: 'perfil', element: <ProfilePage /> },
           { path: 'mis-objetos', element: <MyItemsPage /> },
           { path: 'mis-solicitudes', element: <MyReservationsPage /> },
+          { path: 'mis-solicitudes/:id/valorar', element: <RateReservationPage /> },
           { path: 'objetos/nuevo', element: <PublishItemPage /> },
         ],
       },
