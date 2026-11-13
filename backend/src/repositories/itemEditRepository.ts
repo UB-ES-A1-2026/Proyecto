@@ -13,6 +13,10 @@ export function findItemsByOwner(ownerId: string) {
       dailyPrice: true,
       neighborhood: true,
       status: true,
+      // Solo existe si lo retiró un admin (US-11.03); sin el admin, que no se muestra.
+      moderation: {
+        select: { reason: true, details: true, withdrawnAt: true },
+      },
     },
   });
 }

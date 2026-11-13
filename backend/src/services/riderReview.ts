@@ -18,6 +18,8 @@ export interface RiderApplicationReview {
   reviewedAt: Date | null;
   reviewedBy: { id: string; username: string } | null;
   rejectionReason: string | null;
+  // Entregas hechas por el rider. Por ahora siempre 0: el recuento real llega con las entregas (T17).
+  deliveriesCount: number;
 }
 
 export function toRiderApplicationReview(
@@ -37,5 +39,6 @@ export function toRiderApplicationReview(
     reviewedAt: row.reviewedAt,
     reviewedBy: row.reviewedBy,
     rejectionReason: row.rejectionReason,
+    deliveriesCount: 0,
   };
 }
