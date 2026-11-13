@@ -80,6 +80,7 @@ describe.each(ACTIONS)('POST /api/reservas/:id/%s', (action, finalStatus) => {
       deliveryAmount: '0.00',
       status: finalStatus,
       expiresAt: null,
+      cancellationReason: null,
       renter: { id: renter.id, username: 'bruno' },
       owner: { id: owner.id, username: 'ana' },
       createdAt: reservation.createdAt.toISOString(),

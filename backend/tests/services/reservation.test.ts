@@ -42,6 +42,7 @@ describe('toReservationDetail', () => {
       deliveryAmount: '0.00',
       status: 'pending',
       expiresAt: null,
+      cancellationReason: null,
       renter: { id: renter.id, username: 'bruno' },
       owner: { id: owner.id, username: 'ana' },
       createdAt: reservation.createdAt,

@@ -4,7 +4,11 @@ import { app } from '../../src/app.js';
 import { prisma } from '../../src/repositories/prisma.js';
 import { resetDb } from '../helpers/db.js';
 import { createTestItem } from '../helpers/items.js';
-import { createTestUser, TEST_PASSWORD } from '../helpers/users.js';
+import {
+  createTestAdmin,
+  createTestUser,
+  TEST_PASSWORD,
+} from '../helpers/users.js';
 
 // GET /api/usuarios/me/objetos y PATCH /api/objetos/:id (US-02.02, #108): contrato publicado
 // en la issue, el que usa la pantalla «Mis objetos» de #109.
@@ -86,8 +90,66 @@ describe('GET /api/usuarios/me/objetos', () => {
         neighborhood: item.neighborhood,
         status: 'published',
         photo: null,
+        moderation: null,
       },
     ]);
+  });
+
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 13/11/2026
+  it('shows the moderation of an item withdrawn by an admin (US-11.03)', async () => {
+    const { ana, token } = await setUp();
+    await prisma.item.deleteMany();
+    const item = await createTestItem(ana.id, { status: 'withdrawn' });
+    const admin = await createTestAdmin();
+    const moderation = await prisma.itemModeration.create({
+      data: {
+        itemId: item.id,
+        adminId: admin.id,
+        reason: 'misleading',
+        details: 'La foto no es del objeto.',
+      },
+    });
+
+    const response = await getMyItems(token);
+
+    expect(response.body).toHaveLength(1);
+    expect(response.body[0]).toMatchObject({ status: 'withdrawn' });
+    expect(response.body[0].moderation).toEqual({
+      reason: 'misleading',
+      details: 'La foto no es del objeto.',
+      withdrawnAt: moderation.withdrawnAt.toISOString(),
+    });
+    expect(JSON.stringify(response.body)).not.toContain(admin.id);
+  });
+
+  it('has no moderation when the owner withdrew the item or it is not withdrawn', async () => {
+    const { ana, token } = await setUp();
+    await createTestItem(ana.id, { status: 'withdrawn' });
+
+    const response = await getMyItems(token);
+
+    for (const item of response.body as Array<{ moderation: unknown }>) {
+      expect(item.moderation).toBeNull();
+    }
+  });
+
+  it('keeps the moderation after the admin withdraws through the API', async () => {
+    const { item, token } = await setUp();
+    const admin = await createTestAdmin();
+    const adminLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: admin.email, password: TEST_PASSWORD });
+    await request(app)
+      .post(`/api/admin/objetos/${item.id}/retirar`)
+      .set('Authorization', `Bearer ${adminLogin.body.token}`)
+      .send({ reason: 'scam' });
+
+    const response = await getMyItems(token);
+
+    const mine = (
+      response.body as Array<{ id: string; moderation: unknown }>
+    ).find(({ id }) => id === item.id);
+    expect(mine?.moderation).toMatchObject({ reason: 'scam', details: null });
   });
 
   it('includes the items in every status', async () => {
