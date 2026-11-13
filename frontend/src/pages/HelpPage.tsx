@@ -98,6 +98,7 @@ const SECTIONS: HelpSection[] = [
     steps: [
       'Con la sesión iniciada, abre la ficha del objeto.',
       'Elige la fecha de inicio y la fecha de fin en el panel de alquiler. Rentit comprueba si el objeto está libre esos días.',
+      'El calendario colorea cada día según cuántas solicitudes pendientes de otras personas tiene (de poca a mucha demanda, con su leyenda) y marca como «Reservado» los días que ya están ocupados. Al elegir las fechas, te avisa si otras solicitudes coinciden con las tuyas: así sabes si es posible que no te acepten.',
       'Pulsa «Solicitar alquiler», revisa las fechas y el importe, y pulsa «Confirmar».',
       'Irás a «Mis solicitudes», donde verás tu solicitud como «Pendiente» hasta que responda el propietario.',
     ],
