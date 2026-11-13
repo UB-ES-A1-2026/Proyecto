@@ -37,7 +37,10 @@ export function Layout() {
                   <Icon name="receipt_long" />
                   Mis solicitudes
                 </NavLink>
-                <NavLink to="/perfil" className="nav-link">
+                <NavLink
+                  to={`/usuarios/${encodeURIComponent(session.user.id)}`}
+                  className="nav-link"
+                >
                   <Icon name="person" />
                   Mi perfil
                 </NavLink>

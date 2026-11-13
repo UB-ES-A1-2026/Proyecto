@@ -10,7 +10,8 @@ const API_URL = process.env.API_URL ?? 'http://localhost:3000/api';
 
 const LOGIN_PATH = '/login';
 const HOME_PATH = '/';
-const PROFILE_PATH = '/perfil'; // página privada
+const PROFILE_PATH = '/perfil'; // página privada: sin sesión redirige al login
+const OWN_PROFILE_URL = /\/usuarios\/[\w-]+$/; // con sesión, lleva al perfil público propio
 
 const EMAIL_LABEL = 'Correo electrónico';
 const PASSWORD_LABEL = 'Contraseña';
@@ -98,7 +99,9 @@ test.describe('US-01.3 Cerrar sesión', () => {
   test('tras cerrar sesión, el botón "atrás" no muestra contenido privado', async ({ page }) => {
     // Navegamos dentro de la app para que el perfil quede en el historial
     await page.getByRole('link', { name: 'Mi perfil' }).click();
-    await expect(page).toHaveURL(PROFILE_PATH);
+    await expect(page).toHaveURL(OWN_PROFILE_URL);
+    // El perfil propio ha cargado: el correo solo se ve en el propio perfil.
+    await expect(page.getByRole('heading', { level: 1, name: 'ana' })).toBeVisible();
     await expect(page.getByText(USER.email)).toBeVisible();
 
     // El botón está en el perfil: antes de cerrar sesión se pasa por otra pantalla privada
@@ -110,7 +113,7 @@ test.describe('US-01.3 Cerrar sesión', () => {
 
     await expect(page).toHaveURL(LOGIN_PATH);
     await expect(page.getByRole('heading', { name: 'Mis objetos' })).toHaveCount(0);
-    await expect(page.getByRole('heading', { name: 'Mi perfil' })).toHaveCount(0);
+    await expect(page.getByRole('heading', { level: 1, name: 'ana' })).toHaveCount(0);
     await expect(page.getByText(USER.email)).toHaveCount(0);
     await expect(page.getByRole('button', { name: LOGOUT_BUTTON })).toHaveCount(0);
   });

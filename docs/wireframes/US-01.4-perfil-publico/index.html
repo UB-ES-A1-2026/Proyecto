@@ -13,19 +13,19 @@
         para <strong>que otros confíen en mí</strong>.
       </p>
       <p class="wf-meta">
-        Issue #48 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Actualizado con
-        asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo
+        Issue #48 · Tarea de frontend #301 · Wireframe de baja fidelidad · Actualizado con asistencia de IA (Claude)
+        tras la maqueta web de la tarea, pendiente de revisar por el equipo
       </p>
       <p class="wf-meta">
-        Qué existe hoy en la web: solo la ficha (pantalla 1) y «Mi perfil» (pantalla 4), tal como se dibujan. Las
-        pantallas con «Propuesta» en el título (2, 3, 5, 6 y 7) todavía no existen: no hay ruta <code>/usuarios/:id</code>
-        ni API de perfil público.
+        Decisión de diseño: <strong>Rentit solo tiene un perfil, el público</strong> (<code>/usuarios/:id</code>). «Mi perfil»
+        no es otra página: lleva al perfil público de la propia persona, donde además puede editarlo, publicar un objeto
+        y cerrar sesión. Por eso no hay dos pantallas distintas para «público» y «privado».
       </p>
-      <p class="wf-meta">Maqueta de Figma · Marco «Ficha»: «Veure perfil» está en la caja del propietario; aquí se propone entrar pulsando su nombre.</p>
+      <p class="wf-meta">Maqueta de Figma · Marco «Ficha»: «Veure perfil» está en la caja del propietario; la web enlaza el nombre de quien publica.</p>
     </header>
 
     <section class="wf-pantalla" data-captura="1-entrada-ficha">
-      <h2><span class="wf-paso">1</span>Punto de entrada: ficha de un objeto, como está hoy <code>/objetos/:id</code></h2>
+      <h2><span class="wf-paso">1</span>Punto de entrada: ficha de un objeto <code>/objetos/:id</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…">
           <nav class="wf-nav">
@@ -41,7 +41,7 @@
                 <p class="wf-texto">Gràcia · Otros</p>
                 <p class="wf-texto"><strong>Descripción</strong><br />Carro de 6 ruedas para subir escaleras, con bolsa isotérmica de 40 litros.</p>
                 <p class="wf-texto"><strong>Formas de entrega</strong><br />Punto de recogida</p>
-                <div class="wf-tarjeta"><span class="wf-logo">A</span> Publicado por ana<span class="wf-marca">1</span></div>
+                <div class="wf-tarjeta"><span class="wf-logo">A</span> Publicado por <u>ana</u><span class="wf-marca">1</span></div>
               </div>
               <div class="wf-tarjeta">
                 <p class="wf-texto"><strong>2,00 € / día</strong> · Disponible<br />Sin fianza</p>
@@ -54,17 +54,16 @@
       </div>
       <ol class="wf-notas">
         <li>
-          Hoy el nombre es solo texto. Propuesta (criterio 1): que pase a ser un enlace a <code>/usuarios/:id</code>, y lo
-          mismo el nombre del autor en una valoración cuando las valoraciones existan. Cualquier persona podría pulsarlo,
-          con o sin sesión.
+          El nombre de quien publica es un enlace a su perfil <code>/usuarios/:id</code> (criterio 1). Cualquier persona
+          puede pulsarlo, con o sin sesión. Cuando existan las valoraciones, el nombre de quien valora enlazará igual.
         </li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Propuesta: clic en el nombre de usuario «ana» (hoy no es un enlace)</p>
+    <p class="wf-flecha">Clic en el nombre de usuario «ana»</p>
 
     <section class="wf-pantalla" data-captura="2-perfil-otra-persona">
-      <h2><span class="wf-paso">2</span>Propuesta: perfil público de otra persona, no existe todavía <code>/usuarios/:id</code></h2>
+      <h2><span class="wf-paso">2</span>Perfil público de otra persona <code>/usuarios/:id</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/usuarios/8c1d…">
           <nav class="wf-nav">
@@ -72,26 +71,27 @@
             <span class="wf-enlaces"><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
-            <div class="wf-columnas wf-panel-izquierda">
-              <div>
+            <div class="wf-tarjeta">
+              <div class="wf-columnas wf-panel-izquierda">
                 <div class="wf-imagen"></div>
-                <p class="wf-texto"></p>
-                <h3 class="wf-h1">ana <span class="wf-marca">1</span></h3>
-                <p class="wf-texto">Valoración media: ★ 4,5 de 5 <span class="wf-marca">2</span></p>
-                <p class="wf-texto">Vecina de Gràcia. Presto herramientas de bricolaje y material de acampada.</p>
-              </div>
-              <div>
-                <p class="wf-texto"><strong>Objetos publicados</strong> <span class="wf-marca">3</span></p>
-                <div class="wf-rejilla">
-                  <div class="wf-tarjeta">
-                    <div class="wf-imagen"></div>
-                    <p class="wf-texto"><strong>Taladro percutor Bosch</strong><br />6,00 € / día</p>
-                  </div>
-                  <div class="wf-tarjeta">
-                    <div class="wf-imagen"></div>
-                    <p class="wf-texto"><strong>Tienda de campaña</strong><br />12,00 € / día</p>
-                  </div>
+                <div>
+                  <h3 class="wf-h1">ana <span class="wf-marca">1</span></h3>
+                  <p class="wf-ayuda">Miembro desde 12 de octubre de 2026</p>
+                  <p class="wf-texto">★ Valoración media: 4,5 de 5 · 8 valoraciones <span class="wf-marca">2</span></p>
+                  <p class="wf-texto">Vecina de Gràcia. Presto herramientas de bricolaje y material de acampada.</p>
                 </div>
+              </div>
+            </div>
+            <p class="wf-texto"></p>
+            <p class="wf-texto"><strong>Objetos publicados</strong> <span class="wf-marca">3</span></p>
+            <div class="wf-rejilla">
+              <div class="wf-tarjeta">
+                <div class="wf-imagen"></div>
+                <p class="wf-texto"><strong>Taladro percutor Bosch</strong><br />6,00 € / día</p>
+              </div>
+              <div class="wf-tarjeta">
+                <div class="wf-imagen"></div>
+                <p class="wf-texto"><strong>Tienda de campaña</strong><br />12,00 € / día</p>
               </div>
             </div>
           </div>
@@ -99,11 +99,13 @@
         <div class="wf-movil">
           <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
           <div class="wf-contenido">
-            <div class="wf-imagen"></div>
-            <p class="wf-texto"></p>
-            <h3 class="wf-h1">ana</h3>
-            <p class="wf-texto">Valoración media: ★ 4,5 de 5</p>
-            <p class="wf-texto">Vecina de Gràcia. Presto herramientas de bricolaje y material de acampada.</p>
+            <div class="wf-tarjeta">
+              <div class="wf-imagen"></div>
+              <h3 class="wf-h1">ana</h3>
+              <p class="wf-ayuda">Miembro desde 12 de octubre de 2026</p>
+              <p class="wf-texto">★ Valoración media: 4,5 de 5 · 8 valoraciones</p>
+              <p class="wf-texto">Vecina de Gràcia. Presto herramientas de bricolaje y material de acampada.</p>
+            </div>
             <p class="wf-texto"><strong>Objetos publicados</strong></p>
             <div class="wf-tarjeta">
               <p class="wf-texto"><strong>Taladro percutor Bosch</strong><br />6,00 € / día</p>
@@ -118,18 +120,25 @@
       </div>
       <ol class="wf-notas">
         <li>
-          Muestra la foto, el nombre de usuario y la bio; nunca el correo. Criterio 2: con otra cuenta o sin sesión no
-          aparece «Editar perfil», y la API rechaza el cambio. La disposición sigue la de «Mi perfil» y se confirma en el Sprint Planning.
+          Foto (o la inicial si no tiene), nombre de usuario y bio; nunca el correo. Criterio 2: en el perfil de otra
+          persona, o sin sesión, no aparece «Editar perfil» y la API rechaza el cambio.
         </li>
-        <li>La media de las valoraciones recibidas (US-08.01 y US-08.02).</li>
-        <li>Solo los objetos publicados de esa persona. Cada tarjeta lleva a la ficha del objeto (<code>/objetos/:id</code>).</li>
+        <li>
+          Media de las valoraciones recibidas (US-08.01 y US-08.02). Sin ninguna dice «Todavía sin valoraciones». Si la
+          persona no ha escrito bio, no se muestra nada.
+        </li>
+        <li>
+          Solo los objetos publicados de esa persona, no los pausados ni retirados. Cada tarjeta lleva a la ficha del
+          objeto (<code>/objetos/:id</code>). Sin objetos: «Todavía no tiene objetos publicados.» Mientras carga se ven
+          campos de relleno («Cargando el perfil…»).
+        </li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Propuesta: si el identificador de la URL no corresponde a ningún usuario</p>
+    <p class="wf-flecha">Si el identificador de la URL no corresponde a ningún usuario</p>
 
     <section class="wf-pantalla" data-captura="3-usuario-no-existe">
-      <h2><span class="wf-paso">3</span>Propuesta: error, el usuario no existe <code>/usuarios/:id</code></h2>
+      <h2><span class="wf-paso">3</span>Error: el usuario no existe <code>/usuarios/:id</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/usuarios/0000…">
           <nav class="wf-nav">
@@ -137,42 +146,171 @@
             <span class="wf-enlaces"><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
-            <p class="wf-aviso">No hemos encontrado este usuario. <span class="wf-marca">1</span></p>
+            <div class="wf-tarjeta wf-centrado">
+              <p class="wf-aviso">No hemos encontrado este usuario. <span class="wf-marca">1</span></p>
+              <span class="wf-boton wf-secundario">Volver al inicio</span><span class="wf-marca">2</span>
+            </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Texto del issue. Hoy cualquier <code>/usuarios/…</code> da la página general «Página no encontrada», porque la ruta no existe.</li>
+        <li>Texto del criterio de aceptación; la API responde 404. Otros fallos (por ejemplo, sin conexión) muestran su propio aviso en lugar del perfil.</li>
+        <li>Lleva a la página de inicio <code>/</code>.</li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Otra entrada: la persona ve su propio perfil, con sesión iniciada</p>
+    <p class="wf-flecha">Otra entrada: la persona quiere ver o editar su propio perfil, con sesión iniciada</p>
 
     <section class="wf-pantalla" data-captura="4-entrada-mi-perfil">
-      <h2><span class="wf-paso">4</span>Punto de entrada: Mi perfil, como está hoy <code>/perfil</code></h2>
+      <h2><span class="wf-paso">4</span>Punto de entrada: «Mi perfil» en la cabecera <code>/perfil</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/perfil">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace"><u>Mi perfil</u></span><span class="wf-marca">1</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
-            <h3 class="wf-h1">Mi perfil <span class="wf-marca">1</span></h3>
-            <div class="wf-columnas wf-panel-izquierda">
-              <div>
-                <p class="wf-texto"><span class="wf-logo">A</span><span class="wf-marca">2</span></p>
-                <p class="wf-texto"><strong>ana</strong></p>
-                <div class="wf-campo">Correo electrónico<br />ana@ejemplo.com</div>
-                <div class="wf-campo">Miembro desde<br />12 de octubre de 2026</div>
-                <span class="wf-boton wf-secundario">Cerrar sesión</span><span class="wf-marca">3</span>
-              </div>
-              <div>
-                <div class="wf-columnas">
-                  <div class="wf-tarjeta"><h3 class="wf-h1">4 <span class="wf-marca">4</span></h3><strong>Mis objetos</strong></div>
-                  <div class="wf-tarjeta"><h3 class="wf-h1">5</h3><strong>Mis solicitudes</strong></div>
+            <p class="wf-texto"><strong>Cualquier otra pantalla con sesión iniciada</strong> (inicio, Mis objetos, una ficha…)</p>
+            <div class="wf-caja">Contenido de la pantalla</div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <div class="wf-caja">Contenido de la pantalla</div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span><u>Mi perfil</u></span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          «Mi perfil» enlaza directamente con el perfil público de la propia persona (<code>/usuarios/&lt;mi id&gt;</code>). Ya no
+          hay una página privada aparte: la dirección antigua <code>/perfil</code> redirige a ese perfil, y sin sesión lleva a
+          <code>/login</code>.
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Mi perfil»</p>
+
+    <section class="wf-pantalla" data-captura="5-perfil-propio">
+      <h2><span class="wf-paso">5</span>Mi perfil: el perfil público, con lo que solo ve su dueño <code>/usuarios/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/usuarios/8c1d…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace"><u>Mi perfil</u></span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-tarjeta">
+              <div class="wf-columnas wf-panel-izquierda">
+                <div class="wf-imagen"></div>
+                <div>
+                  <p class="wf-ayuda">Tu perfil · así lo ven los demás <span class="wf-marca">1</span></p>
+                  <h3 class="wf-h1">ana</h3>
+                  <p class="wf-ayuda">Miembro desde 12 de octubre de 2026</p>
+                  <p class="wf-texto">✉ ana@ejemplo.com · solo lo ves tú <span class="wf-marca">2</span></p>
+                  <p class="wf-texto">★ Valoración media: 4,5 de 5 · 8 valoraciones</p>
+                  <p class="wf-texto">Vecina de Gràcia. Presto herramientas de bricolaje y material de acampada.</p>
+                  <span class="wf-boton wf-secundario">Editar perfil</span><span class="wf-marca">3</span>
                 </div>
-                <p class="wf-texto"></p>
-                <div class="wf-tarjeta wf-fila">¿Tienes algo que no usas? <span class="wf-boton">Publicar un objeto</span><span class="wf-marca">5</span></div>
+              </div>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-fila">
+              <p class="wf-texto"><strong>Objetos publicados</strong></p>
+              <span class="wf-boton">Publicar un objeto</span><span class="wf-marca">4</span>
+            </div>
+            <div class="wf-rejilla">
+              <div class="wf-tarjeta">
+                <div class="wf-imagen"></div>
+                <p class="wf-texto"><strong>Taladro percutor Bosch</strong><br />6,00 € / día</p>
+              </div>
+              <div class="wf-tarjeta">
+                <div class="wf-imagen"></div>
+                <p class="wf-texto"><strong>Tienda de campaña</strong><br />12,00 € / día</p>
+              </div>
+            </div>
+            <p class="wf-texto"></p>
+            <span class="wf-boton wf-secundario">Cerrar sesión</span><span class="wf-marca">5</span>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <div class="wf-tarjeta">
+              <div class="wf-imagen"></div>
+              <p class="wf-ayuda">Tu perfil · así lo ven los demás</p>
+              <h3 class="wf-h1">ana</h3>
+              <p class="wf-ayuda">Miembro desde 12 de octubre de 2026</p>
+              <p class="wf-texto">✉ ana@ejemplo.com · solo lo ves tú</p>
+              <p class="wf-texto">★ Valoración media: 4,5 de 5 · 8 valoraciones</p>
+              <p class="wf-texto">Vecina de Gràcia. Presto herramientas de bricolaje y material de acampada.</p>
+              <span class="wf-boton wf-secundario">Editar perfil</span>
+            </div>
+            <p class="wf-texto"><strong>Objetos publicados</strong></p>
+            <span class="wf-boton wf-ancho">Publicar un objeto</span>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>Taladro percutor Bosch</strong><br />6,00 € / día</p>
+            </div>
+            <p class="wf-texto"></p>
+            <span class="wf-boton wf-secundario">Cerrar sesión</span>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span><u>Mi perfil</u></span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Aviso que solo ve el dueño: lo que ve él es lo mismo que ven los demás en la pantalla 2.</li>
+        <li>
+          El correo no es público: la API nunca lo devuelve y la web lo toma de la sesión. Solo aparece en el perfil propio.
+        </li>
+        <li>
+          Criterio 2: «Editar perfil» solo aparece cuando la sesión es la del dueño del perfil (la API también lo comprueba).
+          Abre la ventana de la pantalla 6. Sin bio, el texto es «Añade una bio para que los demás te conozcan.»
+        </li>
+        <li>Lleva a <code>/objetos/nuevo</code> (US-02.01). Sin objetos: «Todavía no has publicado ningún objeto.»</li>
+        <li>Cierra la sesión y lleva a <code>/login</code> (US-01.3). Está aquí, en el perfil, y no en la cabecera.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Editar perfil»</p>
+
+    <section class="wf-pantalla" data-captura="6-editar-perfil">
+      <h2><span class="wf-paso">6</span>Editar perfil: ventana sobre el perfil <code>/usuarios/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/usuarios/8c1d…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace"><u>Mi perfil</u></span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-ventana">
+              <div class="wf-nav">
+                <h3 class="wf-h1">Editar perfil <span class="wf-marca">1</span></h3>
+                <span class="wf-boton wf-secundario">×</span>
+              </div>
+              <div class="wf-ventana-cuerpo">
+                <div class="wf-campo">
+                  <label>Foto <span class="wf-marca">2</span></label>
+                  <div class="wf-columnas wf-panel-izquierda">
+                    <div class="wf-imagen"></div>
+                    <div>
+                      <span class="wf-boton wf-secundario">Cambiar foto</span>
+                      <span class="wf-boton wf-secundario">Quitar foto</span>
+                    </div>
+                  </div>
+                  <p class="wf-ayuda">JPG, PNG o WebP, hasta 5 MB. Se cambia al pulsar «Guardar».</p>
+                </div>
+                <div class="wf-campo">
+                  <label>Bio <span class="wf-marca">3</span></label>
+                  <div class="wf-input">Vecina de Gràcia. Presto herramientas y material de acampada.</div>
+                  <p class="wf-ayuda">Opcional. Máximo 500 caracteres (62/500).</p>
+                </div>
+              </div>
+              <div class="wf-ventana-botones">
+                <span class="wf-boton wf-ancho">Guardar</span><span class="wf-marca">4</span>
+                <span class="wf-boton wf-secundario wf-ancho">Cancelar</span>
               </div>
             </div>
           </div>
@@ -180,144 +318,92 @@
         <div class="wf-movil">
           <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
           <div class="wf-contenido">
-            <h3 class="wf-h1">Mi perfil</h3>
-            <p class="wf-texto"><span class="wf-logo">A</span> <strong>ana</strong></p>
-            <div class="wf-campo">Correo electrónico<br />ana@ejemplo.com</div>
-            <div class="wf-campo">Miembro desde<br />12 de octubre de 2026</div>
-            <div class="wf-fila">
-              <div class="wf-tarjeta"><h3 class="wf-h1">4</h3><p class="wf-ayuda">Mis objetos</p></div>
-              <div class="wf-tarjeta"><h3 class="wf-h1">5</h3><p class="wf-ayuda">Mis solicitudes</p></div>
+            <div class="wf-ventana">
+              <div class="wf-nav">
+                <h3 class="wf-h1">Editar perfil</h3>
+                <span class="wf-boton wf-secundario">×</span>
+              </div>
+              <div class="wf-ventana-cuerpo">
+                <div class="wf-campo">
+                  <label>Foto</label>
+                  <div class="wf-imagen"></div>
+                  <span class="wf-boton wf-secundario">Cambiar foto</span>
+                  <span class="wf-boton wf-secundario">Quitar foto</span>
+                  <p class="wf-ayuda">JPG, PNG o WebP, hasta 5 MB. Se cambia al pulsar «Guardar».</p>
+                </div>
+                <div class="wf-campo">
+                  <label>Bio</label>
+                  <div class="wf-input">Vecina de Gràcia. Presto herramientas y material de acampada.</div>
+                  <p class="wf-ayuda">Opcional. Máximo 500 caracteres (62/500).</p>
+                </div>
+              </div>
+              <div class="wf-ventana-botones">
+                <span class="wf-boton wf-ancho">Guardar</span>
+                <span class="wf-boton wf-secundario wf-ancho">Cancelar</span>
+              </div>
             </div>
-            <p class="wf-texto"></p>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span><u>Mi perfil</u></span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Ventana sobre el perfil. «×», «Cancelar», la tecla Esc o un clic fuera la cierran sin guardar. Si no se ha
+          cambiado nada, «Guardar» solo la cierra.
+        </li>
+        <li>
+          «Subir una foto» (si aún no tiene) o «Cambiar foto» abren el selector de archivos; se ve una vista previa. «Quitar
+          foto» vuelve a la inicial del nombre. Solo JPG, PNG o WebP de hasta 5 MB: con otro archivo sale el error junto al campo.
+        </li>
+        <li>
+          Límite de 500 caracteres de <code>usuario.bio</code> (<code>docs/modelo-datos.md</code>). Vacía, se borra la bio. Si la
+          API rechaza el texto, sale el error junto al campo: «El campo "bio" no es correcto, revísalo.»
+        </li>
+        <li>
+          Guarda la bio y después la foto, solo de la cuenta de la sesión (la API rechaza editar un perfil ajeno). Mientras
+          guarda dice «Guardando…». Si la sesión ha caducado, lleva a <code>/login</code>.
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Cambia la foto o la bio y pulsa «Guardar»</p>
+
+    <section class="wf-pantalla" data-captura="7-destino-perfil-actualizado">
+      <h2><span class="wf-paso">7</span>Destino: perfil actualizado <code>/usuarios/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/usuarios/8c1d…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace"><u>Mi perfil</u></span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <p class="wf-aviso">Perfil actualizado. <span class="wf-marca">1</span></p>
             <div class="wf-tarjeta">
-              <p class="wf-texto">¿Tienes algo que no usas?</p>
-              <span class="wf-boton wf-ancho">Publicar un objeto</span>
+              <div class="wf-columnas wf-panel-izquierda">
+                <div class="wf-imagen"></div>
+                <div>
+                  <p class="wf-ayuda">Tu perfil · así lo ven los demás</p>
+                  <h3 class="wf-h1">ana</h3>
+                  <p class="wf-ayuda">Miembro desde 12 de octubre de 2026</p>
+                  <p class="wf-texto">✉ ana@ejemplo.com · solo lo ves tú</p>
+                  <p class="wf-texto">★ Valoración media: 4,5 de 5 · 8 valoraciones</p>
+                  <p class="wf-texto">Vecina de Gràcia. Presto herramientas y material de acampada. <span class="wf-marca">2</span></p>
+                  <span class="wf-boton wf-secundario">Editar perfil</span>
+                </div>
+              </div>
             </div>
             <p class="wf-texto"></p>
-            <span class="wf-boton wf-secundario">Cerrar sesión</span>
-          </div>
-          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>Página privada: sin sesión lleva a <code>/login</code>. Mientras carga dice «Cargando tu perfil…». Si no se puede pedir, sale el aviso en lugar de los datos, por ejemplo «No se puede conectar con el servidor. Inténtalo más tarde.».</li>
-        <li>La inicial del nombre de usuario: todavía no hay foto ni bio. Esta pantalla no enlaza a ningún perfil público: el botón propuesto «Ver mi perfil público» no existe todavía.</li>
-        <li>Cierra la sesión y lleva a <code>/login</code> (US-01.3).</li>
-        <li>Cada cifra es un enlace a <code>/mis-objetos</code> y <code>/mis-solicitudes</code>; las solicitudes suman enviadas y recibidas. Si no se pueden pedir, en lugar de la cifra sale «Gestiona tus anuncios» o «Enviadas y recibidas».</li>
-        <li>Lleva a <code>/objetos/nuevo</code> (US-02.01).</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Propuesta: un botón nuevo «Ver mi perfil público» (aún no está en «Mi perfil»)</p>
-
-    <section class="wf-pantalla" data-captura="5-perfil-propio">
-      <h2><span class="wf-paso">5</span>Propuesta: mi perfil público, no existe todavía <code>/usuarios/:id</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/usuarios/8c1d…">
-          <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <div class="wf-columnas wf-panel-izquierda">
-              <div>
-                <div class="wf-imagen"></div>
-                <p class="wf-texto"></p>
-                <h3 class="wf-h1">ana</h3>
-                <p class="wf-texto">Valoración media: ★ 4,5 de 5</p>
-                <p class="wf-texto">Vecina de Gràcia. Presto herramientas de bricolaje y material de acampada.</p>
-                <span class="wf-boton">Editar perfil</span><span class="wf-marca">1</span>
-              </div>
-              <div>
-                <p class="wf-texto"><strong>Objetos publicados</strong></p>
-                <div class="wf-caja">Tarjetas de los objetos publicados, como en la pantalla 2</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>Criterio 2: solo aparecería cuando la sesión es la del dueño del perfil.</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Propuesta: clic en «Editar perfil»</p>
-
-    <section class="wf-pantalla" data-captura="6-editar-perfil">
-      <h2><span class="wf-paso">6</span>Propuesta: editar perfil, no existe todavía <code>/usuarios/:id</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/usuarios/8c1d…">
-          <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <div class="wf-centrado wf-tarjeta">
-              <h3 class="wf-h1">Editar perfil <span class="wf-marca">1</span></h3>
-              <div class="wf-campo">
-                <label>Foto</label>
-                <div class="wf-imagen"></div>
-                <p class="wf-ayuda">Elige otra imagen para cambiarla.</p>
-              </div>
-              <div class="wf-campo">
-                <label>Bio <span class="wf-marca">2</span></label>
-                <div class="wf-input">Vecina de Gràcia. Presto herramientas y material de acampada.</div>
-                <p class="wf-ayuda">Máximo 500 caracteres.</p>
-              </div>
-              <span class="wf-boton wf-ancho">Guardar</span><span class="wf-marca">3</span>
-            </div>
+            <p class="wf-texto"><strong>Objetos publicados</strong></p>
+            <div class="wf-caja">Tarjetas de los objetos publicados, como en la pantalla 5 <span class="wf-marca">3</span></div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
         <li>
-          El flujo no dice si es una ventana o una zona de la página, ni define «Cancelar»: se dibuja sin él y se sale
-          con la cabecera. Se decide en el Sprint Planning.
+          Confirmación encima del perfil. Si los cambios se guardan pero la foto no se sube, el aviso dice: «Se han guardado
+          los cambios, pero no se ha podido subir la foto. Inténtalo de nuevo.»
         </li>
-        <li>Límite de 500 caracteres de <code>usuario.bio</code> (<code>docs/modelo-datos.md</code>).</li>
-        <li>Guardaría los cambios de la propia cuenta. La API rechazaría la edición de un perfil ajeno.</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Propuesta: cambia la foto o la bio y pulsa «Guardar»</p>
-
-    <section class="wf-pantalla" data-captura="7-destino-perfil-actualizado">
-      <h2><span class="wf-paso">7</span>Destino (propuesta): perfil público actualizado <code>/usuarios/:id</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/usuarios/8c1d…">
-          <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <div class="wf-columnas wf-panel-izquierda">
-              <div>
-                <div class="wf-imagen"></div>
-                <p class="wf-texto"></p>
-                <h3 class="wf-h1">ana</h3>
-                <p class="wf-texto">Valoración media: ★ 4,5 de 5</p>
-                <p class="wf-texto">Vecina de Gràcia. Presto herramientas y material de acampada. <span class="wf-marca">1</span></p>
-                <span class="wf-boton">Editar perfil</span>
-              </div>
-              <div>
-                <p class="wf-texto"><strong>Objetos publicados</strong></p>
-                <div class="wf-rejilla">
-                  <div class="wf-tarjeta">
-                    <div class="wf-imagen"></div>
-                    <p class="wf-texto"><strong>Taladro percutor Bosch</strong><br />6,00 € / día <span class="wf-marca">2</span></p>
-                  </div>
-                  <div class="wf-tarjeta">
-                    <div class="wf-imagen"></div>
-                    <p class="wf-texto"><strong>Tienda de campaña</strong><br />12,00 € / día</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>Sigue en el perfil público, con los datos ya actualizados.</li>
+        <li>Sigue en el perfil, ya con la foto y la bio nuevas, sin recargar la página.</li>
         <li>Desde un objeto de la lista puede ir a su ficha (<code>/objetos/:id</code>, US-03.03).</li>
       </ol>
     </section>
