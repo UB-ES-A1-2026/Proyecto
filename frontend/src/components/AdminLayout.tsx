@@ -44,7 +44,9 @@ export function AdminLayout() {
 
     getRiderApplications(token)
       .then((data) => {
-        if (!ignore) setApplications(data);
+        if (ignore) return;
+        setApplications(data);
+        setApplicationsError(null);
       })
       .catch((requestError: unknown) => {
         if (!ignore) handleError(requestError);
@@ -67,7 +69,13 @@ export function AdminLayout() {
         ),
       reloadApplications: () => {
         if (!token) return;
-        getRiderApplications(token).then(setApplications).catch(handleError);
+        // Si una recarga va bien, se quita el error de una carga anterior.
+        getRiderApplications(token)
+          .then((data) => {
+            setApplications(data);
+            setApplicationsError(null);
+          })
+          .catch(handleError);
       },
     }),
     [applications, applicationsError, token, handleError],
