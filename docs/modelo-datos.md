@@ -14,6 +14,8 @@ erDiagram
   USUARIO ||--o| SOLICITUD_RIDER : "solicita ser rider"
   USUARIO |o--o{ SOLICITUD_RIDER : "revisa (admin)"
   USUARIO ||--o{ OBJETO : "publica"
+  OBJETO ||--o| RETIRADA_OBJETO : "retira (admin)"
+  USUARIO ||--o{ RETIRADA_OBJETO : "retira (admin)"
   CATEGORIA ||--o{ OBJETO : "clasifica"
   OBJETO ||--o{ FOTO_OBJETO : "tiene"
   USUARIO ||--o{ RESERVA : "solicita (arrendatario)"
@@ -107,8 +109,17 @@ erDiagram
     enum modo_entrega "domicilio | rider | punto_recogida"
     enum estado "pendiente | aceptada | rechazada | cancelada | pagada | en_curso | finalizada | caducada"
     fecha_hora caduca_en "solo en las pendientes"
+    enum motivo_cancelacion "objeto_retirado, opcional, solo si cancelada por el sistema"
     fecha_hora creada_en
     fecha_hora actualizada_en
+  }
+  RETIRADA_OBJETO {
+    id id PK
+    id objeto_id FK,UK
+    id admin_id FK
+    enum motivo "posible_estafa | prohibido | enganoso | otro"
+    texto detalles "≤ 500, obligatorio si motivo = otro"
+    fecha_hora retirado_en
   }
   PAGO {
     id id PK
@@ -346,11 +357,35 @@ Se crean en la migración `crea_punto_recogida_y_entrega`, en la tarea de backen
 
 Todavía **no tiene** `estado`, `codigo_entrega` (US-05.02, #288) ni `rider_id` (US-10.01, #292): cada una de esas historias añade sus columnas con una migración nueva. El diagrama de arriba refleja solo lo creado hasta ahora. `sentido` (ida y vuelta) y `hora_programada` quedan sustituidos por `franja`.
 
+## Tabla `retirada_objeto` y `reserva.motivo_cancelacion` (Sprint 2 · #317)
+
+Las crea la migración `retirada_objeto_por_admin` como parte de US-11.03 (#305): el admin retira un objeto indicando un motivo. Guarda quién lo retiró, por qué y cuándo; el propietario lo ve en «Mis objetos». Un objeto que retira su propietario (US-02.03) **no** tiene fila aquí.
+
+| Campo | Tipo | Obligatorio | Restricciones | Para qué |
+|---|---|---|---|---|
+| `id` | UUID | sí | PK | Identificador |
+| `objeto_id` | UUID | sí | FK → `objeto.id`, único, borrado restringido | Una sola retirada por objeto |
+| `admin_id` | UUID | sí | FK → `usuario.id`, borrado restringido | Admin que lo retiró |
+| `motivo` | enum `motivo_retirada`: `posible_estafa`, `prohibido`, `enganoso`, `otro` | sí | | Motivo que ve el propietario |
+| `detalles` | texto (≤ 500) | no | `CHECK`: obligatorio y no en blanco si `motivo = otro` | Explicación para el propietario |
+| `retirado_en` | fecha y hora | sí | por defecto «ahora» | Cuándo se retiró |
+
+Además, `reserva` gana la columna `motivo_cancelacion` (enum `motivo_cancelacion`, por ahora solo `objeto_retirado`; opcional, `null` en el resto de reservas) para que las dos partes sepan por qué se canceló una reserva sin que nadie la cancelase.
+
+| Decisión | Por qué |
+|---|---|
+| **Reservas activas al retirar un objeto** | Retirar es atómico (una transacción): el objeto pasa a `retirado`, se guarda la retirada y las reservas `pendiente` y `aceptada` del objeto pasan a `cancelada` con `motivo_cancelacion = objeto_retirado`. Las `pagada`, `en_curso` y `finalizada` **no se tocan**: ya tienen pago, entrega o historial detrás y su cierre, y el reembolso, se resuelven con cancelación y penalización (US-04.05) y las incidencias. Esto difiere de la retirada por el propietario (US-02.03), que se bloquea si hay reservas activas: el admin retira por moderación y no puede esperar a que se resuelvan. |
+| La retirada es una transición única | El backend actualiza el objeto con `WHERE estado <> 'retirado'`: si dos admins retiran a la vez, solo uno lo consigue y el otro recibe un 409. |
+| `retirada_objeto` es historial | Un objeto o un admin con retirada **no se pueden borrar**. |
+| El propietario no ve qué admin fue | La API de «Mis objetos» devuelve solo `motivo`, `detalles` y `retirado_en`, nunca el `admin_id`. |
+
+En Prisma, los modelos son `ItemModeration` y los enums `WithdrawalReason` (`scam`, `prohibited`, `misleading`, `other`) y `CancellationReason` (`item_withdrawn`).
+
 ## Qué tablas entran en cada sprint
 
 | Sprint | Tablas nuevas | Historias |
 |---|---|---|
 | S0 | `usuario`, `sesion` | US-01.1, US-01.2, US-01.3 |
 | S1 | `categoria`, `objeto`, `foto_objeto`, `reserva` | US-02.x, US-03.x, US-04.01–04.04 |
-| S2 | `solicitud_rider` (US-10.03), `pago`, `punto_recogida`, `entrega`, `valoracion` (+ campos de perfil y rider en `usuario`) | US-07.01, US-05.01–05.02, US-10.01, US-10.03, US-08.x, US-01.4 |
+| S2 | `solicitud_rider` (US-10.03), `retirada_objeto` (US-11.03), `pago`, `punto_recogida`, `entrega`, `valoracion` (+ campos de perfil y rider en `usuario`) | US-07.01, US-05.01–05.02, US-10.01, US-10.03, US-08.x, US-01.4 |
 | S3 | `conversacion`, `mensaje`, `notificacion`, `incidencia`, `foto_estado` | US-06.x, US-09.x, US-11.01, US-04.05 |
