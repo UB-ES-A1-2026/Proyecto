@@ -23,6 +23,8 @@ export type ItemDetail = {
   homeDelivery: boolean;
   riderDelivery: boolean;
   pickupPointDelivery: boolean;
+  // Solo llega cuando lo pide su propietario (US-05.01, #281).
+  address?: string | null;
   owner: {
     id: string;
     username: string;
@@ -47,11 +49,18 @@ export type MyItem = {
 };
 
 // Cuerpo de PATCH /api/objetos/:id (#109): los campos que se pueden editar desde el formulario.
+// El barrio, los modos de entrega y la dirección son opcionales (US-05.01, #307): lo que no se
+// envía se queda como estaba.
 export type ItemChanges = {
   title: string;
   description: string;
   dailyPrice: number;
   deposit: number;
+  neighborhood?: string;
+  homeDelivery?: boolean;
+  riderDelivery?: boolean;
+  pickupPointDelivery?: boolean;
+  address?: string;
 };
 
 export function getMyItems(token: string): Promise<MyItem[]> {
