@@ -14,8 +14,8 @@
       </p>
       <p class="wf-meta">
         Issue #67 · Tarea T15 (#290) · Flujo del Sprint Planning (10/11) y de la reunión del 11/11: solo una máquina de
-        estados, sin mapa (decisión 6) · Wireframe de baja fidelidad · Generado con asistencia de IA (Claude) – pendiente
-        de validar por Marc antes de programar
+        estados, sin mapa (decisión 6) · Wireframe de baja fidelidad · Generado con asistencia de IA (Claude) – Validado
+        por Marc el 13/11/2026 (pendiente de confirmar estados con T13)
       </p>
       <p class="wf-meta">
         Los nombres exactos de los estados y de la ruta dependen de la máquina de estados (T13, #288, Francesc): lo que hay
@@ -155,8 +155,9 @@
           cómo lo devuelve la API y que nunca se manda por el canal en tiempo real (#324).
         </li>
         <li>
-          Criterio 2: los cambios llegan solos por el canal en tiempo real (SSE, #324), sin recargar. Indicador discreto:
-          ver la pantalla 9 para cuando se pierde la conexión.
+          Criterio 2: los cambios llegan solos por el canal en tiempo real (SSE, #324), sin recargar. Indicador discreto
+          «● Actualizado al momento» (texto validado por Marc, 13/11); ver la pantalla 10 para cuando se pierde la
+          conexión.
         </li>
       </ol>
     </section>
@@ -231,8 +232,8 @@
       <ol class="wf-notas">
         <li>
           Criterio 3: marcar «Entregada» exige el código correcto. Con un código incorrecto se indica el error y la entrega
-          sigue «En camino». El texto del error es una propuesta (la historia no lo da). A confirmar con T13: el texto y si
-          hay un límite de intentos.
+          sigue «En camino». Texto validado por Marc (13/11): «El código de entrega no es correcto. Pídeselo al
+          arrendatario.». A confirmar con T13: que la API lo devuelva así y si hay un límite de intentos.
         </li>
       </ol>
     </section>
@@ -293,7 +294,10 @@
         </li>
         <li>
           Criterio 4: el arrendatario pulsa «Ya tengo el objeto»; la entrega pasa a «Entregada» y el alquiler, a «En curso».
-          Solo lo ve el arrendatario, y solo con la entrega pendiente.
+          Solo lo ve el arrendatario, y solo con la entrega pendiente. Como tampoco se puede deshacer, antes pide
+          confirmación con la misma ventana que «He devuelto el objeto» (pantalla 7): «¿Ya tienes el objeto? No se puede
+          deshacer», con «Cancelar» y «Sí, ya lo tengo» (decisión de Marc, 13/11, aplicada a los dos botones por
+          coherencia).
         </li>
       </ol>
     </section>
@@ -332,17 +336,78 @@
         </li>
         <li>
           «He devuelto el objeto» solo aparece al arrendatario y con el alquiler «En curso» (errores de #67). La devolución
-          siempre la hace el arrendatario por su cuenta: con rider no hay devolución por rider (fuera de alcance). Pregunta
-          para Marc: ¿pedimos confirmación («¿Seguro que ya lo has devuelto?») antes de marcarlo, ya que no se puede
-          deshacer? La historia no lo dice.
+          siempre la hace el arrendatario por su cuenta: con rider no hay devolución por rider (fuera de alcance). Como no
+          se puede deshacer, antes pide confirmación (pantalla 7, decisión de Marc, 13/11).
         </li>
       </ol>
     </section>
 
     <p class="wf-flecha">Clic en «He devuelto el objeto»</p>
 
-    <section class="wf-pantalla" data-captura="7-destino-finalizada">
-      <h2><span class="wf-paso">7</span>Destino: alquiler finalizado y «Valorar» <code>/entregas/:id</code></h2>
+    <section class="wf-pantalla" data-captura="7-confirmar-devolucion">
+      <h2><span class="wf-paso">7</span>Confirmar la devolución <code>/entregas/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/entregas/9c04…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-ventana">
+              <div class="wf-nav">
+                <h3 class="wf-h1">He devuelto el objeto <span class="wf-marca">1</span></h3>
+                <span class="wf-boton wf-secundario">×</span>
+              </div>
+              <div class="wf-ventana-cuerpo">
+                <p class="wf-texto">
+                  <span class="wf-icono-ayuda">!</span> <strong>¿Has devuelto el objeto? No se puede deshacer</strong><span class="wf-marca">2</span>
+                  <br />El alquiler de «Bicicleta de paseo» pasará a «Finalizada».
+                </p>
+              </div>
+              <div class="wf-ventana-botones">
+                <span class="wf-boton wf-ancho">Sí, lo he devuelto</span><span class="wf-marca">3</span>
+                <span class="wf-boton wf-secundario wf-ancho">Cancelar</span><span class="wf-marca">4</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <div class="wf-ventana">
+              <div class="wf-ventana-cuerpo">
+                <p class="wf-texto"><strong>¿Has devuelto el objeto? No se puede deshacer</strong></p>
+              </div>
+              <div class="wf-ventana-botones">
+                <span class="wf-boton wf-ancho">Sí, lo he devuelto</span>
+                <span class="wf-boton wf-secundario wf-ancho">Cancelar</span>
+              </div>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Ventana sobre la vista de seguimiento. «×», la tecla Esc o un clic fuera la cierran igual que «Cancelar».</li>
+        <li>
+          Decisión de Marc (13/11): como no se puede deshacer, se pide confirmación. «Ya tengo el objeto» (pantalla 5) usa
+          la misma ventana con «¿Ya tienes el objeto? No se puede deshacer» y «Sí, ya lo tengo».
+        </li>
+        <li>
+          Confirma el cambio de estado en la API (ruta a confirmar con T13). Mientras tanto dice «Guardando…» y está
+          desactivado. Si la API lo rechaza, se cierra y se enseña el error de la pantalla 10.
+        </li>
+        <li>Cancelar cierra la ventana sin llamar a la API; el alquiler sigue «En curso».</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Sí, lo he devuelto»</p>
+
+    <section class="wf-pantalla" data-captura="8-destino-finalizada">
+      <h2><span class="wf-paso">8</span>Destino: alquiler finalizado y «Valorar» <code>/entregas/:id</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/entregas/9c04…">
           <nav class="wf-nav">
@@ -384,17 +449,17 @@
           ni código.
         </li>
         <li>
-          «Valorar» aparece para las dos personas, aquí y en «Mis solicitudes» (móvil, a la derecha). Lleva a la valoración
-          de US-08.01 (T21, Kai) y US-08.02. Mientras esas historias no estén en <code>develop</code>, el botón no se
-          enseña.
+          <strong>Se activa cuando US-08.01/US-08.02 estén en develop</strong> (decisión de Marc, 13/11): hasta entonces
+          el botón no se enseña, ni aquí ni en «Mis solicitudes». Cuando se active, aparece para las dos personas, aquí y
+          en «Mis solicitudes» (móvil, a la derecha), y lleva a la valoración de US-08.01 (T21, Kai) y US-08.02.
         </li>
       </ol>
     </section>
 
     <p class="wf-flecha">Lo que ve el propietario en «Recibidas» → «Ver entrega» de la misma reserva</p>
 
-    <section class="wf-pantalla" data-captura="8-propietario">
-      <h2><span class="wf-paso">8</span>Visto por el propietario <code>/entregas/:id</code></h2>
+    <section class="wf-pantalla" data-captura="9-propietario">
+      <h2><span class="wf-paso">9</span>Visto por el propietario <code>/entregas/:id</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/entregas/71be…">
           <nav class="wf-nav">
@@ -428,8 +493,8 @@
 
     <p class="wf-flecha">Errores: alguien ya cambió el estado, o se pierde la conexión</p>
 
-    <section class="wf-pantalla" data-captura="9-errores">
-      <h2><span class="wf-paso">9</span>Errores: paso no permitido y sin conexión <code>/entregas/:id</code></h2>
+    <section class="wf-pantalla" data-captura="10-errores">
+      <h2><span class="wf-paso">10</span>Errores: paso no permitido y sin conexión <code>/entregas/:id</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/entregas/9c04…">
           <nav class="wf-nav">
@@ -464,11 +529,13 @@
         <li>
           Criterio 1 y errores de #67: no se puede saltar ni volver atrás un estado. Si la API rechaza el paso (por ejemplo,
           «Ya tengo el objeto» pulsado dos veces o el estado ya cambió en otra pestaña), se enseña el error y se recarga el
-          estado. El texto es una propuesta; a confirmar con T13 el código (409) y el mensaje de la API.
+          estado. Texto validado por Marc (13/11): «Este paso ya no está disponible: el estado ha cambiado. Te enseñamos el
+          actual.». A confirmar con T13 el código (409) y el mensaje de la API.
         </li>
         <li>
           Cliente del canal en tiempo real (#324): si llega un <code>resync</code>, se recarga por REST; tras 3 fallos
-          seguidos, pasa a consultar cada 5 s y lo dice con este indicador. Con un 401, va al login.
+          seguidos, pasa a consultar cada 5 s y lo dice con «○ Sin conexión en tiempo real: se actualiza cada 5 s» (texto
+          validado por Marc, 13/11). Con un 401, va al login.
         </li>
         <li>
           Si la reserva no existe o no es tuya (no eres arrendatario, propietario ni su rider), el mismo mensaje en los
