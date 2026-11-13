@@ -78,9 +78,13 @@ function renderRequest(item: RentalItem = ITEM) {
 }
 
 // Elige del 4 al 6 de noviembre y pasa al resumen con la tarjeta.
-async function goToSummary(user: ReturnType<typeof userEvent.setup>) {
-  fireEvent.change(screen.getByLabelText('Fecha de inicio'), { target: { value: '04/11/2026' } });
-  fireEvent.change(screen.getByLabelText('Fecha de fin'), { target: { value: '06/11/2026' } });
+async function goToSummary(
+  user: ReturnType<typeof userEvent.setup>,
+  startDate = '04/11/2026',
+  endDate = '06/11/2026',
+) {
+  fireEvent.change(screen.getByLabelText('Fecha de inicio'), { target: { value: startDate } });
+  fireEvent.change(screen.getByLabelText('Fecha de fin'), { target: { value: endDate } });
   const request = screen.getByRole('button', { name: 'Solicitar alquiler' });
   await waitFor(() => expect(request).toBeEnabled());
   await user.click(request);
@@ -166,10 +170,41 @@ describe('Pagar al solicitar desde la ficha', () => {
     expect(summary).toHaveTextContent(/Importe total\s*58,00\s€/);
     expect(screen.getByText(/Bloquearemos 18,00\s€ en tu tarjeta/)).toBeInTheDocument();
     expect(screen.getByText('Solo se cobran si ana acepta')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /La fianza \(40,00\s€\) se bloquea el día antes de empezar y se libera al terminar, sin cobrarla\./,
+      ),
+    ).toBeInTheDocument();
     // Indica qué tarjetas de prueba usar.
     expect(screen.getByText(VISA)).toBeInTheDocument();
     expect(screen.getByText(DECLINED)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Enviar solicitud' })).toBeEnabled();
+  });
+
+  // Un bloqueo con tarjeta caduca a los ~7 días: con más de 6 días de alquiler, la fianza se cobra
+  // y se devuelve al terminar.
+  it.each([
+    [
+      '6 días: se bloquea',
+      '09/11/2026',
+      'Fianza (se retiene, no se cobra)',
+      /se bloquea el día antes/,
+    ],
+    [
+      '8 días: se cobra y se devuelve',
+      '11/11/2026',
+      'Fianza (se cobra y se devuelve al terminar)',
+      /Como el alquiler dura más de 6 días, la fianza \(40,00\s€\) se cobra el día antes de empezar y se devuelve al terminar\./,
+    ],
+  ])('con %s', async (_label, endDate, depositLabel, note) => {
+    mockRequestApi();
+    const user = userEvent.setup();
+    renderRequest();
+
+    await goToSummary(user, '04/11/2026', endDate);
+
+    expect(screen.getByText(depositLabel)).toBeInTheDocument();
+    expect(screen.getByText(note)).toBeInTheDocument();
   });
 
   it('envía la solicitud con el método de pago, nunca con el número de la tarjeta', async () => {
