@@ -1,5 +1,5 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 02/11/2026
-import type { ReservationStatus } from '@prisma/client';
+import type { CancellationReason, ReservationStatus } from '@prisma/client';
 import type { ReservationWithDetail } from '../repositories/detailIncludes.js';
 import {
   buildDeliveryView,
@@ -23,6 +23,8 @@ export interface ReservationDetail {
   status: ReservationStatus;
   // Hasta cuándo puede responder el propietario; null si ya no está pendiente.
   expiresAt: Date | null;
+  // Por qué se canceló sin que lo pidiera nadie (US-11.03); null en el resto.
+  cancellationReason: CancellationReason | null;
   renter: { id: string; username: string };
   owner: { id: string; username: string };
   // null en las reservas anteriores a US-05.01 (#281), que no tienen modo de entrega.
@@ -55,6 +57,7 @@ export function toReservationDetail(
       : '0.00',
     status: reservation.status,
     expiresAt: reservation.status === 'pending' ? reservation.expiresAt : null,
+    cancellationReason: reservation.cancellationReason,
     renter: reservation.renter,
     owner: reservation.item.owner,
     delivery: buildDeliveryView({
