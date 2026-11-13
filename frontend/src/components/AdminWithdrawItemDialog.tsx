@@ -74,8 +74,8 @@ export function AdminWithdrawItemDialog({
           <div>
             <p className="withdraw-notice-question">¿Retirar «{item.title}» de Rentit?</p>
             <p className="withdraw-notice-text">
-              Dejará de aparecer en las búsquedas y nadie podrá alquilarlo. El propietario recibirá
-              un aviso con el motivo. No se puede deshacer.
+              Dejará de aparecer en las búsquedas y nadie podrá alquilarlo. El propietario verá el
+              motivo en «Mis objetos». No se puede deshacer.
             </p>
           </div>
         </div>
