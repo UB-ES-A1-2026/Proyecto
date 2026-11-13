@@ -2,8 +2,27 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
-import { getItemDetail, updateItem, type ItemDetail } from '../services/itemService';
+import {
+  getItemDetail,
+  updateItem,
+  type ItemChanges,
+  type ItemDetail,
+} from '../services/itemService';
+import { getNeighborhoods } from '../services/neighborhoodService';
 import { ACCEPTED_PHOTO_TYPES, uploadItemPhoto } from '../services/photoService';
+import {
+  ADDRESS_HINT,
+  ADDRESS_MAX,
+  DELIVERY_HINT,
+  DELIVERY_MODE_FIELDS,
+  DELIVERY_MODE_ICONS,
+  DELIVERY_MODE_LABELS,
+  NO_DELIVERY_MODE_ERROR,
+  PICKUP_ONLY_HINT,
+  needsAddress,
+  validateDelivery,
+  type DeliveryModes,
+} from '../utils/delivery';
 import { Icon } from './Icon';
 import { Modal } from './Modal';
 
@@ -11,20 +30,35 @@ import { Modal } from './Modal';
 const PHOTOS_MAX = 5;
 const PHOTOS_ERROR = 'El campo "fotografías" no es correcto, revísalo.';
 
-type Field = 'title' | 'description' | 'dailyPrice' | 'deposit';
+type TextField = 'title' | 'description' | 'dailyPrice' | 'deposit';
+// Barrio, modos y dirección: apartado «Entrega» de US-05.01 (T27, #307).
+type Field = TextField | 'neighborhood' | 'deliveryModes' | 'address';
 type FieldErrors = Partial<Record<Field, string>>;
 
-const FIELD_ORDER: Field[] = ['title', 'description', 'dailyPrice', 'deposit'];
+// En el orden de la ventana: el foco va al primer campo con error.
+const FIELD_ORDER: Field[] = [
+  'title',
+  'description',
+  'dailyPrice',
+  'deposit',
+  'neighborhood',
+  'deliveryModes',
+  'address',
+];
 
 const FIELD_NAMES: Record<Field, string> = {
   title: 'nombre',
   description: 'descripción',
   dailyPrice: 'precio por día',
   deposit: 'fianza',
+  neighborhood: 'barrio',
+  deliveryModes: 'modo de entrega',
+  address: 'dirección',
 };
 
-// Texto del criterio de aceptación de US-02.02.
+// Texto del criterio de aceptación de US-02.02 (y el de US-05.01 para «sin ningún modo»).
 function errorMessage(field: Field): string {
+  if (field === 'deliveryModes') return NO_DELIVERY_MODE_ERROR;
   return `El campo "${FIELD_NAMES[field]}" no es correcto, revísalo.`;
 }
 
@@ -49,7 +83,7 @@ function formatAmount(value: string): string {
   return value.replace('.', ',');
 }
 
-type FormValues = Record<Field, string>;
+type FormValues = Record<TextField, string>;
 
 function validate(values: FormValues): FieldErrors {
   const errors: FieldErrors = {};
@@ -78,6 +112,7 @@ export function EditItemDialog({ id, onClose, onSaved }: EditItemDialogProps) {
   const { session, clearSession } = useAuth();
   const token = session?.token;
   const [item, setItem] = useState<ItemDetail | null>(null);
+  const [neighborhoods, setNeighborhoods] = useState<string[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -100,6 +135,15 @@ export function EditItemDialog({ id, onClose, onSaved }: EditItemDialogProps) {
         }
       });
 
+    // El barrio se elige de la lista de la API (US-05.01, #307): sin ella no se puede editar.
+    getNeighborhoods()
+      .then((data) => {
+        if (!ignore) setNeighborhoods(data);
+      })
+      .catch(() => {
+        if (!ignore) setLoadError('No se han podido cargar los barrios.');
+      });
+
     return () => {
       ignore = true;
     };
@@ -117,8 +161,14 @@ export function EditItemDialog({ id, onClose, onSaved }: EditItemDialogProps) {
             Cerrar
           </button>
         </>
-      ) : item && token ? (
-        <EditItemForm item={item} token={token} onCancel={onClose} onSaved={onSaved} />
+      ) : item && neighborhoods && token ? (
+        <EditItemForm
+          item={item}
+          neighborhoods={neighborhoods}
+          token={token}
+          onCancel={onClose}
+          onSaved={onSaved}
+        />
       ) : (
         <>
           <p className="manage-visually-hidden">Cargando el objeto…</p>
@@ -149,18 +199,30 @@ function NewPhotoThumbnail({ file }: { file: File }) {
 
 type EditItemFormProps = {
   item: ItemDetail;
+  neighborhoods: string[];
   token: string;
   onCancel: () => void;
   onSaved: (item: ItemDetail, photosFailed: boolean) => void;
 };
 
-function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
+function EditItemForm({ item, neighborhoods, token, onCancel, onSaved }: EditItemFormProps) {
   const [values, setValues] = useState<FormValues>({
     title: item.title,
     description: item.description,
     dailyPrice: formatAmount(item.dailyPrice),
     deposit: formatAmount(item.deposit),
   });
+  // Un barrio de antes de US-05.01 que no está en la lista empieza vacío y obliga a elegir (A3).
+  const oldNeighborhood = neighborhoods.includes(item.neighborhood) ? null : item.neighborhood;
+  const [neighborhood, setNeighborhood] = useState(
+    oldNeighborhood === null ? item.neighborhood : '',
+  );
+  const [modes, setModes] = useState<DeliveryModes>({
+    homeDelivery: item.homeDelivery,
+    riderDelivery: item.riderDelivery,
+    pickupPointDelivery: item.pickupPointDelivery,
+  });
+  const [address, setAddress] = useState(item.address ?? '');
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -171,11 +233,35 @@ function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const dailyPriceRef = useRef<HTMLInputElement>(null);
   const depositRef = useRef<HTMLInputElement>(null);
+  const neighborhoodRef = useRef<HTMLSelectElement>(null);
+  const deliveryRef = useRef<HTMLInputElement>(null);
+  const addressRef = useRef<HTMLInputElement>(null);
+  const showAddress = needsAddress(modes);
 
-  function setValue(field: Field, value: string) {
-    setValues((current) => ({ ...current, [field]: value }));
+  function clearError(field: Field) {
     setErrors(({ [field]: _removed, ...rest }) => rest);
     setFormError(null);
+  }
+
+  function setValue(field: TextField, value: string) {
+    setValues((current) => ({ ...current, [field]: value }));
+    clearError(field);
+  }
+
+  function toggleMode(mode: keyof DeliveryModes, checked: boolean) {
+    setModes((current) => ({ ...current, [mode]: checked }));
+    clearError('deliveryModes');
+  }
+
+  // Solo se envía lo del apartado «Entrega» que ha cambiado: el PATCH deja igual lo demás.
+  function deliveryChanges(): Partial<ItemChanges> {
+    const changes: Partial<ItemChanges> = {};
+    if (neighborhood !== item.neighborhood) changes.neighborhood = neighborhood;
+    for (const mode of DELIVERY_MODE_FIELDS) {
+      if (modes[mode] !== item[mode]) changes[mode] = modes[mode];
+    }
+    if (showAddress && address.trim() !== (item.address ?? '')) changes.address = address.trim();
+    return changes;
   }
 
   function addPhotos(files: FileList | null) {
@@ -200,6 +286,9 @@ function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
       description: descriptionRef,
       dailyPrice: dailyPriceRef,
       deposit: depositRef,
+      neighborhood: neighborhoodRef,
+      deliveryModes: deliveryRef,
+      address: addressRef,
     };
     refs[firstInvalid].current?.focus();
     return true;
@@ -210,7 +299,12 @@ function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
     if (submitting) return;
 
     setFormError(null);
-    if (showFieldErrors(validate(values))) return;
+    const localErrors: FieldErrors = {
+      ...validate(values),
+      ...(neighborhood === '' ? { neighborhood: errorMessage('neighborhood') } : {}),
+      ...validateDelivery(modes, address),
+    };
+    if (showFieldErrors(localErrors)) return;
 
     setSubmitting(true);
     try {
@@ -219,6 +313,7 @@ function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
         description: values.description.trim(),
         dailyPrice: parseAmount(values.dailyPrice) ?? 0,
         deposit: parseAmount(values.deposit) ?? 0,
+        ...deliveryChanges(),
       });
 
       // Los cambios ya están guardados: si falla una foto se avisa, pero no se pierden.
@@ -411,6 +506,96 @@ function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
             </ul>
           )}
         </div>
+
+        {/* Apartado «Entrega» de US-05.01 (T27, #307): barrio de la lista, modos y dirección. */}
+        <div className="form-field">
+          <label htmlFor="item-neighborhood">Barrio</label>
+          <select
+            id="item-neighborhood"
+            ref={neighborhoodRef}
+            name="neighborhood"
+            value={neighborhood}
+            onChange={(event) => {
+              setNeighborhood(event.target.value);
+              clearError('neighborhood');
+            }}
+            aria-invalid={errors.neighborhood ? true : undefined}
+            aria-describedby={describedBy(
+              'neighborhood',
+              oldNeighborhood === null ? undefined : 'item-neighborhood-hint',
+            )}
+          >
+            <option value="">Elige un barrio</option>
+            {neighborhoods.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+          {oldNeighborhood !== null && (
+            <p id="item-neighborhood-hint" className="field-hint">
+              Antes ponía «{oldNeighborhood}», que no está en la lista. Elige el barrio de la lista.
+            </p>
+          )}
+          {fieldError('neighborhood')}
+        </div>
+
+        <fieldset
+          className="publish-fieldset"
+          aria-describedby={describedBy('deliveryModes', 'item-delivery-hint')}
+        >
+          <legend>Entrega</legend>
+          <p id="item-delivery-hint" className="field-hint">
+            {DELIVERY_HINT}
+          </p>
+          <div className="publish-item-options">
+            {DELIVERY_MODE_FIELDS.map((mode, index) => (
+              <label key={mode} className="publish-option">
+                <span className="publish-option-icon">
+                  <Icon name={DELIVERY_MODE_ICONS[mode]} />
+                </span>
+                <span className="publish-option-text">{DELIVERY_MODE_LABELS[mode]}</span>
+                <input
+                  ref={index === 0 ? deliveryRef : undefined}
+                  type="checkbox"
+                  name={mode}
+                  checked={modes[mode]}
+                  onChange={(event) => toggleMode(mode, event.target.checked)}
+                />
+              </label>
+            ))}
+          </div>
+          {fieldError('deliveryModes')}
+        </fieldset>
+
+        {showAddress ? (
+          <div className="form-field">
+            <label htmlFor="item-address">Dirección</label>
+            <input
+              id="item-address"
+              ref={addressRef}
+              type="text"
+              name="address"
+              autoComplete="street-address"
+              maxLength={ADDRESS_MAX}
+              value={address}
+              onChange={(event) => {
+                setAddress(event.target.value);
+                clearError('address');
+              }}
+              aria-invalid={errors.address ? true : undefined}
+              aria-describedby={describedBy('address', 'item-address-hint')}
+            />
+            <p id="item-address-hint" className="field-hint">
+              {address.trim() === ''
+                ? `Añade tu dirección: sin ella, nadie puede elegir «${DELIVERY_MODE_LABELS.homeDelivery}».`
+                : ADDRESS_HINT}
+            </p>
+            {fieldError('address')}
+          </div>
+        ) : (
+          modes.pickupPointDelivery && <p className="field-hint">{PICKUP_ONLY_HINT}</p>
+        )}
 
         <div className="form-actions">
           <button type="submit" className="button-primary" disabled={submitting}>
