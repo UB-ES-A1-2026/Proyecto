@@ -114,6 +114,9 @@ export function DeliveryStep({
   const optionsError =
     optionsResult?.key === optionsKey && 'error' in optionsResult ? optionsResult.error : null;
 
+  // Un objeto antiguo puede no ofrecer ningún modo (domicilio o rider sin dirección y sin punto de
+  // recogida): entonces no hay nada que elegir y no se puede continuar.
+  const noModes = options !== null && !MODE_ORDER.some(({ offered }) => options.modes[offered]);
   // Lo guardado solo vale si el objeto lo sigue ofreciendo (p. ej. al volver tras cambiar fechas).
   const mode = options && isOffered(options, draft.mode) ? draft.mode : '';
   const slot =
@@ -251,7 +254,17 @@ export function DeliveryStep({
         </>
       )}
       {!options && !optionsError && <p className="field-hint">Cargando…</p>}
-      {options && (
+      {noModes && (
+        <>
+          <p role="status">Este objeto no ofrece ningún modo de entrega ahora mismo.</p>
+          <div className="rental-actions">
+            <button type="button" className="button-secondary" onClick={onBack}>
+              Volver
+            </button>
+          </div>
+        </>
+      )}
+      {options && !noModes && (
         <form onSubmit={handleSubmit} noValidate>
           <fieldset
             id={FIELD_IDS.deliveryMode}
