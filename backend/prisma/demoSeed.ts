@@ -146,7 +146,13 @@ export async function upsertDemoReservations(
       endDate: daysFrom(today, reservation.startInDays + reservation.days - 1),
       totalPrice: item.dailyPrice.times(reservation.days),
       status: reservation.status,
+      // Las pendientes tienen 48 h para responder desde que se carga el seed (#72).
+      expiresAt:
+        reservation.status === 'pending'
+          ? new Date(today.getTime() + 48 * 60 * 60 * 1000)
+          : null,
     };
+
     const existing = await prisma.reservation.findFirst({
       where: { itemId: item.id, renterId },
       select: { id: true },
@@ -156,19 +162,20 @@ export async function upsertDemoReservations(
       ? await prisma.reservation.update({ where: { id: existing.id }, data })
       : await prisma.reservation.create({ data });
 
-    // Pagos (US-07.01, #284): al repetir el seed se borra el pago que se haya hecho al probar,
-    // para que la reserva «aceptada» se pueda volver a pagar, y la «pagada» lleva el suyo.
-    // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 11/11/2026
+    // Pagos (US-07.01, #72): la pendiente tiene el importe bloqueado («autorizado») y la pagada,
+    // cobrado. Al repetir el seed se rehace el pago, por si se ha cambiado al probar. Las aceptadas
+    // y rechazadas son del flujo antiguo y no llevan pago. Sin referencias: pagos sin pasarela.
+    // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 14/11/2026
     await prisma.payment.deleteMany({ where: { reservationId: id } });
-    if (reservation.status === 'paid') {
+    if (reservation.status === 'pending' || reservation.status === 'paid') {
       await prisma.payment.create({
         data: {
           reservationId: id,
           rentalAmount: data.totalPrice,
           depositAmount: item.deposit,
-          status: 'paid',
+          status: reservation.status === 'paid' ? 'paid' : 'authorized',
           // La fianza se retiene el día antes de empezar (#72): de momento, «pendiente». Sin fianza
-          // (menos de 0,50 €) no hay estado. Sin referencias: es un pago sin pasarela.
+          // (menos de 0,50 €) no hay estado.
           depositStatus: item.deposit.gte(0.5) ? 'pending' : null,
         },
       });

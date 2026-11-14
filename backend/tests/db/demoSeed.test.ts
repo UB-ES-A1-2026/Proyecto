@@ -189,27 +189,37 @@ describe('solicitudes de la demo', () => {
   });
 
   // Pagos (US-07.01, #284) – revisado por Francesc Curto, 11/11/2026
-  it('la reserva pagada lleva su pago, sin pasarela y con la fianza pendiente, y las demás no', async () => {
+  it('las pendientes tienen el importe bloqueado y 48 h para responder, la pagada su pago y las demás ninguno', async () => {
     await seedWithReservations();
 
-    const payments = await prisma.payment.findMany({
-      include: { reservation: { include: { item: true } } },
+    const reservations = await prisma.reservation.findMany({
+      include: { payment: true, item: true },
     });
-    const paidDemos = DEMO_RESERVATIONS.filter(
-      ({ status }) => status === 'paid',
-    );
+    const twoDays = 48 * 60 * 60 * 1000;
 
-    expect(payments).toHaveLength(paidDemos.length);
-    for (const payment of payments) {
-      expect(payment.reservation.status).toBe('paid');
-      expect(payment.depositStatus).toBe('pending');
-      expect(payment.rentalReference).toBeNull();
-      expect(payment.depositReference).toBeNull();
-      expect(payment.rentalAmount.toFixed(2)).toBe(
-        payment.reservation.totalPrice.toFixed(2),
-      );
-      expect(payment.depositAmount.toFixed(2)).toBe(
-        payment.reservation.item.deposit.toFixed(2),
+    for (const reservation of reservations) {
+      const { payment, item } = reservation;
+
+      if (reservation.status === 'pending' || reservation.status === 'paid') {
+        expect(payment?.status).toBe(
+          reservation.status === 'paid' ? 'paid' : 'authorized',
+        );
+        expect(payment?.rentalAmount.toFixed(2)).toBe(
+          reservation.totalPrice.toFixed(2),
+        );
+        expect(payment?.depositAmount.toFixed(2)).toBe(item.deposit.toFixed(2));
+        // Sin fianza (el carro, 0 €) no hay estado de fianza.
+        expect(payment?.depositStatus).toBe(
+          item.deposit.gte(0.5) ? 'pending' : null,
+        );
+        // Pagos sin pasarela: la T10 no debe llamar a Stripe con ellos.
+        expect(payment?.rentalReference).toBeNull();
+      } else {
+        expect(payment).toBeNull();
+      }
+
+      expect(reservation.expiresAt?.getTime() ?? null).toBe(
+        reservation.status === 'pending' ? TODAY.getTime() + twoDays : null,
       );
     }
   });
