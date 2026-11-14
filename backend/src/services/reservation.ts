@@ -12,7 +12,12 @@ export interface ReservationDetail {
   startDate: string;
   endDate: string;
   totalPrice: string;
+  // Fianza del objeto y coste de la entrega (US-07.01, #72): para el desglose antes de pagar.
+  deposit: string;
+  deliveryAmount: string;
   status: ReservationStatus;
+  // Hasta cuándo puede responder el propietario; null si ya no está pendiente.
+  expiresAt: Date | null;
   renter: { id: string; username: string };
   owner: { id: string; username: string };
   createdAt: Date;
@@ -32,7 +37,13 @@ export function toReservationDetail(
     startDate: toIsoDate(reservation.startDate),
     endDate: toIsoDate(reservation.endDate),
     totalPrice: reservation.totalPrice.toFixed(2),
+    deposit: reservation.item.deposit.toFixed(2),
+    // Sin pago (reservas del flujo antiguo) o sin entrega todavía (US-05.01): 0.
+    deliveryAmount: reservation.payment
+      ? reservation.payment.deliveryAmount.toFixed(2)
+      : '0.00',
     status: reservation.status,
+    expiresAt: reservation.status === 'pending' ? reservation.expiresAt : null,
     renter: reservation.renter,
     owner: reservation.item.owner,
     createdAt: reservation.createdAt,

@@ -17,10 +17,12 @@ export const reservationDetailInclude = {
     select: {
       id: true,
       title: true,
+      deposit: true,
       owner: { select: { id: true, username: true } },
     },
   },
   renter: { select: { id: true, username: true } },
+  payment: { select: { deliveryAmount: true } },
 } satisfies Prisma.ReservationInclude;
 
 export type ReservationWithDetail = Prisma.ReservationGetPayload<{
