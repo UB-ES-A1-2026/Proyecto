@@ -7,7 +7,7 @@ import { prisma } from './prisma.js';
 export function findItemForReservation(itemId: string) {
   return prisma.item.findUnique({
     where: { id: itemId },
-    select: { ownerId: true, status: true, dailyPrice: true },
+    select: { ownerId: true, status: true, dailyPrice: true, deposit: true },
   });
 }
 
@@ -46,6 +46,32 @@ export async function hasOverlappingReservation(
   return overlapping !== null;
 }
 
+// Comprobación previa, sin bloquear el objeto: si ya hay una solicitud igual o las fechas están
+// ocupadas, se responde antes de bloquear nada en la pasarela (#72). Al crear la reserva se vuelve
+// a comprobar dentro de la transacción, por si alguien se adelanta entre medias.
+export async function findReservationConflict(
+  data: { itemId: string; renterId: string; startDate: Date; endDate: Date },
+  occupyingStatuses: readonly ReservationStatus[],
+): Promise<'duplicate' | 'overlapping' | null> {
+  const { itemId, renterId, startDate, endDate } = data;
+
+  const duplicate = await prisma.reservation.findFirst({
+    where: { itemId, renterId, startDate, endDate, status: 'pending' },
+    select: { id: true },
+  });
+  if (duplicate) {
+    return 'duplicate';
+  }
+
+  const overlapping = await hasOverlappingReservation(
+    itemId,
+    startDate,
+    endDate,
+    occupyingStatuses,
+  );
+  return overlapping ? 'overlapping' : null;
+}
+
 export type InsertReservationResult =
   | {
       outcome: 'created';
@@ -65,6 +91,14 @@ export function insertReservationIfAvailable(
     startDate: Date;
     endDate: Date;
     totalPrice: Prisma.Decimal;
+    expiresAt: Date;
+  },
+  // El pago del bloqueo hecho en la pasarela (US-07.01, #72): se guarda junto con la reserva.
+  payment: {
+    rentalAmount: Prisma.Decimal;
+    depositAmount: Prisma.Decimal;
+    depositStatus: 'pending' | null;
+    rentalReference: string;
   },
   occupyingStatuses: readonly ReservationStatus[],
 ): Promise<InsertReservationResult> {
@@ -103,7 +137,7 @@ export function insertReservationIfAvailable(
     }
 
     const reservation = await transaction.reservation.create({
-      data,
+      data: { ...data, payment: { create: payment } },
       include: reservationDetailInclude,
     });
 

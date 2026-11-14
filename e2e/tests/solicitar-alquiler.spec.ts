@@ -269,7 +269,12 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
     const start = freeStart();
     const response = await request.post(`${API_URL}/reservas`, {
       headers: { Authorization: `Bearer ${token}` },
-      data: { itemId, startDate: inDays(start), endDate: inDays(start + 1) },
+      data: {
+        itemId,
+        startDate: inDays(start),
+        endDate: inDays(start + 1),
+        confirmationTokenId: 'ctoken_simulado',
+      },
     });
     expect(response.status()).toBe(403);
   });
