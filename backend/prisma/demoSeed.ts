@@ -167,8 +167,9 @@ export async function upsertDemoReservations(
           rentalAmount: data.totalPrice,
           depositAmount: item.deposit,
           status: 'paid',
-          depositStatus: 'held',
-          gatewayReference: 'demo',
+          // La fianza se retiene el día antes de empezar (#72): de momento, «pendiente». Sin fianza
+          // (menos de 0,50 €) no hay estado. Sin referencias: es un pago sin pasarela.
+          depositStatus: item.deposit.gte(0.5) ? 'pending' : null,
         },
       });
     }

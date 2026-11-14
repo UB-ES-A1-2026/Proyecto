@@ -189,7 +189,7 @@ describe('solicitudes de la demo', () => {
   });
 
   // Pagos (US-07.01, #284) – revisado por Francesc Curto, 11/11/2026
-  it('la reserva pagada lleva su pago con la fianza retenida y las demás no tienen pago', async () => {
+  it('la reserva pagada lleva su pago, sin pasarela y con la fianza pendiente, y las demás no', async () => {
     await seedWithReservations();
 
     const payments = await prisma.payment.findMany({
@@ -202,7 +202,9 @@ describe('solicitudes de la demo', () => {
     expect(payments).toHaveLength(paidDemos.length);
     for (const payment of payments) {
       expect(payment.reservation.status).toBe('paid');
-      expect(payment.depositStatus).toBe('held');
+      expect(payment.depositStatus).toBe('pending');
+      expect(payment.rentalReference).toBeNull();
+      expect(payment.depositReference).toBeNull();
       expect(payment.rentalAmount.toFixed(2)).toBe(
         payment.reservation.totalPrice.toFixed(2),
       );
@@ -227,6 +229,7 @@ describe('solicitudes de la demo', () => {
         reservationId: accepted.id,
         rentalAmount: accepted.totalPrice,
         depositAmount: accepted.item.deposit,
+        depositStatus: 'pending',
       },
     });
 
