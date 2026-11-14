@@ -12,6 +12,8 @@ const INVALID_START_DATE_MESSAGE =
   'El campo "fecha de inicio" no es correcto, revísalo.';
 const INVALID_END_DATE_MESSAGE =
   'El campo "fecha de fin" no es correcto, revísalo.';
+const MISSING_PAYMENT_MESSAGE =
+  'El campo "método de pago" no es correcto, revísalo.';
 
 // Acepta solo fechas reales en formato AAAA-MM-DD: rechaza, por ejemplo, 2026-02-30.
 function isValidDate(value: unknown): value is string {
@@ -52,9 +54,19 @@ function readReservationInput(source: unknown): {
 // POST /api/reservas (US-04.01, #120). requireAuth garantiza que request.auth existe.
 export const createReservation: RequestHandler = async (request, response) => {
   const input = readReservationInput(request.body);
+
+  // Token del formulario de pago de Stripe (US-07.01, #72): sin él no se puede bloquear el importe.
+  const { confirmationTokenId } = (request.body ?? {}) as Record<
+    string,
+    unknown
+  >;
+  if (typeof confirmationTokenId !== 'string' || !confirmationTokenId) {
+    throw new AppError(400, MISSING_PAYMENT_MESSAGE, 'confirmationTokenId');
+  }
+
   const reservation = await reservationService.createReservation(
     request.auth!.userId,
-    input,
+    { ...input, confirmationTokenId },
   );
 
   response.status(201).json(reservation);

@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { app } from '../../src/app.js';
 import { prisma } from '../../src/repositories/prisma.js';
 import { todayInSpain } from '../../src/services/reservationService.js';
@@ -7,6 +7,21 @@ import { resetDb } from '../helpers/db.js';
 import { createTestItem } from '../helpers/items.js';
 import { createTestReservation } from '../helpers/reservations.js';
 import { createTestUser, TEST_PASSWORD } from '../helpers/users.js';
+import { authorize, release } from '../../src/services/paymentGateway.js';
+
+// La pasarela simulada de verdad, pero espiada: así se puede comprobar cuándo se bloquea y cuándo
+// se suelta el dinero (US-07.01, #72).
+vi.mock('../../src/services/paymentGateway.js', async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import('../../src/services/paymentGateway.js')
+    >();
+  return {
+    ...actual,
+    authorize: vi.fn(actual.authorize),
+    release: vi.fn(actual.release),
+  };
+});
 
 // POST /api/reservas (US-04.01, #120): un test por cada caso del contrato publicado en la issue.
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
@@ -37,11 +52,13 @@ async function setUp(dailyPrice = 5.5) {
   return { owner, renter, item, token };
 }
 
+// Envía la solicitud con un token de pago que la pasarela simulada acepta (US-07.01, #72), salvo
+// que el test indique otro o lo quite (confirmationTokenId: undefined).
 function postReservation(token: string, body: object) {
   return request(app)
     .post('/api/reservas')
     .set('Authorization', `Bearer ${token}`)
-    .send(body);
+    .send({ confirmationTokenId: 'ctoken_ok', ...body });
 }
 
 beforeEach(async () => {
@@ -261,7 +278,10 @@ describe('POST /api/reservas', () => {
       startDate,
       endDate,
       totalPrice: '16.50',
+      deposit: '30.00',
+      deliveryAmount: '0.00',
       status: 'pending',
+      expiresAt: expect.any(String),
       renter: { id: renter.id, username: 'bruno' },
       owner: { id: owner.id, username: 'ana' },
       createdAt: expect.any(String),
@@ -649,4 +669,138 @@ describe('POST /api/reservas: solicitudes duplicadas', () => {
       expect(response.status).toBe(201);
     },
   );
+});
+
+// Pago al solicitar (US-07.01, #72, T9 #284) – revisado por Francesc Curto, 14/11/2026
+describe('POST /api/reservas: bloqueo del pago', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const dates = () => ({
+    startDate: daysFromToday(10),
+    endDate: daysFromToday(12),
+  });
+
+  it('bloquea el total y guarda el pago autorizado, con la fianza pendiente y 48 h para responder', async () => {
+    const { item, token } = await setUp();
+    const before = Date.now();
+
+    const response = await postReservation(token, {
+      itemId: item.id,
+      ...dates(),
+    });
+
+    expect(response.status).toBe(201);
+    expect(vi.mocked(authorize)).toHaveBeenCalledWith(
+      1650,
+      'ctoken_ok',
+      expect.any(Object),
+    );
+    const payment = await prisma.payment.findUniqueOrThrow({
+      where: { reservationId: response.body.id },
+    });
+    expect(payment.status).toBe('authorized');
+    expect(payment.rentalAmount.toFixed(2)).toBe('16.50');
+    expect(payment.depositAmount.toFixed(2)).toBe('30.00');
+    expect(payment.depositStatus).toBe('pending');
+    expect(payment.rentalReference).toMatch(/^simulado_/);
+    expect(payment.depositReference).toBeNull();
+
+    const expiresAt = new Date(response.body.expiresAt).getTime();
+    const twoDays = 48 * 60 * 60 * 1000;
+    expect(expiresAt).toBeGreaterThanOrEqual(before + twoDays);
+    expect(expiresAt).toBeLessThanOrEqual(Date.now() + twoDays);
+  });
+
+  it('sin fianza (menos de 0,50 €) el pago no tiene estado de fianza', async () => {
+    const { owner, token } = await setUp();
+    const item = await createTestItem(owner.id, {
+      title: 'Carro',
+      deposit: 0.4,
+    });
+
+    const response = await postReservation(token, {
+      itemId: item.id,
+      ...dates(),
+    });
+
+    expect(response.status).toBe(201);
+    const payment = await prisma.payment.findUniqueOrThrow({
+      where: { reservationId: response.body.id },
+    });
+    expect(payment.depositStatus).toBeNull();
+  });
+
+  it('sin token de pago responde 400 y no crea nada', async () => {
+    const { item, token } = await setUp();
+
+    const response = await postReservation(token, {
+      itemId: item.id,
+      ...dates(),
+      confirmationTokenId: undefined,
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.field).toBe('confirmationTokenId');
+    expect(await prisma.reservation.count()).toBe(0);
+    expect(vi.mocked(authorize)).not.toHaveBeenCalled();
+  });
+
+  it('con la tarjeta rechazada responde 402 y no crea la reserva', async () => {
+    const { item, token } = await setUp();
+
+    const response = await postReservation(token, {
+      itemId: item.id,
+      ...dates(),
+      confirmationTokenId: 'ctoken_declined',
+    });
+
+    expect(response.status).toBe(402);
+    expect(response.body).toEqual({
+      error: 'Tu tarjeta ha sido rechazada.',
+      field: 'confirmationTokenId',
+    });
+    expect(await prisma.reservation.count()).toBe(0);
+    expect(await prisma.payment.count()).toBe(0);
+  });
+
+  it('si las fechas están ocupadas responde 409 sin bloquear nada en la tarjeta', async () => {
+    const { item, token, owner } = await setUp();
+    const other = await createTestUser({
+      username: 'carla',
+      email: 'carla@rentit.test',
+    });
+    void owner;
+    await createTestReservation(item.id, other.id, {
+      startDate: daysFromToday(10),
+      endDate: daysFromToday(12),
+      status: 'accepted',
+    });
+
+    const response = await postReservation(token, {
+      itemId: item.id,
+      ...dates(),
+    });
+
+    expect(response.status).toBe(409);
+    expect(vi.mocked(authorize)).not.toHaveBeenCalled();
+  });
+
+  it('con un doble clic solo queda un pago y se suelta el bloqueo que sobra', async () => {
+    const { item, token } = await setUp();
+    const body = { itemId: item.id, ...dates() };
+
+    const responses = await Promise.all([
+      postReservation(token, body),
+      postReservation(token, body),
+    ]);
+
+    expect(responses.map(({ status }) => status).sort()).toEqual([201, 409]);
+    expect(await prisma.payment.count()).toBe(1);
+    // Cada bloqueo que no acaba en reserva se suelta.
+    expect(vi.mocked(release).mock.calls.length).toBe(
+      vi.mocked(authorize).mock.calls.length - 1,
+    );
+  });
 });
