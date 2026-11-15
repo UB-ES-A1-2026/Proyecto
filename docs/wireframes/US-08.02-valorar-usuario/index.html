@@ -17,8 +17,9 @@
         equipo del 11/11 · Wireframe de baja fidelidad
       </p>
       <p class="wf-meta">
-        Generado con asistencia de IA (Claude), 15/11/2026 – <strong>pendiente de revisión por Marc</strong>. El contrato
-        del backend (T23 #298, Francesc) aún no existe: lo que lo toca está marcado como pregunta.
+        Generado con asistencia de IA (Claude), 15/11/2026 – <strong>Validado por Marc el 15/11/2026 (pendiente del
+        contrato de T23)</strong>. El contrato del backend (T23 #298, Francesc) aún no existe: lo que lo toca está marcado
+        como pregunta.
       </p>
     </header>
 
@@ -89,8 +90,8 @@
       <ol class="wf-notas">
         <li>
           Criterio 1: «Valorar» solo aparece en un alquiler «Finalizada» de «Recibidas». El alquiler llega a «Finalizada»
-          cuando el arrendatario marca «He devuelto el objeto» (US-05.02, decisión 6). El texto «Valorar a bruno» es una
-          <strong>propuesta</strong>; la historia dice «Valorar».
+          cuando el arrendatario marca «He devuelto el objeto» (US-05.02, decisión 6). El texto «Valorar a bruno» lo validó
+          Marc el 15/11 (la historia dice «Valorar»).
         </li>
         <li>
           Cuando US-05.01 esté en <code>develop</code>, el importe sale como «Alquiler · Entrega · Total» (T7). No cambia
@@ -164,12 +165,12 @@
       </div>
       <ol class="wf-notas">
         <li>
-          Ruta y forma (página propia) son una <strong>propuesta</strong>: la misma que US-08.01 (T21, Kai), para que las
-          dos valoraciones compartan pantalla. Pregunta para Marc y Kai: ¿página o ventana sobre «Mis solicitudes»?
+          Página propia en <code>/mis-solicitudes/:id/valorar</code>, decidido por Marc el 15/11: la misma forma que
+          US-08.01 (T21, Kai), para que las dos valoraciones funcionen igual.
         </li>
         <li>Criterios 2 y 4: de 1 a 5 estrellas, obligatoria. Las estrellas se eligen con el teclado y tienen texto accesible («3 de 5»).</li>
         <li>Criterio 3 y especificación de la historia: opcional, hasta 1000 caracteres, con contador.</li>
-        <li>«Volver a Mis solicitudes» es una <strong>propuesta</strong>: la historia no define cómo salir sin publicar.</li>
+        <li>«Volver a Mis solicitudes» (validado por Marc el 15/11): sale sin publicar.</li>
       </ol>
     </section>
 
@@ -215,8 +216,8 @@
       <ol class="wf-notas">
         <li>
           Criterio 5: no se publica, se indica en ese campo y el foco va a las estrellas. Lo escrito no se pierde. El texto
-          del error es una <strong>propuesta</strong>; si la API devuelve su propio texto (<code>field: "rating"</code>), se
-          usa el suyo.
+          del error lo validó Marc el 15/11; si la API devuelve su propio texto (<code>field: "rating"</code>), se usa el
+          suyo.
         </li>
       </ol>
     </section>
@@ -294,7 +295,7 @@
         <li>
           Criterio 7: en el flujo normal no se llega aquí, porque el botón «Valorar» ya no aparece (pantalla 1). Si se
           entra en la ruta a mano o desde otra pestaña, la API rechaza la segunda valoración. Texto
-          <strong>propuesto</strong>; si la API devuelve el suyo, se usa el suyo. Pregunta para T23: ¿409?
+          validado por Marc el 15/11; si la API devuelve el suyo, se usa el suyo. Pregunta para T23: ¿409?
         </li>
       </ol>
     </section>
@@ -359,7 +360,7 @@
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Mensaje de éxito: <strong>propuesta</strong> (la historia no lo da). Se anuncia a los lectores de pantalla.</li>
+        <li>Mensaje de éxito «Valoración publicada.» (validado por Marc el 15/11). Se anuncia a los lectores de pantalla.</li>
         <li>El nombre lleva al perfil público de bruno (US-01.4), donde se ve la media actualizada (pantalla 7).</li>
         <li>Criterio 7: el alquiler muestra la valoración en lugar de «Valorar», así que no se puede publicar otra.</li>
       </ol>
@@ -397,19 +398,73 @@
       </ol>
     </section>
 
+    <p class="wf-flecha">Mientras tanto, el inquilino (bruno) abre «Mis solicitudes»</p>
+
+    <section class="wf-pantalla" data-captura="8-enviadas-valoracion-recibida">
+      <h2><span class="wf-paso">8</span>El inquilino ve la valoración en «Enviadas» <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Finalizada</span><span>▴</span></div>
+                  <p class="wf-ayuda">10–12 nov. 2026</p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
+                    <p class="wf-texto">Fechas: Del 10 de noviembre de 2026 al 12 de noviembre de 2026</p>
+                    <p class="wf-texto">Estado: Finalizada</p>
+                    <p class="wf-texto">Propietario: <span class="wf-enlace">ana</span></p>
+                  </div>
+                  <p class="wf-texto">Valoración recibida: ★★★★★ · «Lo devolvió limpio y a tiempo.» <span class="wf-marca">1</span></p>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">0</span></h4>
+                <p class="wf-ayuda">Todavía no has recibido solicitudes.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <h4>Enviadas <span class="wf-chip">1</span></h4>
+            <div class="wf-tarjeta">
+              <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Finalizada</span></div>
+              <p class="wf-ayuda">10–12 nov. 2026 · ana</p>
+              <p class="wf-texto">Valoración recibida: ★★★★★ · «Lo devolvió limpio y a tiempo.»</p>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Decidido por Marc el 15/11: el inquilino ve en «Enviadas» la valoración que le ha puesto el propietario
+          (puntuación y comentario), además de la media en su perfil (pantalla 7). Si aún no le han valorado, no sale
+          nada. Pregunta para T23: ¿qué campo de la reserva la trae (por ejemplo, <code>receivedReview</code>)?
+        </li>
+      </ol>
+    </section>
+
     <section class="wf-pantalla">
       <h2>Preguntas abiertas</h2>
-      <p class="wf-texto"><strong>Para Marc:</strong></p>
-      <ol class="wf-notas">
-        <li>¿Página propia (<code>/mis-solicitudes/:id/valorar</code>, como US-08.01) o ventana sobre «Mis solicitudes»?</li>
-        <li>Textos propuestos: «Valorar a bruno», «Volver a Mis solicitudes», «Elige una puntuación de 1 a 5 estrellas.», «Ya has valorado este alquiler.» y «Valoración publicada.».</li>
-        <li>¿El inquilino ve en «Enviadas» la valoración que le ha puesto el propietario, o solo la media en su perfil?</li>
-      </ol>
       <p class="wf-texto"><strong>Para Francesc (T23 #298), antes de programar:</strong></p>
       <ol class="wf-notas">
         <li>Ruta y cuerpo: ¿<code>POST /api/reservas/:id/valoraciones</code> con <code>{ rating, comment }</code>? ¿El mismo endpoint que T20 (US-08.01), deduciendo por la sesión si valora el arrendatario o el propietario?</li>
         <li>Errores y códigos: sin puntuación o fuera de 1–5 (400, <code>field: "rating"</code>), comentario de más de 1000 (400), no eres el propietario (403 o 404), el alquiler no está «Finalizada» (409) y ya valorado (409). ¿Textos exactos?</li>
-        <li>¿Cómo sabe «Mis solicitudes» si ya has valorado un alquiler y con qué puntuación? Por ejemplo, un campo <code>myReview</code> en cada reserva.</li>
+        <li>¿Cómo sabe «Mis solicitudes» si ya has valorado un alquiler y con qué puntuación? Por ejemplo, un campo <code>myReview</code> en cada reserva. ¿Y la valoración que ha recibido el inquilino, para «Enviadas» (pantalla 8), por ejemplo <code>receivedReview</code>?</li>
         <li>La media de <code>GET /api/usuarios/:id</code>: ¿junta las valoraciones de US-08.01 y US-08.02?</li>
       </ol>
     </section>
