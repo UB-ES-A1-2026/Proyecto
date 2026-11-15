@@ -829,4 +829,38 @@ describe('POST /api/reservas: bloqueo del pago', () => {
     expect(vi.mocked(release)).toHaveBeenCalledWith('simulado_carrera');
     expect(await prisma.payment.count()).toBe(0);
   });
+
+  it('releases the hold when saving the reservation fails', async () => {
+    const { item, token } = await setUp();
+    const other = await createTestUser({
+      username: 'carla',
+      email: 'carla@rentit.test',
+    });
+    // Un pago que ya usa la referencia: al guardar, la BD rechaza la repetida.
+    const existing = await createTestReservation(item.id, other.id, {
+      startDate: daysFromToday(20),
+      endDate: daysFromToday(21),
+    });
+    await prisma.payment.create({
+      data: {
+        reservationId: existing.id,
+        rentalAmount: 11,
+        depositAmount: 0,
+        rentalReference: 'simulado_repetida',
+      },
+    });
+    vi.mocked(authorize).mockResolvedValueOnce({
+      reference: 'simulado_repetida',
+    });
+
+    const response = await postReservation(token, {
+      itemId: item.id,
+      ...dates(),
+    });
+
+    expect(response.status).toBe(500);
+    expect(vi.mocked(release)).toHaveBeenCalledWith('simulado_repetida');
+    expect(await prisma.reservation.count()).toBe(1);
+    expect(await prisma.payment.count()).toBe(1);
+  });
 });
