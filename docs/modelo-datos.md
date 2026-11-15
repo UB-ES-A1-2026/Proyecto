@@ -23,6 +23,7 @@ erDiagram
   RESERVA ||--o{ FOTO_ESTADO : "check-in / check-out"
   RESERVA ||--o{ VALORACION : "se valora en"
   USUARIO ||--o{ VALORACION : "escribe"
+  USUARIO ||--o{ VALORACION : "recibe"
   RESERVA ||--o| INCIDENCIA : "puede tener"
   OBJETO ||--o{ CONVERSACION : "se habla de"
   CONVERSACION ||--o{ MENSAJE : "contiene"
@@ -131,12 +132,12 @@ erDiagram
   }
   VALORACION {
     id id PK
-    id reserva_id FK
+    id reserva_id FK "UK con autor_id"
     id autor_id FK
     id valorado_id FK
     enum tipo "alquiler | usuario"
-    entero puntuacion "1 a 5"
-    texto comentario
+    entero puntuacion "1 a 5 (CHECK)"
+    texto comentario "opcional, hasta 1000"
     fecha_hora creada_en
   }
   INCIDENCIA {
@@ -244,6 +245,29 @@ Se crea en la migración `crea_reserva` como parte de TR-05 (#86), para que est�
 | Un objeto o un usuario con reservas **no se pueden borrar** | Las reservas son el historial de los alquileres. |
 
 En Prisma, el modelo es `Reservation`, y los enums son `ReservationStatus` (`pending`, `accepted`, `rejected`, `cancelled`, `paid`, `in_progress`, `finished`) y `DeliveryMode` (`home`, `rider`, `pickup_point`).
+
+## Tabla `valoracion` (Sprint 2 · #295)
+
+Se crea en la migración `crea_valoracion` (US-08.01). Una sola tabla para las dos valoraciones de un alquiler: el arrendatario valora el alquiler (`tipo = alquiler`, US-08.01) y el propietario valora al arrendatario (`tipo = usuario`, US-08.02).
+
+| Decisión | Por qué |
+|---|---|
+| Clave única `(reserva_id, autor_id)` | Cada persona valora un alquiler una sola vez. Lo impide la BD, así que también funciona con un doble clic. |
+| `valorado_id` es el propietario del objeto cuando valora el arrendatario | La valoración va siempre a una persona: así US-08.02 puede calcular la media de lo que ha recibido cada usuario. |
+| `CHECK` en la BD: `puntuacion` entre 1 y 5 y `autor_id <> valorado_id` | El backend también lo valida, pero así la BD nunca guarda una puntuación imposible ni una valoración a uno mismo. |
+| Solo se valora un alquiler `finalizada` | Lo comprueba el backend (409): la BD no sabe en qué estado estaba la reserva al valorarla. |
+| `Restrict` con la reserva y los usuarios | Las valoraciones son historial, como las reservas. |
+
+En Prisma, el modelo es `Rating` y el enum `RatingType` (`rental`, `user`).
+
+**API:**
+- `POST /api/reservas/:id/valoracion`, con sesión, y el cuerpo `{ "score": 1-5, "comment"?: "…" }`. Devuelve **201** con `{ id, reservationId, type, score, comment, createdAt }`. Errores:
+  - **400** con `field: "score"` o `field: "comment"`;
+  - **401** sin sesión;
+  - **403** si no eres el arrendatario;
+  - **404** si el alquiler no existe;
+  - **409** si no está finalizado o ya lo has valorado.
+- `GET /api/usuarios/me/reservas`: cada reserva lleva `myRating`, la valoración que ha escrito el usuario (`{ score, comment, createdAt }`) o `null`. Con `status: "finished"` y `myRating: null`, el frontend enseña «Valorar».
 
 ## Qué tablas entran en cada sprint
 
