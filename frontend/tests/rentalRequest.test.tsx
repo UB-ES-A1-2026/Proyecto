@@ -199,7 +199,7 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
       itemId: 'item-1',
       startDate: '2026-11-04',
       endDate: '2026-11-06',
-      paymentMethodId: 'pm_card_visa',
+      confirmationTokenId: 'ctoken_simulado',
     });
   });
 
@@ -308,7 +308,7 @@ describe('requestRental (#121)', () => {
       requestRental(
         'token-de-prueba',
         { itemId: 'item-1', startDate: '2026-11-04', endDate: '2026-11-06' },
-        'pm_card_visa',
+        'ctoken_simulado',
       ),
     ).resolves.toEqual(RENTAL);
     expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/reservas$/);
@@ -317,7 +317,7 @@ describe('requestRental (#121)', () => {
       itemId: 'item-1',
       startDate: '2026-11-04',
       endDate: '2026-11-06',
-      paymentMethodId: 'pm_card_visa',
+      confirmationTokenId: 'ctoken_simulado',
     });
   });
 });

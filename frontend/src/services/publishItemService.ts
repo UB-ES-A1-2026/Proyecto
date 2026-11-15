@@ -10,8 +10,6 @@ export type NewItem = {
   homeDelivery: boolean;
   riderDelivery: boolean;
   pickupPointDelivery: boolean;
-  // Reserva inmediata (US-07.01, #286): las solicitudes se aceptan solas y se cobran al momento.
-  instantBooking: boolean;
   status: 'published' | 'paused';
 };
 

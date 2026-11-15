@@ -124,11 +124,11 @@ describe('Tarjeta en modo de prueba (provisional hasta Stripe Elements, T10)', (
     const card = { expiry: '12/30', cvc: '123' };
     expect(createPaymentMethod({ ...card, number: VISA })).toEqual({
       ok: true,
-      paymentMethodId: 'pm_card_visa',
+      confirmationTokenId: 'ctoken_simulado',
     });
     expect(createPaymentMethod({ ...card, number: DECLINED })).toEqual({
       ok: true,
-      paymentMethodId: 'pm_card_chargeDeclined',
+      confirmationTokenId: 'ctoken_declined',
     });
   });
 
@@ -223,7 +223,7 @@ describe('Pagar al solicitar desde la ficha', () => {
       itemId: 'item-1',
       startDate: '2026-11-04',
       endDate: '2026-11-06',
-      paymentMethodId: 'pm_card_visa',
+      confirmationTokenId: 'ctoken_simulado',
     });
     expect(body).not.toContain('4242');
   });
@@ -247,7 +247,7 @@ describe('Pagar al solicitar desde la ficha', () => {
   it('si la tarjeta se rechaza, se queda en el resumen con el error y puede reintentar', async () => {
     mockRequestApi(() =>
       Response.json(
-        { error: 'Tu tarjeta ha sido rechazada.', field: 'paymentMethodId' },
+        { error: 'Tu tarjeta ha sido rechazada.', field: 'confirmationTokenId' },
         { status: 402 },
       ),
     );
@@ -269,24 +269,16 @@ describe('Pagar al solicitar desde la ficha', () => {
     expect(onRequested).not.toHaveBeenCalled();
   });
 
-  it('con reserva inmediata dice que se cobra ahora y el botón es «Reservar y pagar»', async () => {
-    mockRequestApi(() => Response.json(reservation({ status: 'paid' }), { status: 201 }));
+  it('sin fianza no hay fila de fianza ni de total: el alquiler es todo', async () => {
+    mockRequestApi();
     const user = userEvent.setup();
-    const { onRequested } = renderRequest({ ...ITEM, deposit: 0, instantBooking: true });
+    renderRequest({ ...ITEM, deposit: 0 });
 
     await goToSummary(user);
 
-    expect(screen.getByRole('heading', { name: 'Revisa tu reserva' })).toBeInTheDocument();
-    expect(screen.getByText('Reserva inmediata.')).toBeInTheDocument();
-    expect(screen.getByText(/Se cobran 18,00\s€ ahora/)).toBeInTheDocument();
-    // Sin fianza no hay fila de fianza ni de total: el alquiler es todo.
     expect(screen.queryByText(/Fianza/)).not.toBeInTheDocument();
-
-    fillCard();
-    await user.click(screen.getByRole('button', { name: 'Reservar y pagar' }));
-    await waitFor(() =>
-      expect(onRequested).toHaveBeenCalledWith(expect.objectContaining({ status: 'paid' })),
-    );
+    expect(screen.queryByText('Importe total')).not.toBeInTheDocument();
+    expect(document.querySelector('.rental-total')).toHaveTextContent(/18,00\s€/);
   });
 });
 
@@ -304,40 +296,35 @@ describe('Ficha y «Mis solicitudes» con el pago al solicitar', () => {
     homeDelivery: false,
     riderDelivery: false,
     pickupPointDelivery: true,
-    instantBooking: true,
     owner: { id: 'u1', username: 'ana' },
     createdAt: '2026-10-01T10:00:00.000Z',
   };
 
-  it('la ficha avisa de la reserva inmediata y, al reservar, «Mis solicitudes» confirma el pago', async () => {
+  it('al enviar la solicitud desde la ficha, «Mis solicitudes» la muestra pendiente con el importe bloqueado', async () => {
     localStorage.setItem('rentit.session', JSON.stringify(SESSION));
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
       const url = String(input);
       if (url.includes('/reservas/disponibilidad')) return Response.json({ available: true });
-      if (init?.method === 'POST') {
-        return Response.json(reservation({ status: 'paid', expiresAt: null }), { status: 201 });
-      }
+      if (init?.method === 'POST') return Response.json(reservation(), { status: 201 });
       if (url.endsWith('/usuarios/me/reservas')) {
-        return Response.json({ sent: [reservation({ status: 'paid' })], received: [] });
+        return Response.json({ sent: [reservation()], received: [] });
       }
       return Response.json(ITEM_DETAIL);
     });
     const user = userEvent.setup();
     const { router } = renderRoute('/objetos/item-1');
 
-    const panel = await screen.findByRole('complementary', { name: 'Alquiler de este objeto' });
-    expect(panel).toHaveTextContent('Reserva inmediata: sin esperar a que ana acepte.');
-
+    await screen.findByRole('complementary', { name: 'Alquiler de este objeto' });
     await goToSummary(user);
     fillCard();
-    await user.click(screen.getByRole('button', { name: 'Reservar y pagar' }));
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/mis-solicitudes'));
     expect(await screen.findByRole('status')).toHaveTextContent(
-      'Reserva confirmada. Pago registrado.',
+      'Solicitud enviada. Hemos bloqueado el importe hasta que ana responda.',
     );
     expect(await screen.findByRole('button', { name: /Taladro percutor Bosch/ })).toHaveTextContent(
-      'Pagada',
+      'Pendiente',
     );
   });
 

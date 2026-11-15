@@ -1,6 +1,6 @@
 /*
- * Pago al solicitar y reserva inmediata (US-07.01, #286): tarjeta en el resumen de la ficha,
- * avisos de qué pasa con el dinero y «Reserva inmediata» al publicar y editar.
+ * Pago al solicitar (US-07.01, #286): tarjeta en el resumen de la ficha y avisos de qué pasa
+ * con el dinero, en la ficha y en «Mis solicitudes».
  * Solo usa los tokens de :root de styles.css.
  */
 
@@ -14,10 +14,6 @@
   font-size: var(--font-size-small);
   background-color: var(--color-primary-soft);
   border-radius: var(--radius);
-}
-
-.rental-payment-note.is-instant {
-  background-color: var(--color-accent-soft);
 }
 
 .rental-payment-note .icon {
@@ -83,20 +79,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* «Reserva inmediata» en el panel de la ficha */
-.rental-panel-instant {
-  display: flex;
-  gap: var(--space-xs);
-  align-items: flex-start;
-  margin: 0 0 var(--space-md);
-  font-size: var(--font-size-small);
-}
-
-.rental-panel-instant .icon {
-  flex-shrink: 0;
-  color: var(--color-accent);
-}
-
 /* Importe bloqueado y plazo en «Mis solicitudes» */
 .reservation-payment-note {
   display: flex;
@@ -112,28 +94,4 @@
 .reservation-payment-note .icon {
   flex-shrink: 0;
   margin-top: 0.1rem;
-}
-
-/* Casilla «Reserva inmediata» en la ventana de editar */
-.form-field .edit-item-check {
-  display: flex;
-  gap: var(--space-sm);
-  align-items: center;
-  margin-bottom: var(--space-xs);
-  cursor: pointer;
-}
-
-/* Dos clases y la etiqueta: styles.css se carga después y le daría el estilo de un campo de texto. */
-.form-field .edit-item-check input {
-  flex-shrink: 0;
-  width: 1.125rem;
-  height: 1.125rem;
-  min-height: 0;
-  margin: 0;
-  padding: 0;
-  accent-color: var(--color-primary);
-}
-
-.edit-item-check .icon {
-  color: var(--color-accent);
 }

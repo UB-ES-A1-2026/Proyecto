@@ -1,11 +1,11 @@
 // Generado con asistencia de IA (Claude)
 //
-// Convierte los datos de la tarjeta en un método de pago de Stripe (US-07.01, #286).
+// Convierte los datos de la tarjeta en el token de pago que espera POST /reservas (US-07.01, #286).
 //
-// PROVISIONAL hasta T10 (#285): cuando el backend tenga Stripe en modo de prueba, esta función se
-// sustituye por `stripe.createPaymentMethod` con Stripe Elements, y los datos de la tarjeta irán
-// directamente del navegador a Stripe. Hasta entonces solo se aceptan las tarjetas de prueba de
-// Stripe y se devuelven los ids de prueba que entiende la pasarela provisional del backend.
+// PROVISIONAL hasta T10 (#285): con Stripe, esta función se sustituye por el Payment Element y
+// `stripe.createConfirmationToken`, y los datos de la tarjeta irán directamente del navegador a
+// Stripe. Hasta entonces solo se aceptan las tarjetas de prueba de Stripe, y cada una da el token
+// que entiende la pasarela simulada del backend: `ctoken_declined` se rechaza y el resto se acepta.
 // En ningún caso se envía el número de la tarjeta a nuestro servidor.
 
 export type CardDetails = {
@@ -17,14 +17,15 @@ export type CardDetails = {
 export type CardField = keyof CardDetails;
 
 export type CardResult =
-  { ok: true; paymentMethodId: string } | { ok: false; errors: Partial<Record<CardField, string>> };
+  | { ok: true; confirmationTokenId: string }
+  | { ok: false; errors: Partial<Record<CardField, string>> };
 
 export const TEST_CARDS = [
-  { number: '4242 4242 4242 4242', result: 'se acepta', paymentMethodId: 'pm_card_visa' },
+  { number: '4242 4242 4242 4242', result: 'se acepta', confirmationTokenId: 'ctoken_simulado' },
   {
     number: '4000 0000 0000 0002',
     result: 'se rechaza',
-    paymentMethodId: 'pm_card_chargeDeclined',
+    confirmationTokenId: 'ctoken_declined',
   },
 ] as const;
 
@@ -94,5 +95,5 @@ export function createPaymentMethod(card: CardDetails, today = new Date()): Card
   const testCard = TEST_CARDS.find((candidate) => digitsOnly(candidate.number) === number);
   if (!testCard) return { ok: false, errors: { number: CARD_ERRORS.testOnly } };
 
-  return { ok: true, paymentMethodId: testCard.paymentMethodId };
+  return { ok: true, confirmationTokenId: testCard.confirmationTokenId };
 }
