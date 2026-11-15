@@ -12,6 +12,7 @@ import { itemWithdrawRoutes } from './itemWithdrawRoutes.js';
 import { reservationDecisionRoutes } from './reservationDecisionRoutes.js';
 import { itemRoutes } from './itemRoutes.js';
 import { photoRoutes } from './photoRoutes.js';
+import { ratingRoutes } from './ratingRoutes.js';
 import { userRoutes } from './userRoutes.js';
 
 export const apiRoutes = Router();
@@ -30,3 +31,4 @@ apiRoutes.use(reservationDecisionRoutes);
 apiRoutes.use(categoryRoutes);
 apiRoutes.use(itemRoutes);
 apiRoutes.use(photoRoutes);
+apiRoutes.use(ratingRoutes);
