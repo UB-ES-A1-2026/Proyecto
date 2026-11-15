@@ -154,6 +154,8 @@ export async function upsertDemoReservations(
 
     if (existing) {
       await prisma.reservation.update({ where: { id: existing.id }, data });
+      // Repetir el seed borra las valoraciones hechas al probar: vuelve a salir «Valorar» (#295).
+      await prisma.rating.deleteMany({ where: { reservationId: existing.id } });
     } else {
       await prisma.reservation.create({ data });
     }
