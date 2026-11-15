@@ -32,8 +32,6 @@ export type RentalItem = {
   photoUrl?: string;
   // Pago al solicitar (US-07.01, #286).
   deposit?: number;
-  // Con reserva inmediata se cobra al momento y la reserva queda confirmada.
-  instantBooking?: boolean;
   ownerName?: string;
 };
 
@@ -252,7 +250,7 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
       const reservation = await requestRental(
         session.token,
         { itemId: item.id, startDate, endDate },
-        method.paymentMethodId,
+        method.confirmationTokenId,
       );
       onRequested(reservation);
     } catch (error) {
@@ -287,14 +285,13 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
 
   if (step === 'summary') {
     const deposit = item.deposit ?? 0;
-    const instant = item.instantBooking === true;
     const owner = item.ownerName ?? 'el propietario';
     const depositCharged = days > MAX_DEPOSIT_HOLD_DAYS;
 
     return (
       <section key="summary" className="rental-request" aria-labelledby="rental-title">
         <h2 id="rental-title" ref={headingRef} tabIndex={-1}>
-          {instant ? 'Revisa tu reserva' : 'Revisa tu solicitud'}
+          Revisa tu solicitud
         </h2>
         <div className="rental-item">
           {item.photoUrl && <img src={item.photoUrl} alt="" className="rental-item-photo" />}
@@ -326,21 +323,12 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
         </dl>
 
         {/* Criterio de US-07.01 (#286): qué pasa con el dinero, antes de meter la tarjeta. */}
-        <div className={`rental-payment-note${instant ? ' is-instant' : ''}`}>
-          <Icon name={instant ? 'bolt' : 'lock'} size="1.125rem" />
+        <div className="rental-payment-note">
+          <Icon name="lock" size="1.125rem" />
           <p>
-            {instant ? (
-              <>
-                <strong>Reserva inmediata.</strong> Se cobran {formatPrice(totalPrice)} ahora y la
-                reserva queda confirmada, sin esperar a {owner}.
-              </>
-            ) : (
-              <>
-                Bloquearemos {formatPrice(totalPrice)} en tu tarjeta.{' '}
-                <strong>Solo se cobran si {owner} acepta</strong>; si la rechaza o no responde en 48
-                horas, se liberan.
-              </>
-            )}
+            Bloquearemos {formatPrice(totalPrice)} en tu tarjeta.{' '}
+            <strong>Solo se cobran si {owner} acepta</strong>; si la rechaza o no responde en 48
+            horas, se liberan.
             {deposit > 0 &&
               (depositCharged
                 ? ` Como el alquiler dura más de ${MAX_DEPOSIT_HOLD_DAYS} días, la fianza (${formatPrice(deposit)}) se cobra el día antes de empezar y se devuelve al terminar.`
@@ -375,11 +363,7 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
               Volver
             </button>
             <button type="submit" className="button-primary" disabled={submitting}>
-              {submitting
-                ? 'Procesando el pago…'
-                : instant
-                  ? 'Reservar y pagar'
-                  : 'Enviar solicitud'}
+              {submitting ? 'Procesando el pago…' : 'Enviar solicitud'}
             </button>
           </div>
         </form>

@@ -21,17 +21,17 @@ export function checkAvailability(token: string, input: RentalRequestInput): Pro
   return apiRequest<Availability>(`/reservas/disponibilidad?${query}`, { token });
 }
 
-// Solicitar es pagar (US-07.01, #286): con la tarjeta se bloquea el importe y se cobra cuando el
-// propietario acepta; con reserva inmediata se cobra al momento. Responde 201 con la reserva
-// («pending» o «paid»), 402 si la tarjeta se rechaza (y no se crea la reserva) o los 409 de #120.
+// Solicitar es pagar (US-07.01, #286): con el token de la tarjeta se bloquea el importe y se cobra
+// cuando el propietario acepta. Responde 201 con la reserva «pending», 402 si la tarjeta se rechaza
+// (y no se crea la reserva; field "confirmationTokenId") o los 409 de #120.
 export function requestRental(
   token: string,
   input: RentalRequestInput,
-  paymentMethodId: string,
+  confirmationTokenId: string,
 ): Promise<Reservation> {
   return apiRequest<Reservation>('/reservas', {
     method: 'POST',
-    body: { ...input, paymentMethodId },
+    body: { ...input, confirmationTokenId },
     token,
   });
 }

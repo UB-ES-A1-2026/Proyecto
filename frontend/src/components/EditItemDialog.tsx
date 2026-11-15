@@ -161,7 +161,6 @@ function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
     dailyPrice: formatAmount(item.dailyPrice),
     deposit: formatAmount(item.deposit),
   });
-  const [instantBooking, setInstantBooking] = useState(item.instantBooking === true);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -220,7 +219,6 @@ function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
         description: values.description.trim(),
         dailyPrice: parseAmount(values.dailyPrice) ?? 0,
         deposit: parseAmount(values.deposit) ?? 0,
-        instantBooking,
       });
 
       // Los cambios ya están guardados: si falla una foto se avisa, pero no se pierden.
@@ -352,27 +350,6 @@ function EditItemForm({ item, token, onCancel, onSaved }: EditItemFormProps) {
             </p>
             {fieldError('deposit')}
           </div>
-        </div>
-
-        {/* US-07.01 (#286): con reserva inmediata, solicitar es reservar y se cobra al momento. */}
-        <div className="form-field">
-          <label className="edit-item-check">
-            <input
-              type="checkbox"
-              name="instantBooking"
-              checked={instantBooking}
-              aria-describedby="item-instant-hint"
-              onChange={(event) => {
-                setInstantBooking(event.target.checked);
-                setFormError(null);
-              }}
-            />
-            <Icon name="bolt" />
-            Reserva inmediata
-          </label>
-          <p id="item-instant-hint" className="field-hint">
-            Las solicitudes se aceptan solas y se cobran al reservar, sin esperar tu respuesta.
-          </p>
         </div>
 
         <div className="form-field">
