@@ -2,8 +2,10 @@
 import { AppError } from '../errors/appError.js';
 import {
   findItemForDemand,
+  findOccupiedDates,
   findPendingRequestDates,
 } from '../repositories/itemDemandRepository.js';
+import { OCCUPYING_STATUSES } from './reservationService.js';
 
 export const ITEM_NOT_FOUND_MESSAGE = 'No hemos encontrado este objeto.';
 export const TO_BEFORE_FROM_MESSAGE =
@@ -15,7 +17,13 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const MAX_RANGE_DAYS = 366;
 
 export type DayDemand = { date: string; pendingRequests: number };
-export type ItemDemand = { days: DayDemand[]; pendingRequests: number };
+// bookedDays: días ya ocupados por una reserva aceptada, pagada o en curso (#312). No cuentan
+// en days ni en pendingRequests: ahí ya no se puede alquilar.
+export type ItemDemand = {
+  days: DayDemand[];
+  pendingRequests: number;
+  bookedDays: string[];
+};
 
 function toUtcDate(date: string): Date {
   return new Date(`${date}T00:00:00.000Z`);
@@ -28,6 +36,7 @@ function toDateKey(date: Date): string {
 // Demanda de un objeto entre dos fechas (US-04.07, #303): cuántas solicitudes pendientes de
 // otras personas incluyen cada día y cuántas tocan el rango. Una solicitud de 3 días cuenta
 // en cada uno de sus días, pero solo una vez en el total del rango.
+// Los días ya reservados salen aparte en bookedDays y no cuentan como demanda (#312).
 export async function getItemDemand(
   itemId: string,
   input: { from: string; to: string },
@@ -51,23 +60,46 @@ export async function getItemDemand(
     throw new AppError(404, ITEM_NOT_FOUND_MESSAGE);
   }
 
-  const requests = await findPendingRequestDates(itemId, from, to, viewerId);
+  const [requests, occupied] = await Promise.all([
+    findPendingRequestDates(itemId, from, to, viewerId),
+    findOccupiedDates(itemId, from, to, OCCUPYING_STATUSES),
+  ]);
+
+  // Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 13/11/2026
+  const booked = new Set<string>();
+  for (const range of occupied) {
+    for (const date of daysInRange(range, from, to)) booked.add(date);
+  }
 
   const counts = new Map<string, number>();
-  for (const { startDate, endDate } of requests) {
-    // Solo los días que caen dentro del rango pedido.
-    const first = Math.max(startDate.getTime(), from.getTime());
-    const last = Math.min(endDate.getTime(), to.getTime());
-
-    for (let time = first; time <= last; time += MS_PER_DAY) {
-      const date = toDateKey(new Date(time));
-      counts.set(date, (counts.get(date) ?? 0) + 1);
-    }
+  let pendingRequests = 0;
+  for (const range of requests) {
+    // Solo los días que caen dentro del rango pedido y que no están ya reservados.
+    const free = daysInRange(range, from, to).filter(
+      (date) => !booked.has(date),
+    );
+    if (free.length > 0) pendingRequests += 1;
+    for (const date of free) counts.set(date, (counts.get(date) ?? 0) + 1);
   }
 
   const days = [...counts.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, pendingRequests]) => ({ date, pendingRequests }));
+    .map(([date, count]) => ({ date, pendingRequests: count }));
 
-  return { days, pendingRequests: requests.length };
+  return { days, pendingRequests, bookedDays: [...booked].sort() };
+}
+
+// Días «AAAA-MM-DD» de [startDate, endDate] recortados al rango pedido [from, to].
+function daysInRange(
+  { startDate, endDate }: { startDate: Date; endDate: Date },
+  from: Date,
+  to: Date,
+): string[] {
+  const first = Math.max(startDate.getTime(), from.getTime());
+  const last = Math.min(endDate.getTime(), to.getTime());
+  const dates: string[] = [];
+  for (let time = first; time <= last; time += MS_PER_DAY) {
+    dates.push(toDateKey(new Date(time)));
+  }
+  return dates;
 }

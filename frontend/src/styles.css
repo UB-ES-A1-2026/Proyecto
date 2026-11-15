@@ -40,6 +40,8 @@
   --color-accent: #f2a33a;
   --color-accent-hover: #e08d1f;
   --color-accent-soft: #fdf0dc;
+  /* Demanda media en el calendario (US-04.07): entre accent-soft y accent. */
+  --color-demand-medium: #f8cf94;
   --color-on-accent: #14302c;
   --color-focus: #0f5c55;
   --color-focus-on-dark: #f2a33a;

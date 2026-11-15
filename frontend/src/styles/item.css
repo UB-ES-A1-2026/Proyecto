@@ -335,6 +335,29 @@
   animation: fade-down var(--duration) var(--ease-out);
 }
 
+/* Demanda de fechas (US-04.07, #312): aviso al elegir fechas con solicitudes que coinciden. */
+.rental-demand-warning {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: flex-start;
+  padding: var(--space-xs) var(--space-sm);
+  margin: 0 0 var(--space-md);
+  font-size: var(--font-size-small);
+  color: var(--color-warning);
+  background-color: var(--color-warning-soft);
+  border-radius: calc(var(--radius) - 4px);
+  animation: fade-down var(--duration) var(--ease-out);
+}
+
+.rental-demand-warning .icon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.rental-demand-error {
+  margin: calc(var(--space-xs) * -1) 0 var(--space-sm);
+}
+
 .rental-actions {
   display: flex;
   gap: var(--space-sm);

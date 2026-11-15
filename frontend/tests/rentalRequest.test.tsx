@@ -42,6 +42,11 @@ function mockFetch(
     );
 }
 
+// Las llamadas a la API sin las de la demanda del calendario (US-04.07, #312).
+function withoutDemand(fetchMock: ReturnType<typeof mockFetch>) {
+  return fetchMock.mock.calls.filter(([url]) => !String(url).includes('/demanda'));
+}
+
 // Las llamadas a POST /reservas, sin las consultas de disponibilidad.
 function postCalls(fetchMock: ReturnType<typeof mockFetch>) {
   return fetchMock.mock.calls.filter(([, init]) => init?.method === 'POST');
@@ -366,7 +371,7 @@ describe('consulta de disponibilidad (criterio 3 de US-04.01, #204)', () => {
 
     expect(screen.getByText('Comprobando disponibilidad…')).toBeInTheDocument();
     expect(requestButton()).toBeDisabled();
-    const [url, init] = fetchMock.mock.calls[0];
+    const [url, init] = withoutDemand(fetchMock)[0];
     expect(String(url)).toMatch(
       /\/reservas\/disponibilidad\?itemId=item-1&startDate=2026-11-04&endDate=2026-11-06$/,
     );
@@ -383,7 +388,7 @@ describe('consulta de disponibilidad (criterio 3 de US-04.01, #204)', () => {
 
     chooseDates('06/11/2026', '04/11/2026');
 
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(withoutDemand(fetchMock)).toHaveLength(0);
   });
 
   it('si las fechas están ocupadas lo avisa y no deja solicitar', async () => {
@@ -470,7 +475,7 @@ describe('calendario de fechas', () => {
     expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('04/11/2026');
     expect(screen.getByLabelText('Fecha de fin')).toHaveValue('');
     expect(dayButton('4 de noviembre de 2026')).toHaveAttribute('aria-pressed', 'true');
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(withoutDemand(fetchMock)).toHaveLength(0);
 
     await user.click(dayButton('6 de noviembre de 2026'));
 
@@ -482,7 +487,9 @@ describe('calendario de fechas', () => {
     ]);
     expect(screen.getByText(/3 días × 5,00 € =/)).toHaveTextContent('15,00 €');
     await waitFor(() => expect(requestButton()).toBeEnabled());
-    expect(String(fetchMock.mock.calls[0][0])).toMatch(/startDate=2026-11-04&endDate=2026-11-06$/);
+    expect(String(withoutDemand(fetchMock)[0][0])).toMatch(
+      /startDate=2026-11-04&endDate=2026-11-06$/,
+    );
   });
 
   it('un clic anterior al inicio mientras se elige el fin empieza de nuevo con esa fecha', async () => {

@@ -74,6 +74,7 @@ describe('GET /api/objetos/:id/demanda (US-04.07, #311)', () => {
         { date: '2026-12-06', pendingRequests: 1 },
       ],
       pendingRequests: 2,
+      bookedDays: [],
     });
   });
 
@@ -91,7 +92,13 @@ describe('GET /api/objetos/:id/demanda (US-04.07, #311)', () => {
     );
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ days: [], pendingRequests: 0 });
+    // La aceptada (1–3 de diciembre) ocupa esos días: sale en bookedDays, sin decir de quién es.
+    expect(response.body).toEqual({
+      days: [],
+      pendingRequests: 0,
+      bookedDays: ['2026-12-01', '2026-12-02', '2026-12-03'],
+    });
+    expect(JSON.stringify(response.body)).not.toContain(bruno.id);
   });
 
   it('does not count the viewer own requests and never says who made them', async () => {
@@ -111,6 +118,7 @@ describe('GET /api/objetos/:id/demanda (US-04.07, #311)', () => {
         { date: '2026-12-03', pendingRequests: 1 },
       ],
       pendingRequests: 1,
+      bookedDays: [],
     });
     expect(JSON.stringify(response.body)).not.toContain(carla.id);
   });
@@ -133,6 +141,7 @@ describe('GET /api/objetos/:id/demanda (US-04.07, #311)', () => {
     expect(response.body).toEqual({
       days: [{ date: '2026-12-01', pendingRequests: 1 }],
       pendingRequests: 1,
+      bookedDays: [],
     });
   });
 
@@ -157,6 +166,79 @@ describe('GET /api/objetos/:id/demanda (US-04.07, #311)', () => {
         { date: '2026-12-31', pendingRequests: 1 },
       ],
       pendingRequests: 1,
+      bookedDays: [],
+    });
+  });
+
+  // Días ya reservados (#312). Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 13/11/2026
+  it('returns the days booked by accepted, paid or in-progress reservations, cut to the range', async () => {
+    const { ana, bruno, carla, dani } = await createUsers();
+    const item = await createTestItem(ana.id);
+    await createTestReservation(item.id, bruno.id, {
+      startDate: '2026-11-30',
+      endDate: '2026-12-01',
+      status: 'paid',
+    });
+    await createTestReservation(item.id, carla.id, {
+      startDate: '2026-12-10',
+      endDate: '2026-12-10',
+      status: 'in_progress',
+    });
+    await createTestReservation(item.id, dani.id, {
+      startDate: '2026-12-31',
+      endDate: '2027-01-02',
+      status: 'accepted',
+    });
+    // Ni las pendientes ni las rechazadas, canceladas o finalizadas ocupan días.
+    await createTestReservation(item.id, dani.id, {
+      startDate: '2026-12-20',
+      endDate: '2026-12-20',
+      status: 'finished',
+    });
+
+    const response = await getDemand(
+      item.id,
+      DECEMBER,
+      await loginAs('ana@rentit.test'),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body.bookedDays).toEqual([
+      '2026-12-01',
+      '2026-12-10',
+      '2026-12-31',
+    ]);
+  });
+
+  it('does not count pending requests on booked days, and drops requests that only touch them', async () => {
+    const { ana, bruno, carla, dani } = await createUsers();
+    const item = await createTestItem(ana.id);
+    await createTestReservation(item.id, bruno.id, {
+      startDate: '2026-12-05',
+      endDate: '2026-12-06',
+      status: 'accepted',
+    });
+    // carla pide del 4 al 6: solo cuenta el 4. dani pide el 5 y el 6, ya reservados: no cuenta.
+    await createTestReservation(item.id, carla.id, {
+      startDate: '2026-12-04',
+      endDate: '2026-12-06',
+    });
+    await createTestReservation(item.id, dani.id, {
+      startDate: '2026-12-05',
+      endDate: '2026-12-06',
+    });
+
+    const response = await getDemand(
+      item.id,
+      DECEMBER,
+      await loginAs('ana@rentit.test'),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      days: [{ date: '2026-12-04', pendingRequests: 1 }],
+      pendingRequests: 1,
+      bookedDays: ['2026-12-05', '2026-12-06'],
     });
   });
 

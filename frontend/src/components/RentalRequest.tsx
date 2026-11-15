@@ -1,9 +1,12 @@
 // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 03/11/2026
+// Demanda de fechas en el calendario (US-04.07, #312): generado con asistencia de IA (Claude) –
+// revisado por Marc Sanz, 13/11/2026
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
+import { getItemDemand } from '../services/demandService';
 import { checkAvailability, requestRental, type Reservation } from '../services/rentalService';
-import { monthOf, selectRangeDate } from '../utils/calendar';
+import { formatMatchingRequests, monthBounds, monthOf, selectRangeDate } from '../utils/calendar';
 import {
   calculateTotalPrice,
   countRentalDays,
@@ -17,7 +20,7 @@ import {
   validateRentalDates,
   type RentalDateErrors,
 } from '../utils/rental';
-import { DateRangeCalendar } from './DateRangeCalendar';
+import { DateRangeCalendar, type CalendarDemand } from './DateRangeCalendar';
 import { Icon } from './Icon';
 
 export type RentalItem = {
@@ -40,6 +43,13 @@ const NOT_AVAILABLE_MESSAGE = 'El objeto no está disponible en esas fechas.';
 // ignora el de unas fechas anteriores si el usuario las cambia mientras se espera la respuesta.
 type AvailabilityResult = { datesKey: string } & ({ available: boolean } | { error: string });
 
+// Demanda del mes visible (US-04.07) y número de solicitudes que coinciden con las fechas elegidas.
+// Llevan la clave de lo que se pidió, igual que la disponibilidad.
+type MonthDemandResult = { month: string } & ({ demand: CalendarDemand } | { failed: true });
+type RangeDemandResult = { datesKey: string; pendingRequests: number };
+
+const DEMAND_ERROR_MESSAGE = 'No se ha podido cargar la demanda de las fechas.';
+
 // Selector de fechas, resumen y confirmación de US-04.01 (#121), dentro del panel lateral de la
 // ficha del objeto (#15).
 export function RentalRequest({ item, onRequested, onSessionExpired }: RentalRequestProps) {
@@ -51,6 +61,8 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
   const [step, setStep] = useState<'dates' | 'summary'>('dates');
   const [submitting, setSubmitting] = useState(false);
   const [availability, setAvailability] = useState<AvailabilityResult | null>(null);
+  const [monthDemand, setMonthDemand] = useState<MonthDemandResult | null>(null);
+  const [rangeDemand, setRangeDemand] = useState<RangeDemandResult | null>(null);
   const { session, clearSession } = useAuth();
   const token = session?.token;
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -69,6 +81,11 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
   const days = datesValid ? countRentalDays(startDate, endDate) : 0;
   const totalPrice = calculateTotalPrice(item.pricePerDay, days);
   const datesKey = datesValid ? `${startDate}|${endDate}` : null;
+  const currentMonthDemand = monthDemand?.month === calendarMonth ? monthDemand : null;
+  const calendarDemand =
+    currentMonthDemand && 'demand' in currentMonthDemand ? currentMonthDemand.demand : null;
+  const matchingRequests =
+    rangeDemand?.datesKey === datesKey ? formatMatchingRequests(rangeDemand.pendingRequests) : null;
   const currentAvailability = availability?.datesKey === datesKey ? availability : null;
   const checkingAvailability = datesKey !== null && currentAvailability === null;
   const isAvailable =
@@ -108,6 +125,52 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
       ignore = true;
     };
   }, [datesKey, token, item.id, startDate, endDate, clearSession, onSessionExpired]);
+
+  // US-04.07: la demanda del mes visible colorea el calendario. Si falla, se usa sin colores.
+  useEffect(() => {
+    if (!token) return;
+    let ignore = false;
+    const { from, to } = monthBounds(calendarMonth);
+
+    getItemDemand(token, item.id, from, to)
+      .then(({ days: demandDays, bookedDays }) => {
+        if (ignore) return;
+        const counts = Object.fromEntries(
+          demandDays.map(({ date, pendingRequests }) => [date, pendingRequests]),
+        );
+        setMonthDemand({ month: calendarMonth, demand: { counts, booked: bookedDays } });
+      })
+      .catch((error: unknown) => {
+        if (ignore) return;
+        if (error instanceof ApiError && error.status === 401) {
+          clearSession();
+          onSessionExpired();
+        } else {
+          setMonthDemand({ month: calendarMonth, failed: true });
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [calendarMonth, token, item.id, clearSession, onSessionExpired]);
+
+  // US-04.07: con las dos fechas elegidas, cuántas solicitudes de otras personas coinciden.
+  // Si falla, no se avisa de nada y se puede solicitar igual.
+  useEffect(() => {
+    if (!datesKey || !token) return;
+    let ignore = false;
+
+    getItemDemand(token, item.id, startDate, endDate)
+      .then(({ pendingRequests }) => {
+        if (!ignore) setRangeDemand({ datesKey, pendingRequests });
+      })
+      .catch(() => {});
+
+    return () => {
+      ignore = true;
+    };
+  }, [datesKey, token, item.id, startDate, endDate]);
 
   // El botón pulsado desaparece al cambiar de paso: el foco pasa al título del paso nuevo.
   useEffect(() => {
@@ -305,7 +368,11 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
           month={calendarMonth}
           onMonthChange={setCalendarMonth}
           onSelectDate={handleSelectDate}
+          demand={calendarDemand}
         />
+        {currentMonthDemand && 'failed' in currentMonthDemand && (
+          <p className="field-hint rental-demand-error">{DEMAND_ERROR_MESSAGE}</p>
+        )}
         <p className="rental-price" aria-live="polite">
           {datesValid ? (
             <>
@@ -326,6 +393,12 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
           <p className="rental-available" role="status">
             <Icon name="check_circle" size="1rem" />
             Fechas disponibles
+          </p>
+        )}
+        {isAvailable && matchingRequests && (
+          <p className="rental-demand-warning" role="status">
+            <Icon name="info" size="1rem" />
+            {matchingRequests}
           </p>
         )}
         {currentAvailability &&
