@@ -213,4 +213,24 @@ describe('POST /api/reservas/:id/valoracion', () => {
     expect(responses.map(({ status }) => status).sort()).toEqual([201, 409]);
     expect(await prisma.rating.count()).toBe(1);
   });
+
+  it('shows the rating in «Mis solicitudes» only to the person who wrote it', async () => {
+    const { reservation, renterToken, ownerToken } = await finishedRental();
+    await rate(reservation.id, { score: 5, comment: 'Genial' }, renterToken);
+
+    const renterView = await request(app)
+      .get('/api/usuarios/me/reservas')
+      .set('Authorization', `Bearer ${renterToken}`);
+    const ownerView = await request(app)
+      .get('/api/usuarios/me/reservas')
+      .set('Authorization', `Bearer ${ownerToken}`);
+
+    expect(renterView.body.sent[0].myRating).toEqual({
+      score: 5,
+      comment: 'Genial',
+      createdAt: expect.any(String),
+    });
+    // El propietario aún no ha escrito la suya (eso es US-08.02).
+    expect(ownerView.body.received[0].myRating).toBeNull();
+  });
 });
