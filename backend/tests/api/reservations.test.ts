@@ -682,7 +682,7 @@ describe('POST /api/reservas: bloqueo del pago', () => {
     endDate: daysFromToday(12),
   });
 
-  it('bloquea el total y guarda el pago autorizado, con la fianza pendiente y 48 h para responder', async () => {
+  it('authorizes the total and saves the payment with a pending deposit and 48 h to respond', async () => {
     const { item, token } = await setUp();
     const before = Date.now();
 
@@ -713,7 +713,7 @@ describe('POST /api/reservas: bloqueo del pago', () => {
     expect(expiresAt).toBeLessThanOrEqual(Date.now() + twoDays);
   });
 
-  it('sin fianza (menos de 0,50 €) el pago no tiene estado de fianza', async () => {
+  it('leaves the deposit status empty when the deposit is under 0.50 €', async () => {
     const { owner, token } = await setUp();
     const item = await createTestItem(owner.id, {
       title: 'Carro',
@@ -732,7 +732,7 @@ describe('POST /api/reservas: bloqueo del pago', () => {
     expect(payment.depositStatus).toBeNull();
   });
 
-  it('sin token de pago responde 400 y no crea nada', async () => {
+  it('returns 400 without a payment token and creates nothing', async () => {
     const { item, token } = await setUp();
 
     const response = await postReservation(token, {
@@ -747,7 +747,7 @@ describe('POST /api/reservas: bloqueo del pago', () => {
     expect(vi.mocked(authorize)).not.toHaveBeenCalled();
   });
 
-  it('con la tarjeta rechazada responde 402 y no crea la reserva', async () => {
+  it('returns 402 when the card is declined and creates no reservation', async () => {
     const { item, token } = await setUp();
 
     const response = await postReservation(token, {
@@ -765,7 +765,7 @@ describe('POST /api/reservas: bloqueo del pago', () => {
     expect(await prisma.payment.count()).toBe(0);
   });
 
-  it('si las fechas están ocupadas responde 409 sin bloquear nada en la tarjeta', async () => {
+  it('returns 409 for taken dates without authorizing anything on the card', async () => {
     const { item, token, owner } = await setUp();
     const other = await createTestUser({
       username: 'carla',
@@ -787,7 +787,7 @@ describe('POST /api/reservas: bloqueo del pago', () => {
     expect(vi.mocked(authorize)).not.toHaveBeenCalled();
   });
 
-  it('con un doble clic solo queda un pago y se suelta el bloqueo que sobra', async () => {
+  it('keeps a single payment on a double click and releases the extra hold', async () => {
     const { item, token } = await setUp();
     const body = { itemId: item.id, ...dates() };
 
@@ -802,5 +802,31 @@ describe('POST /api/reservas: bloqueo del pago', () => {
     expect(vi.mocked(release).mock.calls.length).toBe(
       vi.mocked(authorize).mock.calls.length - 1,
     );
+  });
+
+  it('returns 409 and releases the hold when someone books the dates while the payment is being authorized', async () => {
+    const { item, token } = await setUp();
+    const other = await createTestUser({
+      username: 'carla',
+      email: 'carla@rentit.test',
+    });
+    // Mientras la pasarela bloquea, otra persona se queda las fechas.
+    vi.mocked(authorize).mockImplementationOnce(async () => {
+      await createTestReservation(item.id, other.id, {
+        startDate: daysFromToday(10),
+        endDate: daysFromToday(12),
+        status: 'accepted',
+      });
+      return { reference: 'simulado_carrera' };
+    });
+
+    const response = await postReservation(token, {
+      itemId: item.id,
+      ...dates(),
+    });
+
+    expect(response.status).toBe(409);
+    expect(vi.mocked(release)).toHaveBeenCalledWith('simulado_carrera');
+    expect(await prisma.payment.count()).toBe(0);
   });
 });
