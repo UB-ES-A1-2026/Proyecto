@@ -211,7 +211,7 @@ export interface DemoReservation {
   renter: number;
   startInDays: number;
   days: number;
-  status: 'pending' | 'accepted' | 'rejected';
+  status: 'pending' | 'accepted' | 'rejected' | 'finished';
 }
 
 export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
@@ -249,5 +249,13 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
     startInDays: 3,
     days: 2,
     status: 'rejected',
+  },
+  // Finalizada y sin valorar (US-08.01, #295): ana puede valorarla en la demo.
+  {
+    item: { owner: 1, title: 'Máquina de palomitas' },
+    renter: 0,
+    startInDays: -6,
+    days: 2,
+    status: 'finished',
   },
 ];
