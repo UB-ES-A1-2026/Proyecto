@@ -384,6 +384,7 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
       itemId: ITEM.id,
       startDate: '2026-11-10',
       endDate: '2026-11-12',
+      confirmationTokenId: 'ctoken_simulado',
     });
   });
 

@@ -131,7 +131,7 @@ export async function upsertDemoReservations(
 
     const item = await prisma.item.findFirst({
       where: { ownerId, title: reservation.item.title },
-      select: { id: true, dailyPrice: true },
+      select: { id: true, dailyPrice: true, deposit: true },
     });
     if (!item) {
       throw new Error(
@@ -146,16 +146,39 @@ export async function upsertDemoReservations(
       endDate: daysFrom(today, reservation.startInDays + reservation.days - 1),
       totalPrice: item.dailyPrice.times(reservation.days),
       status: reservation.status,
+      // Las pendientes tienen 48 h para responder desde que se carga el seed (#72).
+      expiresAt:
+        reservation.status === 'pending'
+          ? new Date(today.getTime() + 48 * 60 * 60 * 1000)
+          : null,
     };
+
     const existing = await prisma.reservation.findFirst({
       where: { itemId: item.id, renterId },
       select: { id: true },
     });
 
-    if (existing) {
-      await prisma.reservation.update({ where: { id: existing.id }, data });
-    } else {
-      await prisma.reservation.create({ data });
+    const { id } = existing
+      ? await prisma.reservation.update({ where: { id: existing.id }, data })
+      : await prisma.reservation.create({ data });
+
+    // Pagos (US-07.01, #72): la pendiente tiene el importe bloqueado («autorizado») y la pagada,
+    // cobrado. Al repetir el seed se rehace el pago, por si se ha cambiado al probar. Las aceptadas
+    // y rechazadas son del flujo antiguo y no llevan pago. Sin referencias: pagos sin pasarela.
+    // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 14/11/2026
+    await prisma.payment.deleteMany({ where: { reservationId: id } });
+    if (reservation.status === 'pending' || reservation.status === 'paid') {
+      await prisma.payment.create({
+        data: {
+          reservationId: id,
+          rentalAmount: data.totalPrice,
+          depositAmount: item.deposit,
+          status: reservation.status === 'paid' ? 'paid' : 'authorized',
+          // La fianza se retiene el día antes de empezar (#72): de momento, «pendiente». Sin fianza
+          // (menos de 0,50 €) no hay estado.
+          depositStatus: item.deposit.gte(0.5) ? 'pending' : null,
+        },
+      });
     }
   }
 

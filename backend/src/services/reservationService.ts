@@ -3,9 +3,17 @@ import type { ReservationStatus } from '@prisma/client';
 import { AppError } from '../errors/appError.js';
 import {
   findItemForReservation,
+  findReservationConflict,
   hasOverlappingReservation,
   insertReservationIfAvailable,
+  type InsertReservationResult,
 } from '../repositories/reservationRepository.js';
+import {
+  authorize,
+  PaymentDeclinedError,
+  release,
+  toCents,
+} from './paymentGateway.js';
 import { toReservationDetail, type ReservationDetail } from './reservation.js';
 
 export const ITEM_NOT_FOUND_MESSAGE = 'No hemos encontrado este objeto.';
@@ -87,9 +95,35 @@ export async function checkAvailability(
   return { available: !overlapping };
 }
 
+// El propietario tiene 48 h para responder (#72); después la solicitud caduca (T10).
+const RESPONSE_WINDOW_MS = 48 * 60 * 60 * 1000;
+// Mínimo que Stripe puede retener: por debajo, el pago no tiene fianza.
+const MIN_DEPOSIT_TO_HOLD = 0.5;
+
+function conflictError(
+  outcome: 'not_published' | 'duplicate' | 'overlapping',
+): AppError {
+  switch (outcome) {
+    case 'not_published':
+      return new AppError(404, ITEM_NOT_FOUND_MESSAGE);
+    case 'duplicate':
+      return new AppError(409, DUPLICATE_REQUEST_MESSAGE);
+    case 'overlapping':
+      return new AppError(409, NOT_AVAILABLE_MESSAGE, 'startDate');
+  }
+}
+
+// Solicitar = pagar (US-07.01, #72): se bloquea el total en la tarjeta, sin cobrarlo, y la
+// reserva queda pendiente con su pago «autorizado». El propietario lo cobra al aceptar (Alex).
+// Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 14/11/2026
 export async function createReservation(
   renterId: string,
-  input: { itemId: string; startDate: string; endDate: string },
+  input: {
+    itemId: string;
+    startDate: string;
+    endDate: string;
+    confirmationTokenId: string;
+  },
   now: Date = new Date(),
 ): Promise<ReservationDetail> {
   assertValidDates(input, now);
@@ -112,19 +146,65 @@ export async function createReservation(
     throw new AppError(400, RENTAL_TOO_LONG_MESSAGE, 'endDate');
   }
 
-  const result = await insertReservationIfAvailable(
-    { itemId: input.itemId, renterId, startDate, endDate, totalPrice },
+  const reservationData = {
+    itemId: input.itemId,
+    renterId,
+    startDate,
+    endDate,
+  };
+
+  // Los 409 de siempre, antes de bloquear nada en la tarjeta.
+  const conflict = await findReservationConflict(
+    reservationData,
     OCCUPYING_STATUSES,
   );
-
-  switch (result.outcome) {
-    case 'not_published':
-      throw new AppError(404, ITEM_NOT_FOUND_MESSAGE);
-    case 'duplicate':
-      throw new AppError(409, DUPLICATE_REQUEST_MESSAGE);
-    case 'overlapping':
-      throw new AppError(409, NOT_AVAILABLE_MESSAGE, 'startDate');
-    case 'created':
-      return toReservationDetail(result.reservation);
+  if (conflict) {
+    throw conflictError(conflict);
   }
+
+  // Se bloquea el total: alquiler + entrega (la entrega vale 0 hasta US-05.01).
+  let reference: string;
+  try {
+    ({ reference } = await authorize(
+      toCents(totalPrice),
+      input.confirmationTokenId,
+      { itemId: input.itemId, renterId },
+    ));
+  } catch (error) {
+    if (error instanceof PaymentDeclinedError) {
+      throw new AppError(402, error.message, 'confirmationTokenId');
+    }
+    throw error;
+  }
+
+  // Si la reserva no se llega a guardar, se suelta el bloqueo: nunca queda dinero bloqueado
+  // sin su reserva.
+  let result: InsertReservationResult;
+  try {
+    result = await insertReservationIfAvailable(
+      {
+        ...reservationData,
+        totalPrice,
+        expiresAt: new Date(now.getTime() + RESPONSE_WINDOW_MS),
+      },
+      {
+        rentalAmount: totalPrice,
+        depositAmount: item.deposit,
+        depositStatus: item.deposit.gte(MIN_DEPOSIT_TO_HOLD) ? 'pending' : null,
+        rentalReference: reference,
+      },
+      OCCUPYING_STATUSES,
+    );
+  } catch (error) {
+    await release(reference);
+    throw error;
+  }
+
+  if (result.outcome !== 'created') {
+    // Alguien se ha adelantado entre la comprobación y la reserva.
+    await release(reference);
+    throw conflictError(result.outcome);
+  }
+
+  return toReservationDetail(result.reservation);
 }

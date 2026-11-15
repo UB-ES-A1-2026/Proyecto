@@ -189,6 +189,7 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
       itemId: 'item-1',
       startDate: '2026-11-04',
       endDate: '2026-11-06',
+      confirmationTokenId: 'ctoken_simulado',
     });
   });
 

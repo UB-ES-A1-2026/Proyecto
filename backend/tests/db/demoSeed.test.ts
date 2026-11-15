@@ -187,4 +187,73 @@ describe('solicitudes de la demo', () => {
       upsertDemoReservations(prisma, userIds, TODAY),
     ).rejects.toThrow('crea antes los objetos');
   });
+
+  // Pagos (US-07.01, #284) – revisado por Francesc Curto, 11/11/2026
+  it('las pendientes tienen el importe bloqueado y 48 h para responder, la pagada su pago y las demás ninguno', async () => {
+    await seedWithReservations();
+
+    const reservations = await prisma.reservation.findMany({
+      include: { payment: true, item: true },
+    });
+    const twoDays = 48 * 60 * 60 * 1000;
+
+    for (const reservation of reservations) {
+      const { payment, item } = reservation;
+
+      if (reservation.status === 'pending' || reservation.status === 'paid') {
+        expect(payment?.status).toBe(
+          reservation.status === 'paid' ? 'paid' : 'authorized',
+        );
+        expect(payment?.rentalAmount.toFixed(2)).toBe(
+          reservation.totalPrice.toFixed(2),
+        );
+        expect(payment?.depositAmount.toFixed(2)).toBe(item.deposit.toFixed(2));
+        // Sin fianza (el carro, 0 €) no hay estado de fianza.
+        expect(payment?.depositStatus).toBe(
+          item.deposit.gte(0.5) ? 'pending' : null,
+        );
+        // Pagos sin pasarela: la T10 no debe llamar a Stripe con ellos.
+        expect(payment?.rentalReference).toBeNull();
+      } else {
+        expect(payment).toBeNull();
+      }
+
+      expect(reservation.expiresAt?.getTime() ?? null).toBe(
+        reservation.status === 'pending' ? TODAY.getTime() + twoDays : null,
+      );
+    }
+  });
+
+  it('repetir el seed deja otra vez sin pagar la solicitud aceptada que se pagó al probar', async () => {
+    const userIds = await seedWithReservations();
+    const accepted = await prisma.reservation.findFirstOrThrow({
+      where: { status: 'accepted' },
+      include: { item: true },
+    });
+    await prisma.reservation.update({
+      where: { id: accepted.id },
+      data: { status: 'paid' },
+    });
+    await prisma.payment.create({
+      data: {
+        reservationId: accepted.id,
+        rentalAmount: accepted.totalPrice,
+        depositAmount: accepted.item.deposit,
+        depositStatus: 'pending',
+      },
+    });
+
+    await upsertDemoReservations(prisma, userIds, TODAY);
+
+    expect(
+      (
+        await prisma.reservation.findUniqueOrThrow({
+          where: { id: accepted.id },
+        })
+      ).status,
+    ).toBe('accepted');
+    expect(
+      await prisma.payment.count({ where: { reservationId: accepted.id } }),
+    ).toBe(0);
+  });
 });
