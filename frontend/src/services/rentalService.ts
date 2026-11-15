@@ -34,6 +34,14 @@ export function checkAvailability(token: string, input: RentalRequestInput): Pro
   return apiRequest<Availability>(`/reservas/disponibilidad?${query}`, { token });
 }
 
+// Provisional hasta la T11 (#286): el formulario de pago de Stripe dará un token de verdad. Mientras
+// tanto se envía uno simulado, que la pasarela simulada del backend acepta (US-07.01, #72).
+const SIMULATED_PAYMENT_TOKEN = 'ctoken_simulado';
+
 export function requestRental(token: string, input: RentalRequestInput): Promise<Reservation> {
-  return apiRequest<Reservation>('/reservas', { method: 'POST', body: input, token });
+  return apiRequest<Reservation>('/reservas', {
+    method: 'POST',
+    body: { ...input, confirmationTokenId: SIMULATED_PAYMENT_TOKEN },
+    token,
+  });
 }
