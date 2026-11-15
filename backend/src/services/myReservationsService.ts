@@ -1,15 +1,38 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 02/11/2026
+import type { ReservationWithDetail } from '../repositories/detailIncludes.js';
 import {
   findReservationsByItemOwner,
   findReservationsByRenter,
 } from '../repositories/myReservationsRepository.js';
 import { settleDueDeposits } from './depositService.js';
 import { expireOverdueReservations } from './reservationExpiry.js';
+import type { DeliveryViewer } from './deliveryView.js';
 import { toReservationDetail, type ReservationDetail } from './reservation.js';
 
+// La valoración que ha escrito el usuario de este alquiler, o null si aún no la ha escrito
+// (US-08.01, #295).
+export interface OwnRating {
+  score: number;
+  comment: string | null;
+  createdAt: Date;
+}
+
+export type MyReservation = ReservationDetail & { myRating: OwnRating | null };
+
 export interface MyReservations {
-  sent: ReservationDetail[];
-  received: ReservationDetail[];
+  sent: MyReservation[];
+  received: MyReservation[];
+}
+
+// El rol decide qué dirección de entrega se ve (US-05.01): la del arrendatario o la del propietario.
+function toMyReservation(
+  reservation: ReservationWithDetail & { ratings: OwnRating[] },
+  viewer: DeliveryViewer,
+): MyReservation {
+  return {
+    ...toReservationDetail(reservation, viewer),
+    myRating: reservation.ratings[0] ?? null,
+  };
 }
 
 // «Mis solicitudes» (US-04.02, #123): las que he hecho y las que han recibido mis objetos.
@@ -28,9 +51,9 @@ export async function getMyReservations(
   ]);
 
   return {
-    sent: sent.map((reservation) => toReservationDetail(reservation, 'renter')),
+    sent: sent.map((reservation) => toMyReservation(reservation, 'renter')),
     received: received.map((reservation) =>
-      toReservationDetail(reservation, 'owner'),
+      toMyReservation(reservation, 'owner'),
     ),
   };
 }
