@@ -41,6 +41,8 @@ model User {
   items            Item[]
   reservations     Reservation[]
   riderApplication RiderApplication?
+  ratingsWritten   Rating[]          @relation("RatingAuthor")
+  ratingsReceived  Rating[]          @relation("RatingRated")
 
   @@map("usuario")
 }
@@ -172,6 +174,7 @@ model Reservation {
   item         Item              @relation(fields: [itemId], references: [id], onDelete: Restrict)
   renter       User              @relation(fields: [renterId], references: [id], onDelete: Restrict)
   payment      Payment?
+  ratings      Rating[]
 
   @@index([itemId, status])
   @@index([renterId])
@@ -319,4 +322,32 @@ model Delivery {
 
   @@index([pickupPointId])
   @@map("entrega")
+}
+
+// Valoraciones (US-08.01, #295; US-08.02, #298). Diseño en docs/modelo-datos.md.
+enum RatingType {
+  rental @map("alquiler") // el arrendatario valora el alquiler (T20)
+  user   @map("usuario") // el propietario valora al arrendatario (T23)
+
+  @@map("tipo_valoracion")
+}
+
+model Rating {
+  id            String      @id @default(uuid()) @db.Uuid
+  reservationId String      @map("reserva_id") @db.Uuid
+  authorId      String      @map("autor_id") @db.Uuid
+  ratedUserId   String      @map("valorado_id") @db.Uuid
+  type          RatingType  @map("tipo")
+  // puntuacion entre 1 y 5 y autor distinto del valorado: CHECK en la migración.
+  score         Int         @map("puntuacion") @db.SmallInt
+  comment       String?     @map("comentario") @db.VarChar(1000)
+  createdAt     DateTime    @default(now()) @map("creada_en")
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  author        User        @relation("RatingAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  ratedUser     User        @relation("RatingRated", fields: [ratedUserId], references: [id], onDelete: Restrict)
+
+  // Una valoración por alquiler y autor: el arrendatario una y el propietario otra.
+  @@unique([reservationId, authorId])
+  @@index([ratedUserId])
+  @@map("valoracion")
 }
