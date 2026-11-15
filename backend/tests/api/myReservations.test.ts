@@ -84,6 +84,7 @@ describe('GET /api/usuarios/me/reservas', () => {
           owner: { id: ana.id, username: 'ana' },
           delivery: null,
           createdAt: reservation.createdAt.toISOString(),
+          myRating: null,          
         },
       ],
       received: [],
