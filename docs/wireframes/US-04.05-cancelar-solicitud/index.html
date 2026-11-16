@@ -2,86 +2,62 @@
 <html lang="es">
   <head>
     <meta charset="utf-8" />
-    <title>US-04.05 Cancelar una solicitud · wireframe</title>
+    <title>US-04.05 Cancelar una reserva con penalización · wireframe</title>
     <link rel="stylesheet" href="../wireframe.css" />
   </head>
   <body>
     <header class="wf-doc">
-      <h1>US-04.05 Cancelar una solicitud</h1>
+      <h1>US-04.05 Cancelar una reserva con penalización</h1>
       <p class="wf-historia">
-        Como <strong>arrendatario</strong>, quiero <strong>cancelar una solicitud</strong> para
-        <strong>no pagar si cambian mis planes</strong>.
+        Como <strong>arrendatario o propietario</strong>, quiero <strong>cancelar una reserva aunque ya esté hecha, sabiendo
+        cuánto me costará</strong>, para <strong>poder cambiar de planes de forma justa para la otra persona</strong>.
       </p>
       <p class="wf-meta">
-        Issue #64 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Generado con
-        asistencia de IA (Claude) – pendiente de revisar por el equipo en el Sprint Planning
+        Issue #64 · Tarea de frontend #309 · Wireframe de baja fidelidad, hecho antes del código · Generado con asistencia
+        de IA (Claude), pendiente de revisar por el equipo
       </p>
-      <p class="wf-meta">Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo</p>
+      <p class="wf-meta">
+        Con el pago al solicitar (#72): una solicitud <strong>pendiente</strong> tiene el importe bloqueado y cancelarla es
+        gratis (se libera el bloqueo); una reserva <strong>pagada</strong> sigue la tabla de penalización. Las reservas
+        «Aceptada» del flujo anterior no tienen pago y se cancelan gratis.
+      </p>
+      <p class="wf-meta">
+        Penalización sobre el <strong>precio del alquiler</strong> (sin fianza ni entrega), según los días que faltan para el
+        inicio: menos de 3 → 100 %; de 3 a 7 → 35 %; 8 o más → nada. La cobra <strong>la otra persona</strong>.
+      </p>
     </header>
 
     <section class="wf-pantalla" data-captura="1-entrada">
-      <h2><span class="wf-paso">1</span>Punto de entrada: cualquier página con sesión <code>/</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/">
-          <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span><span class="wf-marca">1</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <h3 class="wf-h1">Hola, bruno</h3>
-            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
-            <div class="wf-caja">Buscador, categorías, novedades y cómo funciona</div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>El arrendatario pulsa «Mis solicitudes» en la cabecera y llega a <code>/mis-solicitudes</code> (US-04.02).</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Clic en «Mis solicitudes» y, en «Enviadas», clic en una solicitud pendiente o aceptada</p>
-
-    <section class="wf-pantalla" data-captura="2-solicitud-desplegada">
-      <h2><span class="wf-paso">2</span>Solicitud enviada, desplegada <code>/mis-solicitudes</code></h2>
+      <h2><span class="wf-paso">1</span>Punto de entrada: Mis solicitudes, una reserva desplegada <code>/mis-solicitudes</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Mis solicitudes</h3>
-            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
             <div class="wf-columnas wf-iguales">
               <div>
-                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <p class="wf-texto"><strong>Enviadas</strong></p>
                 <div class="wf-tarjeta">
-                  <div class="wf-fila"><strong>Bicicleta de paseo</strong><span class="wf-chip">Pendiente</span><span>▴</span></div>
-                  <p class="wf-ayuda">5–7 dic. 2026</p>
-                  <p class="wf-texto"></p>
-                  <div class="wf-rejilla">
-                    <p class="wf-texto">Objeto: <span class="wf-enlace">Bicicleta de paseo</span></p>
-                    <p class="wf-texto">Fechas: Del 5 de diciembre de 2026 al 7 de diciembre de 2026</p>
-                    <p class="wf-texto">Importe total: 24,00 €</p>
-                    <p class="wf-texto">Estado: Pendiente</p>
-                    <p class="wf-texto">Propietario: ana</p>
-                    <p class="wf-texto">Enviada el 28 de noviembre de 2026</p>
-                  </div>
-                  <p class="wf-texto"></p>
-                  <span class="wf-boton wf-secundario">Cancelar solicitud</span><span class="wf-marca">1</span>
+                  <p class="wf-texto"><strong>Taladro percutor Bosch</strong> · 21–24 nov. 2026 · <span class="wf-chip">Pagada</span></p>
+                  <p class="wf-ayuda">Importe total: 20,00 € · Propietario: ana</p>
+                  <span class="wf-boton wf-secundario">Cancelar reserva</span><span class="wf-marca">1</span>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Escalera de aluminio</strong> · 5–6 dic. 2026 · <span class="wf-chip">Pendiente</span></p>
+                  <p class="wf-ayuda">🔒 Hemos bloqueado 8,00 € en tu tarjeta…</p>
+                  <span class="wf-boton wf-secundario">Cancelar solicitud</span><span class="wf-marca">2</span>
                 </div>
               </div>
               <div>
-                <h4>Recibidas <span class="wf-chip">1</span><span class="wf-marca">2</span></h4>
+                <p class="wf-texto"><strong>Recibidas</strong></p>
                 <div class="wf-tarjeta">
-                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
-                  <p class="wf-ayuda">8–10 dic. 2026</p>
+                  <p class="wf-texto"><strong>Bicicleta de montaña</strong> · 18–19 nov. 2026 · <span class="wf-chip">Pagada</span></p>
+                  <p class="wf-ayuda">Solicitada por bruno</p>
+                  <span class="wf-boton wf-secundario">Cancelar reserva</span><span class="wf-marca">3</span>
                 </div>
               </div>
             </div>
@@ -89,173 +65,254 @@
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Solo se ve en las solicitudes enviadas en estado Pendiente o Aceptada.</li>
-        <li>Las recibidas no tienen este botón: solo quien pidió la solicitud la puede cancelar, y la API rechaza a cualquier otra persona.</li>
+        <li>Criterio 1: en una reserva «Pagada» (o «Aceptada» del flujo anterior) sale «Cancelar reserva».</li>
+        <li>En una solicitud «Pendiente» el botón se llama «Cancelar solicitud» y es gratis: se libera el bloqueo.</li>
+        <li>
+          El propietario también puede cancelar desde «Recibidas». En una «Cancelada», «Rechazada», «Caducada», «En curso» o
+          «Finalizada» no sale el botón (y la API lo rechaza).
+        </li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Clic en «Cancelar solicitud» (solicitud sin rider asignado)</p>
+    <p class="wf-flecha">El arrendatario pulsa «Cancelar reserva» cuando faltan 5 días</p>
 
-    <section class="wf-pantalla" data-captura="3-confirmar">
-      <h2><span class="wf-paso">3</span>Ventana de confirmación <code>/mis-solicitudes</code></h2>
+    <section class="wf-pantalla" data-captura="2-confirmar-arrendatario">
+      <h2><span class="wf-paso">2</span>Ventana: cuánto cuesta cancelar hoy (arrendatario) <code>/mis-solicitudes</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
-            <div class="wf-centrado wf-tarjeta">
-              <h3 class="wf-h1">Cancelar solicitud</h3>
-              <p class="wf-texto">Bicicleta de paseo · Del 5 al 7 de diciembre de 2026</p>
-              <p class="wf-texto">La cancelación es gratuita. <span class="wf-marca">1</span></p>
-              <div class="wf-fila">
-                <span class="wf-boton">Confirmar</span>
-                <span class="wf-boton wf-secundario">Volver</span><span class="wf-marca">2</span>
+            <div class="wf-ventana">
+              <div class="wf-nav">
+                <h3 class="wf-h1">¿Cancelar la reserva?</h3>
+                <span class="wf-boton wf-secundario">×</span>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>Supuesto de la historia: es gratis mientras la solicitud está Pendiente. El texto de la ventana es propuesto.</li>
-        <li>«Volver» cierra la ventana y la solicitud no cambia.</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Variante: la solicitud ya tiene rider asignado</p>
-
-    <section class="wf-pantalla" data-captura="4-confirmar-con-rider">
-      <h2><span class="wf-paso">4</span>Ventana de confirmación con cargo de entrega <code>/mis-solicitudes</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
-          <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <div class="wf-centrado wf-tarjeta">
-              <h3 class="wf-h1">Cancelar solicitud</h3>
-              <p class="wf-texto">Tienda de campaña · Del 12 al 14 de diciembre de 2026</p>
-              <p class="wf-aviso">Esta solicitud ya tiene rider asignado: se te cobrará el coste de la entrega. <span class="wf-marca">1</span></p>
-              <div class="wf-fila">
-                <span class="wf-boton">Confirmar</span><span class="wf-marca">2</span>
+              <div class="wf-ventana-cuerpo">
+                <p class="wf-texto"><strong>Taladro percutor Bosch</strong> · del 21 al 24 de noviembre</p>
+                <p class="wf-aviso">Faltan 5 días para el inicio: pagarás el <strong>35 %</strong> del alquiler (<strong>7,00 €</strong>) a ana. <span class="wf-marca">1</span></p>
+                <p class="wf-texto">
+                  Pagaste: 20,00 €<br />
+                  Penalización (35 %): −7,00 €<br />
+                  <strong>Te devolvemos: 13,00 €</strong> <span class="wf-marca">2</span><br />
+                  La fianza se libera entera.
+                </p>
+                <p class="wf-ayuda">Menos de 3 días: 100 % · de 3 a 7: 35 % · 8 o más: nada. <span class="wf-marca">3</span></p>
+              </div>
+              <div class="wf-ventana-botones">
                 <span class="wf-boton wf-secundario">Volver</span>
+                <span class="wf-boton">Cancelar reserva</span><span class="wf-marca">4</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <div class="wf-ventana">
+              <div class="wf-nav"><h3 class="wf-h1">¿Cancelar la reserva?</h3><span class="wf-boton wf-secundario">×</span></div>
+              <div class="wf-ventana-cuerpo">
+                <p class="wf-aviso">Faltan 5 días: pagarás el 35 % del alquiler (7,00 €) a ana.</p>
+                <p class="wf-texto"><strong>Te devolvemos: 13,00 €</strong><br />La fianza se libera entera.</p>
+              </div>
+              <div class="wf-ventana-botones">
+                <span class="wf-boton wf-secundario wf-ancho">Volver</span>
+                <span class="wf-boton wf-ancho">Cancelar reserva</span>
+              </div>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Criterio 2: el porcentaje y el importe según los días que faltan, contados desde hoy hasta el inicio con la fecha
+          de España. Es el texto de la historia.
+        </li>
+        <li>Criterio 4: al arrendatario se le devuelve lo pagado menos la penalización, que cobra el propietario.</li>
+        <li>Criterio 3: la tabla, para que se entienda de dónde sale el porcentaje.</li>
+        <li>
+          Confirma. Mientras se procesa dice «Cancelando…» y los botones están desactivados. «Volver», «×» o Esc cierran sin
+          cambiar nada.
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Variante: el propietario cancela cuando faltan menos de 3 días</p>
+
+    <section class="wf-pantalla" data-captura="3-confirmar-propietario">
+      <h2><span class="wf-paso">3</span>Ventana: cancela el propietario <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-ventana">
+              <div class="wf-nav">
+                <h3 class="wf-h1">¿Cancelar la reserva?</h3>
+                <span class="wf-boton wf-secundario">×</span>
+              </div>
+              <div class="wf-ventana-cuerpo">
+                <p class="wf-texto"><strong>Bicicleta de montaña</strong> · del 18 al 19 de noviembre · solicitada por bruno</p>
+                <p class="wf-aviso">Faltan 2 días para el inicio: pagarás el <strong>100 %</strong> del alquiler (<strong>30,00 €</strong>) a bruno. <span class="wf-marca">1</span></p>
+                <p class="wf-texto">A bruno se le devuelve todo lo que pagó (30,00 €) y se libera su fianza. <span class="wf-marca">2</span></p>
+              </div>
+              <div class="wf-ventana-botones">
+                <span class="wf-boton wf-secundario">Volver</span>
+                <span class="wf-boton">Cancelar reserva</span>
               </div>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Criterio 2 (texto propuesto): el aviso solo sale si hay rider asignado.</li>
-        <li>Al confirmar se registra el cargo de entrega y el rider recibe una notificación, además del propietario.</li>
+        <li>Criterio 3: con menos de 3 días, el 100 %. La penalización queda registrada a cargo del propietario.</li>
+        <li>Criterio 4: si cancela el propietario, el arrendatario recupera todo.</li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Si al pulsar «Confirmar» la solicitud ya no se puede cancelar</p>
+    <p class="wf-flecha">Variante: cancelar una solicitud pendiente (o una «Aceptada» del flujo anterior, sin pago)</p>
+
+    <section class="wf-pantalla" data-captura="4-confirmar-gratis">
+      <h2><span class="wf-paso">4</span>Ventana: cancelar gratis <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-ventana">
+              <div class="wf-nav">
+                <h3 class="wf-h1">¿Cancelar la solicitud?</h3>
+                <span class="wf-boton wf-secundario">×</span>
+              </div>
+              <div class="wf-ventana-cuerpo">
+                <p class="wf-texto"><strong>Escalera de aluminio</strong> · del 5 al 6 de diciembre</p>
+                <p class="wf-aviso">Cancelar ahora es gratis: ana todavía no la ha aceptado. Liberamos los 8,00 € bloqueados en tu tarjeta. <span class="wf-marca">1</span></p>
+              </div>
+              <div class="wf-ventana-botones">
+                <span class="wf-boton wf-secundario">Volver</span>
+                <span class="wf-boton">Cancelar solicitud</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Supuesto de la historia: una solicitud pendiente se cancela gratis; con el pago al solicitar, se libera el bloqueo
+          (#72). En una «Aceptada» del flujo anterior no hay pago: el texto dice solo que es gratis.
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Si el reembolso falla al confirmar</p>
 
     <section class="wf-pantalla" data-captura="5-error">
-      <h2><span class="wf-paso">5</span>Error: la solicitud ya no se puede cancelar <code>/mis-solicitudes</code></h2>
+      <h2><span class="wf-paso">5</span>Error: no se ha podido cancelar <code>/mis-solicitudes</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
-            <h3 class="wf-h1">Mis solicitudes</h3>
-            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
-            <div class="wf-columnas wf-iguales">
-              <div>
-                <h4>Enviadas <span class="wf-chip">1</span></h4>
-                <div class="wf-tarjeta">
-                  <div class="wf-fila"><strong>Bicicleta de paseo</strong><span class="wf-chip">Pendiente</span><span>▴</span></div>
-                  <p class="wf-ayuda">5–7 dic. 2026</p>
-                  <p class="wf-texto"></p>
-                  <div class="wf-rejilla">
-                    <p class="wf-texto">Objeto: <span class="wf-enlace">Bicicleta de paseo</span></p>
-                    <p class="wf-texto">Fechas: Del 5 de diciembre de 2026 al 7 de diciembre de 2026</p>
-                    <p class="wf-texto">Importe total: 24,00 €</p>
-                    <p class="wf-texto">Estado: Pendiente<span class="wf-marca">2</span></p>
-                    <p class="wf-texto">Propietario: ana</p>
-                    <p class="wf-texto">Enviada el 28 de noviembre de 2026</p>
-                  </div>
-                  <p class="wf-aviso">Motivo que devuelve la API. <span class="wf-marca">1</span></p>
-                </div>
+            <div class="wf-ventana">
+              <div class="wf-nav"><h3 class="wf-h1">¿Cancelar la reserva?</h3><span class="wf-boton wf-secundario">×</span></div>
+              <div class="wf-ventana-cuerpo">
+                <p class="wf-aviso">Faltan 5 días para el inicio: pagarás el 35 % del alquiler (7,00 €) a ana.</p>
+                <p class="wf-error">⚠ No se ha podido cancelar. Inténtalo de nuevo. <span class="wf-marca">1</span></p>
               </div>
-              <div>
-                <h4>Recibidas <span class="wf-chip">1</span></h4>
-                <div class="wf-tarjeta">
-                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
-                  <p class="wf-ayuda">8–10 dic. 2026</p>
-                </div>
+              <div class="wf-ventana-botones">
+                <span class="wf-boton wf-secundario">Volver</span>
+                <span class="wf-boton">Cancelar reserva</span>
               </div>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Se muestra el motivo; la historia no fija los textos. Cada motivo lo define la API.</li>
-        <li>La solicitud no cambia.</li>
+        <li>
+          Texto de la historia. La reserva no cambia y se puede reintentar. Si ya no se puede cancelar (la otra persona la
+          canceló o empezó), sale el motivo de la API y la tarjeta se actualiza.
+        </li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Clic en «Confirmar» (pantalla 3 o 4) y la cancelación se realiza</p>
+    <p class="wf-flecha">Al confirmar y cancelarse la reserva</p>
 
     <section class="wf-pantalla" data-captura="6-destino">
-      <h2><span class="wf-paso">6</span>Destino: solicitud cancelada <code>/mis-solicitudes</code></h2>
+      <h2><span class="wf-paso">6</span>Destino: reserva cancelada, vista por las dos personas <code>/mis-solicitudes</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
-            <h3 class="wf-h1">Mis solicitudes</h3>
-            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
             <div class="wf-columnas wf-iguales">
-              <div>
-                <h4>Enviadas <span class="wf-chip">1</span></h4>
-                <div class="wf-tarjeta">
-                  <div class="wf-fila"><strong>Bicicleta de paseo</strong><span class="wf-chip">Cancelada</span><span>▴</span></div>
-                  <p class="wf-ayuda">5–7 dic. 2026</p>
-                  <p class="wf-texto"></p>
-                  <div class="wf-rejilla">
-                    <p class="wf-texto">Objeto: <span class="wf-enlace">Bicicleta de paseo</span></p>
-                    <p class="wf-texto">Fechas: Del 5 de diciembre de 2026 al 7 de diciembre de 2026</p>
-                    <p class="wf-texto">Importe total: 24,00 €</p>
-                    <p class="wf-texto">Estado: Cancelada<span class="wf-marca">1</span></p>
-                    <p class="wf-texto">Propietario: ana<span class="wf-marca">2</span></p>
-                    <p class="wf-texto">Enviada el 28 de noviembre de 2026</p>
-                  </div>
-                </div>
+              <div class="wf-tarjeta">
+                <p class="wf-ayuda">Lo ve bruno (arrendatario)</p>
+                <p class="wf-texto"><strong>Taladro percutor Bosch</strong> · 21–24 nov. 2026 · <span class="wf-chip">Cancelada</span> <span class="wf-marca">1</span></p>
+                <p class="wf-aviso">La cancelaste tú el 16 de noviembre. Penalización: 7,00 € (35 %) para ana. Te hemos devuelto 13,00 €. <span class="wf-marca">2</span></p>
               </div>
-              <div>
-                <h4>Recibidas <span class="wf-chip">1</span></h4>
-                <div class="wf-tarjeta">
-                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
-                  <p class="wf-ayuda">8–10 dic. 2026</p>
-                </div>
+              <div class="wf-tarjeta">
+                <p class="wf-ayuda">Lo ve ana (propietaria)</p>
+                <p class="wf-texto"><strong>Taladro percutor Bosch</strong> · 21–24 nov. 2026 · <span class="wf-chip">Cancelada</span></p>
+                <p class="wf-aviso">La canceló bruno el 16 de noviembre. Recibes la penalización: 7,00 € (35 %). <span class="wf-marca">3</span></p>
               </div>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Criterio 1: la solicitud pasa a Cancelada, desaparece «Cancelar solicitud» y las fechas quedan libres para otras personas.</li>
-        <li>Criterio 3: el propietario recibe una notificación (US-06.03), y también el rider si lo había.</li>
+        <li>Criterio 6: la reserva pasa a «Cancelada», desaparece el botón y las fechas quedan libres.</li>
+        <li>Quién canceló, cuándo, la penalización y lo devuelto. Sin penalización: «Sin penalización».</li>
+        <li>La otra persona lo ve la próxima vez que abre «Mis solicitudes» (las notificaciones son de US-06.03, Sprint 3).</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Otra entrada: al solicitar un objeto que empieza en menos de 3 días</p>
+
+    <section class="wf-pantalla" data-captura="7-aviso-al-solicitar">
+      <h2><span class="wf-paso">7</span>Aviso al solicitar con menos de 3 días de margen <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-imagen"></div>
+                <p class="wf-texto"></p>
+                <h3 class="wf-h1">Taladro percutor Bosch</h3>
+              </div>
+              <div class="wf-tarjeta">
+                <h3 class="wf-h1">Revisa tu solicitud</h3>
+                <p class="wf-ayuda">Desde: martes, 17 de noviembre · Hasta: miércoles, 18 de noviembre</p>
+                <p class="wf-texto">Importe del alquiler (2 días): 12,00 €</p>
+                <p class="wf-aviso">⚠ Empieza en menos de 3 días: si cancelas una vez aceptada, pagarás el alquiler completo. <span class="wf-marca">1</span></p>
+                <div class="wf-caja">Pago (tarjeta), como en US-07.01</div>
+                <p class="wf-texto"></p>
+                <span class="wf-boton wf-ancho">Enviar solicitud</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Criterio 5, en el resumen antes de enviar. La historia dice «si cancelas después de pagar»; con el pago al
+          solicitar, el cobro llega al aceptar, así que se propone «una vez aceptada». El texto exacto se confirma con la
+          historia.
+        </li>
       </ol>
     </section>
   </body>
