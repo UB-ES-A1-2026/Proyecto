@@ -3,6 +3,7 @@ import { useId, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import type { Reservation, ReservationStatus } from '../services/reservationService';
 import { Icon, type IconName } from './Icon';
+import { StarsDisplay } from './StarRating';
 
 const shortDateFormatter = new Intl.DateTimeFormat('es-ES', {
   day: 'numeric',
@@ -151,6 +152,30 @@ export function ReservationCard({
                 Enviada el {longDateFormatter.format(new Date(reservation.createdAt))}
               </ReservationFact>
             </div>
+            {/* US-08.01 (#296): quien la pidió valora el alquiler cuando ha terminado. Una vez
+                valorado, se ve la valoración en lugar de «Valorar». */}
+            {role === 'sent' && reservation.status === 'finished' && (
+              <div className="reservation-rating">
+                {reservation.myRating ? (
+                  <>
+                    <p className="reservation-rating-title">Tu valoración</p>
+                    <StarsDisplay score={reservation.myRating.score} />
+                    {reservation.myRating.comment && (
+                      <p className="reservation-rating-comment">«{reservation.myRating.comment}»</p>
+                    )}
+                  </>
+                ) : (
+                  <Link
+                    to={`/mis-solicitudes/${encodeURIComponent(reservation.id)}/valorar`}
+                    className="button-primary"
+                    aria-label={`Valorar el alquiler de ${reservation.item.title}`}
+                  >
+                    <Icon name="star" />
+                    Valorar
+                  </Link>
+                )}
+              </div>
+            )}
             {children}
           </div>
         </div>

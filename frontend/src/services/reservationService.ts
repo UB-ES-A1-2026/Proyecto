@@ -14,6 +14,15 @@ export type Reservation = {
   renter: { id: string; username: string };
   owner: { id: string; username: string };
   createdAt: string;
+  // Valoración que la persona de la sesión ha hecho de esta reserva, o null si aún no la ha
+  // valorado (US-08.01, #339).
+  myRating: Rating | null;
+};
+
+export type Rating = {
+  score: number;
+  comment: string | null;
+  createdAt: string;
 };
 
 export type MyReservations = {
