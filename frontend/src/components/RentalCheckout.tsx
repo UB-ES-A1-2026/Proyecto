@@ -230,8 +230,8 @@ export function RentalCheckout({
           <p className="rental-last-minute" role="note">
             <Icon name="warning" size="1.125rem" />
             <span>
-              Empieza en menos de 3 días: si cancelas una vez aceptada, pagarás el alquiler
-              completo.
+              Empieza en menos de 3 días: si cancelas una vez aceptada, compensarás al propietario
+              con el alquiler completo por las molestias.
             </span>
           </p>
         )}

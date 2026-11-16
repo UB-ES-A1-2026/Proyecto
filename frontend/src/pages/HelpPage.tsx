@@ -174,10 +174,36 @@ const SECTIONS: HelpSection[] = [
     title: 'Cancelar una reserva',
     steps: [
       'En «Mis solicitudes», abre la reserva: en «Enviadas» si la pediste tú, o en «Recibidas» si es de tu objeto.',
-      'Pulsa «Cancelar reserva» (o «Cancelar solicitud» si todavía está pendiente). Verás cuánto te cuesta cancelar hoy.',
+      'Pulsa «Cancelar reserva» (o «Cancelar solicitud» si todavía está pendiente). Si la reserva ya está pagada, verás la compensación que te tocaría pagar hoy.',
       'Pulsa «Cancelar reserva» para confirmarlo o «Volver» para dejarla como está.',
+      <>
+        Si la reserva ya está pagada, quien cancela compensa a la otra persona por las molestias con
+        una parte del alquiler, según los días que faltan para el inicio:
+        <table className="help-table">
+          <thead>
+            <tr>
+              <th scope="col">Días que faltan para el inicio</th>
+              <th scope="col">Compensación por las molestias</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Menos de 3</td>
+              <td>100 % del alquiler</td>
+            </tr>
+            <tr>
+              <td>De 3 a 7</td>
+              <td>35 % del alquiler</td>
+            </tr>
+            <tr>
+              <td>8 o más</td>
+              <td>Nada</td>
+            </tr>
+          </tbody>
+        </table>
+      </>,
     ],
-    note: 'Una solicitud pendiente se cancela gratis. Si la reserva ya está pagada, quien cancela paga a la otra persona una parte del alquiler según los días que faltan para el inicio: el 100 % con menos de 3 días, el 35 % de 3 a 7 días y nada con 8 o más.',
+    note: 'Una solicitud pendiente se cancela gratis. La fianza y la entrega no cuentan para la compensación, y la fianza se libera entera.',
   },
   {
     id: 'publicar',
