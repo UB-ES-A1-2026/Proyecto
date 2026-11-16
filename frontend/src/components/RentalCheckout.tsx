@@ -20,9 +20,9 @@ import { DELIVERY_ERROR_FIELDS, type DeliverySelection } from '../utils/delivery
 import {
   calculateTotalPrice,
   countRentalDays,
+  daysUntil,
   formatLongDate,
   formatPrice,
-  todayIso,
 } from '../utils/rental';
 import { CardFields, TestCardsNote } from './CardFields';
 import { Icon } from './Icon';
@@ -226,7 +226,7 @@ export function RentalCheckout({
           </dl>
         )}
         {/* US-04.05 (#309), criterio 5: con menos de 3 días, cancelar costará el alquiler entero. */}
-        {countRentalDays(todayIso(), startDate) - 1 < LAST_MINUTE_DAYS && (
+        {daysUntil(startDate) < LAST_MINUTE_DAYS && (
           <p className="rental-last-minute" role="note">
             <Icon name="warning" size="1.125rem" />
             <span>
