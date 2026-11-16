@@ -298,6 +298,7 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     return mockFetch((url) => {
       if (url.includes('/reservas/disponibilidad')) return Response.json({ available });
       if (url.endsWith('/reservas')) return Response.json(RESERVATION, { status: 201 });
+      if (url.endsWith('/usuarios/me/reservas')) return Response.json({ sent: [], received: [] });
       return Response.json(ITEM);
     });
   }

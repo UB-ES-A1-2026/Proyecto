@@ -10,13 +10,18 @@ const shortDateFormatter = new Intl.DateTimeFormat('es-ES', {
   year: 'numeric',
 });
 const longDateFormatter = new Intl.DateTimeFormat('es-ES', { dateStyle: 'long' });
-// Plazo para responder a una solicitud: «15 de noviembre, 10:30».
-const deadlineFormatter = new Intl.DateTimeFormat('es-ES', {
-  day: 'numeric',
-  month: 'long',
+// Plazo para responder a una solicitud: «15 de noviembre a las 10:30». La fecha y la hora se
+// formatean por separado porque, juntas, cada versión de ICU las une de una forma.
+const deadlineDateFormatter = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long' });
+const deadlineTimeFormatter = new Intl.DateTimeFormat('es-ES', {
   hour: '2-digit',
   minute: '2-digit',
 });
+
+function formatDeadline(date: string): string {
+  const deadline = new Date(date);
+  return `${deadlineDateFormatter.format(deadline)} a las ${deadlineTimeFormatter.format(deadline)}`;
+}
 const priceFormatter = new Intl.NumberFormat('es-ES', {
   style: 'currency',
   currency: 'EUR',
@@ -161,18 +166,18 @@ export function ReservationCard({
               </ReservationFact>
             </div>
             {/* Pago al solicitar (US-07.01, #286): mientras espera respuesta, el importe está
-                bloqueado en la tarjeta de quien la pidió y se cobra si el propietario acepta. */}
-            {reservation.status === 'pending' && (
+                bloqueado en la tarjeta de quien la pidió y se cobra si el propietario acepta. Solo
+                con plazo (expiresAt): las pendientes del flujo anterior no tienen nada bloqueado. */}
+            {reservation.status === 'pending' && reservation.expiresAt && (
               <p className="reservation-payment-note">
                 <Icon name="lock" size="1.125rem" />
                 <span>
                   {role === 'sent'
                     ? `Hemos bloqueado ${priceFormatter.format(Number(reservation.totalPrice))} en tu tarjeta. Se cobran si ${reservation.owner.username} acepta; si no, se liberan.`
                     : `Si la aceptas, se cobran ${priceFormatter.format(Number(reservation.totalPrice))} al momento; si la rechazas, se liberan.`}
-                  {reservation.expiresAt &&
-                    (role === 'sent'
-                      ? ` Tiene hasta el ${deadlineFormatter.format(new Date(reservation.expiresAt))} para responder.`
-                      : ` Responde antes del ${deadlineFormatter.format(new Date(reservation.expiresAt))}: si no, caduca.`)}
+                  {role === 'sent'
+                    ? ` Tiene hasta el ${formatDeadline(reservation.expiresAt)} para responder.`
+                    : ` Responde antes del ${formatDeadline(reservation.expiresAt)}: si no, caduca.`}
                 </span>
               </p>
             )}
