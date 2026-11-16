@@ -35,11 +35,13 @@ const dayFormatter = new Intl.DateTimeFormat('es-ES', {
 type AcceptedState = { accepted: AcceptJobsResult };
 type Notice = { id: string; result: AcceptJobsResult };
 
+// Estados de la entrega con los nombres de la historia US-05.02 (#67). Los valores de la API se
+// fijan con la máquina de estados de T13 (#288).
 const STATUS_LABELS: Record<JobStatus, string> = {
-  assigned: 'Asignado',
-  picked_up: 'Recogido',
+  assigned: 'Asignada',
+  picked_up: 'Recogida',
   on_the_way: 'En camino',
-  delivered: 'Entregado',
+  delivered: 'Entregada',
 };
 
 function parseLocalDate(date: string): Date {
