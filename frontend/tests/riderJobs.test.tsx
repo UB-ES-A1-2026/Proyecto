@@ -93,7 +93,7 @@ afterEach(() => {
 });
 
 describe('Trabajos disponibles (criterios 1 y 2)', () => {
-  it('cada trabajo enseña el objeto, los barrios, el día con la franja y lo que cobra, sin direcciones', async () => {
+  it('agrupa por día y cada trabajo enseña el objeto, los barrios, la franja y la tarifa, sin direcciones', async () => {
     logIn();
     mockApi({
       'GET /trabajos': Response.json({ jobs: [TIENDA, PROYECTOR, TALADRO] }),
@@ -104,15 +104,19 @@ describe('Trabajos disponibles (criterios 1 y 2)', () => {
     const tienda = (await screen.findByRole('checkbox', { name: TIENDA.item.title })).closest(
       'label',
     ) as HTMLElement;
-    expect(tienda).toHaveTextContent('De Gràcia a Les Corts');
-    expect(tienda).toHaveTextContent('Hoy · Lo antes posible');
-    expect(tienda).toHaveTextContent(/Cobras 3,00\s€/);
+    expect(tienda).toHaveTextContent('Recogida Gràcia Entrega Les Corts');
+    expect(tienda).toHaveTextContent('Lo antes posible');
+    expect(tienda).toHaveTextContent(/Tarifa 3,00\s€/);
+    // El lector oye también el día, que en pantalla está en el encabezado del grupo.
     expect(checkbox(PROYECTOR.item.title)).toHaveAccessibleDescription(
-      /De Poblenou a Sarrià Mañana · 17:00 – 19:00 Cobras 7,00\s€/,
+      /^Recogida Poblenou Entrega Sarrià Mañana, De 17:00 a 19:00 Tarifa 7,00\s€$/,
     );
-    expect(checkbox(TALADRO.item.title).closest('label')).toHaveTextContent(
-      'Sábado, 21 de noviembre · 09:00 – 11:00',
-    );
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
+      'Hoy',
+      'Mañana',
+      'Sábado, 21 de noviembre',
+    ]);
+    expect(checkbox(TALADRO.item.title).closest('label')).toHaveTextContent('De 09:00 a 11:00');
     expect(screen.queryByText(/Carrer/)).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Disponibles (3)' })).toHaveAttribute(
       'aria-current',
@@ -196,7 +200,7 @@ describe('Trabajos disponibles (criterios 1 y 2)', () => {
 });
 
 describe('Marcar y aceptar varios (criterio 3)', () => {
-  it('sin marcar ninguno no deja aceptar; al marcar dice cuántos y lo que cobrará', async () => {
+  it('sin seleccionar ninguno no deja aceptar; al seleccionar dice cuántos y el total', async () => {
     logIn();
     mockApi({
       'GET /trabajos': Response.json({ jobs: [TIENDA, TALADRO] }),
@@ -207,15 +211,15 @@ describe('Marcar y aceptar varios (criterio 3)', () => {
 
     const accept = await screen.findByRole('button', { name: 'Aceptar trabajos' });
     expect(accept).toBeDisabled();
-    expect(screen.getByText('Marca los trabajos que quieras hacer.')).toBeInTheDocument();
+    const summary = screen.getByText('Selecciona los trabajos que quieras hacer.');
 
     await user.click(checkbox(TIENDA.item.title));
-    expect(screen.getByText(/^1 trabajo marcado · cobrarás 3,00\s€$/)).toBeInTheDocument();
+    expect(summary).toHaveTextContent(/^1 seleccionado Total 3,00\s€$/);
 
-    // Toda la tarjeta marca la casilla.
+    // Toda la tarjeta selecciona.
     await user.click(screen.getByText('Taladro percutor Bosch'));
     expect(checkbox(TALADRO.item.title)).toBeChecked();
-    expect(screen.getByText(/^2 trabajos marcados · cobrarás 7,50\s€$/)).toBeInTheDocument();
+    expect(summary).toHaveTextContent(/^2 seleccionados Total 7,50\s€$/);
     expect(accept).toBeEnabled();
   });
 
@@ -244,11 +248,12 @@ describe('Marcar y aceptar varios (criterio 3)', () => {
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/trabajos/mios'));
     expect(await screen.findByRole('status')).toHaveTextContent('Te hemos asignado 2 trabajos.');
-    const list = await screen.findByRole('list', { name: 'Mis trabajos' });
-    const taladro = within(list).getByRole('heading', { name: TALADRO.item.title }).parentElement
-      ?.parentElement as HTMLElement;
-    expect(taladro).toHaveTextContent('Recoges en: Carrer de Verdi, 12, 2.º 1.ª (Gràcia)');
-    expect(taladro).toHaveTextContent('Entregas en: Carrer de Mallorca, 120, 3.º (Eixample)');
+    const taladro = (await screen.findByRole('heading', { name: TALADRO.item.title })).closest(
+      'li',
+    ) as HTMLElement;
+    expect(taladro).toHaveTextContent('Recogida Carrer de Verdi, 12, 2.º 1.ª (Gràcia)');
+    expect(taladro).toHaveTextContent('Entrega Carrer de Mallorca, 120, 3.º (Eixample)');
+    expect(taladro).toHaveTextContent(/Tarifa 4,50\s€/);
     expect(taladro).toHaveTextContent('Asignado');
     expect(within(taladro).getByRole('link', { name: 'Ver seguimiento' })).toHaveAttribute(
       'href',
