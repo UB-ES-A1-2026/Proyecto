@@ -1,6 +1,6 @@
 /*
  * Cancelar una reserva con penalización (US-04.05, #309): botón y ventana en «Mis solicitudes»,
- * la reserva cancelada y el aviso al solicitar con menos de 3 días.
+ * la reserva cancelada, el aviso al solicitar con menos de 3 días y la tabla de la ayuda.
  * Solo usa los tokens de :root de styles.css.
  */
 
@@ -24,12 +24,8 @@
   align-items: flex-start;
   margin: 0 0 var(--space-md);
   padding: var(--space-md);
-  background-color: var(--color-success-background);
-  border-radius: var(--radius);
-}
-
-.cancel-summary.is-penalty {
   background-color: var(--color-warning-soft);
+  border-radius: var(--radius);
 }
 
 .cancel-summary .icon {
@@ -96,4 +92,25 @@
   flex-shrink: 0;
   margin-top: 0.1rem;
   color: var(--color-warning);
+}
+
+/* Tabla de la compensación en la ayuda («?») */
+.help-table {
+  width: 100%;
+  max-width: 28rem;
+  margin-top: var(--space-sm);
+  border-collapse: collapse;
+  font-size: var(--font-size-small);
+}
+
+.help-table th,
+.help-table td {
+  padding: var(--space-xs) var(--space-sm);
+  text-align: left;
+  border-bottom: var(--border-width) solid var(--color-divider);
+}
+
+.help-table th {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
 }

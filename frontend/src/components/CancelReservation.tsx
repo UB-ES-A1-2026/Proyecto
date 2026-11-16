@@ -40,7 +40,9 @@ function daysText(days: number): string {
   return days === 1 ? 'Falta 1 día para el inicio' : `Faltan ${days} días para el inicio`;
 }
 
-// Lo que cuesta cancelar hoy, como en el wireframe (pantallas 2, 3 y 4).
+// Lo que supone cancelar hoy, como en el wireframe (pantallas 2 y 3). Lo que se paga a la otra
+// persona se presenta como una compensación por las molestias. Si es gratis no se dice nada: la
+// ventana es solo el aviso de cancelar.
 function PreviewText({
   preview,
   reservation,
@@ -50,43 +52,29 @@ function PreviewText({
   reservation: Reservation;
   role: Role;
 }) {
-  const other = role === 'sent' ? reservation.owner.username : reservation.renter.username;
+  if (preview.free) return null;
 
-  if (preview.free) {
-    return (
-      <p className="cancel-summary">
-        <Icon name="check_circle" size="1.125rem" />
-        <span>
-          {preview.releasesHold
-            ? `Cancelar ahora es gratis: ${reservation.owner.username} todavía no la ha aceptado. Liberamos los ${formatAmount(reservation.totalPrice)} bloqueados en tu tarjeta.`
-            : 'Cancelar ahora es gratis: todavía no se ha pagado.'}
-        </span>
-      </p>
-    );
-  }
+  const other = role === 'sent' ? reservation.owner.username : reservation.renter.username;
+  const refund =
+    role === 'sent'
+      ? preview.penaltyPercent > 0
+        ? `Te devolvemos ${formatAmount(preview.refundAmount)}. La fianza se libera entera.`
+        : `Te devolvemos todo lo que pagaste (${formatAmount(preview.refundAmount)}). La fianza se libera entera.`
+      : `A ${other} se le devuelve todo lo que pagó (${formatAmount(preview.refundAmount)}) y se libera su fianza.`;
 
   return (
     <>
-      <p className="cancel-summary is-penalty">
-        <Icon name="warning" size="1.125rem" />
-        <span>
-          {preview.penaltyPercent > 0 ? (
-            <>
-              {daysText(preview.daysUntilStart)}: pagarás el{' '}
-              <strong>{preview.penaltyPercent} %</strong> del alquiler (
-              <strong>{formatAmount(preview.penaltyAmount)}</strong>) a {other}.
-            </>
-          ) : (
-            `${daysText(preview.daysUntilStart)}: cancelar no tiene penalización.`
-          )}
-        </span>
-      </p>
-      <p className="cancel-refund">
-        {role === 'sent'
-          ? `Te devolvemos ${formatAmount(preview.refundAmount)}. La fianza se libera entera.`
-          : `A ${other} se le devuelve todo lo que pagó (${formatAmount(preview.refundAmount)}) y se libera su fianza.`}
-      </p>
-      <p className="field-hint">Menos de 3 días: 100 % · de 3 a 7: 35 % · 8 o más: nada.</p>
+      {preview.penaltyPercent > 0 && (
+        <p className="cancel-summary">
+          <Icon name="warning" size="1.125rem" />
+          <span>
+            {daysText(preview.daysUntilStart)}: compensarás a {other} con el{' '}
+            <strong>{preview.penaltyPercent} %</strong> del alquiler (
+            <strong>{formatAmount(preview.penaltyAmount)}</strong>) por las molestias.
+          </span>
+        </p>
+      )}
+      <p className="cancel-refund">{refund}</p>
     </>
   );
 }

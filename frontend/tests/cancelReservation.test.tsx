@@ -132,7 +132,7 @@ describe('«Cancelar» en Mis solicitudes (criterio 1)', () => {
 });
 
 describe('Ventana de cancelar (criterios 2, 3 y 4)', () => {
-  it('el arrendatario ve el porcentaje, el importe, lo que se le devuelve y la tabla', async () => {
+  it('el arrendatario ve la compensación por las molestias y lo que se le devuelve, sin la tabla', async () => {
     logIn();
     mockApi({
       'GET /usuarios/me/reservas': Response.json({ sent: [reservation()], received: [] }),
@@ -146,13 +146,14 @@ describe('Ventana de cancelar (criterios 2, 3 y 4)', () => {
 
     const dialog = await screen.findByRole('dialog', { name: '¿Cancelar reserva?' });
     expect(
-      await within(dialog).findByText(/Faltan 5 días para el inicio: pagarás el/),
-    ).toHaveTextContent(/35 % del alquiler \(7,00\s€\) a ana\./);
+      await within(dialog).findByText(/Faltan 5 días para el inicio: compensarás a ana con el/),
+    ).toHaveTextContent(/35 % del alquiler \(7,00\s€\) por las molestias\./);
     expect(dialog).toHaveTextContent(/Te devolvemos 13,00\s€\. La fianza se libera entera\./);
-    expect(dialog).toHaveTextContent('Menos de 3 días: 100 % · de 3 a 7: 35 % · 8 o más: nada.');
+    // La tabla de porcentajes está en la ayuda, no en la ventana.
+    expect(dialog).not.toHaveTextContent(/8 o más/);
   });
 
-  it('si cancela el propietario, la penalización es suya y al arrendatario se le devuelve todo', async () => {
+  it('si cancela el propietario, compensa él y al arrendatario se le devuelve todo', async () => {
     logIn(ANA);
     mockApi({
       'GET /usuarios/me/reservas': Response.json({ sent: [], received: [reservation()] }),
@@ -172,14 +173,14 @@ describe('Ventana de cancelar (criterios 2, 3 y 4)', () => {
 
     const dialog = await screen.findByRole('dialog');
     expect(await within(dialog).findByText(/Faltan 2 días para el inicio/)).toHaveTextContent(
-      /100 % del alquiler \(20,00\s€\) a bruno\./,
+      /compensarás a bruno con el 100 % del alquiler \(20,00\s€\) por las molestias\./,
     );
     expect(dialog).toHaveTextContent(
       /A bruno se le devuelve todo lo que pagó \(20,00\s€\) y se libera su fianza\./,
     );
   });
 
-  it('una solicitud pendiente se cancela gratis y se libera el bloqueo', async () => {
+  it('si es gratis, la ventana solo pide confirmar, sin textos de compensación', async () => {
     logIn();
     mockApi({
       'GET /usuarios/me/reservas': Response.json({
@@ -202,12 +203,16 @@ describe('Ventana de cancelar (criterios 2, 3 y 4)', () => {
     await user.click(screen.getByRole('button', { name: 'Cancelar solicitud' }));
 
     const dialog = await screen.findByRole('dialog', { name: '¿Cancelar solicitud?' });
-    expect(
-      await within(dialog).findByText(/Cancelar ahora es gratis: ana todavía no la ha aceptado/),
-    ).toHaveTextContent(/Liberamos los 20,00\s€ bloqueados en tu tarjeta\./);
+    await waitFor(() =>
+      expect(within(dialog).getByRole('button', { name: 'Cancelar solicitud' })).toBeEnabled(),
+    );
+    expect(dialog).toHaveTextContent(
+      'Taladro percutor Bosch · del 21 de noviembre al 24 de noviembre',
+    );
+    expect(dialog).not.toHaveTextContent(/compensa|devolvemos|gratis/i);
   });
 
-  it('al confirmar, la reserva pasa a «Cancelada» con quién la canceló y la penalización (criterio 6)', async () => {
+  it('al confirmar, la reserva pasa a «Cancelada» con quién la canceló y la compensación (criterio 6)', async () => {
     logIn();
     const fetchMock = mockApi({
       'GET /usuarios/me/reservas': Response.json({ sent: [reservation()], received: [] }),
@@ -231,7 +236,7 @@ describe('Ventana de cancelar (criterios 2, 3 y 4)', () => {
       'Cancelada',
     );
     expect(card).toHaveTextContent(
-      /La cancelaste tú el 16 de noviembre de 2026\. Penalización: 7,00\s€ \(35 %\) para ana\. Te hemos devuelto 13,00\s€\./,
+      /La cancelaste tú el 16 de noviembre de 2026\. Compensación a ana por las molestias: 7,00\s€ \(35 %\)\. Te hemos devuelto 13,00\s€\./,
     );
     expect(within(card).queryByRole('button', { name: 'Cancelar reserva' })).toBeNull();
     const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
@@ -345,13 +350,13 @@ describe('Reserva cancelada vista por cada persona (criterio 6)', () => {
   const cancelled = (cancellation: Reservation['cancellation']) =>
     reservation({ status: 'cancelled', cancellation });
 
-  it('si canceló el arrendatario, el propietario ve que recibe la penalización', () => {
+  it('si canceló el arrendatario, el propietario ve que recibe la compensación', () => {
     expect(renderCard(cancelled(CANCELLED_BY_BRUNO), 'received')).toHaveTextContent(
-      /La canceló bruno el 16 de noviembre de 2026\. Recibes la penalización: 7,00\s€ \(35 %\)\./,
+      /La canceló bruno el 16 de noviembre de 2026\. Recibes 7,00\s€ \(35 %\) como compensación por las molestias\./,
     );
   });
 
-  it('si canceló el propietario, el arrendatario recupera todo y la penalización es del propietario', () => {
+  it('si canceló el propietario, el arrendatario recupera todo y recibe la compensación', () => {
     const byAna = {
       by: { id: 'u1', username: 'ana' },
       at: '2026-11-16T10:00:00.000Z',
@@ -360,11 +365,11 @@ describe('Reserva cancelada vista por cada persona (criterio 6)', () => {
       refundAmount: '20.00',
     };
     expect(renderCard(cancelled(byAna), 'sent')).toHaveTextContent(
-      /La canceló ana el 16 de noviembre de 2026\. Te hemos devuelto todo lo que pagaste \(20,00\s€\); la penalización de 20,00\s€ \(100 %\) es a cargo de ana\./,
+      /La canceló ana el 16 de noviembre de 2026\. Te hemos devuelto todo lo que pagaste \(20,00\s€\) y recibes 20,00\s€ \(100 %\) como compensación por las molestias\./,
     );
   });
 
-  it('sin penalización lo dice', () => {
+  it('si fue gratis, solo dice quién y cuándo', () => {
     expect(
       renderCard(
         cancelled({
@@ -375,7 +380,7 @@ describe('Reserva cancelada vista por cada persona (criterio 6)', () => {
         }),
         'sent',
       ),
-    ).toHaveTextContent('La cancelaste tú el 16 de noviembre de 2026. Sin penalización.');
+    ).toHaveTextContent(/La cancelaste tú el 16 de noviembre de 2026\.$/);
   });
 });
 
@@ -413,12 +418,12 @@ describe('Aviso al solicitar con menos de 3 días (criterio 5)', () => {
     await screen.findByRole('heading', { name: 'Tu solicitud' });
   }
 
-  it('con 2 días de margen avisa de que cancelar costará el alquiler completo', async () => {
+  it('con 2 días de margen avisa de la compensación con el alquiler completo', async () => {
     await goToSummary('18/11/2026', '19/11/2026');
 
     expect(
       screen.getByText(
-        'Empieza en menos de 3 días: si cancelas una vez aceptada, pagarás el alquiler completo.',
+        'Empieza en menos de 3 días: si cancelas una vez aceptada, compensarás al propietario con el alquiler completo por las molestias.',
       ),
     ).toBeInTheDocument();
   });

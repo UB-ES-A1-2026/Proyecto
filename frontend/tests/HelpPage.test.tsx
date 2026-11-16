@@ -48,6 +48,24 @@ describe('página de ayuda (#89)', () => {
     }
   });
 
+  it('«Cancelar una reserva» explica la compensación por las molestias con una tabla', () => {
+    renderRoute('/ayuda');
+
+    const section = within(screen.getByRole('region', { name: 'Cancelar una reserva' }));
+    const rows = section
+      .getAllByRole('row')
+      .slice(1)
+      .map((row) => row.textContent);
+    expect(
+      section.getByRole('columnheader', { name: 'Compensación por las molestias' }),
+    ).toBeInTheDocument();
+    expect(rows).toEqual([
+      'Menos de 3100 % del alquiler',
+      'De 3 a 735 % del alquiler',
+      '8 o másNada',
+    ]);
+  });
+
   it('el índice enlaza a cada sección', () => {
     renderRoute('/ayuda');
 
