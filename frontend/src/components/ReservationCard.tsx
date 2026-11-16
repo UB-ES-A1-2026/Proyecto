@@ -347,31 +347,33 @@ export function ReservationCard({
   );
 }
 
-// Quién canceló, cuándo, la penalización y lo devuelto (US-04.05, #309), según quién lo mira.
+// Quién canceló, cuándo, la compensación por las molestias y lo devuelto (US-04.05, #309), según
+// quién lo mira.
 function cancellationText(reservation: Reservation, role: 'sent' | 'received'): string {
   const cancellation = reservation.cancellation;
   if (!cancellation) return '';
   const date = longDateFormatter.format(new Date(cancellation.at));
   const byRenter = cancellation.by.id === reservation.renter.id;
   const byMe = (role === 'sent') === byRenter;
-  const penalty = Number(cancellation.penaltyAmount);
+  const compensation = Number(cancellation.penaltyAmount);
   const refund = Number(cancellation.refundAmount);
-  const penaltyText = `${priceFormatter.format(penalty)} (${cancellation.penaltyPercent} %)`;
+  const compensationText = `${priceFormatter.format(compensation)} (${cancellation.penaltyPercent} %)`;
   const who = byMe
     ? `La cancelaste tú el ${date}.`
     : `La canceló ${cancellation.by.username} el ${date}.`;
 
-  if (penalty === 0) {
+  // Gratis: solo quién y cuándo (y lo devuelto, si había pago).
+  if (compensation === 0) {
     const refundText =
       refund > 0 && role === 'sent' ? ` Te hemos devuelto ${priceFormatter.format(refund)}.` : '';
-    return `${who} Sin penalización.${refundText}`;
+    return `${who}${refundText}`;
   }
   if (byRenter) {
     return role === 'sent'
-      ? `${who} Penalización: ${penaltyText} para ${reservation.owner.username}. Te hemos devuelto ${priceFormatter.format(refund)}.`
-      : `${who} Recibes la penalización: ${penaltyText}.`;
+      ? `${who} Compensación a ${reservation.owner.username} por las molestias: ${compensationText}. Te hemos devuelto ${priceFormatter.format(refund)}.`
+      : `${who} Recibes ${compensationText} como compensación por las molestias.`;
   }
   return role === 'sent'
-    ? `${who} Te hemos devuelto todo lo que pagaste (${priceFormatter.format(refund)}); la penalización de ${penaltyText} es a cargo de ${reservation.owner.username}.`
-    : `${who} Penalización a tu cargo: ${penaltyText}. A ${reservation.renter.username} se le ha devuelto todo (${priceFormatter.format(refund)}).`;
+    ? `${who} Te hemos devuelto todo lo que pagaste (${priceFormatter.format(refund)}) y recibes ${compensationText} como compensación por las molestias.`
+    : `${who} Compensación a ${reservation.renter.username} por las molestias: ${compensationText}. A ${reservation.renter.username} se le ha devuelto todo (${priceFormatter.format(refund)}).`;
 }
