@@ -23,6 +23,7 @@ function reservation(overrides: Partial<Reservation> = {}): Reservation {
     renter: { id: 'u2', username: 'bruno' },
     owner: { id: 'u1', username: 'ana' },
     createdAt: '2026-10-31T12:00:00.000Z',
+    myRating: null,
     ...overrides,
   };
 }
