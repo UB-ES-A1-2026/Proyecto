@@ -52,7 +52,7 @@ export function MyReservationsPage() {
   const [error, setError] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
-  // Aviso que deja otra pantalla al volver aquí, como «Pago registrado.» (US-07.01, #286).
+  // Aviso que deja otra pantalla al volver aquí, como «Solicitud enviada.» (US-07.01, #286).
   const [notice] = useState<string | null>(() => {
     const state: unknown = location.state;
     return typeof state === 'object' && state !== null && 'notice' in state

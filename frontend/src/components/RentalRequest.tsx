@@ -37,6 +37,8 @@ const EMPTY_CARD: CardDetails = { number: '', expiry: '', cvc: '' };
 // Un bloqueo con tarjeta caduca a los ~7 días: hasta 6 días de alquiler la fianza se bloquea el día
 // antes de empezar; si dura más, se cobra y se devuelve al terminar (propuesta de US-07.01, #286).
 const MAX_DEPOSIT_HOLD_DAYS = 6;
+// Stripe no puede retener menos de 0,50 €: con una fianza menor no hay pago de fianza (#72).
+const MIN_DEPOSIT_TO_HOLD = 0.5;
 
 type RentalRequestProps = {
   item: RentalItem;
@@ -179,6 +181,11 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
     const method = createPaymentMethod(card);
     if (!method.ok) {
       setCardErrors(method.errors);
+      const firstInvalid = (['number', 'expiry', 'cvc'] as const).find(
+        (field) => method.errors[field],
+      );
+      const input = firstInvalid ? event.currentTarget.elements.namedItem(firstInvalid) : null;
+      if (input instanceof HTMLInputElement) input.focus();
       return;
     }
 
@@ -221,7 +228,7 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
   }
 
   if (step === 'summary') {
-    const deposit = item.deposit ?? 0;
+    const deposit = (item.deposit ?? 0) >= MIN_DEPOSIT_TO_HOLD ? (item.deposit ?? 0) : 0;
     const owner = item.ownerName ?? 'el propietario';
     const depositCharged = days > MAX_DEPOSIT_HOLD_DAYS;
 

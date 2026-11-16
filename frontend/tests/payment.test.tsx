@@ -16,8 +16,7 @@ import type { Reservation } from '../src/services/reservationService';
 import { renderRoute } from './renderRoute';
 
 // US-07.01 Registrar un pago, frontend (#286), con la propuesta de pagar al solicitar:
-// la tarjeta se pide al solicitar, se bloquea el importe y se cobra cuando el propietario acepta;
-// con reserva inmediata se cobra al momento.
+// la tarjeta se pide al solicitar, se bloquea el importe y se cobra cuando el propietario acepta.
 
 const SESSION = {
   token: 'token-de-prueba',
@@ -242,6 +241,20 @@ describe('Pagar al solicitar desde la ficha', () => {
     expect(screen.getByText(CARD_ERRORS.expiry)).toBeInTheDocument();
     expect(screen.getByText(CARD_ERRORS.cvc)).toBeInTheDocument();
     expect(postCalls(fetchMock)).toHaveLength(0);
+    // El foco va al primer campo con error.
+    expect(screen.getByLabelText('Número de tarjeta')).toHaveFocus();
+  });
+
+  it('si solo falla la caducidad, el foco va a la caducidad', async () => {
+    mockRequestApi();
+    const user = userEvent.setup();
+    renderRequest();
+
+    await goToSummary(user);
+    fillCard(VISA, '13/30');
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+
+    expect(screen.getByLabelText('Caducidad')).toHaveFocus();
   });
 
   it('si la tarjeta se rechaza, se queda en el resumen con el error y puede reintentar', async () => {
@@ -278,6 +291,17 @@ describe('Pagar al solicitar desde la ficha', () => {
 
     expect(screen.queryByText(/Fianza/)).not.toBeInTheDocument();
     expect(screen.queryByText('Importe total')).not.toBeInTheDocument();
+    expect(document.querySelector('.rental-total')).toHaveTextContent(/18,00\s€/);
+  });
+
+  it('con una fianza de menos de 0,50 € no hay pago de fianza: Stripe no puede retenerla', async () => {
+    mockRequestApi();
+    const user = userEvent.setup();
+    renderRequest({ ...ITEM, deposit: 0.3 });
+
+    await goToSummary(user);
+
+    expect(screen.queryByText(/Fianza/)).not.toBeInTheDocument();
     expect(document.querySelector('.rental-total')).toHaveTextContent(/18,00\s€/);
   });
 });
@@ -342,11 +366,21 @@ describe('Ficha y «Mis solicitudes» con el pago al solicitar', () => {
     expect(screen.queryByRole('link', { name: /Pagar/, hidden: true })).not.toBeInTheDocument();
     const [sent, received] = screen.getAllByRole('article');
     expect(sent).toHaveTextContent(
-      /Hemos bloqueado 18,00\s€ en tu tarjeta\. Se cobran si ana acepta; si no, se liberan\. Tiene hasta el 3 de noviembre, \d{2}:30 para responder\./,
+      /Hemos bloqueado 18,00\s€ en tu tarjeta\. Se cobran si ana acepta; si no, se liberan\. Tiene hasta el 3 de noviembre a las \d{2}:30 para responder\./,
     );
     expect(received).toHaveTextContent(
-      /Si la aceptas, se cobran 18,00\s€ al momento; si la rechazas, se liberan\. Responde antes del 3 de noviembre, \d{2}:30: si no, caduca\./,
+      /Si la aceptas, se cobran 18,00\s€ al momento; si la rechazas, se liberan\. Responde antes del 3 de noviembre a las \d{2}:30: si no, caduca\./,
     );
+  });
+
+  it('una pendiente del flujo anterior, sin plazo, no dice que haya nada bloqueado', () => {
+    render(
+      <MemoryRouter>
+        <ReservationCard reservation={reservation({ expiresAt: null })} role="sent" />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole('article')).not.toHaveTextContent(/Hemos bloqueado/);
   });
 
   it('una solicitud caducada lo dice y explica que se ha liberado el importe', () => {
