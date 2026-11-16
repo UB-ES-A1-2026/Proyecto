@@ -13,6 +13,7 @@ const HELP_PATH = '/ayuda';
 // Flujos entregados hasta ahora. Al entregar uno nuevo, se añade aquí y en la página.
 const DELIVERED_FLOWS = [
   'Crear una cuenta',
+  'Hacerte rider',
   'Iniciar sesión',
   'Ver tu perfil',
   'Cerrar sesión',

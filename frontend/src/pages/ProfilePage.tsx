@@ -7,6 +7,7 @@ import { ApiError } from '../services/apiClient';
 import { getMyItems } from '../services/itemService';
 import { getMyReservations } from '../services/reservationService';
 import { getProfile, type UserProfile } from '../services/userService';
+import { RIDER_JOBS_PATH, isApprovedRider, isRiderSession } from '../utils/rider';
 
 const dateFormatter = new Intl.DateTimeFormat('es-ES', { dateStyle: 'long' });
 
@@ -62,6 +63,8 @@ export function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [itemCount, setItemCount] = useState<Count>('loading');
   const [requestCount, setRequestCount] = useState<Count>('loading');
+  // Una cuenta de rider no alquila ni publica (US-10.03): no ve ese bloque ni se piden sus cifras.
+  const rider = isRiderSession(session);
 
   useEffect(() => {
     if (!token) return;
@@ -90,7 +93,7 @@ export function ProfilePage() {
 
   // Las cifras son un extra: si fallan no se avisa, y del 401 ya se encarga la petición del perfil.
   useEffect(() => {
-    if (!token) return;
+    if (!token || rider) return;
     let ignore = false;
 
     getMyItems(token)
@@ -112,7 +115,7 @@ export function ProfilePage() {
     return () => {
       ignore = true;
     };
-  }, [token]);
+  }, [token, rider]);
 
   return (
     <section className="profile-page">
@@ -144,29 +147,51 @@ export function ProfilePage() {
           <ProfileSkeleton />
         )}
 
-        <div className="profile-activity">
-          <div className="profile-stats">
-            <ProfileStat
-              to="/mis-objetos"
-              title="Mis objetos"
-              count={itemCount}
-              fallback="Gestiona tus anuncios"
-              featured
-            />
-            <ProfileStat
-              to="/mis-solicitudes"
-              title="Mis solicitudes"
-              count={requestCount}
-              fallback="Enviadas y recibidas"
-            />
+        {rider ? (
+          // «Mi perfil» de un rider (US-10.03, T35 #315): generado con asistencia de IA (Claude) –
+          // revisado por Marc Sanz, 16/11/2026.
+          <div className="profile-activity">
+            {isApprovedRider(session) ? (
+              <div className="card profile-publish">
+                <p>Elige las entregas que quieres hacer.</p>
+                <Link to={RIDER_JOBS_PATH} className="button-primary">
+                  Ver trabajos
+                </Link>
+              </div>
+            ) : (
+              <div className="card profile-publish">
+                <p>Tu solicitud para ser rider aún no está aceptada.</p>
+                <Link to="/" className="button-secondary">
+                  Ver el estado de tu solicitud
+                </Link>
+              </div>
+            )}
           </div>
-          <div className="card profile-publish">
-            <p>¿Tienes algo que no usas?</p>
-            <Link to="/objetos/nuevo" className="button-primary">
-              Publicar un objeto
-            </Link>
+        ) : (
+          <div className="profile-activity">
+            <div className="profile-stats">
+              <ProfileStat
+                to="/mis-objetos"
+                title="Mis objetos"
+                count={itemCount}
+                fallback="Gestiona tus anuncios"
+                featured
+              />
+              <ProfileStat
+                to="/mis-solicitudes"
+                title="Mis solicitudes"
+                count={requestCount}
+                fallback="Enviadas y recibidas"
+              />
+            </div>
+            <div className="card profile-publish">
+              <p>¿Tienes algo que no usas?</p>
+              <Link to="/objetos/nuevo" className="button-primary">
+                Publicar un objeto
+              </Link>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="profile-logout">
           <LogoutButton />
