@@ -34,7 +34,7 @@ const TALADRO: AvailableJob = {
   item: { id: 'i2', title: 'Taladro percutor Bosch' },
   startDate: '2026-11-21',
   slot: '09:00-11:00',
-  fee: '4.50',
+  fee: '5.00',
   pickupNeighborhood: 'Gràcia',
   deliveryNeighborhood: 'Eixample',
 };
@@ -219,7 +219,7 @@ describe('Marcar y aceptar varios (criterio 3)', () => {
     // Toda la tarjeta selecciona.
     await user.click(screen.getByText('Taladro percutor Bosch'));
     expect(checkbox(TALADRO.item.title)).toBeChecked();
-    expect(summary).toHaveTextContent(/^2 seleccionados Total 7,50\s€$/);
+    expect(summary).toHaveTextContent(/^2 seleccionados Total 8,00\s€$/);
     expect(accept).toBeEnabled();
   });
 
@@ -253,8 +253,8 @@ describe('Marcar y aceptar varios (criterio 3)', () => {
     ) as HTMLElement;
     expect(taladro).toHaveTextContent('Recogida Carrer de Verdi, 12, 2.º 1.ª (Gràcia)');
     expect(taladro).toHaveTextContent('Entrega Carrer de Mallorca, 120, 3.º (Eixample)');
-    expect(taladro).toHaveTextContent(/Tarifa 4,50\s€/);
-    expect(taladro).toHaveTextContent('Asignado');
+    expect(taladro).toHaveTextContent(/Tarifa 5,00\s€/);
+    expect(taladro).toHaveTextContent('Asignada');
     expect(within(taladro).getByRole('link', { name: 'Ver seguimiento' })).toHaveAttribute(
       'href',
       '/entregas/j2',
