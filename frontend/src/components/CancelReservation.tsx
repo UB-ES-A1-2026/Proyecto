@@ -1,5 +1,5 @@
 // Generado con asistencia de IA (Claude)
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import {
@@ -16,6 +16,7 @@ const dayFormatter = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: '
 
 // Texto de la historia (#64) cuando falla el reembolso: la reserva no cambia.
 const CANCEL_FAILED = 'No se ha podido cancelar. Inténtalo de nuevo.';
+const PREVIEW_FAILED = 'No hemos podido calcular lo que cuesta cancelar. Inténtalo de nuevo.';
 
 type Role = 'sent' | 'received';
 
@@ -101,6 +102,8 @@ export function CancelReservation({
 
   const isRequest = reservation.status === 'pending';
   const label = isRequest ? 'Cancelar solicitud' : 'Cancelar reserva';
+  // Título del wireframe (pantallas 2 a 4).
+  const title = isRequest ? '¿Cancelar la solicitud?' : '¿Cancelar la reserva?';
 
   return (
     <div className="cancel-reservation">
@@ -114,6 +117,7 @@ export function CancelReservation({
           reservation={reservation}
           role={role}
           label={label}
+          title={title}
           onClose={() => setOpen(false)}
           onCancelled={(updated) => {
             setOpen(false);
@@ -132,6 +136,7 @@ function CancelDialog({
   reservation,
   role,
   label,
+  title,
   onClose,
   onCancelled,
   onOutdated,
@@ -141,6 +146,7 @@ function CancelDialog({
   reservation: Reservation;
   role: Role;
   label: string;
+  title: string;
   onClose: () => void;
   onCancelled: (updated: Reservation) => void;
   onOutdated?: () => void;
@@ -151,6 +157,14 @@ function CancelDialog({
   // Ya no se puede cancelar: se explica y no se deja confirmar.
   const [blocked, setBlocked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  // Si la vista previa falla por un error pasajero (500, sin conexión) se puede volver a pedir.
+  const [attempt, setAttempt] = useState(0);
+  const [previewFailed, setPreviewFailed] = useState(false);
+  // La lista se vuelve a pedir con la versión más reciente del aviso, sin repetir la petición.
+  const onOutdatedRef = useRef(onOutdated);
+  useEffect(() => {
+    onOutdatedRef.current = onOutdated;
+  });
 
   useEffect(() => {
     let ignore = false;
@@ -164,15 +178,28 @@ function CancelDialog({
           onSessionExpired();
           return;
         }
-        setError(requestError instanceof ApiError ? requestError.message : CANCEL_FAILED);
-        setBlocked(
-          requestError instanceof ApiError && [403, 404, 409].includes(requestError.status),
-        );
+        // Ya no se puede cancelar (otra persona la canceló o empezó): se explica y se actualiza
+        // la tarjeta. Con otro error, se puede reintentar.
+        if (requestError instanceof ApiError && [403, 404, 409].includes(requestError.status)) {
+          setError(requestError.message);
+          setBlocked(true);
+          onOutdatedRef.current?.();
+          return;
+        }
+        const offline = requestError instanceof ApiError && requestError.status === 0;
+        setError(offline ? requestError.message : PREVIEW_FAILED);
+        setPreviewFailed(true);
       });
     return () => {
       ignore = true;
     };
-  }, [token, reservation.id, onSessionExpired]);
+  }, [token, reservation.id, onSessionExpired, attempt]);
+
+  function retryPreview() {
+    setError(null);
+    setPreviewFailed(false);
+    setAttempt((current) => current + 1);
+  }
 
   async function confirm() {
     setSubmitting(true);
@@ -202,10 +229,11 @@ function CancelDialog({
   const end = dayFormatter.format(parseLocalDate(reservation.endDate));
 
   return (
-    <Modal title={`¿${label}?`} onClose={onClose}>
+    <Modal title={title} onClose={onClose} closeDisabled={submitting}>
       <p className="cancel-item">
         <strong>{reservation.item.title}</strong> ·{' '}
         {reservation.startDate === reservation.endDate ? start : `del ${start} al ${end}`}
+        {role === 'received' && ` · solicitada por ${reservation.renter.username}`}
       </p>
       {preview ? (
         <PreviewText preview={preview} reservation={reservation} role={role} />
@@ -226,15 +254,21 @@ function CancelDialog({
         <button type="button" className="button-secondary" disabled={submitting} onClick={onClose}>
           Volver
         </button>
-        {!blocked && (
-          <button
-            type="button"
-            className="button-primary"
-            disabled={submitting || !preview}
-            onClick={() => void confirm()}
-          >
-            {submitting ? 'Cancelando…' : label}
+        {previewFailed ? (
+          <button type="button" className="button-primary" onClick={retryPreview}>
+            Reintentar
           </button>
+        ) : (
+          !blocked && (
+            <button
+              type="button"
+              className="button-primary"
+              disabled={submitting || !preview}
+              onClick={() => void confirm()}
+            >
+              {submitting ? 'Cancelando…' : label}
+            </button>
+          )
         )}
       </div>
     </Modal>

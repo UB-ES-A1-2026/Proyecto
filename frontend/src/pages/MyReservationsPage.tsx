@@ -70,6 +70,9 @@ export function MyReservationsPage() {
     if (notice) void navigate('.', { replace: true, state: null });
   }, [notice, navigate]);
 
+  // La última que se ha cancelado aquí: su tarjeta lleva el foco al texto de la cancelación.
+  const [justCancelledId, setJustCancelledId] = useState<string | null>(null);
+
   useEffect(() => {
     if (!token) return;
     let ignore = false;
@@ -109,9 +112,10 @@ export function MyReservationsPage() {
     );
   }
 
-  // Al cancelar (US-04.05, #309), la tarjeta pasa a «Cancelada» con la penalización, sin volver a
+  // Al cancelar (US-04.05, #309), la tarjeta pasa a «Cancelada» con la compensación, sin volver a
   // pedir la lista.
   function handleCancelled(updated: Reservation) {
+    setJustCancelledId(updated.id);
     const replace = (list: Reservation[]) =>
       list.map((reservation) => (reservation.id === updated.id ? updated : reservation));
     setReservations(
@@ -158,7 +162,12 @@ export function MyReservationsPage() {
             emptyMessage="No tienes solicitudes abiertas"
           >
             {reservations.sent.map((reservation) => (
-              <ReservationCard key={reservation.id} reservation={reservation} role="sent">
+              <ReservationCard
+                key={reservation.id}
+                reservation={reservation}
+                role="sent"
+                justCancelled={reservation.id === justCancelledId}
+              >
                 <CancelReservation
                   reservation={reservation}
                   role="sent"
@@ -176,7 +185,12 @@ export function MyReservationsPage() {
             emptyMessage="Todavía no has recibido solicitudes."
           >
             {reservations.received.map((reservation) => (
-              <ReservationCard key={reservation.id} reservation={reservation} role="received">
+              <ReservationCard
+                key={reservation.id}
+                reservation={reservation}
+                role="received"
+                justCancelled={reservation.id === justCancelledId}
+              >
                 <ReservationDecision
                   reservationId={reservation.id}
                   status={reservation.status}
