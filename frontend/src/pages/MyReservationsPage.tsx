@@ -1,5 +1,6 @@
 // Generado con asistencia de IA – revisado por Danyal, 01/11/2026
 import { useEffect, useState, type ReactNode } from 'react';
+import { CancelReservation } from '../components/CancelReservation';
 import { useLocation, useNavigate } from 'react-router';
 import { Icon, type IconName } from '../components/Icon';
 import { ReservationCard } from '../components/ReservationCard';
@@ -7,7 +8,11 @@ import { ReservationDecision } from '../components/ReservationDecision';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import type { DecidedReservation } from '../services/reservationDecisionService';
-import { getMyReservations, type MyReservations } from '../services/reservationService';
+import {
+  getMyReservations,
+  type MyReservations,
+  type Reservation,
+} from '../services/reservationService';
 
 type ReservationSectionProps = {
   headingId: string;
@@ -104,6 +109,16 @@ export function MyReservationsPage() {
     );
   }
 
+  // Al cancelar (US-04.05, #309), la tarjeta pasa a «Cancelada» con la penalización, sin volver a
+  // pedir la lista.
+  function handleCancelled(updated: Reservation) {
+    const replace = (list: Reservation[]) =>
+      list.map((reservation) => (reservation.id === updated.id ? updated : reservation));
+    setReservations(
+      (current) => current && { sent: replace(current.sent), received: replace(current.received) },
+    );
+  }
+
   // Si falla, la tarjeta se queda como estaba: el aviso ya explica lo que ha pasado.
   function refreshReservations() {
     if (!token) return;
@@ -143,7 +158,14 @@ export function MyReservationsPage() {
             emptyMessage="No tienes solicitudes abiertas"
           >
             {reservations.sent.map((reservation) => (
-              <ReservationCard key={reservation.id} reservation={reservation} role="sent" />
+              <ReservationCard key={reservation.id} reservation={reservation} role="sent">
+                <CancelReservation
+                  reservation={reservation}
+                  role="sent"
+                  onCancelled={handleCancelled}
+                  onOutdated={refreshReservations}
+                />
+              </ReservationCard>
             ))}
           </ReservationSection>
           <ReservationSection
@@ -159,6 +181,12 @@ export function MyReservationsPage() {
                   reservationId={reservation.id}
                   status={reservation.status}
                   onDecided={handleDecided}
+                  onOutdated={refreshReservations}
+                />
+                <CancelReservation
+                  reservation={reservation}
+                  role="received"
+                  onCancelled={handleCancelled}
                   onOutdated={refreshReservations}
                 />
               </ReservationCard>

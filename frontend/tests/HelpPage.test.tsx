@@ -18,6 +18,7 @@ const SECTIONS = [
   { id: 'responder-solicitud', title: 'Aceptar o rechazar una solicitud' },
   { id: 'valorar', title: 'Valorar un alquiler' },
   { id: 'valorar-inquilino', title: 'Valorar a quien te ha alquilado un objeto' },
+  { id: 'cancelar', title: 'Cancelar una reserva' },
   { id: 'publicar', title: 'Publicar un objeto' },
   { id: 'editar', title: 'Editar un objeto' },
   { id: 'pausar', title: 'Pausar o reanudar un objeto' },
