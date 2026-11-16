@@ -15,8 +15,8 @@ export type Reservation = {
   owner: { id: string; username: string };
   createdAt: string;
   // Valoración que la persona de la sesión ha hecho de esta reserva, o null si aún no la ha
-  // valorado (US-08.01, #296). Opcional hasta que el backend (#295) la envíe.
-  myRating?: Rating | null;
+  // valorado (US-08.01, #339).
+  myRating: Rating | null;
 };
 
 export type Rating = {

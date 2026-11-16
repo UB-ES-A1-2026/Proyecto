@@ -125,6 +125,17 @@ const SECTIONS: HelpSection[] = [
     ],
     note: 'Las fechas quedan ocupadas cuando aceptas. Si otra reserva ya ocupa esas fechas, no se podrá aceptar y verás un aviso.',
   },
+  // Valorar un alquiler (US-08.01, #296): generado con asistencia de IA (Claude)
+  {
+    id: 'valorar',
+    title: 'Valorar un alquiler',
+    steps: [
+      'En «Mis solicitudes», abre en «Enviadas» un alquiler «Finalizado» y pulsa «Valorar».',
+      'Elige de 1 a 5 estrellas. Si quieres, escribe un comentario de hasta 1000 caracteres.',
+      'Pulsa «Publicar». Volverás a «Mis solicitudes» y en ese alquiler verás tu valoración.',
+    ],
+    note: 'Solo se puede valorar un alquiler finalizado, una sola vez. La puntuación es obligatoria y el comentario lo verán otras personas en el perfil del propietario.',
+  },
   {
     id: 'publicar',
     title: 'Publicar un objeto',
