@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
+import { createPaymentMethod, type CardDetails, type CardField } from '../services/cardGateway';
 import { checkAvailability, requestRental, type Reservation } from '../services/rentalService';
 import { monthOf, selectRangeDate } from '../utils/calendar';
 import {
@@ -17,6 +18,7 @@ import {
   validateRentalDates,
   type RentalDateErrors,
 } from '../utils/rental';
+import { CardFields } from './CardFields';
 import { DateRangeCalendar } from './DateRangeCalendar';
 import { Icon } from './Icon';
 
@@ -25,7 +27,18 @@ export type RentalItem = {
   title: string;
   pricePerDay: number;
   photoUrl?: string;
+  // Pago al solicitar (US-07.01, #286).
+  deposit?: number;
+  ownerName?: string;
 };
+
+const EMPTY_CARD: CardDetails = { number: '', expiry: '', cvc: '' };
+
+// Un bloqueo con tarjeta caduca a los ~7 días: hasta 6 días de alquiler la fianza se bloquea el día
+// antes de empezar; si dura más, se cobra y se devuelve al terminar (propuesta de US-07.01, #286).
+const MAX_DEPOSIT_HOLD_DAYS = 6;
+// Stripe no puede retener menos de 0,50 €: con una fianza menor no hay pago de fianza (#72).
+const MIN_DEPOSIT_TO_HOLD = 0.5;
 
 type RentalRequestProps = {
   item: RentalItem;
@@ -51,6 +64,8 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
   const [step, setStep] = useState<'dates' | 'summary'>('dates');
   const [submitting, setSubmitting] = useState(false);
   const [availability, setAvailability] = useState<AvailabilityResult | null>(null);
+  const [card, setCard] = useState<CardDetails>(EMPTY_CARD);
+  const [cardErrors, setCardErrors] = useState<Partial<Record<CardField, string>>>({});
   const { session, clearSession } = useAuth();
   const token = session?.token;
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -152,17 +167,35 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
     setStep('summary');
   }
 
-  async function handleConfirm() {
+  function handleCardChange(field: CardField, value: string) {
+    setCard((current) => ({ ...current, [field]: value }));
+    setCardErrors((current) => ({ ...current, [field]: undefined }));
+  }
+
+  async function handleConfirm(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     if (submitting || !session) return;
+    setFormError(null);
+
+    // La tarjeta se comprueba antes de llamar a la API: su número nunca sale hacia Rentit.
+    const method = createPaymentMethod(card);
+    if (!method.ok) {
+      setCardErrors(method.errors);
+      const firstInvalid = (['number', 'expiry', 'cvc'] as const).find(
+        (field) => method.errors[field],
+      );
+      const input = firstInvalid ? event.currentTarget.elements.namedItem(firstInvalid) : null;
+      if (input instanceof HTMLInputElement) input.focus();
+      return;
+    }
 
     setSubmitting(true);
-    setFormError(null);
     try {
-      const reservation = await requestRental(session.token, {
-        itemId: item.id,
-        startDate,
-        endDate,
-      });
+      const reservation = await requestRental(
+        session.token,
+        { itemId: item.id, startDate, endDate },
+        method.confirmationTokenId,
+      );
       onRequested(reservation);
     } catch (error) {
       // Los botones se reactivan siempre, también si el componente sigue montado tras un 401.
@@ -174,8 +207,8 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
         return;
       }
       // Errores de #120. Si el problema está en las fechas (409 por solape, con field), se vuelve
-      // a elegirlas; si no (objeto propio, no publicado, solicitud duplicada…), se queda en el
-      // resumen con el mensaje de la API.
+      // a elegirlas; si no (tarjeta rechazada, objeto propio, no publicado, solicitud
+      // duplicada…), se queda en el resumen con el mensaje de la API para probar otra vez.
       if (error instanceof ApiError && error.status === 409 && error.field && datesKey) {
         // Alguien ha ocupado las fechas después de consultarlas: ahora ya no están libres.
         setAvailability({ datesKey, available: false });
@@ -195,16 +228,15 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
   }
 
   if (step === 'summary') {
+    const deposit = (item.deposit ?? 0) >= MIN_DEPOSIT_TO_HOLD ? (item.deposit ?? 0) : 0;
+    const owner = item.ownerName ?? 'el propietario';
+    const depositCharged = days > MAX_DEPOSIT_HOLD_DAYS;
+
     return (
       <section key="summary" className="rental-request" aria-labelledby="rental-title">
         <h2 id="rental-title" ref={headingRef} tabIndex={-1}>
           Revisa tu solicitud
         </h2>
-        {formError && (
-          <p role="alert" className="form-error">
-            {formError}
-          </p>
-        )}
         <div className="rental-item">
           {item.photoUrl && <img src={item.photoUrl} alt="" className="rental-item-photo" />}
           <div>
@@ -218,29 +250,67 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
           <dt>Hasta</dt>
           <dd>{formatLongDate(endDate)}</dd>
           <dt>Importe del alquiler ({days === 1 ? '1 día' : `${days} días`})</dt>
-          <dd className="rental-total">{formatPrice(totalPrice)}</dd>
+          {/* El importe destacado es siempre el último: el total si hay fianza. */}
+          <dd className={deposit > 0 ? undefined : 'rental-total'}>{formatPrice(totalPrice)}</dd>
+          {deposit > 0 && (
+            <>
+              <dt>
+                {depositCharged
+                  ? 'Fianza (se cobra y se devuelve al terminar)'
+                  : 'Fianza (se retiene, no se cobra)'}
+              </dt>
+              <dd>{formatPrice(deposit)}</dd>
+              <dt>Importe total</dt>
+              <dd className="rental-total">{formatPrice(totalPrice + deposit)}</dd>
+            </>
+          )}
         </dl>
-        <div className="rental-actions">
-          <button
-            type="button"
-            className="button-secondary"
-            disabled={submitting}
-            onClick={() => {
-              setFormError(null);
-              setStep('dates');
-            }}
-          >
-            Volver
-          </button>
-          <button
-            type="button"
-            className="button-primary"
-            disabled={submitting}
-            onClick={handleConfirm}
-          >
-            {submitting ? 'Enviando…' : 'Confirmar'}
-          </button>
+
+        {/* Criterio de US-07.01 (#286): qué pasa con el dinero, antes de meter la tarjeta. */}
+        <div className="rental-payment-note">
+          <Icon name="lock" size="1.125rem" />
+          <p>
+            Bloquearemos {formatPrice(totalPrice)} en tu tarjeta.{' '}
+            <strong>Solo se cobran si {owner} acepta</strong>; si la rechaza o no responde en 48
+            horas, se liberan.
+            {deposit > 0 &&
+              (depositCharged
+                ? ` Como el alquiler dura más de ${MAX_DEPOSIT_HOLD_DAYS} días, la fianza (${formatPrice(deposit)}) se cobra el día antes de empezar y se devuelve al terminar.`
+                : ` La fianza (${formatPrice(deposit)}) se bloquea el día antes de empezar y se libera al terminar, sin cobrarla.`)}
+          </p>
         </div>
+
+        <form onSubmit={(event) => void handleConfirm(event)} noValidate>
+          <CardFields
+            card={card}
+            errors={cardErrors}
+            disabled={submitting}
+            onChange={handleCardChange}
+          />
+          {/* Justo encima del botón: es donde se mira al pulsar (p. ej. «Tu tarjeta ha sido rechazada.»). */}
+          {formError && (
+            <p role="alert" className="form-error rental-payment-error">
+              <Icon name="error" size="1.125rem" />
+              {formError}
+            </p>
+          )}
+          <div className="rental-actions">
+            <button
+              type="button"
+              className="button-secondary"
+              disabled={submitting}
+              onClick={() => {
+                setFormError(null);
+                setStep('dates');
+              }}
+            >
+              Volver
+            </button>
+            <button type="submit" className="button-primary" disabled={submitting}>
+              {submitting ? 'Procesando el pago…' : 'Enviar solicitud'}
+            </button>
+          </div>
+        </form>
       </section>
     );
   }

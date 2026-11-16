@@ -312,7 +312,12 @@ describe('Aceptar y rechazar desde Mis solicitudes (US-04.03 y US-04.04, #126)',
 
   it.each([
     ['Aceptar', '/reservas/r1/aceptar', 'Has aceptado la solicitud.', /Aceptada/],
-    ['Rechazar', '/reservas/r1/rechazar', 'Has rechazado la solicitud.', /Rechazada/],
+    [
+      'Rechazar',
+      '/reservas/r1/rechazar',
+      'Has rechazado la solicitud. Se ha liberado el importe bloqueado.',
+      /Rechazada/,
+    ],
   ])('«%s» llama a la API y la tarjeta cambia de estado', async (name, path, message, state) => {
     localStorage.setItem('rentit.session', JSON.stringify(SESSION));
     const fetchMock = mockApi({ sent: [], received: [reservation({ id: 'r1' })] });
