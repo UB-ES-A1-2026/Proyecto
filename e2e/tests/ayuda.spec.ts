@@ -19,6 +19,7 @@ test.use({ reducedMotion: "reduce" });
 const DELIVERED_FLOWS = [
   "Crear una cuenta",
   "Hacerte rider",
+  "Aceptar trabajos de entrega",
   "Iniciar sesión",
   "Ver y editar tu perfil",
   "Cerrar sesión",
