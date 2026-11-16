@@ -8,6 +8,7 @@ import { RiderStatusCard } from '../components/RiderStatusCard';
 import { SearchBar } from '../components/SearchBar';
 import { getCategories, type Category } from '../services/categoryService';
 import { searchItems, type SearchItem } from '../services/searchService';
+import { getProfile } from '../services/userService';
 import { RIDER_JOBS_PATH, isApprovedRider, isRiderSession } from '../utils/rider';
 
 const NEWEST_ITEMS_COUNT = 8;
@@ -188,11 +189,49 @@ function PublicHome() {
   );
 }
 
+// Inicio de un rider pendiente o rechazado: enseña el estado guardado en la sesión y lo pide de
+// nuevo a la API, porque un admin puede haberlo cambiado mientras la sesión sigue abierta. Si ha
+// cambiado, se guarda en la sesión; si lo aceptan, HomePage lo lleva a «Trabajos» sin volver a
+// entrar. Si la petición falla, se queda como estaba.
+// Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 16/11/2026
+function RiderHome() {
+  const { session, saveSession } = useAuth();
+  // Se pide una sola vez al entrar en el inicio, aunque después cambie la sesión al guardar.
+  const [refreshed, setRefreshed] = useState(false);
+
+  useEffect(() => {
+    if (refreshed || !session) return;
+    let ignore = false;
+    getProfile(session.token)
+      .then((profile) => {
+        if (ignore) return;
+        setRefreshed(true);
+        const riderStatus = profile.riderStatus ?? session.user.riderStatus ?? null;
+        const rejectionReason = profile.rejectionReason ?? session.user.rejectionReason ?? null;
+        if (
+          riderStatus !== (session.user.riderStatus ?? null) ||
+          rejectionReason !== (session.user.rejectionReason ?? null)
+        ) {
+          saveSession({ ...session, user: { ...session.user, riderStatus, rejectionReason } });
+        }
+      })
+      .catch(() => {
+        // Sin conexión o error de la API: se queda el estado que ya había.
+        if (!ignore) setRefreshed(true);
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [refreshed, session, saveSession]);
+
+  return session ? <RiderStatusCard user={session.user} /> : null;
+}
+
 // Un rider no ve la portada (US-10.03, T35 #315): el aceptado va a «Trabajos» y el pendiente o
 // rechazado ve el estado de su solicitud.
 export function HomePage() {
   const { session } = useAuth();
-  if (session && isApprovedRider(session)) return <Navigate to={RIDER_JOBS_PATH} replace />;
-  if (session && isRiderSession(session)) return <RiderStatusCard user={session.user} />;
+  if (isApprovedRider(session)) return <Navigate to={RIDER_JOBS_PATH} replace />;
+  if (isRiderSession(session)) return <RiderHome />;
   return <PublicHome />;
 }

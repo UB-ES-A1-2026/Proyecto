@@ -1,6 +1,6 @@
 // Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 13/11/2026
 // Guardas de rutas para las cuentas de rider (US-10.03, T35 #315).
-import { Navigate, Outlet, useLocation } from 'react-router';
+import { Navigate, Outlet } from 'react-router';
 import { useAuth } from '../context/useAuth';
 import { isApprovedRider, isRiderSession } from '../utils/rider';
 
@@ -19,11 +19,10 @@ export function GuestOnlyRoute() {
   return <Outlet />;
 }
 
-// «Trabajos» solo para riders aceptados. Sin sesión, al login; con otra cuenta, al inicio.
+// «Trabajos» solo para riders aceptados; con otra cuenta, al inicio. Va dentro de PrivateRoute,
+// que ya lleva al login si no hay sesión.
 export function ApprovedRiderRoute() {
   const { session } = useAuth();
-  const location = useLocation();
-  if (!session) return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   if (!isApprovedRider(session)) return <Navigate to="/" replace />;
   return <Outlet />;
 }

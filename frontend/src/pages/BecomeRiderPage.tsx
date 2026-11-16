@@ -111,7 +111,7 @@ const RIDER_TERMS = [
   'Cuidas los objetos y los entregas a tiempo, en el estado en que los recoges.',
   'Solo marcas un objeto como entregado con el código que te da quien lo recibe.',
   'Tus datos se usan solo para gestionar las entregas.',
-  'Puedes darte de baja cuando quieras.',
+  'Puedes dejar de aceptar trabajos cuando quieras.',
   'Rentit puede desactivar tu cuenta si no cumples estas condiciones.',
 ];
 
@@ -312,6 +312,7 @@ export function BecomeRiderPage() {
 
           <fieldset
             className="publish-fieldset form-field"
+            aria-invalid={errors.vehicle ? true : undefined}
             aria-describedby={errors.vehicle ? 'rider-vehicle-error' : undefined}
           >
             <legend>Vehículo</legend>
@@ -341,6 +342,7 @@ export function BecomeRiderPage() {
 
           <fieldset
             className="publish-fieldset form-field"
+            aria-invalid={errors.days ? true : undefined}
             aria-describedby={describedBy('days', 'rider-days-hint')}
           >
             <legend>Días que puedes repartir</legend>
@@ -373,6 +375,7 @@ export function BecomeRiderPage() {
 
           <fieldset
             className="publish-fieldset form-field"
+            aria-invalid={errors.slots ? true : undefined}
             aria-describedby={describedBy('slots', 'rider-slots-hint')}
           >
             <legend>Franjas</legend>
