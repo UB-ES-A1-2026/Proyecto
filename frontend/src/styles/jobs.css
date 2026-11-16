@@ -1,0 +1,220 @@
+/*
+ * «Trabajos» del rider (US-10.01, #293): pestañas, tarjetas para marcar, barra de aceptar y
+ * «Mis trabajos». Solo usa los tokens de :root de styles.css.
+ */
+
+.rider-jobs {
+  max-width: var(--reading-max-width);
+}
+
+/* Pestañas «Disponibles» y «Mis trabajos» */
+.jobs-tabs {
+  display: flex;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  border-bottom: var(--border-width) solid var(--color-divider);
+}
+
+.jobs-tab {
+  padding: var(--space-sm) 0;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: calc(-1 * var(--border-width));
+}
+
+.jobs-tab:hover {
+  color: var(--color-text);
+}
+
+.jobs-tab[aria-current='page'] {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  border-bottom-color: var(--color-accent);
+}
+
+.jobs-list {
+  display: grid;
+  gap: var(--space-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.job-card {
+  display: block;
+  padding: var(--space-md) var(--space-lg);
+}
+
+/* Disponibles: toda la tarjeta marca la casilla */
+.job-option {
+  display: flex;
+  gap: var(--space-md);
+  align-items: flex-start;
+  cursor: pointer;
+  transition: border-color var(--duration) var(--ease-out);
+}
+
+.job-option input {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0.15rem 0 0;
+  accent-color: var(--color-primary);
+}
+
+.job-option:hover {
+  border-color: var(--color-border);
+}
+
+.job-option.is-selected {
+  border-color: var(--color-primary);
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+}
+
+.job-option:focus-within {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.job-body,
+.job-details {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.job-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.job-fact {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: flex-start;
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.job-fact .icon {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.job-fact strong {
+  color: var(--color-text);
+}
+
+.job-fee {
+  margin-top: var(--space-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Barra fija con lo marcado y «Aceptar trabajos» */
+.jobs-action-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-md);
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-lg);
+  padding: var(--space-md) var(--space-lg);
+  background-color: var(--color-background);
+  border: var(--border-width) solid var(--color-border-soft);
+  border-radius: var(--radius-large);
+  box-shadow: var(--shadow-lg);
+}
+
+.jobs-action-summary {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+}
+
+/* Dos clases: styles.css se carga después de los @import y le ganaría el ancho del botón. */
+.jobs-action-bar .button-primary {
+  width: auto;
+}
+
+@media (max-width: 760px) {
+  /* Encima de la barra de navegación del móvil. */
+  .jobs-action-bar {
+    bottom: calc(var(--bottom-bar-height) + env(safe-area-inset-bottom) + var(--space-sm));
+  }
+
+  .jobs-action-bar .button-primary {
+    width: 100%;
+  }
+}
+
+/* Resultado de aceptar */
+.jobs-result {
+  display: grid;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.jobs-result:focus {
+  outline: none;
+}
+
+.jobs-assigned,
+.jobs-taken li {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: flex-start;
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius);
+}
+
+.jobs-assigned {
+  color: var(--color-success);
+  background-color: var(--color-success-background);
+}
+
+.jobs-taken {
+  display: grid;
+  gap: var(--space-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.jobs-taken li {
+  background-color: var(--color-warning-soft);
+}
+
+.jobs-taken .icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: var(--color-warning);
+}
+
+.jobs-load-error {
+  display: grid;
+  gap: var(--space-md);
+  justify-items: start;
+}
+
+/* Mis trabajos */
+.job-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-sm);
+}
+
+.job-card .job-fact + .job-fact {
+  margin-top: var(--space-xs);
+}
+
+.job-card .job-tracking {
+  width: auto;
+  margin-top: var(--space-md);
+}

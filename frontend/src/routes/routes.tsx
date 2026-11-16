@@ -69,7 +69,8 @@ export const routes: RouteObject[] = [
           { path: 'perfil', element: <MyProfileRedirect /> },
           {
             element: <ApprovedRiderRoute />,
-            children: [{ path: 'trabajos', element: <RiderJobsPage /> }],
+            // «Disponibles» (/trabajos) y «Mis trabajos» (/trabajos/mios) son la misma página (US-10.01).
+            children: [{ path: 'trabajos/mios?', element: <RiderJobsPage /> }],
           },
           // Seguimiento de la entrega (US-05.02): el id es el de la reserva. Lo ven el arrendatario,
           // el propietario y el rider de la entrega.
