@@ -1,8 +1,8 @@
 // Generado con asistencia de IA (Claude)
-// «Trabajos» de un rider aceptado (US-10.01, #293): los disponibles, para marcar varios y
-// aceptarlos a la vez, y «Mis trabajos», con la dirección completa. Sustituye a la pantalla
-// provisional de US-10.03.
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+// «Trabajos» de un rider aceptado (US-10.01, #293): los disponibles, agrupados por día, para
+// seleccionar varios y aceptarlos a la vez, y «Mis trabajos», con la dirección completa. Sustituye
+// a la pantalla provisional de US-10.03.
+import { Fragment, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation, useMatch, useNavigate } from 'react-router';
 import { Icon, type IconName } from '../components/Icon';
 import { useAuth } from '../context/useAuth';
@@ -62,13 +62,11 @@ function formatDay(date: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-// «asap» → «Lo antes posible»; «09:00-11:00» → «09:00 – 11:00».
+// «asap» → «Lo antes posible»; «09:00-11:00» → «De 09:00 a 11:00».
 function formatSlot(slot: string): string {
-  return slot === ASAP_SLOT ? 'Lo antes posible' : slot.replace('-', ' – ');
-}
-
-function formatWhen(job: AvailableJob): string {
-  return `${formatDay(job.startDate)} · ${formatSlot(job.slot)}`;
+  if (slot === ASAP_SLOT) return 'Lo antes posible';
+  const [from, to] = slot.split('-');
+  return `De ${from} a ${to}`;
 }
 
 function formatFee(fee: string | number): string {
@@ -77,6 +75,18 @@ function formatFee(fee: string | number): string {
 
 function jobsText(count: number): string {
   return count === 1 ? '1 trabajo' : `${count} trabajos`;
+}
+
+// Los trabajos ya llegan ordenados por fecha: se agrupan por día conservando ese orden.
+function groupByDay<T extends AvailableJob>(jobs: T[]): { day: string; jobs: T[] }[] {
+  const groups: { day: string; jobs: T[] }[] = [];
+  for (const job of jobs) {
+    const day = job.startDate.slice(0, 10);
+    const last = groups.at(-1);
+    if (last?.day === day) last.jobs.push(job);
+    else groups.push({ day, jobs: [job] });
+  }
+  return groups;
 }
 
 function loadErrorMessage(error: unknown): string {
@@ -158,7 +168,7 @@ export function RiderJobsPage() {
         <div>
           <h1 className="page-title">Trabajos</h1>
           <p className="page-subtitle">
-            Marca las entregas que quieras hacer y síguelas desde «Mis trabajos».
+            Elige las entregas que quieras hacer. Verás las direcciones completas al aceptarlas.
           </p>
         </div>
       </div>
@@ -190,7 +200,7 @@ export function RiderJobsPage() {
           <p role="status" className="manage-visually-hidden">
             Cargando los trabajos…
           </p>
-          <div className="jobs-list" aria-hidden="true">
+          <div className="jobs-day-list" aria-hidden="true">
             {[0, 1, 2].map((placeholder) => (
               <div key={placeholder} className="skeleton reservation-skeleton" />
             ))}
@@ -254,6 +264,43 @@ function EmptyJobs({ icon, children }: { icon: IconName; children: ReactNode }) 
   );
 }
 
+// El trayecto de una entrega: de dónde se recoge a dónde se entrega. Hasta aceptar, solo barrios.
+function JobRoute({
+  id,
+  pickup,
+  delivery,
+}: {
+  id?: string;
+  pickup: ReactNode;
+  delivery: ReactNode;
+}) {
+  return (
+    <span id={id} className="job-route">
+      <span className="job-stop">
+        <span className="job-stop-label">Recogida</span>{' '}
+        <span className="job-stop-place">{pickup}</span>
+      </span>{' '}
+      <span className="job-stop">
+        <span className="job-stop-label">Entrega</span>{' '}
+        <span className="job-stop-place">{delivery}</span>
+      </span>
+    </span>
+  );
+}
+
+function JobFee({ id, fee }: { id?: string; fee: string }) {
+  return (
+    <span id={id} className="job-fee">
+      <span className="job-fee-label">Tarifa</span>{' '}
+      <span className="job-fee-amount">{formatFee(fee)}</span>
+    </span>
+  );
+}
+
+function DayHeading({ day }: { day: string }) {
+  return <h2 className="jobs-day">{formatDay(day)}</h2>;
+}
+
 function AvailableJobsList({
   jobs,
   token,
@@ -269,7 +316,7 @@ function AvailableJobsList({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Solo cuentan los marcados que siguen en la lista.
+  // Solo cuentan los seleccionados que siguen en la lista.
   const marked = jobs.filter((job) => selected.has(job.id));
   const total = marked.reduce((sum, job) => sum + Number(job.fee), 0);
 
@@ -325,54 +372,67 @@ function AvailableJobsList({
           {error}
         </p>
       )}
-      <ul className="jobs-list">
-        {jobs.map((job) => {
-          const titleId = `job-${job.id}-title`;
-          const detailId = `job-${job.id}-detail`;
-          const checked = selected.has(job.id);
-          return (
-            <li key={job.id}>
-              {/* Toda la tarjeta marca la casilla; el lector lee el objeto y luego el detalle. */}
-              <label className={`job-card card job-option${checked ? ' is-selected' : ''}`}>
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  disabled={submitting}
-                  aria-labelledby={titleId}
-                  aria-describedby={`${detailId}-route ${detailId}-when ${detailId}-fee`}
-                  onChange={() => toggle(job.id)}
-                />
-                <span className="job-body">
-                  <span id={titleId} className="job-title">
-                    {job.item.title}
-                  </span>
-                  <span className="job-details">
-                    <span className="job-fact">
-                      <Icon name="location_on" />
-                      <span id={`${detailId}-route`}>
-                        De <strong>{job.pickupNeighborhood}</strong> a{' '}
-                        <strong>{job.deliveryNeighborhood}</strong>
+      <div className="jobs-day-list">
+        {groupByDay(jobs).map((group) => (
+          <Fragment key={group.day}>
+            <DayHeading day={group.day} />
+            <ul className="jobs-list">
+              {group.jobs.map((job) => {
+                const ids = `job-${job.id}`;
+                const checked = selected.has(job.id);
+                return (
+                  <li key={job.id}>
+                    {/* Toda la tarjeta selecciona; el lector lee el objeto y luego el detalle. */}
+                    <label className={`job-card job-option${checked ? ' is-selected' : ''}`}>
+                      <input
+                        type="checkbox"
+                        className="job-check"
+                        checked={checked}
+                        disabled={submitting}
+                        aria-labelledby={`${ids}-title`}
+                        aria-describedby={`${ids}-route ${ids}-when ${ids}-fee`}
+                        onChange={() => toggle(job.id)}
+                      />
+                      <span className="job-main">
+                        <span id={`${ids}-title`} className="job-title">
+                          {job.item.title}
+                        </span>
+                        <JobRoute
+                          id={`${ids}-route`}
+                          pickup={job.pickupNeighborhood}
+                          delivery={job.deliveryNeighborhood}
+                        />
+                        <span id={`${ids}-when`} className="job-slot">
+                          <Icon name="schedule" />
+                          <span className="manage-visually-hidden">
+                            {formatDay(job.startDate)},
+                          </span>{' '}
+                          {formatSlot(job.slot)}
+                        </span>
                       </span>
-                    </span>
-                    <span className="job-fact">
-                      <Icon name="event" />
-                      <span id={`${detailId}-when`}>{formatWhen(job)}</span>
-                    </span>
-                    <span id={`${detailId}-fee`} className="job-fee">
-                      Cobras {formatFee(job.fee)}
-                    </span>
-                  </span>
-                </span>
-              </label>
-            </li>
-          );
-        })}
-      </ul>
+                      <JobFee id={`${ids}-fee`} fee={job.fee} />
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          </Fragment>
+        ))}
+      </div>
       <div className="jobs-action-bar">
         <p aria-live="polite" className="jobs-action-summary">
-          {marked.length === 0
-            ? 'Marca los trabajos que quieras hacer.'
-            : `${marked.length === 1 ? '1 trabajo marcado' : `${marked.length} trabajos marcados`} · cobrarás ${formatFee(total)}`}
+          {marked.length === 0 ? (
+            'Selecciona los trabajos que quieras hacer.'
+          ) : (
+            <>
+              <span>
+                {marked.length === 1 ? '1 seleccionado' : `${marked.length} seleccionados`}
+              </span>{' '}
+              <span className="jobs-action-total">
+                Total <strong>{formatFee(total)}</strong>
+              </span>
+            </>
+          )}
         </p>
         <button
           type="submit"
@@ -392,36 +452,50 @@ function MyJobsList({ jobs }: { jobs: MyJob[] }) {
   }
 
   return (
-    <ul className="jobs-list" aria-label="Mis trabajos">
-      {jobs.map((job) => (
-        <li key={job.id} className="job-card card">
-          <div className="job-header">
-            <h2 className="job-title">{job.item.title}</h2>
-            <span className="badge badge-success">{STATUS_LABELS[job.status] ?? job.status}</span>
-          </div>
-          <p className="job-fact">
-            <Icon name="pin_drop" />
-            <span>
-              Recoges en: {job.pickupAddress} ({job.pickupNeighborhood})
-            </span>
-          </p>
-          <p className="job-fact">
-            <Icon name="location_on" />
-            <span>
-              Entregas en: {job.deliveryAddress} ({job.deliveryNeighborhood})
-            </span>
-          </p>
-          <p className="job-fact">
-            <Icon name="event" />
-            <span>
-              {formatWhen(job)} · Cobras {formatFee(job.fee)}
-            </span>
-          </p>
-          <Link to={`/entregas/${job.id}`} className="button-secondary job-tracking">
-            Ver seguimiento
-          </Link>
-        </li>
+    <div className="jobs-day-list">
+      {groupByDay(jobs).map((group) => (
+        <Fragment key={group.day}>
+          <DayHeading day={group.day} />
+          <ul className="jobs-list">
+            {group.jobs.map((job) => (
+              <li key={job.id} className="job-card job-assigned">
+                <div className="job-main">
+                  <div className="job-header">
+                    <h3 className="job-title">{job.item.title}</h3>
+                    <span className="badge badge-success">
+                      {STATUS_LABELS[job.status] ?? job.status}
+                    </span>
+                  </div>
+                  <JobRoute
+                    pickup={
+                      <>
+                        {job.pickupAddress}{' '}
+                        <span className="job-stop-area">({job.pickupNeighborhood})</span>
+                      </>
+                    }
+                    delivery={
+                      <>
+                        {job.deliveryAddress}{' '}
+                        <span className="job-stop-area">({job.deliveryNeighborhood})</span>
+                      </>
+                    }
+                  />
+                  <span className="job-slot">
+                    <Icon name="schedule" />
+                    {formatSlot(job.slot)}
+                  </span>
+                </div>
+                <div className="job-side">
+                  <JobFee fee={job.fee} />
+                  <Link to={`/entregas/${job.id}`} className="button-secondary job-tracking">
+                    Ver seguimiento
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Fragment>
       ))}
-    </ul>
+    </div>
   );
 }

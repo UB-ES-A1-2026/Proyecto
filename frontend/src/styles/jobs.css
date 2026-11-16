@@ -1,6 +1,7 @@
 /*
- * «Trabajos» del rider (US-10.01, #293): pestañas, tarjetas para marcar, barra de aceptar y
- * «Mis trabajos». Solo usa los tokens de :root de styles.css.
+ * «Trabajos» del rider (US-10.01, #293). Lo que destaca es el trayecto de cada entrega
+ * (recogida → entrega, como una línea de ruta) y la tarifa a la derecha; el resto, sobrio y con los
+ * tokens de :root de styles.css.
  */
 
 .rider-jobs {
@@ -16,11 +17,11 @@
 }
 
 .jobs-tab {
+  margin-bottom: calc(-1 * var(--border-width));
   padding: var(--space-sm) 0;
   color: var(--color-text-muted);
   text-decoration: none;
   border-bottom: 2px solid transparent;
-  margin-bottom: calc(-1 * var(--border-width));
 }
 
 .jobs-tab:hover {
@@ -33,34 +34,48 @@
   border-bottom-color: var(--color-accent);
 }
 
+/* Lista agrupada por día */
+.jobs-day-list {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.jobs-day {
+  margin: var(--space-lg) 0 0;
+  font-size: 1rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.jobs-day:first-child {
+  margin-top: 0;
+}
+
 .jobs-list {
   display: grid;
-  gap: var(--space-md);
+  gap: var(--space-sm);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/* Tarjeta de un trabajo: casilla, datos y tarifa */
 .job-card {
-  display: block;
-  padding: var(--space-md) var(--space-lg);
-}
-
-/* Disponibles: toda la tarjeta marca la casilla */
-.job-option {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: var(--space-md);
-  align-items: flex-start;
-  cursor: pointer;
-  transition: border-color var(--duration) var(--ease-out);
+  align-items: start;
+  padding: var(--space-md) var(--space-lg);
+  background-color: var(--color-background);
+  border: var(--border-width) solid var(--color-border-soft);
+  border-radius: var(--radius-large);
 }
 
-.job-option input {
-  flex-shrink: 0;
-  width: 1.25rem;
-  height: 1.25rem;
-  margin: 0.15rem 0 0;
-  accent-color: var(--color-primary);
+.job-option {
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
 }
 
 .job-option:hover {
@@ -68,53 +83,179 @@
 }
 
 .job-option.is-selected {
+  background-color: color-mix(in srgb, var(--color-primary-soft) 45%, var(--color-background));
   border-color: var(--color-primary);
-  box-shadow: inset 0 0 0 1px var(--color-primary);
 }
 
-.job-option:focus-within {
+.job-option:has(.job-check:focus-visible) {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 
-.job-body,
-.job-details {
+.job-check {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0.15rem 0 0;
+  accent-color: var(--color-primary);
+}
+
+.job-main {
   display: grid;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
+  min-width: 0;
 }
 
 .job-title {
   margin: 0;
   font-size: 1rem;
   font-weight: var(--font-weight-bold);
-}
-
-.job-fact {
-  display: flex;
-  gap: var(--space-xs);
-  align-items: flex-start;
-  margin: 0;
-  color: var(--color-text-muted);
-}
-
-.job-fact .icon {
-  flex-shrink: 0;
-  margin-top: 0.15rem;
-}
-
-.job-fact strong {
   color: var(--color-text);
 }
 
-.job-fee {
-  margin-top: var(--space-xs);
-  font-weight: var(--font-weight-bold);
+/* Trayecto: punto hueco en la recogida, lleno en la entrega y una línea que los une */
+.job-route {
+  display: grid;
+  gap: var(--space-xs);
 }
 
-/* Barra fija con lo marcado y «Aceptar trabajos» */
+.job-stop {
+  position: relative;
+  display: grid;
+  grid-template-columns: 4.75rem minmax(0, 1fr);
+  gap: var(--space-sm);
+  align-items: baseline;
+  padding-left: 1.25rem;
+}
+
+.job-stop::before {
+  position: absolute;
+  top: 0.35em;
+  left: 0;
+  width: 0.625rem;
+  height: 0.625rem;
+  content: '';
+  background-color: var(--color-background);
+  border: 2px solid var(--color-primary);
+  border-radius: 50%;
+}
+
+.job-stop + .job-stop::before {
+  background-color: var(--color-primary);
+}
+
+.job-stop:first-child::after {
+  position: absolute;
+  top: calc(0.35em + 0.625rem);
+  bottom: calc(-0.35em - var(--space-xs));
+  left: calc(0.3125rem - 1px);
+  width: 2px;
+  content: '';
+  background-color: var(--color-border);
+}
+
+.job-stop-label {
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+.job-stop-place {
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.job-stop-area {
+  font-weight: normal;
+  color: var(--color-text-muted);
+}
+
+.job-slot {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+/* Tarifa: la cifra que el rider mira primero */
+.job-fee {
+  display: grid;
+  justify-items: end;
+  line-height: 1.2;
+}
+
+.job-fee-label {
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+.job-fee-amount {
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-primary);
+}
+
+/* Mis trabajos: tarifa y seguimiento a la derecha */
+.job-assigned {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.job-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.job-side {
+  display: grid;
+  gap: var(--space-md);
+  justify-items: end;
+}
+
+/* Dos clases: styles.css se carga después de los @import y le ganaría el ancho del botón. */
+.job-side .job-tracking {
+  width: auto;
+}
+
+@media (max-width: 520px) {
+  .job-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: var(--space-md);
+  }
+
+  /* La tarifa baja debajo del trayecto, en una sola línea. */
+  .job-option .job-fee {
+    grid-column: 2;
+    display: flex;
+    gap: var(--space-sm);
+    align-items: baseline;
+    justify-content: flex-start;
+  }
+
+  .job-assigned {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .job-side {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    justify-items: start;
+  }
+
+  .job-side .job-tracking {
+    justify-self: end;
+  }
+
+  .job-side .job-fee {
+    justify-items: start;
+  }
+}
+
+/* Barra fija con lo seleccionado y «Aceptar trabajos» */
 .jobs-action-bar {
   position: sticky;
-  bottom: 0;
+  bottom: var(--space-md);
   z-index: 5;
   display: flex;
   flex-wrap: wrap;
@@ -130,8 +271,21 @@
 }
 
 .jobs-action-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-md);
+  align-items: baseline;
   margin: 0;
-  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.jobs-action-total {
+  color: var(--color-text);
+}
+
+.jobs-action-total strong {
+  font-size: 1.125rem;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Dos clases: styles.css se carga después de los @import y le ganaría el ancho del botón. */
@@ -198,23 +352,4 @@
   display: grid;
   gap: var(--space-md);
   justify-items: start;
-}
-
-/* Mis trabajos */
-.job-header {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-sm);
-}
-
-.job-card .job-fact + .job-fact {
-  margin-top: var(--space-xs);
-}
-
-.job-card .job-tracking {
-  width: auto;
-  margin-top: var(--space-md);
 }
