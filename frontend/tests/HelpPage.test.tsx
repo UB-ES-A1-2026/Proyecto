@@ -16,6 +16,7 @@ const SECTIONS = [
   { id: 'solicitar', title: 'Solicitar un alquiler' },
   { id: 'mis-solicitudes', title: 'Consultar tus solicitudes' },
   { id: 'responder-solicitud', title: 'Aceptar o rechazar una solicitud' },
+  { id: 'cancelar', title: 'Cancelar una reserva' },
   { id: 'publicar', title: 'Publicar un objeto' },
   { id: 'editar', title: 'Editar un objeto' },
   { id: 'pausar', title: 'Pausar o reanudar un objeto' },

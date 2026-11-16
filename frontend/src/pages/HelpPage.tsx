@@ -142,6 +142,16 @@ const SECTIONS: HelpSection[] = [
     note: 'Las fechas quedan ocupadas cuando aceptas. Si otra reserva ya ocupa esas fechas, no se podrá aceptar y verás un aviso.',
   },
   {
+    id: 'cancelar',
+    title: 'Cancelar una reserva',
+    steps: [
+      'En «Mis solicitudes», abre la reserva: en «Enviadas» si la pediste tú, o en «Recibidas» si es de tu objeto.',
+      'Pulsa «Cancelar reserva» (o «Cancelar solicitud» si todavía está pendiente). Verás cuánto te cuesta cancelar hoy.',
+      'Pulsa «Cancelar reserva» para confirmarlo o «Volver» para dejarla como está.',
+    ],
+    note: 'Una solicitud pendiente se cancela gratis. Si la reserva ya está pagada, quien cancela paga a la otra persona una parte del alquiler según los días que faltan para el inicio: el 100 % con menos de 3 días, el 35 % de 3 a 7 días y nada con 8 o más.',
+  },
+  {
     id: 'publicar',
     title: 'Publicar un objeto',
     steps: [
