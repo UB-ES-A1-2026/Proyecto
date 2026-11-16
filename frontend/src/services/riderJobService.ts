@@ -10,12 +10,13 @@ export type AvailableJob = {
   startDate: string;
   // «asap» o «HH:MM-HH:MM», como en US-05.01.
   slot: string;
-  // Lo que cobra el rider: la tarifa de entrega de la reserva, como texto («4.50»).
+  // Lo que cobra el rider: la tarifa de entrega de la reserva, por tramos («3.00», «5.00» o «7.00»).
   fee: string;
   pickupNeighborhood: string;
   deliveryNeighborhood: string;
 };
 
+// Estados de la entrega de US-05.02: los nombres de la API se confirman con T13 (#288).
 export type JobStatus = 'assigned' | 'picked_up' | 'on_the_way' | 'delivered';
 
 // Una vez aceptado, con la dirección completa.
