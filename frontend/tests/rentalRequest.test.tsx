@@ -64,11 +64,21 @@ function renderRentalRequest() {
   return { onRequested, onSessionExpired, clearSession };
 }
 
-// Elige fechas válidas, pasa al resumen y pulsa «Confirmar».
+// Escribe la tarjeta de prueba que se acepta (pago al solicitar, US-07.01 #286).
+function fillCard() {
+  fireEvent.change(screen.getByLabelText('Número de tarjeta'), {
+    target: { value: '4242 4242 4242 4242' },
+  });
+  fireEvent.change(screen.getByLabelText('Caducidad'), { target: { value: '12/30' } });
+  fireEvent.change(screen.getByLabelText('CVC'), { target: { value: '123' } });
+}
+
+// Elige fechas válidas, pasa al resumen, escribe la tarjeta y pulsa «Enviar solicitud».
 async function confirmRequest(user: ReturnType<typeof userEvent.setup>) {
   await chooseAvailableDates('04/11/2026', '06/11/2026');
   await user.click(requestButton());
-  await user.click(screen.getByRole('button', { name: 'Confirmar' }));
+  fillCard();
+  await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
 }
 
 function chooseDates(startDate: string, endDate: string) {
@@ -279,7 +289,7 @@ describe('solicitar un alquiler (US-04.01, #121)', () => {
     await confirmRequest(user);
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Ha ocurrido un error inesperado.');
-    expect(screen.getByRole('button', { name: 'Confirmar' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Enviar solicitud' })).toBeEnabled();
   });
 
   it('con la sesión caducada la borra y avisa para volver al login', async () => {
@@ -300,18 +310,25 @@ describe('requestRental (#121)', () => {
     const fetchMock = mockFetch(() => Response.json(RENTAL, { status: 201 }));
 
     await expect(
-      requestRental('token-de-prueba', {
-        itemId: 'item-1',
-        startDate: '2026-11-04',
-        endDate: '2026-11-06',
-      }),
+      requestRental(
+        'token-de-prueba',
+        { itemId: 'item-1', startDate: '2026-11-04', endDate: '2026-11-06' },
+        'ctoken_simulado',
+      ),
     ).resolves.toEqual(RENTAL);
     expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/reservas$/);
+    // Pago al solicitar (US-07.01, #286): va el método de pago, nunca el número de la tarjeta.
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toEqual({
+      itemId: 'item-1',
+      startDate: '2026-11-04',
+      endDate: '2026-11-06',
+      confirmationTokenId: 'ctoken_simulado',
+    });
   });
 });
 
 describe('cambios de la revisión de #203', () => {
-  it('desactiva «Volver» y «Confirmar» mientras se envía', async () => {
+  it('desactiva «Volver» y «Enviar solicitud» mientras se envía', async () => {
     let respond: (response: Response) => void = () => {};
     mockFetch(() => new Promise<Response>((resolve) => (respond = resolve)));
     const user = userEvent.setup();
@@ -319,7 +336,7 @@ describe('cambios de la revisión de #203', () => {
 
     await confirmRequest(user);
 
-    expect(screen.getByRole('button', { name: 'Enviando…' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Procesando el pago…' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Volver' })).toBeDisabled();
 
     respond(Response.json(RENTAL, { status: 201 }));
@@ -354,7 +371,7 @@ describe('cambios de la revisión de #203', () => {
     await confirmRequest(user);
 
     await vi.waitFor(() => expect(clearSession).toHaveBeenCalled());
-    expect(screen.getByRole('button', { name: 'Confirmar' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Enviar solicitud' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Volver' })).toBeEnabled();
   });
 });

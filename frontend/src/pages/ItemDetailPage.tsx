@@ -125,8 +125,17 @@ function RentalAction({ item }: { item: ItemDetail }) {
         title: item.title,
         pricePerDay: Number(item.dailyPrice),
         photoUrl: item.photos[0]?.url,
+        deposit: Number(item.deposit),
+        ownerName: item.owner.username,
       }}
-      onRequested={() => navigate('/mis-solicitudes')}
+      // Pago al solicitar (US-07.01, #286): «Mis solicitudes» dice qué ha pasado con el dinero.
+      onRequested={() =>
+        navigate('/mis-solicitudes', {
+          state: {
+            notice: `Solicitud enviada. Hemos bloqueado el importe hasta que ${item.owner.username} responda.`,
+          },
+        })
+      }
       onSessionExpired={goToLogin}
     />
   );

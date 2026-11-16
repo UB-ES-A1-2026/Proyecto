@@ -200,7 +200,7 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
   });
 
   // Criterio 4
-  test('antes de enviar se ve un resumen con el objeto, las fechas, el importe y «Confirmar»', async ({
+  test('antes de enviar se ve un resumen con el objeto, las fechas, el importe y el pago', async ({
     page,
     request,
   }) => {
@@ -223,22 +223,35 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
     await expect(panel.getByText('Desde')).toBeVisible();
     await expect(panel.getByText('Hasta')).toBeVisible();
     await expect(panel.getByText('Importe del alquiler (3 días)')).toBeVisible();
-    await expect(panel.locator('.rental-total')).toHaveText(/27,00\s€/);
+    await expect(
+      panel.getByText('Importe del alquiler (3 días)').locator('xpath=following-sibling::dd[1]'),
+    ).toHaveText(/27,00\s€/);
+    // Pago al solicitar (US-07.01, #286): con fianza, el importe destacado es el total.
+    await expect(panel.locator('.rental-total')).toHaveText(/87,00\s€/);
+    await expect(panel.getByText(/Bloquearemos 27,00\s€ en tu tarjeta/)).toBeVisible();
+    await expect(panel.getByLabel('Número de tarjeta')).toBeVisible();
     await expect(panel.getByRole('button', { name: 'Volver' })).toBeVisible();
-    await expect(panel.getByRole('button', { name: 'Confirmar' })).toBeVisible();
+    await expect(panel.getByRole('button', { name: 'Enviar solicitud' })).toBeVisible();
     // Todavía no se ha creado nada
     expect(await sentCount(request, BRUNO)).toBe(before);
   });
 
   // Criterio 5
-  test('al confirmar se crea la solicitud con estado «Pendiente»', async ({ page, request }) => {
+  test('al enviar con una tarjeta de prueba se crea la solicitud «Pendiente»', async ({
+    page,
+    request,
+  }) => {
     const before = await sentCount(request, BRUNO);
     await startRequest(page, ITEM, 'cortacésped');
     const start = freeStart();
     await fillDates(page, inDaysText(start), inDaysText(start + 2));
     await page.getByRole('button', { name: 'Solicitar alquiler' }).click();
 
-    await page.getByRole('button', { name: 'Confirmar' }).click();
+    // Pago al solicitar (US-07.01, #286): tarjeta de prueba que acepta la pasarela simulada.
+    await page.getByLabel('Número de tarjeta').fill('4242 4242 4242 4242');
+    await page.getByLabel('Caducidad').fill('12/30');
+    await page.getByLabel('CVC').fill('123');
+    await page.getByRole('button', { name: 'Enviar solicitud' }).click();
 
     await expect(page).toHaveURL('/mis-solicitudes');
     await expect(
