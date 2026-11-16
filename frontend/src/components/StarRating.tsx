@@ -1,5 +1,5 @@
 // Generado con asistencia de IA (Claude)
-import { useId, useState } from 'react';
+import { useId, useState, type Ref } from 'react';
 import { Icon } from './Icon';
 
 const SCORES = [1, 2, 3, 4, 5] as const;
@@ -17,11 +17,19 @@ type StarRatingProps = {
   onChange: (score: number) => void;
   error?: string | null;
   disabled?: boolean;
+  // Primera estrella: para llevar el foco aquí cuando falta la puntuación.
+  firstStarRef?: Ref<HTMLInputElement>;
 };
 
 // Puntuación de 1 a 5 estrellas (US-08.01, #296). Son botones de opción de verdad (se eligen con
 // las flechas del teclado), con la estrella como dibujo; al pasar el ratón se ve cómo quedaría.
-export function StarRating({ value, onChange, error, disabled = false }: StarRatingProps) {
+export function StarRating({
+  value,
+  onChange,
+  error,
+  disabled = false,
+  firstStarRef,
+}: StarRatingProps) {
   const id = useId();
   const [hovered, setHovered] = useState<number | null>(null);
   const shown = hovered ?? value ?? 0;
@@ -43,6 +51,7 @@ export function StarRating({ value, onChange, error, disabled = false }: StarRat
             onMouseEnter={() => setHovered(score)}
           >
             <input
+              ref={score === 1 ? firstStarRef : undefined}
               type="radio"
               name={`${id}-score`}
               value={score}
