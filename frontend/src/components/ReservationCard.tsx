@@ -1,5 +1,5 @@
 // Generado con asistencia de IA – revisado por Danyal, 01/11/2026
-import { useId, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import type { Reservation, ReservationStatus } from '../services/reservationService';
 import { Icon, type IconName } from './Icon';
@@ -101,12 +101,21 @@ export function ReservationCard({
   reservation,
   role,
   children,
+  justCancelled = false,
 }: {
   reservation: Reservation;
   role: 'sent' | 'received';
   children?: ReactNode;
+  // Se acaba de cancelar desde esta tarjeta: el botón que abrió la ventana ya no está, así que el
+  // foco va al texto de la cancelación (US-04.05, #309).
+  justCancelled?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const cancellationRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    if (justCancelled) cancellationRef.current?.focus();
+  }, [justCancelled]);
   const detailId = useId();
   const status =
     statusLabels[reservation.status as ReservationStatus] ?? String(reservation.status);
@@ -192,7 +201,12 @@ export function ReservationCard({
               </p>
             )}
             {reservation.status === 'cancelled' && reservation.cancellation && (
-              <p className="reservation-cancellation">
+              <p
+                ref={cancellationRef}
+                role="status"
+                tabIndex={-1}
+                className="reservation-cancellation"
+              >
                 <Icon name="do_not_disturb_on" size="1.125rem" />
                 <span>{cancellationText(reservation, role)}</span>
               </p>
