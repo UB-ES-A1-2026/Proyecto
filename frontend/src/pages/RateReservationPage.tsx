@@ -1,5 +1,6 @@
 // Generado con asistencia de IA (Claude)
-import { useEffect, useId, useState, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import { flushSync } from 'react-dom';
 import { Link, useNavigate, useParams } from 'react-router';
 import { Icon, type IconName } from '../components/Icon';
 import { StarRating, StarsDisplay } from '../components/StarRating';
@@ -95,6 +96,7 @@ export function RateReservationPage() {
   const [commentError, setCommentError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const firstStarRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -137,6 +139,7 @@ export function RateReservationPage() {
     // Criterios 4 y 5: sin puntuación no se publica y se indica en ese campo.
     if (score === null) {
       setScoreError(NO_SCORE);
+      firstStarRef.current?.focus();
       return;
     }
 
@@ -145,20 +148,23 @@ export function RateReservationPage() {
       await rateReservation(token, reservation.id, { score, comment: comment.trim() });
       navigate('/mis-solicitudes', { state: { notice: RATING_DONE } });
     } catch (requestError: unknown) {
-      setSubmitting(false);
+      // Síncrono: las estrellas tienen que estar activas otra vez para poder recibir el foco.
+      flushSync(() => setSubmitting(false));
       if (requestError instanceof ApiError && requestError.status === 401) {
         clearSession();
       } else if (requestError instanceof ApiError && requestError.field === 'score') {
         setScoreError(requestError.message);
+        firstStarRef.current?.focus();
       } else if (requestError instanceof ApiError && requestError.field === 'comment') {
         setCommentError(requestError.message);
       } else if (
         requestError instanceof ApiError &&
         [403, 404, 409].includes(requestError.status)
       ) {
-        // Ya valorado (otra pestaña), no finalizado o ajeno: no tiene sentido reintentarlo.
+        // Ya valorado (otra pestaña), no finalizado o ajeno: no tiene sentido reintentarlo. El check
+        // solo cuando ya estaba valorado; el 409 de «no finalizado» lleva el de información.
         setBlocked({
-          icon: requestError.status === 409 ? 'check_circle' : 'info',
+          icon: requestError.message === ALREADY_RATED ? 'check_circle' : 'info',
           message: requestError.message,
         });
       } else if (requestError instanceof ApiError) {
@@ -203,6 +209,7 @@ export function RateReservationPage() {
             }}
             error={scoreError}
             disabled={submitting}
+            firstStarRef={firstStarRef}
           />
           <div className="form-field">
             <label htmlFor={commentId}>Comentario (opcional)</label>

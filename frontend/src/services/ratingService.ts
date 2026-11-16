@@ -8,13 +8,17 @@ export type NewRating = {
   comment: string;
 };
 
-// Respuesta 201 de POST /api/reservas/:id/valoracion (contrato propuesto para #295).
+// Tipo de valoración (#339): «rental» cuando el arrendatario valora el alquiler (esta historia) y
+// «user» cuando el propietario valora al arrendatario (US-08.02).
+export type RatingType = 'rental' | 'user';
+
+// Respuesta 201 de POST /api/reservas/:id/valoracion (#339).
 export type PublishedRating = {
   id: string;
   reservationId: string;
+  type: RatingType;
   score: number;
   comment: string | null;
-  author: { id: string; username: string };
   createdAt: string;
 };
 
