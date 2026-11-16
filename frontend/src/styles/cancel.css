@@ -1,0 +1,99 @@
+/*
+ * Cancelar una reserva con penalización (US-04.05, #309): botón y ventana en «Mis solicitudes»,
+ * la reserva cancelada y el aviso al solicitar con menos de 3 días.
+ * Solo usa los tokens de :root de styles.css.
+ */
+
+.cancel-reservation {
+  margin-top: var(--space-md);
+}
+
+/* Dos clases: styles.css se carga después de los @import y le ganaría el ancho del botón. */
+.cancel-reservation .button-secondary {
+  width: auto;
+}
+
+.cancel-item {
+  margin: 0 0 var(--space-md);
+}
+
+/* Cuánto cuesta cancelar hoy */
+.cancel-summary {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: flex-start;
+  margin: 0 0 var(--space-md);
+  padding: var(--space-md);
+  background-color: var(--color-success-background);
+  border-radius: var(--radius);
+}
+
+.cancel-summary.is-penalty {
+  background-color: var(--color-warning-soft);
+}
+
+.cancel-summary .icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.cancel-refund {
+  margin: 0 0 var(--space-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.cancel-error {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: flex-start;
+  margin-top: var(--space-md);
+}
+
+.cancel-error .icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.cancel-actions {
+  margin-top: var(--space-lg);
+}
+
+/* Reserva cancelada: quién, cuándo y la penalización */
+.reservation-cancellation {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: flex-start;
+  margin: var(--space-md) 0 0;
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-small);
+  background-color: var(--color-page);
+  border-radius: var(--radius);
+}
+
+.reservation-cancellation .icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: var(--color-text-muted);
+}
+
+/* Aviso al solicitar con menos de 3 días de margen */
+.rental-last-minute {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: flex-start;
+  margin: 0 0 var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-small);
+  background-color: var(--color-warning-soft);
+  border-radius: var(--radius);
+}
+
+.checkout-summary .rental-last-minute {
+  margin: var(--space-md) 0 0;
+}
+
+.rental-last-minute .icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: var(--color-warning);
+}

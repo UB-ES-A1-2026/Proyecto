@@ -10,6 +10,7 @@
 @import './styles/public-profile.css';
 @import './styles/rating.css';
 @import './styles/admin.css';
+@import './styles/cancel.css';
 
 @font-face {
   font-family: 'Inter';
