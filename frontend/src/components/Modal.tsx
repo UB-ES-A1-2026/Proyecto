@@ -6,11 +6,13 @@ type ModalProps = {
   title: string;
   onClose: () => void;
   children: ReactNode;
+  // Mientras se procesa algo que no se puede deshacer: «×», Esc y el fondo no cierran (#309).
+  closeDisabled?: boolean;
 };
 
 // Ventana modal con el <dialog> nativo: el navegador mantiene el foco dentro y bloquea el fondo.
 // Se abre al montarse; quien la usa la cierra desmontándola desde onClose.
-export function Modal({ title, onClose, children }: ModalProps) {
+export function Modal({ title, onClose, children, closeDisabled = false }: ModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
@@ -34,11 +36,11 @@ export function Modal({ title, onClose, children }: ModalProps) {
       // Esc: lo cierra React (desmontando) en lugar del navegador, para no desincronizar el estado.
       onCancel={(event) => {
         event.preventDefault();
-        onClose();
+        if (!closeDisabled) onClose();
       }}
       // Clic en el fondo oscuro, fuera del contenido.
       onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        if (event.target === event.currentTarget && !closeDisabled) onClose();
       }}
     >
       <div className="modal-content">
@@ -50,6 +52,7 @@ export function Modal({ title, onClose, children }: ModalProps) {
             type="button"
             className="modal-close"
             aria-label="Cerrar ventana"
+            disabled={closeDisabled}
             onClick={onClose}
           >
             <Icon name="close" size="1.375rem" />

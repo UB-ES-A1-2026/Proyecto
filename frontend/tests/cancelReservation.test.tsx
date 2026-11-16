@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ReservationCard } from '../src/components/ReservationCard';
 import { AuthContext } from '../src/context/authContextValue';
 import type { Reservation } from '../src/services/reservationService';
+import { daysUntil } from '../src/utils/rental';
 import { RentalFlow } from './rentalFlow';
 import { renderRoute } from './renderRoute';
 
@@ -55,8 +56,9 @@ const CANCELLED_BY_BRUNO = {
 
 type Reply = Response | (() => Response | Promise<Response>);
 
-// Responde según el método y el final de la URL.
-function mockApi(routes: Record<string, Reply>) {
+// Responde según el método y el final de la URL; una ruta puede tener varias respuestas seguidas.
+function mockApi(routes: Record<string, Reply | Reply[]>) {
+  const calls = new Map<string, number>();
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     const url = String(input);
     const method = init?.method ?? 'GET';
@@ -65,7 +67,10 @@ function mockApi(routes: Record<string, Reply>) {
       return routeMethod === method && url.endsWith(path);
     });
     if (!key) throw new Error(`Petición inesperada: ${method} ${url}`);
-    const reply = routes[key];
+    const replies = ([] as Reply[]).concat(routes[key]);
+    const index = calls.get(key) ?? 0;
+    calls.set(key, index + 1);
+    const reply = replies[Math.min(index, replies.length - 1)];
     return typeof reply === 'function' ? reply() : reply.clone();
   });
 }
@@ -146,7 +151,7 @@ describe('Ventana de cancelar (criterios 2, 3 y 4)', () => {
     await openCard(user);
     await user.click(screen.getByRole('button', { name: 'Cancelar reserva' }));
 
-    const dialog = await screen.findByRole('dialog', { name: '¿Cancelar reserva?' });
+    const dialog = await screen.findByRole('dialog', { name: '¿Cancelar la reserva?' });
     expect(
       await within(dialog).findByText(/Faltan 5 días para el inicio: compensarás a ana con el/),
     ).toHaveTextContent(/35 % del alquiler \(7,00\s€\) por las molestias\./);
@@ -173,7 +178,8 @@ describe('Ventana de cancelar (criterios 2, 3 y 4)', () => {
     await openCard(user);
     await user.click(screen.getByRole('button', { name: 'Cancelar reserva' }));
 
-    const dialog = await screen.findByRole('dialog');
+    const dialog = await screen.findByRole('dialog', { name: '¿Cancelar la reserva?' });
+    expect(dialog).toHaveTextContent('solicitada por bruno');
     expect(await within(dialog).findByText(/Faltan 2 días para el inicio/)).toHaveTextContent(
       /compensarás a bruno con el 100 % del alquiler \(20,00\s€\) por las molestias\./,
     );
@@ -204,7 +210,7 @@ describe('Ventana de cancelar (criterios 2, 3 y 4)', () => {
     await openCard(user);
     await user.click(screen.getByRole('button', { name: 'Cancelar solicitud' }));
 
-    const dialog = await screen.findByRole('dialog', { name: '¿Cancelar solicitud?' });
+    const dialog = await screen.findByRole('dialog', { name: '¿Cancelar la solicitud?' });
     await waitFor(() =>
       expect(within(dialog).getByRole('button', { name: 'Cancelar solicitud' })).toBeEnabled(),
     );
@@ -241,6 +247,8 @@ describe('Ventana de cancelar (criterios 2, 3 y 4)', () => {
       /La cancelaste tú el 16 de noviembre de 2026\. Compensación a ana por las molestias: 7,00\s€ \(35 %\)\. Te hemos devuelto 13,00\s€\./,
     );
     expect(within(card).queryByRole('button', { name: 'Cancelar reserva' })).toBeNull();
+    // El botón que abrió la ventana ya no está: el foco va al texto de la cancelación.
+    expect(within(card).getByRole('status')).toHaveFocus();
     const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
     expect(new Headers(post?.[1]?.headers).get('Authorization')).toBe('Bearer token-de-bruno');
   });
@@ -263,6 +271,90 @@ describe('Ventana de cancelar (criterios 2, 3 y 4)', () => {
 
     expect(within(dialog).getByRole('button', { name: 'Cancelando…' })).toBeDisabled();
     expect(within(dialog).getByRole('button', { name: 'Volver' })).toBeDisabled();
+    expect(within(dialog).getByRole('button', { name: 'Cerrar ventana' })).toBeDisabled();
+
+    // Ni Esc ni el clic en el fondo la cierran: la cancelación sigue en marcha.
+    await user.keyboard('{Escape}');
+    fireEvent.click(dialog);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('cuando empieza hoy lo dice así', async () => {
+    logIn();
+    mockApi({
+      'GET /usuarios/me/reservas': Response.json({ sent: [reservation()], received: [] }),
+      'GET /reservas/r1/cancelacion': Response.json({
+        ...PREVIEW_35,
+        daysUntilStart: 0,
+        penaltyPercent: 100,
+        penaltyAmount: '20.00',
+        refundAmount: '0.00',
+      }),
+    });
+    const user = userEvent.setup();
+    renderRoute('/mis-solicitudes');
+
+    await openCard(user);
+    await user.click(screen.getByRole('button', { name: 'Cancelar reserva' }));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(await within(dialog).findByText(/^Empieza hoy: compensarás a ana/)).toHaveTextContent(
+      /100 % del alquiler \(20,00\s€\) por las molestias\./,
+    );
+  });
+
+  it('si no se puede calcular lo que cuesta (500), lo dice y deja reintentarlo', async () => {
+    logIn();
+    mockApi({
+      'GET /usuarios/me/reservas': Response.json({ sent: [reservation()], received: [] }),
+      'GET /reservas/r1/cancelacion': [
+        Response.json({ error: 'Error interno.' }, { status: 500 }),
+        Response.json(PREVIEW_35),
+      ],
+    });
+    const user = userEvent.setup();
+    renderRoute('/mis-solicitudes');
+
+    await openCard(user);
+    await user.click(screen.getByRole('button', { name: 'Cancelar reserva' }));
+    const dialog = await screen.findByRole('dialog');
+
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      'No hemos podido calcular lo que cuesta cancelar. Inténtalo de nuevo.',
+    );
+    expect(within(dialog).queryByRole('button', { name: 'Cancelar reserva' })).toBeNull();
+    await user.click(within(dialog).getByRole('button', { name: 'Reintentar' }));
+
+    expect(await within(dialog).findByText(/Faltan 5 días/)).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Cancelar reserva' })).toBeEnabled();
+  });
+
+  it('si al abrirla ya no se puede cancelar (409), lo dice y actualiza la lista', async () => {
+    logIn();
+    const fetchMock = mockApi({
+      'GET /usuarios/me/reservas': Response.json({ sent: [reservation()], received: [] }),
+      'GET /reservas/r1/cancelacion': Response.json(
+        { error: 'Esta reserva ya no se puede cancelar.' },
+        { status: 409 },
+      ),
+    });
+    const user = userEvent.setup();
+    renderRoute('/mis-solicitudes');
+
+    await openCard(user);
+    await user.click(screen.getByRole('button', { name: 'Cancelar reserva' }));
+    const dialog = await screen.findByRole('dialog');
+
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      'Esta reserva ya no se puede cancelar.',
+    );
+    expect(within(dialog).queryByRole('button', { name: 'Cancelar reserva' })).toBeNull();
+    expect(within(dialog).queryByRole('button', { name: 'Reintentar' })).toBeNull();
+    await waitFor(() =>
+      expect(
+        fetchMock.mock.calls.filter(([url]) => String(url).endsWith('/usuarios/me/reservas')),
+      ).toHaveLength(2),
+    );
   });
 
   it('si falla el reembolso, la reserva no cambia y se puede reintentar (texto de la historia)', async () => {
@@ -434,5 +526,32 @@ describe('Aviso al solicitar con menos de 3 días (criterio 5)', () => {
     await goToSummary('19/11/2026', '20/11/2026');
 
     expect(screen.queryByText(/Empieza en menos de 3 días/)).not.toBeInTheDocument();
+  });
+
+  // «Hoy» es el día de España: a las 00:30 del 17 en Madrid ya es 17, aunque en UTC sea 16.
+  it('cerca de medianoche cuenta con la fecha de España', async () => {
+    vi.setSystemTime(new Date('2026-11-16T23:30:00Z'));
+    await goToSummary('19/11/2026', '20/11/2026');
+
+    expect(screen.getByText(/Empieza en menos de 3 días/)).toBeInTheDocument();
+  });
+});
+
+describe('daysUntil: días hasta el inicio con la fecha de España', () => {
+  it.each([
+    ['2026-11-16', '2026-11-16', 0],
+    ['2026-11-18', '2026-11-16', 2],
+    ['2026-11-19', '2026-11-16', 3],
+    ['2026-11-24', '2026-11-16', 8],
+    ['2026-12-01', '2026-11-30', 1],
+  ])('del %s visto el %s faltan %i días', (start, today, expected) => {
+    expect(daysUntil(start, today)).toBe(expected);
+  });
+
+  it('sin «hoy» usa la fecha de España', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-16T23:30:00Z'));
+    expect(daysUntil('2026-11-19')).toBe(2);
+    vi.useRealTimers();
   });
 });
