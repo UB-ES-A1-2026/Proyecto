@@ -185,6 +185,8 @@ describe('Formulario «Valorar» (US-08.01, #296)', () => {
 
     const group = screen.getByRole('group', { name: 'Puntuación' });
     expect(group).toHaveAccessibleDescription('Elige una puntuación de 1 a 5 estrellas.');
+    // El foco va a las estrellas, como en la valoración del propietario (US-08.02).
+    expect(screen.getByRole('radio', { name: '1 estrella: Muy mal' })).toHaveFocus();
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false);
 
     // Al elegir una, el error desaparece.
@@ -203,9 +205,9 @@ describe('Formulario «Valorar» (US-08.01, #296)', () => {
         {
           id: 'v1',
           reservationId: 'r1',
+          type: 'rental',
           score: 4,
           comment: 'Todo perfecto, muy amable.',
-          author: { id: 'u2', username: 'bruno' },
           createdAt: RATED.createdAt,
         },
         { status: 201 },
@@ -275,7 +277,7 @@ describe('Formulario «Valorar» (US-08.01, #296)', () => {
     mockApi({
       'GET /usuarios/me/reservas': Response.json({ sent: [reservation()], received: [] }),
       'POST /reservas/r1/valoracion': Response.json(
-        { error: 'El campo "comentario" no es correcto, revísalo.', field: 'comment' },
+        { error: 'El comentario puede tener como máximo 1000 caracteres.', field: 'comment' },
         { status: 400 },
       ),
     });
@@ -289,10 +291,57 @@ describe('Formulario «Valorar» (US-08.01, #296)', () => {
     const commentField = screen.getByLabelText('Comentario (opcional)');
     await waitFor(() => expect(commentField).toHaveAttribute('aria-invalid', 'true'));
     expect(commentField).toHaveAccessibleDescription(
-      /El campo "comentario" no es correcto, revísalo\./,
+      /El comentario puede tener como máximo 1000 caracteres\./,
     );
     expect(screen.getByRole('button', { name: 'Publicar' })).toBeEnabled();
   });
+
+  it('si la API rechaza la puntuación, lo indica en las estrellas y lleva el foco allí', async () => {
+    logIn();
+    mockApi({
+      'GET /usuarios/me/reservas': Response.json({ sent: [reservation()], received: [] }),
+      'POST /reservas/r1/valoracion': Response.json(
+        { error: 'Elige una puntuación de 1 a 5 estrellas.', field: 'score' },
+        { status: 400 },
+      ),
+    });
+    const user = userEvent.setup();
+    renderRoute('/mis-solicitudes/r1/valorar');
+
+    await user.click(await screen.findByRole('radio', { name: '3 estrellas: Normal' }));
+    await user.click(screen.getByRole('button', { name: 'Publicar' }));
+
+    const group = screen.getByRole('group', { name: 'Puntuación' });
+    await waitFor(() =>
+      expect(group).toHaveAccessibleDescription('Elige una puntuación de 1 a 5 estrellas.'),
+    );
+    expect(screen.getByRole('radio', { name: '1 estrella: Muy mal' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Publicar' })).toBeEnabled();
+  });
+
+  it.each([
+    [403, 'Solo quien ha alquilado el objeto puede valorar este alquiler.'],
+    [404, 'No hemos encontrado este alquiler.'],
+    [409, 'Solo se puede valorar un alquiler finalizado.'],
+  ])(
+    'si al publicar la API responde %i, enseña su motivo y no deja reintentar',
+    async (status, message) => {
+      logIn();
+      mockApi({
+        'GET /usuarios/me/reservas': Response.json({ sent: [reservation()], received: [] }),
+        'POST /reservas/r1/valoracion': Response.json({ error: message }, { status }),
+      });
+      const user = userEvent.setup();
+      renderRoute('/mis-solicitudes/r1/valorar');
+
+      await user.click(await screen.findByRole('radio', { name: '4 estrellas: Bien' }));
+      await user.click(screen.getByRole('button', { name: 'Publicar' }));
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(message);
+      expect(screen.queryByRole('button', { name: 'Publicar' })).not.toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Volver a Mis solicitudes' })).toBeInTheDocument();
+    },
+  );
 
   it.each([
     ['ya valorado', reservation({ myRating: RATED }), 'Ya has valorado este alquiler.'],
