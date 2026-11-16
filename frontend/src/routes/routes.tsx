@@ -56,11 +56,13 @@ export const routes: RouteObject[] = [
       },
       {
         element: <PrivateRoute />,
-        children: [{ path: 'perfil', element: <ProfilePage /> }],
-      },
-      {
-        element: <ApprovedRiderRoute />,
-        children: [{ path: 'trabajos', element: <RiderJobsPage /> }],
+        children: [
+          { path: 'perfil', element: <ProfilePage /> },
+          {
+            element: <ApprovedRiderRoute />,
+            children: [{ path: 'trabajos', element: <RiderJobsPage /> }],
+          },
+        ],
       },
       { path: '*', element: <NotFoundPage /> },
     ],

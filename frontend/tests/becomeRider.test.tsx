@@ -63,9 +63,9 @@ describe('cuestionario de rider (US-10.03, #315)', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Hazte rider' })).toBeInTheDocument();
     expect(screen.getByText(/de 3 a 7 € según la distancia/)).toBeInTheDocument();
     const terms = screen.getByText('Condiciones para riders');
-    expect(screen.getByText(/Puedes darte de baja cuando quieras/)).not.toBeVisible();
+    expect(screen.getByText(/Puedes dejar de aceptar trabajos cuando quieras/)).not.toBeVisible();
     await user.click(terms);
-    expect(screen.getByText(/Puedes darte de baja cuando quieras/)).toBeVisible();
+    expect(screen.getByText(/Puedes dejar de aceptar trabajos cuando quieras/)).toBeVisible();
   });
 
   it('si se envía vacío marca todos los campos y pone el foco en el primero', async () => {
@@ -86,6 +86,16 @@ describe('cuestionario de rider (US-10.03, #315)', () => {
     expect(screen.getByText('El campo "días" no es correcto, revísalo.')).toBeInTheDocument();
     expect(screen.getByText('El campo "franjas" no es correcto, revísalo.')).toBeInTheDocument();
     expect(screen.getByText('Tienes que aceptar las condiciones.')).toBeInTheDocument();
+    // Los grupos de opciones también se marcan como no válidos y apuntan a su error.
+    for (const [name, id] of [
+      ['Vehículo', 'rider-vehicle-error'],
+      ['Días que puedes repartir', 'rider-days-error'],
+      ['Franjas', 'rider-slots-error'],
+    ]) {
+      const group = screen.getByRole('group', { name });
+      expect(group).toHaveAttribute('aria-invalid', 'true');
+      expect(group.getAttribute('aria-describedby')).toContain(id);
+    }
     expect(screen.getByLabelText('Nombre de usuario')).toHaveFocus();
     expect(fetchMock).not.toHaveBeenCalled();
   });
