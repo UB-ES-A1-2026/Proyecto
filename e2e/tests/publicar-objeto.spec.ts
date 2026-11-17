@@ -52,7 +52,8 @@ async function fillValidItem(page: Page, title: string) {
   await page.getByLabel('Categoría').selectOption({ label: 'Herramientas y bricolaje' });
   await page.getByLabel('Precio por día (€)').fill('7,50');
   await page.getByLabel('Fianza (€)').fill('20');
-  await page.getByLabel('Barrio').fill('Sants');
+  // El barrio es un desplegable de /api/barrios (US-05.01, #307).
+  await page.getByLabel('Barrio').selectOption('Sants');
   // Desde US-05.01 (#281) hace falta al menos un modo de entrega. «Punto de recogida» no pide
   // dirección, que el formulario aún no tiene (T27, #307).
   await page.getByLabel('Punto de recogida').check();
