@@ -1,6 +1,7 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
 import type { RequestHandler } from 'express';
 import { AppError } from '../errors/appError.js';
+import { PaymentActionRequiredError } from '../services/paymentGateway.js';
 import * as reservationService from '../services/reservationService.js';
 
 const UUID_PATTERN =
@@ -56,20 +57,41 @@ export const createReservation: RequestHandler = async (request, response) => {
   const input = readReservationInput(request.body);
 
   // Token del formulario de pago de Stripe (US-07.01, #72): sin él no se puede bloquear el importe.
-  const { confirmationTokenId } = (request.body ?? {}) as Record<
-    string,
-    unknown
-  >;
-  if (typeof confirmationTokenId !== 'string' || !confirmationTokenId) {
+  // Tras el 3D Secure, el navegador repite la petición con paymentIntentId en su lugar.
+  const { confirmationTokenId, paymentIntentId } = (request.body ??
+    {}) as Record<string, unknown>;
+  const hasIntent =
+    typeof paymentIntentId === 'string' && paymentIntentId.length > 0;
+  if (
+    !hasIntent &&
+    (typeof confirmationTokenId !== 'string' || !confirmationTokenId)
+  ) {
     throw new AppError(400, MISSING_PAYMENT_MESSAGE, 'confirmationTokenId');
   }
 
-  const reservation = await reservationService.createReservation(
-    request.auth!.userId,
-    { ...input, confirmationTokenId },
-  );
+  try {
+    const reservation = await reservationService.createReservation(
+      request.auth!.userId,
+      hasIntent
+        ? { ...input, paymentIntentId }
+        : { ...input, confirmationTokenId: confirmationTokenId as string },
+    );
 
-  response.status(201).json(reservation);
+    response.status(201).json(reservation);
+  } catch (error) {
+    if (error instanceof PaymentActionRequiredError) {
+      // El banco pide verificar el pago: todavía no hay reserva (flujo de 3D Secure, #72).
+      response.status(402).json({
+        error: error.message,
+        field: 'confirmationTokenId',
+        requiresAction: true,
+        clientSecret: error.clientSecret,
+        paymentIntentId: error.paymentIntentId,
+      });
+      return;
+    }
+    throw error;
+  }
 };
 
 // GET /api/reservas/disponibilidad (US-04.01, #120).

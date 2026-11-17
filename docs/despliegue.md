@@ -74,7 +74,7 @@ Necesitas cuentas en Supabase, Render y Vercel (las tres gratis y sin tarjeta) y
 1. En tu ordenador, desde la **raíz** del repo: `npx vercel@63.1.0 link` → crea el proyecto `rentit` en tu cuenta (sin conectar Git). Genera `.vercel/project.json` (está en `.gitignore`), con `orgId` y `projectId`.
 2. En el panel del proyecto → *Settings*:
    - *Build and Deployment* → **Root Directory = `frontend`**, *Framework* = Vite.
-   - *Environment Variables* → `VITE_API_URL` = `https://<servicio>.onrender.com/api`, en **Production** y **Preview**.
+   - *Environment Variables* → `VITE_API_URL` = `https://<servicio>.onrender.com/api`, en **Production** y **Preview**. Más adelante, `VITE_STRIPE_PUBLISHABLE_KEY` (clave de prueba, ver el paso 7).
 3. *Account Settings → Tokens* → crea un token solo para este proyecto, con caducidad al final del curso.
 4. En GitHub, **secretos**: `VERCEL_TOKEN`, `VERCEL_ORG_ID` y `VERCEL_PROJECT_ID` (los dos últimos, de `.vercel/project.json`).
 
@@ -109,6 +109,16 @@ Las fotos van a un bucket **privado** de Supabase Storage a través de su API de
    | `S3_FORCE_PATH_STYLE` | `true` |
 
 4. Guarda: Render vuelve a desplegar solo. Comprueba la subida desde la web publicando un objeto con foto. Si el navegador da un error de CORS al hacer el `PUT`, revisa la configuración de CORS del bucket en Supabase.
+
+### 7. Stripe en modo de prueba (T10 · #285)
+Los pagos usan Stripe con **claves de prueba**. Sin claves, el backend usa la pasarela simulada y el formulario de tarjeta simulado: así funcionan el desarrollo local, el CI, los e2e y el seed de demo. Con las claves puestas, se usa Stripe. **En staging y producción las dos claves son obligatorias**: sin `STRIPE_SECRET_KEY` los pagos serían simulados (no se mueve nada en Stripe) y el backend escribe en el log «AVISO: pasarela simulada (falta STRIPE_SECRET_KEY): los pagos no son reales».
+
+1. Crea una cuenta en [stripe.com](https://stripe.com) y quédate en el **entorno de prueba** (*Developers → API keys*): copia la clave publicable (`pk_test_…`) y la secreta (`sk_test_…`). **Solo se permiten claves de prueba**: el backend no arranca si `STRIPE_SECRET_KEY` no empieza por `sk_test_`, y nunca se usan claves `live`.
+2. En **Render** → `rentit-api` → *Environment* (en `staging` y en producción): `STRIPE_SECRET_KEY` = `sk_test_…`. Es un secreto: solo en Render.
+3. En **Vercel** → proyecto → *Environment Variables*: `VITE_STRIPE_PUBLISHABLE_KEY` = `pk_test_…`, en **Production** y **Preview** (la compilación la lee con `vercel pull`). Es pública, pero tampoco va en el repo.
+4. Para Apple Pay y Google Pay (solo con HTTPS): en Stripe → *Settings → Payment method domains* añade `rentit-ub.vercel.app` y, para Apple Pay, sube el fichero de verificación que indique Stripe. En `localhost` solo sale la tarjeta.
+5. Para probar en local, pon las dos claves en `backend/.env` y `frontend/.env` (copia de `.env.example`; los `.env` no se suben). Tarjetas de prueba: `4242 4242 4242 4242` (se acepta), `4000 0000 0000 0002` (se rechaza), `4000 0027 6000 3184` (pide verificación 3D Secure); cualquier fecha futura y cualquier CVC.
+6. Comprobación: solicita un alquiler con la `4242…` y mira en el *Dashboard* de Stripe (modo de prueba) un PaymentIntent «Sin capturar» (`requires_capture`).
 
 ## Cuentas y accesos
 
@@ -160,4 +170,6 @@ Los objetos de la demo todavía no tienen fotos: llegarán con la subida de foto
 | `prepared statement already exists` | Falta `?pgbouncer=true` en `DATABASE_URL` | Añadirlo |
 | Error de CORS en el navegador | La URL de Vercel no está en `CORS_ORIGINS` o no encaja con `CORS_PREVIEW_PATTERN` | Revisar el paso 4 |
 | 404 al recargar una ruta | Falta `frontend/vercel.json` | Ya está en el repo; comprueba que Root Directory sea `frontend` |
+| Sale el formulario de tarjeta simulado en vez del de Stripe | Falta `VITE_STRIPE_PUBLISHABLE_KEY` en Vercel (se lee al compilar) | Ponerla y volver a desplegar (paso 7) |
+| El pago responde «La pasarela de pago no responde» | `STRIPE_SECRET_KEY` mal puesta en Render o Stripe caído | Revisar la clave (`sk_test_…`) y los logs de Render |
 | Supabase en pausa | Más de 7 días sin actividad (plan gratuito) | *Restore* en el panel de Supabase |
