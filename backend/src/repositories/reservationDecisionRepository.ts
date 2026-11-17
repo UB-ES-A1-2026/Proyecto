@@ -127,6 +127,8 @@ export function acceptIfAvailable(
           endDate: { gte: startDate },
         },
         select: { id: true, payment: { select: { rentalReference: true } } },
+        // Mismo orden que al caducar al consultar: así dos transacciones no se bloquean en cruz.
+        orderBy: { id: 'asc' },
       });
       const releaseReferences: (string | null)[] = [];
       for (const competitor of competitors) {
@@ -143,7 +145,9 @@ export function acceptIfAvailable(
         }
       }
 
-      // Lo último antes de confirmar: si el cobro falla, no queda nada a medias.
+      // Lo último antes de confirmar: si el cobro falla, no queda nada a medias. Queda un caso: que el
+      // cobro vaya bien y falle el commit. Entonces la reserva sigue pendiente con el importe cobrado,
+      // y por eso la pasarela de Stripe (T10) trata como éxito cobrar un pago ya cobrado.
       const reference = current.payment?.rentalReference;
       if (reference) {
         await capture(reference);
@@ -186,6 +190,8 @@ export function rejectIfPending(
           data: { status: 'released' },
         });
         if (payment.rentalReference) {
+          // Si se libera y luego falla el commit, el reintento vuelve a liberar: Stripe (T10) lo
+          // trata como éxito.
           await release(payment.rentalReference);
         }
       }
