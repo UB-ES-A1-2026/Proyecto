@@ -225,6 +225,34 @@ describe('Payment Element de Stripe', () => {
   });
 });
 
+describe('doble envío', () => {
+  it('dos envíos seguidos antes de pintar solo crean un pago', async () => {
+    let respond: (response: Response) => void = () => {};
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation((input) =>
+        String(input).includes('/reservas/disponibilidad')
+          ? Promise.resolve(Response.json({ available: true }))
+          : new Promise<Response>((resolve) => (respond = resolve)),
+      );
+    const user = userEvent.setup();
+    renderRequest();
+
+    await goToSummary(user);
+    const form = submitButton().closest('form')!;
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+
+    await waitFor(() => expect(stripe.createConfirmationToken).toHaveBeenCalled());
+    expect(elements.submit).toHaveBeenCalledTimes(1);
+    expect(stripe.createConfirmationToken).toHaveBeenCalledTimes(1);
+    await waitFor(() =>
+      expect(fetchMock.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1),
+    );
+    respond(Response.json(RESERVATION, { status: 201 }));
+  });
+});
+
 describe('3D Secure en dos pasos', () => {
   it('con Stripe llama a handleNextAction y repite la solicitud con el paymentIntentId', async () => {
     let calls = 0;
