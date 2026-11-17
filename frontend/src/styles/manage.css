@@ -607,6 +607,11 @@
   border-top: var(--border-width) solid var(--color-divider);
 }
 
+/* «Ver entrega» (US-05.02) */
+.reservation-card-body .reservation-track {
+  margin-top: var(--space-md);
+}
+
 .reservation-facts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));

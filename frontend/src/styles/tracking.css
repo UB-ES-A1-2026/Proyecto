@@ -1,0 +1,130 @@
+/* Generado con asistencia de IA (Claude) */
+/* Seguimiento de la entrega (US-05.02, #67): una lista de estados con su hora, sin mapa. */
+.tracking {
+  max-width: var(--reading-max-width);
+  margin: 0 auto;
+}
+
+.tracking-back {
+  display: inline-flex;
+  gap: var(--space-xs);
+  align-items: center;
+  margin-bottom: var(--space-sm);
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+.tracking .page-subtitle {
+  margin-bottom: var(--space-lg);
+}
+
+.tracking-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+}
+
+.tracking-card > .form-error {
+  margin: 0;
+}
+
+.tracking-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.tracking-step {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: baseline;
+  color: var(--color-text-muted);
+}
+
+.tracking-step-mark {
+  width: 1.25rem;
+  text-align: center;
+}
+
+.tracking-step.is-done {
+  color: var(--color-text);
+}
+
+.tracking-step.is-done .tracking-step-mark {
+  color: var(--color-success);
+}
+
+.tracking-step.is-current {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+.tracking-step-time {
+  font-size: var(--font-size-small);
+  font-weight: normal;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.tracking-code,
+.tracking-address,
+.tracking-finished {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: flex-start;
+  padding: var(--space-sm) var(--space-md);
+  margin: 0;
+  background-color: var(--color-surface);
+  border-radius: var(--radius);
+}
+
+.tracking-code strong {
+  font-size: 1.25rem;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+.tracking-finished {
+  align-items: center;
+  color: var(--color-success);
+  background-color: var(--color-success-background);
+}
+
+.tracking-rider {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.tracking-rider input {
+  max-width: 12rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+}
+
+.tracking-action {
+  align-self: flex-start;
+  width: auto;
+}
+
+.tracking-live {
+  margin: var(--space-md) 0 0;
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+.tracking-live.is-live {
+  color: var(--color-success);
+}
+
+@media (max-width: 480px) {
+  .tracking-action {
+    align-self: stretch;
+    width: 100%;
+  }
+}
