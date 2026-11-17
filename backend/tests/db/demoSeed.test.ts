@@ -369,7 +369,7 @@ describe('solicitudes de la demo', () => {
   });
 
   // Pagos (US-07.01, #284) – revisado por Francesc Curto, 11/11/2026
-  it('las pendientes tienen el importe bloqueado y 48 h para responder, la pagada su pago y las demás ninguno', async () => {
+  it('las pendientes tienen el importe bloqueado y 48 h para responder, la pagada y la cancelada su pago y las demás ninguno', async () => {
     await seedWithReservations();
 
     const reservations = await prisma.reservation.findMany({
@@ -380,9 +380,15 @@ describe('solicitudes de la demo', () => {
     for (const reservation of reservations) {
       const { payment, item } = reservation;
 
-      if (reservation.status === 'pending' || reservation.status === 'paid') {
+      if (
+        reservation.status === 'pending' ||
+        reservation.status === 'paid' ||
+        reservation.status === 'cancelled'
+      ) {
         expect(payment?.status).toBe(
-          reservation.status === 'paid' ? 'paid' : 'authorized',
+          { pending: 'authorized', paid: 'paid', cancelled: 'refunded' }[
+            reservation.status
+          ],
         );
         expect(payment?.rentalAmount.toFixed(2)).toBe(
           reservation.totalPrice.toFixed(2),
@@ -390,7 +396,11 @@ describe('solicitudes de la demo', () => {
         expect(payment?.depositAmount.toFixed(2)).toBe(item.deposit.toFixed(2));
         // Sin fianza (el carro, 0 €) no hay estado de fianza.
         expect(payment?.depositStatus).toBe(
-          item.deposit.gte(0.5) ? 'pending' : null,
+          item.deposit.gte(0.5)
+            ? reservation.status === 'cancelled'
+              ? 'released'
+              : 'pending'
+            : null,
         );
         // Pagos sin pasarela: la T10 no debe llamar a Stripe con ellos.
         expect(payment?.rentalReference).toBeNull();
@@ -497,6 +507,107 @@ describe('solicitudes de la demo', () => {
     expect(
       await prisma.delivery.count({ where: { slot: '19:00-21:00' } }),
     ).toBe(0);
+  });
+
+  // Cancelaciones (US-04.05, #308) – revisado por Alex Matos, 17/11/2026
+  it('hay una reserva ya cancelada con su cancelación, y las pagadas para cancelar con y sin penalización', async () => {
+    const userIds = await seedWithReservations();
+
+    const cancelled = await prisma.reservation.findMany({
+      where: { status: 'cancelled' },
+      include: { cancellation: true, item: true },
+    });
+    expect(cancelled).toHaveLength(1);
+    const [reservation] = cancelled;
+    expect(reservation?.cancellation?.cancelledById).toBe(userIds[1]);
+    expect(reservation?.cancellation?.penaltyPercent).toBe(35);
+    // 2 días de la tienda (8 €/día): 16 €, el 35 % son 5,60 € y se devuelven 10,40 €.
+    expect(reservation?.cancellation?.penaltyAmount.toFixed(2)).toBe('5.60');
+    expect(reservation?.cancellation?.refundAmount.toFixed(2)).toBe('10.40');
+
+    // Las no canceladas no llevan cancelación.
+    expect(await prisma.cancellation.count()).toBe(1);
+
+    // Una pagada a 8 días o más (sin penalización) y otra a 3–7 días (35 %), contando desde hoy.
+    const paid = await prisma.reservation.findMany({
+      where: { status: 'paid' },
+    });
+    const daysLeft = paid.map(({ startDate }) =>
+      Math.round((startDate.getTime() - Date.UTC(2026, 10, 3)) / 86_400_000),
+    );
+    expect(daysLeft.some((days) => days >= 8)).toBe(true);
+    expect(daysLeft.some((days) => days >= 3 && days <= 7)).toBe(true);
+  });
+
+  it('una reserva cancelada no ocupa las fechas del objeto', async () => {
+    await seedWithReservations();
+
+    const { item, startDate } = await prisma.reservation.findFirstOrThrow({
+      where: { status: 'cancelled' },
+      include: { item: true },
+    });
+
+    expect(item.title).toBe('Tienda de campaña para 4 personas');
+    expect(
+      await prisma.reservation.count({
+        where: {
+          itemId: item.id,
+          startDate,
+          status: { in: ['accepted', 'paid', 'in_progress'] },
+        },
+      }),
+    ).toBe(0);
+  });
+
+  it('repetir el seed deja otra vez cancelada y pagada lo que se haya cambiado al probar', async () => {
+    const userIds = await seedWithReservations();
+    const cancelled = await prisma.reservation.findFirstOrThrow({
+      where: { status: 'cancelled' },
+    });
+    const paid = await prisma.reservation.findFirstOrThrow({
+      where: { status: 'paid' },
+    });
+    // Como si se hubiera cancelado la pagada y «descancelado» la cancelada.
+    await prisma.reservation.update({
+      where: { id: cancelled.id },
+      data: { status: 'accepted' },
+    });
+    await prisma.cancellation.deleteMany({
+      where: { reservationId: cancelled.id },
+    });
+    await prisma.reservation.update({
+      where: { id: paid.id },
+      data: { status: 'cancelled' },
+    });
+    await prisma.cancellation.create({
+      data: {
+        reservationId: paid.id,
+        cancelledById: userIds[0] as string,
+        penaltyPercent: 0,
+        penaltyAmount: 0,
+        refundAmount: 10,
+      },
+    });
+
+    await upsertDemoReservations(prisma, userIds, TODAY);
+
+    expect(
+      (
+        await prisma.reservation.findUniqueOrThrow({
+          where: { id: cancelled.id },
+        })
+      ).status,
+    ).toBe('cancelled');
+    expect(
+      (await prisma.reservation.findUniqueOrThrow({ where: { id: paid.id } }))
+        .status,
+    ).toBe('paid');
+    expect(await prisma.cancellation.count()).toBe(1);
+    expect(
+      await prisma.cancellation.count({
+        where: { reservationId: cancelled.id },
+      }),
+    ).toBe(1);
   });
 });
 
