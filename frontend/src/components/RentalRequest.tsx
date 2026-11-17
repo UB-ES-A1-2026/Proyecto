@@ -90,6 +90,9 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
   const token = session?.token;
   const headingRef = useRef<HTMLHeadingElement>(null);
   // Con Stripe, el formulario de pago (Payment Element) se maneja a través de este objeto.
+  // Además del estado: dos envíos seguidos antes de que React pinte (doble clic, Intro repetido)
+  // verían submitting=false los dos.
+  const submittingRef = useRef(false);
   const stripeConfirmer = useRef<StripeConfirmer | null>(null);
   const useStripeForm = isStripeEnabled();
   const previousStep = useRef(step);
@@ -248,7 +251,7 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
 
   async function handleConfirm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submitting || !session) return;
+    if (submitting || submittingRef.current || !session) return;
     setFormError(null);
 
     // Sin Stripe, la tarjeta simulada se comprueba antes de llamar a la API: su número nunca sale
@@ -268,6 +271,7 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
       simulatedToken = method.confirmationTokenId;
     }
 
+    submittingRef.current = true;
     setSubmitting(true);
     try {
       const input = { itemId: item.id, startDate, endDate };
@@ -297,6 +301,7 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
       }
       onRequested(reservation);
     } catch (error) {
+      submittingRef.current = false;
       // Los botones se reactivan siempre, también si el componente sigue montado tras un 401.
       setSubmitting(false);
       // Sesión caducada o revocada: se borra y se vuelve al login.

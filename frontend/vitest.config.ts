@@ -17,6 +17,8 @@ export default mergeConfig(
         // Valor medido el 5/11/2026 menos 2 puntos. Solo se suben, nunca se bajan.
         thresholds: { statements: 91, branches: 87, functions: 94, lines: 93 },
       },
+      // Los tests usan siempre la tarjeta simulada, aunque haya una clave en frontend/.env.
+      env: { VITE_STRIPE_PUBLISHABLE_KEY: '' },
     },
   }),
 );
