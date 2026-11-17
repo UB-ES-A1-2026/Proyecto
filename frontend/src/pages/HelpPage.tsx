@@ -155,6 +155,17 @@ const SECTIONS: HelpSection[] = [
     ],
     note: 'Solo se puede valorar un alquiler finalizado, una sola vez. La puntuación es obligatoria y el comentario lo verán otras personas en el perfil del propietario.',
   },
+  // Valorar al inquilino (US-08.02, #299): generado con asistencia de IA (Claude)
+  {
+    id: 'valorar-inquilino',
+    title: 'Valorar a quien te ha alquilado un objeto',
+    steps: [
+      'En «Mis solicitudes», abre en «Recibidas» un alquiler «Finalizado» y pulsa «Valorar a…».',
+      'Elige de 1 a 5 estrellas. Si quieres, cuenta cómo te ha devuelto el objeto, en hasta 1000 caracteres.',
+      'Pulsa «Publicar». Volverás a «Mis solicitudes» y en ese alquiler verás tu valoración.',
+    ],
+    note: 'Solo se puede valorar un alquiler finalizado, una sola vez. La puntuación es obligatoria. La valoración la verá esa persona en sus solicitudes, y otras personas en su perfil.',
+  },
   {
     id: 'publicar',
     title: 'Publicar un objeto',
