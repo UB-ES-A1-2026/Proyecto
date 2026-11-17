@@ -144,3 +144,14 @@ export function insertReservationIfAvailable(
     return { outcome: 'created', reservation };
   });
 }
+
+// ¿Hay ya un pago con esta referencia de alquiler? Evita reutilizar un PaymentIntent en dos reservas.
+export async function isRentalReferenceUsed(
+  reference: string,
+): Promise<boolean> {
+  const payment = await prisma.payment.findUnique({
+    where: { rentalReference: reference },
+    select: { id: true },
+  });
+  return payment !== null;
+}
