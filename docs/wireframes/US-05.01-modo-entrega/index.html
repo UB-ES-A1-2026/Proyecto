@@ -13,12 +13,208 @@
         rider o punto de recogida, y a qué hora</strong>, para <strong>adaptar la entrega a mi agenda</strong>.
       </p>
       <p class="wf-meta">
-        Issue #66 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Generado con
-        asistencia de IA (Claude) – pendiente de revisar por el equipo en el Sprint Planning
+        Issue #66 · Tareas de frontend: T27 (#307, propietario: pantallas A1–A3) y T7 (#282, arrendatario: pantallas 1–9) ·
+        Wireframe de baja fidelidad
       </p>
-      <p class="wf-meta">Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo</p>
-      <p class="wf-meta">Maqueta de Figma · Marco «Ficha»: «Com el vols rebre?» está en el lateral, con recogida y entrega a domicilio. Aquí también va en el panel lateral de la ficha y añade rider y punto de recogida. Dónde encaja exactamente dentro del panel se decide al planificar la historia.</p>
+      <p class="wf-meta">
+        Actualizado el 11/11/2026 con asistencia de IA (Claude): decisiones del equipo (planning del 10/11 y reunión del
+        11/11), decisiones de #66 y contrato de la API del backend (T6, PR #321). Validado por Marc el 12/11/2026: nombre «Recoger en casa del
+        propietario», campo «Barrio» al editar, dirección oculta si solo se ofrece punto de recogida y desglose en «Mis solicitudes».
+      </p>
+      <p class="wf-meta">Maqueta de Figma · Marco «Ficha»: «Com el vols rebre?» está en el lateral. Aquí también va en el panel lateral de la ficha, como un paso entre las fechas y el resumen.</p>
     </header>
+
+    <!-- ===================== PROPIETARIO (T27) ===================== -->
+
+    <section class="wf-pantalla" data-captura="A1-publicar-entrega">
+      <h2><span class="wf-paso">A1</span>Propietario: apartado «Entrega» al publicar <code>/objetos/nuevo</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/nuevo">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Publicar un objeto</h3>
+            <p class="wf-texto">Cuéntale a tu barrio qué ofreces y empieza a recibir solicitudes.</p>
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Datos del objeto</strong></p>
+                  <div class="wf-campo"><label>Nombre</label><div class="wf-input">Taladro percutor Bosch</div></div>
+                  <div class="wf-rejilla">
+                    <div class="wf-campo">
+                      <label>Categoría</label>
+                      <div class="wf-input">Bricolaje <span>▾</span></div>
+                    </div>
+                    <div class="wf-campo">
+                      <label>Barrio <span class="wf-marca">1</span></label>
+                      <div class="wf-input">Gràcia <span>▾</span></div>
+                    </div>
+                  </div>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-caja">Descripción, precio y fotos (US-02.01, sin cambios)</div>
+              </div>
+              <div>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Disponibilidad</strong></p>
+                  <div class="wf-input">Disponible ya <input type="radio" name="disp-a1" checked /></div>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <p class="wf-texto"><strong>Entrega</strong> <span class="wf-marca">2</span></p>
+                  <p class="wf-ayuda">Marca todas las formas que ofreces. El arrendatario elegirá una.</p>
+                  <div class="wf-campo"><div class="wf-input">Recoger en casa del propietario <input type="checkbox" checked /></div></div>
+                  <div class="wf-campo"><div class="wf-input">Entrega por rider <input type="checkbox" checked /></div></div>
+                  <div class="wf-campo"><div class="wf-input">Punto de recogida <input type="checkbox" /></div></div>
+                  <div class="wf-campo">
+                    <label>Dirección <span class="wf-marca">3</span></label>
+                    <div class="wf-input">Carrer de Verdi, 12, 3.º 2.ª</div>
+                    <p class="wf-ayuda">Solo la ves tú. El arrendatario la verá cuando aceptes su solicitud, y el rider, cuando acepte el trabajo.</p>
+                  </div>
+                </div>
+                <p class="wf-texto"></p>
+                <span class="wf-boton wf-ancho">Publicar</span><span class="wf-marca">4</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Publicar un objeto</h3>
+            <div class="wf-caja">Datos del objeto, precio, fotos y disponibilidad</div>
+            <p class="wf-texto"></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>Entrega</strong></p>
+              <p class="wf-ayuda">Marca todas las formas que ofreces. El arrendatario elegirá una.</p>
+              <div class="wf-campo"><div class="wf-input">Recoger en casa del propietario <input type="checkbox" /></div></div>
+              <div class="wf-campo"><div class="wf-input">Entrega por rider <input type="checkbox" /></div></div>
+              <div class="wf-campo"><div class="wf-input">Punto de recogida <input type="checkbox" checked /></div></div>
+              <p class="wf-ayuda">Solo punto de recogida: no hace falta tu dirección. <span class="wf-marca">3</span></p>
+            </div>
+            <p class="wf-texto"></p>
+            <span class="wf-boton wf-ancho">Publicar</span>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El barrio deja de ser texto libre: es un desplegable con los barrios de <code>GET /api/barrios</code> (decisión 2 de #66). Empieza en «Elige un barrio».</li>
+        <li>Criterio 1: se pueden marcar uno, dos o los tres modos (decisión 3 del equipo); al menos uno es obligatorio. Sustituye al apartado «Formas de entrega». El nombre «Recoger en casa del propietario» (decisión 7 de #66) lo confirmó Marc el 12/11; se usa igual en la ficha y en el paso «Entrega».</li>
+        <li>La dirección solo es obligatoria si está marcado «Recoger en casa del propietario» o «Entrega por rider», hasta 200 caracteres (campo <code>address</code>). Con solo «Punto de recogida» marcado, el campo se oculta (en el móvil se ve ese caso) y no se envía <code>address</code>; reaparece al marcar domicilio o rider.</li>
+        <li>Se envían <code>homeDelivery</code>, <code>riderDelivery</code>, <code>pickupPointDelivery</code> y <code>address</code> en <code>POST /api/objetos</code>. Si todo va bien, va al destino de US-02.01.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Publicar» sin ningún modo marcado, o con domicilio o rider y sin dirección</p>
+
+    <section class="wf-pantalla" data-captura="A2-publicar-errores">
+      <h2><span class="wf-paso">A2</span>Propietario: errores del apartado «Entrega» <code>/objetos/nuevo</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/nuevo">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Publicar un objeto</h3>
+            <div class="wf-columnas wf-iguales">
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>Entrega</strong> · sin ningún modo <span class="wf-marca">1</span></p>
+                <div class="wf-campo"><div class="wf-input wf-con-error">Recoger en casa del propietario <input type="checkbox" /></div></div>
+                <div class="wf-campo"><div class="wf-input wf-con-error">Entrega por rider <input type="checkbox" /></div></div>
+                <div class="wf-campo">
+                  <div class="wf-input wf-con-error">Punto de recogida <input type="checkbox" /></div>
+                  <p class="wf-error">Elige al menos un modo de entrega.</p>
+                </div>
+                <div class="wf-campo"><label>Dirección</label><div class="wf-input"></div></div>
+              </div>
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>Entrega</strong> · rider sin dirección <span class="wf-marca">2</span></p>
+                <div class="wf-campo"><div class="wf-input">Recoger en casa del propietario <input type="checkbox" /></div></div>
+                <div class="wf-campo"><div class="wf-input">Entrega por rider <input type="checkbox" checked /></div></div>
+                <div class="wf-campo"><div class="wf-input">Punto de recogida <input type="checkbox" /></div></div>
+                <div class="wf-campo">
+                  <label>Dirección</label>
+                  <div class="wf-input wf-con-error"></div>
+                  <p class="wf-error">El campo "dirección" no es correcto, revísalo.</p>
+                </div>
+              </div>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-campo">
+              <label>Barrio <span class="wf-marca">3</span></label>
+              <div class="wf-input wf-con-error">Elige un barrio <span>▾</span></div>
+              <p class="wf-error">El campo "barrio" no es correcto, revísalo.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Mensaje exacto de la API (<code>400</code>, field <code>deliveryModes</code>). El frontend lo comprueba antes de enviar, con el mismo texto, y lleva el foco al apartado.</li>
+        <li>Mensaje exacto de la API (<code>400</code>, field <code>address</code>): también sale con más de 200 caracteres. El texto genérico es el del resto del formulario; si se quiere uno más claro («Escribe tu dirección…»), hay que cambiarlo también en el backend.</li>
+        <li>Mensaje exacto de la API (<code>400</code>, field <code>neighborhood</code>) si no se elige barrio de la lista.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Otra entrada: «Mis objetos» → «Editar» en un objeto publicado antes de esta historia</p>
+
+    <section class="wf-pantalla" data-captura="A3-editar-objeto-antiguo">
+      <h2><span class="wf-paso">A3</span>Propietario: «Editar objeto» con un objeto antiguo <code>/mis-objetos</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-objetos">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-ventana">
+              <div class="wf-nav">
+                <h3 class="wf-h1">Editar objeto</h3>
+                <span class="wf-boton wf-secundario">×</span>
+              </div>
+              <div class="wf-ventana-cuerpo">
+                <div class="wf-caja">Nombre, descripción, precio, fianza y fotos (US-02.02, sin cambios)</div>
+                <p class="wf-texto"></p>
+                <div class="wf-campo">
+                  <label>Barrio <span class="wf-marca">1</span></label>
+                  <div class="wf-input wf-con-error">Elige un barrio <span>▾</span></div>
+                  <p class="wf-ayuda">Antes ponía «Vila de Gràcia», que no está en la lista. Elige el barrio de la lista.</p>
+                </div>
+                <p class="wf-texto"><strong>Entrega</strong> <span class="wf-marca">2</span></p>
+                <div class="wf-campo"><div class="wf-input">Recoger en casa del propietario <input type="checkbox" checked /></div></div>
+                <div class="wf-campo"><div class="wf-input">Entrega por rider <input type="checkbox" /></div></div>
+                <div class="wf-campo"><div class="wf-input">Punto de recogida <input type="checkbox" checked /></div></div>
+                <div class="wf-campo">
+                  <label>Dirección <span class="wf-marca">3</span></label>
+                  <div class="wf-input wf-con-error"></div>
+                  <p class="wf-aviso">Añade tu dirección: sin ella, nadie puede elegir «Recoger en casa del propietario».</p>
+                </div>
+              </div>
+              <div class="wf-ventana-botones">
+                <span class="wf-boton wf-ancho">Guardar</span><span class="wf-marca">4</span>
+                <span class="wf-boton wf-secundario wf-ancho">Cancelar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Si el barrio guardado no está en <code>GET /api/barrios</code>, el desplegable empieza vacío y obliga a elegir uno antes de guardar (si se reenvía el barrio antiguo, el <code>PATCH</code> devuelve <code>400</code>). La ventana de US-02.02 no tenía este campo: se añade en T27 para poder corregir los objetos antiguos.</li>
+        <li>Los modos llegan marcados como estén guardados. En el <code>PATCH</code> son opcionales: lo que no se envía se queda igual. Al guardar se aplican los mismos errores que en A2.</li>
+        <li>Un objeto antiguo puede tener domicilio o rider marcados sin dirección. La API no ofrece esos modos al arrendatario hasta que se añade. La dirección es obligatoria al guardar con domicilio o rider marcados, como en A1.</li>
+        <li>Con éxito, vuelve a «Mis objetos» con el aviso de guardado de US-02.02.</li>
+      </ol>
+    </section>
+
+    <!-- ===================== ARRENDATARIO (T7) ===================== -->
+
+    <p class="wf-flecha">Arrendatario: con sesión iniciada, abre la ficha de un objeto y elige las fechas</p>
 
     <section class="wf-pantalla" data-captura="1-entrada-fechas">
       <h2><span class="wf-paso">1</span>Punto de entrada: fechas elegidas <code>/objetos/:id</code></h2>
@@ -36,27 +232,18 @@
               <div>
                 <div class="wf-imagen"></div>
                 <h3 class="wf-h1">Taladro percutor Bosch</h3>
-                <h4>Descripción</h4>
-                <div class="wf-lineas"><span></span><span></span></div>
+                <p class="wf-ayuda">Gràcia</p>
                 <h4>Formas de entrega <span class="wf-marca">2</span></h4>
-                <div class="wf-chips"><span class="wf-chip">Entrega a domicilio</span><span class="wf-chip">Entrega con rider</span><span class="wf-chip">Punto de recogida</span></div>
+                <div class="wf-chips"><span class="wf-chip">Recoger en casa del propietario</span><span class="wf-chip">Entrega por rider</span><span class="wf-chip">Punto de recogida</span></div>
                 <div class="wf-tarjeta"><strong>Publicado por ana</strong></div>
               </div>
               <div class="wf-tarjeta">
                 <p class="wf-texto"><strong>6,00 €</strong> / día <span class="wf-chip">Disponible</span></p>
                 <h4>Elige las fechas</h4>
-                <div class="wf-campo">
-                  <label>Fecha de inicio</label>
-                  <div class="wf-input">10/11/2026</div>
-                </div>
-                <div class="wf-campo">
-                  <label>Fecha de fin</label>
-                  <div class="wf-input">12/11/2026</div>
-                </div>
-                <div class="wf-calendario"><span class="wf-cal-mes"><span>‹</span><span>Noviembre de 2026</span><span>›</span></span><span class="wf-cal-cabecera">L</span><span class="wf-cal-cabecera">M</span><span class="wf-cal-cabecera">X</span><span class="wf-cal-cabecera">J</span><span class="wf-cal-cabecera">V</span><span class="wf-cal-cabecera">S</span><span class="wf-cal-cabecera">D</span><span></span><span></span><span></span><span></span><span></span><span></span><span class="wf-cal-pasado">1</span><span class="wf-cal-pasado">2</span><span class="wf-cal-pasado">3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span class="wf-cal-elegido">10</span><span class="wf-cal-rango">11</span><span class="wf-cal-elegido">12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span></div>
+                <div class="wf-campo"><label>Fecha de inicio</label><div class="wf-input">18/11/2026</div></div>
+                <div class="wf-campo"><label>Fecha de fin</label><div class="wf-input">20/11/2026</div></div>
+                <div class="wf-caja">Calendario (US-04.01 y US-04.07)</div>
                 <p class="wf-texto">3 días × 6,00 € = <strong>18,00 €</strong></p>
-                <p class="wf-ayuda">Fechas disponibles</p>
-                <p class="wf-texto"></p>
                 <span class="wf-boton wf-ancho">Solicitar alquiler</span><span class="wf-marca">1</span>
               </div>
             </div>
@@ -65,7 +252,7 @@
       </div>
       <ol class="wf-notas">
         <li>Panel de la ficha (US-04.01). Con esta historia, el botón ya no va directo al resumen: pasa antes por el paso «Entrega».</li>
-        <li>La ficha ya enseña las formas de entrega con estos nombres. El paso siguiente propone «Recogida en domicilio» y «Entrega por rider»: los nombres se unifican al planificar la historia.</li>
+        <li>La ficha usa los mismos nombres que el paso «Entrega» (decisión 7 de #66).</li>
       </ol>
     </section>
 
@@ -87,16 +274,14 @@
               <div class="wf-caja">Fotos, descripción, formas de entrega y propietario (US-03.03)</div>
               <div class="wf-tarjeta">
                 <p class="wf-texto"><strong>6,00 €</strong> / día <span class="wf-chip">Disponible</span></p>
-                <h3 class="wf-h1">Entrega <span class="wf-marca">4</span></h3>
-                <p class="wf-texto">Taladro percutor Bosch · Del 10/11/2026 al 12/11/2026</p>
-                <div class="wf-campo">
-                  <label>¿Cómo quieres recibir el objeto? <span class="wf-marca">1</span></label>
-                </div>
-                <div class="wf-campo"><div class="wf-input">○ Recogida en domicilio</div></div>
+                <h3 class="wf-h1">Entrega <span class="wf-marca">1</span></h3>
+                <p class="wf-texto">Taladro percutor Bosch · Del 18/11/2026 al 20/11/2026</p>
+                <div class="wf-campo"><label>¿Cómo quieres recibir el objeto? <span class="wf-marca">2</span></label></div>
+                <div class="wf-campo"><div class="wf-input">○ Recoger en casa del propietario</div></div>
                 <div class="wf-campo"><div class="wf-input">○ Entrega por rider</div></div>
                 <div class="wf-campo"><div class="wf-input">○ Punto de recogida</div></div>
                 <div class="wf-tarjeta">
-                  <p class="wf-texto">Importe del alquiler (3 días): 18,00 € <span class="wf-marca">2</span></p>
+                  <p class="wf-texto">Importe del alquiler (3 días): 18,00 €</p>
                 </div>
                 <p class="wf-texto"></p>
                 <div class="wf-fila">
@@ -113,9 +298,9 @@
             <div class="wf-caja">Título y fotos del objeto</div>
             <p class="wf-texto"></p>
             <h3 class="wf-h1">Entrega</h3>
-            <p class="wf-texto">Taladro percutor Bosch · Del 10/11/2026 al 12/11/2026</p>
+            <p class="wf-texto">Taladro percutor Bosch · Del 18/11/2026 al 20/11/2026</p>
             <div class="wf-campo"><label>¿Cómo quieres recibir el objeto?</label></div>
-            <div class="wf-campo"><div class="wf-input">○ Recogida en domicilio</div></div>
+            <div class="wf-campo"><div class="wf-input">○ Recoger en casa del propietario</div></div>
             <div class="wf-campo"><div class="wf-input">○ Entrega por rider</div></div>
             <div class="wf-campo"><div class="wf-input">○ Punto de recogida</div></div>
             <div class="wf-tarjeta"><p class="wf-texto">Importe del alquiler (3 días): 18,00 €</p></div>
@@ -129,13 +314,9 @@
         </div>
       </div>
       <ol class="wf-notas">
-        <li>
-          Criterio 1: solo se ofrecen los modos que el propietario habilitó para ese objeto. Aquí se ven los tres, pero
-          un objeto con uno o dos modos solo muestra esos.
-        </li>
-        <li>El desglose se actualiza según el modo elegido.</li>
+        <li>Un paso propio dentro del panel, sin cambiar de página: fechas → entrega → resumen. Al entrar se llama a <code>GET /api/objetos/:id/entrega?startDate=…</code> (mientras carga, «Cargando…»; si falla, el mensaje de la API y «Volver»).</li>
+        <li>Criterio 2: solo se ofrecen los modos que llegan a <code>true</code> en <code>modes</code> (<code>home</code>, <code>rider</code>, <code>pickupPoint</code>). Aquí se ven los tres; un objeto con uno o dos modos solo muestra esos.</li>
         <li>«Volver» regresa a las fechas y las conserva, como en el resumen de US-04.01.</li>
-        <li>Dibujado como un paso propio dentro del panel, sin cambiar de página. Dónde encaja la entrega dentro del panel (junto a las fechas, antes o después) se decide al planificar la historia.</li>
       </ol>
     </section>
 
@@ -158,12 +339,12 @@
               <div class="wf-tarjeta">
                 <p class="wf-texto"><strong>6,00 €</strong> / día <span class="wf-chip">Disponible</span></p>
                 <h3 class="wf-h1">Entrega</h3>
-                <p class="wf-texto">Taladro percutor Bosch · Del 10/11/2026 al 12/11/2026</p>
-                <div class="wf-campo"><div class="wf-input wf-con-error">○ Recogida en domicilio</div></div>
+                <p class="wf-texto">Taladro percutor Bosch · Del 18/11/2026 al 20/11/2026</p>
+                <div class="wf-campo"><div class="wf-input wf-con-error">○ Recoger en casa del propietario</div></div>
                 <div class="wf-campo"><div class="wf-input wf-con-error">○ Entrega por rider</div></div>
                 <div class="wf-campo">
                   <div class="wf-input wf-con-error">○ Punto de recogida</div>
-                  <p class="wf-error">Elige un modo de entrega para continuar. <span class="wf-marca">1</span></p>
+                  <p class="wf-error">Elige un modo de entrega. <span class="wf-marca">1</span></p>
                 </div>
                 <div class="wf-fila">
                   <span class="wf-boton wf-secundario">Volver</span>
@@ -175,14 +356,14 @@
         </div>
       </div>
       <ol class="wf-notas">
-        <li>El flujo pide que se indique en este paso, pero no da el texto exacto: es una propuesta.</li>
+        <li>Mismo texto que la API (<code>400</code>, field <code>deliveryMode</code>). Lo comprueba el frontend al pulsar «Continuar», sin llamar a la API.</li>
       </ol>
     </section>
 
     <p class="wf-flecha">Opción A: elige «Entrega por rider»</p>
 
     <section class="wf-pantalla" data-captura="4-rider">
-      <h2><span class="wf-paso">4</span>Modo rider: coste y hora <code>/objetos/:id</code></h2>
+      <h2><span class="wf-paso">4</span>Modo rider: hora, dirección, barrio y tarifa <code>/objetos/:id</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…">
           <nav class="wf-nav">
@@ -198,18 +379,27 @@
               <div class="wf-tarjeta">
                 <p class="wf-texto"><strong>6,00 €</strong> / día <span class="wf-chip">Disponible</span></p>
                 <h3 class="wf-h1">Entrega</h3>
-                <div class="wf-campo"><div class="wf-input">○ Recogida en domicilio</div></div>
+                <div class="wf-campo"><div class="wf-input">○ Recoger en casa del propietario</div></div>
                 <div class="wf-campo"><div class="wf-input"><strong>● Entrega por rider</strong></div></div>
                 <div class="wf-campo"><div class="wf-input">○ Punto de recogida</div></div>
                 <div class="wf-campo">
-                  <label>Hora de entrega <span class="wf-marca">1</span></label>
-                  <div class="wf-input">● Lo antes posible</div>
+                  <label>Hora de entrega (18/11/2026) <span class="wf-marca">1</span></label>
+                  <div class="wf-input">Lo antes posible <span>▾</span></div>
+                  <p class="wf-ayuda">O una franja: 09:00 – 11:00, 11:00 – 13:00 … 19:00 – 21:00</p>
                 </div>
-                <div class="wf-campo"><div class="wf-input"><span>○ Franja de hoy</span><span>18:00 – 20:00 ▾</span></div></div>
+                <div class="wf-campo">
+                  <label>Dirección de entrega <span class="wf-marca">2</span></label>
+                  <div class="wf-input">Carrer de Sants, 140, 1.º 1.ª</div>
+                  <p class="wf-ayuda">Solo la verá el rider que haga la entrega.</p>
+                </div>
+                <div class="wf-campo">
+                  <label>Barrio de entrega <span class="wf-marca">3</span></label>
+                  <div class="wf-input">Sants <span>▾</span></div>
+                </div>
                 <div class="wf-tarjeta">
                   <p class="wf-texto">Importe del alquiler (3 días): 18,00 €</p>
-                  <p class="wf-texto">Entrega por rider: 3,50 € <span class="wf-marca">2</span></p>
-                  <p class="wf-texto"><strong>Total: 21,50 €</strong></p>
+                  <p class="wf-texto">Entrega por rider: 5,00 € <span class="wf-marca">4</span></p>
+                  <p class="wf-texto"><strong>Total: 23,00 €</strong></p>
                 </div>
                 <p class="wf-texto"></p>
                 <div class="wf-fila">
@@ -220,17 +410,40 @@
             </div>
           </div>
         </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Entrega</h3>
+            <div class="wf-campo"><div class="wf-input"><strong>● Entrega por rider</strong></div></div>
+            <div class="wf-campo"><label>Hora de entrega (18/11/2026)</label><div class="wf-input">Lo antes posible <span>▾</span></div></div>
+            <div class="wf-campo"><label>Dirección de entrega</label><div class="wf-input">Carrer de Sants, 140, 1.º 1.ª</div></div>
+            <div class="wf-campo"><label>Barrio de entrega</label><div class="wf-input">Sants <span>▾</span></div></div>
+            <div class="wf-tarjeta">
+              <p class="wf-texto">Alquiler (3 días): 18,00 €</p>
+              <p class="wf-texto">Entrega por rider: 5,00 €</p>
+              <p class="wf-texto"><strong>Total: 23,00 €</strong></p>
+            </div>
+            <p class="wf-texto"></p>
+            <div class="wf-fila">
+              <span class="wf-boton wf-secundario">Volver</span>
+              <span class="wf-boton">Continuar</span>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
       </div>
       <ol class="wf-notas">
-        <li>Criterio 2: «Lo antes posible» o una franja de hoy.</li>
-        <li>Criterio 2: el coste de entrega se suma al desglose. El importe es un ejemplo: la tarifa la fija el equipo.</li>
+        <li>Criterio 3: «Lo antes posible» (<code>slot: "asap"</code>) o una franja de 2 h del día de inicio, de <code>slots</code>. Si el inicio es hoy, la API no devuelve las franjas que ya han empezado.</li>
+        <li>Decisión 4 de #66: sin la dirección y el barrio, el rider no sabe adónde ir ni se puede calcular la tarifa. Hasta 200 caracteres (<code>deliveryAddress</code>). El propietario no la ve nunca.</li>
+        <li>Desplegable de <code>GET /api/barrios</code> (<code>deliveryNeighborhood</code>). Al elegirlo se pide la tarifa.</li>
+        <li>Criterio 3: <code>GET /api/objetos/:id/entrega/tarifa?barrio=Sants</code> → <code>fee</code>. Tramos: hasta 2 km, 3,00 €; de 2 a 5 km, 5,00 €; más de 5 km, 7,00 €. Hasta elegir barrio, la línea dice «Elige el barrio para ver el coste». El total suma alquiler y entrega; la API guarda la tarifa en la entrega, no en <code>totalPrice</code>.</li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Clic en «Continuar» con rider elegido y sin hora</p>
+    <p class="wf-flecha">Clic en «Continuar» con rider elegido y sin hora, dirección o barrio</p>
 
-    <section class="wf-pantalla" data-captura="5-error-rider-sin-hora">
-      <h2><span class="wf-paso">5</span>Error: rider sin hora <code>/objetos/:id</code></h2>
+    <section class="wf-pantalla" data-captura="5-error-rider">
+      <h2><span class="wf-paso">5</span>Errores del modo rider <code>/objetos/:id</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…">
           <nav class="wf-nav">
@@ -248,12 +461,19 @@
                 <h3 class="wf-h1">Entrega</h3>
                 <div class="wf-campo"><div class="wf-input"><strong>● Entrega por rider</strong></div></div>
                 <div class="wf-campo">
-                  <label>Hora de entrega</label>
-                  <div class="wf-input wf-con-error">○ Lo antes posible</div>
+                  <label>Hora de entrega (18/11/2026)</label>
+                  <div class="wf-input wf-con-error">Elige una hora <span>▾</span></div>
+                  <p class="wf-error">Elige una hora de entrega. <span class="wf-marca">1</span></p>
                 </div>
                 <div class="wf-campo">
-                  <div class="wf-input wf-con-error"><span>○ Franja de hoy</span><span>Elige una franja ▾</span></div>
-                  <p class="wf-error">Elige una hora de entrega para continuar. <span class="wf-marca">1</span></p>
+                  <label>Dirección de entrega</label>
+                  <div class="wf-input wf-con-error"></div>
+                  <p class="wf-error">El campo "dirección de entrega" no es correcto, revísalo.</p>
+                </div>
+                <div class="wf-campo">
+                  <label>Barrio de entrega</label>
+                  <div class="wf-input wf-con-error">Elige un barrio <span>▾</span></div>
+                  <p class="wf-error">El campo "barrio de entrega" no es correcto, revísalo.</p>
                 </div>
                 <div class="wf-fila">
                   <span class="wf-boton wf-secundario">Volver</span>
@@ -265,7 +485,7 @@
         </div>
       </div>
       <ol class="wf-notas">
-        <li>El flujo pide la hora antes de continuar, pero no da el texto exacto: es una propuesta.</li>
+        <li>Textos exactos de la API (<code>400</code> con field <code>slot</code>, <code>deliveryAddress</code> y <code>deliveryNeighborhood</code>). El frontend los comprueba antes de continuar y lleva el foco al primer campo con error.</li>
       </ol>
     </section>
 
@@ -288,21 +508,25 @@
               <div class="wf-tarjeta">
                 <p class="wf-texto"><strong>6,00 €</strong> / día <span class="wf-chip">Disponible</span></p>
                 <h3 class="wf-h1">Entrega</h3>
-                <div class="wf-campo"><div class="wf-input">○ Recogida en domicilio</div></div>
+                <div class="wf-campo"><div class="wf-input">○ Recoger en casa del propietario</div></div>
                 <div class="wf-campo"><div class="wf-input">○ Entrega por rider</div></div>
                 <div class="wf-campo"><div class="wf-input"><strong>● Punto de recogida</strong></div></div>
                 <div class="wf-campo">
                   <label>Puntos cercanos <span class="wf-marca">1</span></label>
-                  <div class="wf-input">● Biblioteca del barrio · Calle Mayor, 12</div>
+                  <div class="wf-input"><span>● Biblioteca Jaume Fuster · Plaça de Lesseps, 20-22</span><span>1,1 km</span></div>
                 </div>
-                <div class="wf-campo"><div class="wf-input">○ Centro cívico · Plaza Nueva, 3</div></div>
+                <div class="wf-campo"><div class="wf-input"><span>○ Mercat de Sant Antoni · Carrer del Comte d'Urgell, 1</span><span>2,5 km</span></div></div>
+                <div class="wf-campo">
+                  <div class="wf-input"><span>○ Centre Cívic Cotxeres de Sants · Carrer de Sants, 79</span><span>3,3 km</span></div>
+                  <p class="wf-ayuda">Y 3 más, de más cerca a más lejos</p>
+                </div>
                 <div class="wf-tarjeta">
                   <p class="wf-texto"><strong>Total: 18,00 €</strong></p>
                 </div>
                 <p class="wf-texto"></p>
                 <div class="wf-fila">
                   <span class="wf-boton wf-secundario">Volver</span>
-                  <span class="wf-boton">Continuar</span>
+                  <span class="wf-boton">Continuar</span><span class="wf-marca">2</span>
                 </div>
               </div>
             </div>
@@ -311,16 +535,17 @@
       </div>
       <ol class="wf-notas">
         <li>
-          Criterio 4: muestra los puntos cercanos y permite seleccionar uno. La lista es estática (semilla en la base de
-          datos). Los nombres son de ejemplo.
+          Criterio 5: <code>pickupPoints</code> de <code>GET /api/objetos/:id/entrega</code>, ya ordenados por cercanía al barrio
+          del objeto (<code>distanceKm</code>). Son los 6 puntos reales de la migración. Las distancias son de ejemplo.
         </li>
+        <li>Sin punto elegido: «Elige un punto de recogida.» (texto de la API, field <code>pickupPointId</code>), debajo de la lista.</li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Opción C: elige «Recogida en domicilio»</p>
+    <p class="wf-flecha">Opción C: elige «Recoger en casa del propietario»</p>
 
     <section class="wf-pantalla" data-captura="7-recogida-domicilio">
-      <h2><span class="wf-paso">7</span>Modo recogida en domicilio <code>/objetos/:id</code></h2>
+      <h2><span class="wf-paso">7</span>Modo recoger en casa del propietario <code>/objetos/:id</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…">
           <nav class="wf-nav">
@@ -336,11 +561,11 @@
               <div class="wf-tarjeta">
                 <p class="wf-texto"><strong>6,00 €</strong> / día <span class="wf-chip">Disponible</span></p>
                 <h3 class="wf-h1">Entrega</h3>
-                <div class="wf-campo"><div class="wf-input"><strong>● Recogida en domicilio</strong></div></div>
+                <div class="wf-campo"><div class="wf-input"><strong>● Recoger en casa del propietario</strong></div></div>
                 <div class="wf-campo"><div class="wf-input">○ Entrega por rider</div></div>
                 <div class="wf-campo"><div class="wf-input">○ Punto de recogida</div></div>
                 <p class="wf-aviso">
-                La dirección se mostrará cuando acepten la solicitud. <span class="wf-marca">1</span>
+                  Lo recoges en Gràcia. La dirección se mostrará cuando acepten la solicitud. <span class="wf-marca">1</span>
                 </p>
                 <div class="wf-tarjeta">
                   <p class="wf-texto"><strong>Total: 18,00 €</strong></p>
@@ -356,11 +581,11 @@
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Criterio 3: la dirección exacta del propietario no se enseña hasta que acepta (ver la pantalla 9).</li>
+        <li>Criterio 4: la dirección exacta del propietario no se enseña hasta que acepta (ver la pantalla 9). Antes solo se ve el barrio del objeto.</li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Con el modo y la hora elegidos: clic en «Continuar»</p>
+    <p class="wf-flecha">Con el modo (y, con rider, la hora) elegido: clic en «Continuar»</p>
 
     <section class="wf-pantalla" data-captura="8-resumen">
       <h2><span class="wf-paso">8</span>Resumen antes de enviar <code>/objetos/:id</code></h2>
@@ -380,13 +605,14 @@
                 <p class="wf-texto"><strong>6,00 €</strong> / día <span class="wf-chip">Disponible</span></p>
                 <h3 class="wf-h1">Revisa tu solicitud</h3>
                 <p class="wf-texto"><strong>Taladro percutor Bosch</strong> · 6,00 € / día</p>
-                <p class="wf-texto">Desde: martes, 10 de noviembre de 2026</p>
-                <p class="wf-texto">Hasta: jueves, 12 de noviembre de 2026</p>
+                <p class="wf-texto">Desde: miércoles, 18 de noviembre de 2026</p>
+                <p class="wf-texto">Hasta: viernes, 20 de noviembre de 2026</p>
                 <p class="wf-texto">Entrega: por rider · Lo antes posible <span class="wf-marca">1</span></p>
+                <p class="wf-texto">A: Carrer de Sants, 140, 1.º 1.ª (Sants)</p>
                 <div class="wf-tarjeta">
                   <p class="wf-texto">Importe del alquiler (3 días): 18,00 €</p>
-                  <p class="wf-texto">Entrega por rider: 3,50 €</p>
-                  <p class="wf-texto"><strong>Total: 21,50 €</strong></p>
+                  <p class="wf-texto">Entrega por rider: 5,00 €</p>
+                  <p class="wf-texto"><strong>Total: 23,00 €</strong></p>
                 </div>
                 <p class="wf-texto"></p>
                 <div class="wf-fila">
@@ -399,8 +625,8 @@
         </div>
       </div>
       <ol class="wf-notas">
-        <li>El resumen de US-04.01 añade el modo y la hora. En punto de recogida muestra el punto elegido.</li>
-        <li>Crea la solicitud con el modo y la hora elegidos. Los errores son los de US-04.01.</li>
+        <li>El resumen de US-04.01 añade el modo y la hora. Con punto de recogida, el punto elegido; con recogida en casa, «La dirección se mostrará cuando acepten la solicitud».</li>
+        <li><code>POST /api/reservas</code> con las fechas, <code>deliveryMode</code> (<code>home</code>, <code>rider</code> o <code>pickup_point</code>) y, según el modo, <code>slot</code>, <code>deliveryAddress</code> y <code>deliveryNeighborhood</code>, o <code>pickupPointId</code>. Errores: los de US-04.01, los de las pantallas 3, 5 y 6, y «Este objeto no ofrece ese modo de entrega.» si el propietario lo ha cambiado mientras tanto (se muestra arriba del panel y se vuelve al paso «Entrega»).</li>
       </ol>
     </section>
 
@@ -425,31 +651,22 @@
                 <h4>Enviadas <span class="wf-chip">2</span></h4>
                 <div class="wf-tarjeta">
                   <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pendiente</span><span>▴</span></div>
-                  <p class="wf-ayuda">10–12 nov. 2026</p>
-                  <p class="wf-texto"></p>
+                  <p class="wf-ayuda">18–20 nov. 2026</p>
                   <div class="wf-rejilla">
-                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
-                    <p class="wf-texto">Fechas: Del 10 de noviembre de 2026 al 12 de noviembre de 2026</p>
-                    <p class="wf-texto">Importe total: 21,50 €</p>
-                    <p class="wf-texto">Estado: Pendiente</p>
+                    <p class="wf-texto">Alquiler: 18,00 € · Entrega: 5,00 € · <strong>Total: 23,00 €</strong> <span class="wf-marca">4</span></p>
                     <p class="wf-texto">Propietario: ana</p>
-                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
-                    <p class="wf-texto">Entrega por rider · Lo antes posible <span class="wf-marca">1</span></p>
+                    <p class="wf-texto">Entrega por rider · Lo antes posible · 5,00 € <span class="wf-marca">1</span></p>
+                    <p class="wf-texto">A: Carrer de Sants, 140, 1.º 1.ª (Sants)</p>
                   </div>
                 </div>
                 <p class="wf-texto"></p>
                 <div class="wf-tarjeta">
                   <div class="wf-fila"><strong>Bicicleta de paseo</strong><span class="wf-chip">Aceptada</span><span>▴</span></div>
-                  <p class="wf-ayuda">20–21 nov. 2026</p>
-                  <p class="wf-texto"></p>
+                  <p class="wf-ayuda">25–26 nov. 2026</p>
                   <div class="wf-rejilla">
-                    <p class="wf-texto">Objeto: <span class="wf-enlace">Bicicleta de paseo</span></p>
-                    <p class="wf-texto">Fechas: Del 20 de noviembre de 2026 al 21 de noviembre de 2026</p>
-                    <p class="wf-texto">Importe total: 16,00 €</p>
-                    <p class="wf-texto">Estado: Aceptada</p>
+                    <p class="wf-texto">Alquiler: 16,00 € · <strong>Total: 16,00 €</strong></p>
                     <p class="wf-texto">Propietario: bruno</p>
-                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
-                    <p class="wf-texto">Recogida en domicilio · Dirección: Calle del Sol, 8, 2.º 1.ª <span class="wf-marca">2</span></p>
+                    <p class="wf-texto">Recoger en casa del propietario · Carrer del Sol, 8, 2.º 1.ª <span class="wf-marca">2</span></p>
                   </div>
                 </div>
               </div>
@@ -457,16 +674,11 @@
                 <h4>Recibidas <span class="wf-chip">1</span></h4>
                 <div class="wf-tarjeta">
                   <div class="wf-fila"><strong>Tienda de campaña</strong><span class="wf-chip">Pendiente</span><span>▴</span></div>
-                  <p class="wf-ayuda">14–15 nov. 2026</p>
-                  <p class="wf-texto"></p>
+                  <p class="wf-ayuda">21–22 nov. 2026</p>
                   <div class="wf-rejilla">
-                    <p class="wf-texto">Objeto: <span class="wf-enlace">Tienda de campaña</span></p>
-                    <p class="wf-texto">Fechas: Del 14 de noviembre de 2026 al 15 de noviembre de 2026</p>
-                    <p class="wf-texto">Importe total: 24,00 €</p>
-                    <p class="wf-texto">Estado: Pendiente</p>
+                    <p class="wf-texto">Alquiler: 24,00 € · <strong>Total: 24,00 €</strong></p>
                     <p class="wf-texto">Solicitada por: bruno</p>
-                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
-                    <p class="wf-texto">Punto de recogida: Biblioteca del barrio <span class="wf-marca">3</span></p>
+                    <p class="wf-texto">Punto de recogida: Biblioteca Jaume Fuster <span class="wf-marca">3</span></p>
                   </div>
                 </div>
               </div>
@@ -475,9 +687,10 @@
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Criterio 5: el modo y la hora quedan registrados en la solicitud.</li>
-        <li>Criterio 3: en recogida en domicilio, la dirección exacta del propietario se ve solo una vez aceptada.</li>
-        <li>Criterio 5: el propietario ve el modo y la hora en «Recibidas». El rider, en la lista de entregas (US-10.01).</li>
+        <li>Criterio 6: el modo y la hora quedan en la solicitud (<code>delivery</code>: <code>mode</code>, <code>slot</code>, <code>fee</code>…). La dirección de entrega (<code>deliveryAddress</code>) solo la ve el arrendatario. </li>
+        <li>Criterio 4: <code>ownerAddress</code> solo llega con recogida en casa y la solicitud aceptada, pagada, en curso o finalizada. Si está pendiente, «La dirección se mostrará cuando acepten la solicitud».</li>
+        <li>Criterio 6: el propietario ve el modo y la hora en «Recibidas», nunca la dirección de entrega. El rider, en la lista de trabajos (US-10.01). Las solicitudes anteriores a esta historia (<code>delivery: null</code>) no muestran la línea.</li>
+        <li>Desglose (decisión de Marc, 12/11): alquiler (<code>totalPrice</code>), entrega (<code>delivery.fee</code>, solo si la hay) y total = alquiler + entrega, sumado en el frontend. Sin tarifa de entrega, solo alquiler y total. Lo mismo en «Enviadas» y «Recibidas».</li>
       </ol>
     </section>
   </body>

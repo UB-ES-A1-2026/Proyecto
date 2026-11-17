@@ -70,8 +70,8 @@ describe('pantalla de detalle del objeto (US-03.03, #58)', () => {
     expect(screen.getByText(ITEM.description)).toBeInTheDocument();
     expect(screen.getByText('Herramientas y bricolaje')).toBeInTheDocument();
     expect(screen.getByText('Gràcia')).toBeInTheDocument();
-    expect(screen.getByText('Entrega a domicilio')).toBeInTheDocument();
-    expect(screen.getByText('Entrega con rider')).toBeInTheDocument();
+    expect(screen.getByText('Recoger en casa del propietario')).toBeInTheDocument();
+    expect(screen.getByText('Entrega por rider')).toBeInTheDocument();
     expect(screen.getByText('Punto de recogida')).toBeInTheDocument();
     expect(screen.getByText('Publicado por ana')).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Propietario' })).toHaveTextContent(
@@ -299,8 +299,22 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
       if (url.includes('/reservas/disponibilidad')) return Response.json({ available });
       if (url.endsWith('/reservas')) return Response.json(RESERVATION, { status: 201 });
       if (url.endsWith('/usuarios/me/reservas')) return Response.json({ sent: [], received: [] });
+      // Paso «Entrega» de US-05.01: el objeto solo ofrece recogerlo en casa del propietario.
+      if (url.includes('/entrega?')) {
+        return Response.json({
+          modes: { home: true, rider: false, pickupPoint: false },
+          pickupPoints: [],
+          slots: [],
+        });
+      }
       return Response.json(ITEM);
     });
+  }
+
+  // Entre las fechas y el resumen está el paso «Entrega» (US-05.01, #282).
+  async function chooseHomeDelivery(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(await screen.findByRole('radio', { name: 'Recoger en casa del propietario' }));
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
   }
 
   async function chooseDates(startDate: string, endDate: string) {
@@ -347,6 +361,7 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     await chooseDates('10/11/2026', '12/11/2026');
     await waitFor(() => expect(requestButton()).toBeEnabled());
     await user.click(requestButton());
+    await chooseHomeDelivery(user);
 
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Confirmar y pagar' }),
@@ -365,6 +380,7 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     expect(container.querySelector('.checkout-deposit')).toHaveTextContent(
       /Total con fianza\s*35,00\s€/,
     );
+    expect(summary.getByText('Recoger en casa del propietario')).toBeInTheDocument();
     // La foto es decorativa (alt=""), así que no tiene rol «img»: se busca por su clase.
     expect(container.querySelector('.rental-item-photo')).toHaveAttribute(
       'src',
@@ -392,6 +408,7 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     await chooseDates('10/11/2026', '12/11/2026');
     await waitFor(() => expect(requestButton()).toBeEnabled());
     await user.click(requestButton());
+    await chooseHomeDelivery(user);
     // Pago al solicitar (US-07.01, #286): «Confirmar y pagar» pide la tarjeta.
     await user.type(await screen.findByLabelText('Número de tarjeta'), '4242424242424242');
     await user.type(screen.getByLabelText('Caducidad'), '1230');
@@ -405,6 +422,7 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
       startDate: '2026-11-10',
       endDate: '2026-11-12',
       confirmationTokenId: 'ctoken_simulado',
+      deliveryMode: 'home',
     });
   });
 

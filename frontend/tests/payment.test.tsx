@@ -58,13 +58,17 @@ type Handler = () => Response | Promise<Response>;
 
 // La disponibilidad siempre está libre; el POST /reservas lo responde `onRequest`.
 function mockRequestApi(onRequest: Handler = () => Response.json(reservation(), { status: 201 })) {
-  return vi
-    .spyOn(globalThis, 'fetch')
-    .mockImplementation(async (input) =>
-      String(input).includes('/reservas/disponibilidad')
-        ? Response.json({ available: true })
+  return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) =>
+    String(input).includes('/reservas/disponibilidad')
+      ? Response.json({ available: true })
+      : String(input).includes('/entrega?')
+        ? Response.json({
+            modes: { home: true, rider: false, pickupPoint: false },
+            pickupPoints: [],
+            slots: [],
+          })
         : onRequest(),
-    );
+  );
 }
 
 function renderRequest(item: RentalItem = ITEM) {
@@ -88,6 +92,9 @@ async function goToSummary(
   const request = screen.getByRole('button', { name: 'Solicitar alquiler' });
   await waitFor(() => expect(request).toBeEnabled());
   await user.click(request);
+  // Paso «Entrega» (US-05.01): recoger en casa del propietario.
+  await user.click(await screen.findByRole('radio', { name: 'Recoger en casa del propietario' }));
+  await user.click(screen.getByRole('button', { name: 'Continuar' }));
 }
 
 function fillCard(number = VISA, expiry = '12/30', cvc = '123') {
@@ -227,6 +234,7 @@ describe('Pagar al solicitar desde la ficha', () => {
       itemId: 'item-1',
       startDate: '2026-11-04',
       endDate: '2026-11-06',
+      deliveryMode: 'home',
       confirmationTokenId: 'ctoken_simulado',
     });
     expect(body).not.toContain('4242');
@@ -322,9 +330,9 @@ describe('Ficha y «Mis solicitudes» con el pago al solicitar', () => {
     neighborhood: 'Gràcia',
     category: { id: 'c1', name: 'Herramientas' },
     photos: [],
-    homeDelivery: false,
+    homeDelivery: true,
     riderDelivery: false,
-    pickupPointDelivery: true,
+    pickupPointDelivery: false,
     owner: { id: 'u1', username: 'ana' },
     createdAt: '2026-10-01T10:00:00.000Z',
   };
@@ -334,6 +342,12 @@ describe('Ficha y «Mis solicitudes» con el pago al solicitar', () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
       const url = String(input);
       if (url.includes('/reservas/disponibilidad')) return Response.json({ available: true });
+      if (url.includes('/entrega?'))
+        return Response.json({
+          modes: { home: true, rider: false, pickupPoint: false },
+          pickupPoints: [],
+          slots: [],
+        });
       if (init?.method === 'POST') return Response.json(reservation(), { status: 201 });
       if (url.endsWith('/usuarios/me/reservas')) {
         return Response.json({ sent: [reservation()], received: [] });

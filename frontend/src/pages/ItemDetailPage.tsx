@@ -1,13 +1,13 @@
 // Generado con asistencia de IA – revisado por Danyal, 01/11/2026
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import { Icon, type IconName } from '../components/Icon';
 import { RentalRequest } from '../components/RentalRequest';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import { getItemDetail, type ItemDetail } from '../services/itemService';
 import { formatPrice } from '../utils/rental';
-import { rentalDatesFrom, rentalDatesSearch } from '../utils/rentalDates';
+import { deliveryDraftFrom, rentalDatesFrom, rentalDatesSearch } from '../utils/rentalDates';
 
 type ItemDetailState =
   | { requestKey: string; status: 'success'; item: ItemDetail }
@@ -25,9 +25,10 @@ const AVAILABILITY: Record<ItemDetail['status'], { label: string; badge: string;
     withdrawn: { label: 'Retirado', badge: 'badge-neutral', icon: 'do_not_disturb_on' },
   };
 
+// Mismos nombres que el paso «Entrega» de la solicitud (decisión 7 de #66, US-05.01).
 const DELIVERY_METHODS = [
-  { field: 'homeDelivery', label: 'Entrega a domicilio', icon: 'home' },
-  { field: 'riderDelivery', label: 'Entrega con rider', icon: 'pedal_bike' },
+  { field: 'homeDelivery', label: 'Recoger en casa del propietario', icon: 'home' },
+  { field: 'riderDelivery', label: 'Entrega por rider', icon: 'pedal_bike' },
   { field: 'pickupPointDelivery', label: 'Punto de recogida', icon: 'pin_drop' },
 ] as const;
 
@@ -86,6 +87,10 @@ function RentalAction({ item }: { item: ItemDetail }) {
   const itemPath = `/objetos/${encodeURIComponent(item.id)}`;
   // Al volver de «Confirmar y pagar», las fechas siguen elegidas: van en la dirección de la ficha.
   const initialDates = rentalDatesFrom(searchParams);
+  // Y la entrega que se había elegido (en el historial, no en la dirección: lleva la dirección de
+  // entrega de quien alquila).
+  const location = useLocation();
+  const initialDraft = deliveryDraftFrom(location.state);
 
   const goToLogin = useCallback(() => {
     navigate('/login', { state: { from: itemPath } });
@@ -124,14 +129,20 @@ function RentalAction({ item }: { item: ItemDetail }) {
   return (
     <RentalRequest
       key={item.id}
-      item={{ id: item.id, title: item.title, pricePerDay: Number(item.dailyPrice) }}
+      item={{
+        id: item.id,
+        title: item.title,
+        pricePerDay: Number(item.dailyPrice),
+        neighborhood: item.neighborhood,
+      }}
       initialDates={initialDates ?? undefined}
-      // Las fechas se guardan en la dirección de la ficha, para que «Atrás» desde la página de pago
-      // vuelva con ellas, y se abre «Confirmar y pagar» (US-07.01).
-      onContinue={(dates) => {
+      initialDraft={initialDraft}
+      // Las fechas se guardan en la dirección de la ficha y la entrega en el historial, para que
+      // «Atrás» desde la página de pago vuelva con ellas, y se abre «Confirmar y pagar» (US-07.01).
+      onContinue={({ delivery, draft, ...dates }) => {
         const search = `?${rentalDatesSearch(dates)}`;
-        void navigate({ search }, { replace: true });
-        void navigate(`${itemPath}/solicitar${search}`);
+        void navigate({ search }, { replace: true, state: { deliveryDraft: draft } });
+        void navigate(`${itemPath}/solicitar${search}`, { state: { delivery } });
       }}
       onSessionExpired={goToLogin}
     />
