@@ -70,8 +70,8 @@ describe('pantalla de detalle del objeto (US-03.03, #58)', () => {
     expect(screen.getByText(ITEM.description)).toBeInTheDocument();
     expect(screen.getByText('Herramientas y bricolaje')).toBeInTheDocument();
     expect(screen.getByText('Gràcia')).toBeInTheDocument();
-    expect(screen.getByText('Entrega a domicilio')).toBeInTheDocument();
-    expect(screen.getByText('Entrega con rider')).toBeInTheDocument();
+    expect(screen.getByText('Recoger en casa del propietario')).toBeInTheDocument();
+    expect(screen.getByText('Entrega por rider')).toBeInTheDocument();
     expect(screen.getByText('Punto de recogida')).toBeInTheDocument();
     expect(screen.getByText('Publicado por ana')).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Propietario' })).toHaveTextContent(
@@ -298,8 +298,22 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     return mockFetch((url) => {
       if (url.includes('/reservas/disponibilidad')) return Response.json({ available });
       if (url.endsWith('/reservas')) return Response.json(RESERVATION, { status: 201 });
+      // Paso «Entrega» de US-05.01: el objeto solo ofrece recogerlo en casa del propietario.
+      if (url.includes('/entrega?')) {
+        return Response.json({
+          modes: { home: true, rider: false, pickupPoint: false },
+          pickupPoints: [],
+          slots: [],
+        });
+      }
       return Response.json(ITEM);
     });
+  }
+
+  // Entre las fechas y el resumen está el paso «Entrega» (US-05.01, #282).
+  async function chooseHomeDelivery(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(await screen.findByRole('radio', { name: 'Recoger en casa del propietario' }));
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
   }
 
   async function chooseDates(startDate: string, endDate: string) {
@@ -346,6 +360,7 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     await chooseDates('10/11/2026', '12/11/2026');
     await waitFor(() => expect(requestButton()).toBeEnabled());
     await user.click(requestButton());
+    await chooseHomeDelivery(user);
 
     const panel = within(screen.getByRole('complementary', { name: 'Alquiler de este objeto' }));
     expect(panel.getByRole('heading', { name: 'Revisa tu solicitud' })).toBeInTheDocument();
@@ -354,6 +369,7 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     expect(panel.getByText('jueves, 12 de noviembre de 2026')).toBeInTheDocument();
     expect(panel.getByText('Importe del alquiler (3 días)')).toBeInTheDocument();
     expect(container.querySelector('.rental-total')).toHaveTextContent('15,00 €');
+    expect(panel.getByText('Recoger en casa del propietario')).toBeInTheDocument();
     // La foto es decorativa (alt=""), así que no tiene rol «img»: se busca por su clase.
     expect(container.querySelector('.rental-item-photo')).toHaveAttribute(
       'src',
@@ -362,7 +378,9 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     expect(router.state.location.pathname).toBe('/objetos/taladro-1');
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false);
 
+    // «Volver» lleva a la entrega y, desde ahí, a las fechas.
     await user.click(panel.getByRole('button', { name: 'Volver' }));
+    await user.click(screen.getByRole('button', { name: 'Volver' }));
 
     expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('10/11/2026');
     expect(screen.getByLabelText('Fecha de fin')).toHaveValue('12/11/2026');
@@ -376,6 +394,7 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     await chooseDates('10/11/2026', '12/11/2026');
     await waitFor(() => expect(requestButton()).toBeEnabled());
     await user.click(requestButton());
+    await chooseHomeDelivery(user);
     await user.click(screen.getByRole('button', { name: 'Confirmar' }));
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/mis-solicitudes'));
@@ -384,6 +403,7 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
       itemId: ITEM.id,
       startDate: '2026-11-10',
       endDate: '2026-11-12',
+      deliveryMode: 'home',
     });
   });
 

@@ -110,7 +110,8 @@ describe('Mis solicitudes (US-04.02, #124)', () => {
     await user.click(toggle);
 
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByText(/Importe total: 15,00\s*€/u)).toBeVisible();
+    // Sin entrega con tarifa, el desglose es alquiler y total (US-05.01).
+    expect(screen.getByText(/^Alquiler: 15,00\s*€ · Total: 15,00\s*€$/u)).toBeVisible();
     expect(
       screen.getByText('Fechas: Del 8 de noviembre de 2026 al 10 de noviembre de 2026'),
     ).toBeVisible();
@@ -330,5 +331,110 @@ describe('Aceptar y rechazar desde Mis solicitudes (US-04.03 y US-04.04, #126)',
     expect(screen.queryByRole('button', { name })).not.toBeInTheDocument();
     const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
     expect(String(post?.[0])).toMatch(new RegExp(`${path}$`));
+  });
+});
+
+// Entrega de la solicitud en «Mis solicitudes» (US-05.01, #282): pantalla 9 del wireframe.
+describe('entrega en Mis solicitudes (US-05.01, #282)', () => {
+  const RIDER = {
+    mode: 'rider' as const,
+    slot: null,
+    pickupPoint: null,
+    fee: '5.00',
+    deliveryNeighborhood: 'Sants',
+    deliveryAddress: 'Carrer de Sants, 140',
+    ownerAddress: null,
+  };
+
+  async function openCard(item: Reservation, role: 'sent' | 'received') {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <ReservationCard reservation={item} role={role} />
+      </MemoryRouter>,
+    );
+    await user.click(screen.getByRole('button', { name: /Taladro percutor Bosch/ }));
+  }
+
+  it('con rider: desglose con la entrega, hora, tarifa y dirección para el arrendatario', async () => {
+    await openCard(reservation({ delivery: RIDER }), 'sent');
+
+    expect(
+      screen.getByText(/^Alquiler: 15,00\s*€ · Entrega: 5,00\s*€ · Total: 20,00\s*€$/u),
+    ).toBeVisible();
+    expect(screen.getByText(/^Entrega por rider · Lo antes posible · 5,00\s*€$/u)).toBeVisible();
+    expect(screen.getByText('A: Carrer de Sants, 140 (Sants)')).toBeVisible();
+  });
+
+  it('el propietario ve la hora y el barrio, nunca la dirección de entrega', async () => {
+    await openCard(
+      reservation({ delivery: { ...RIDER, slot: '09:00-11:00', deliveryAddress: null } }),
+      'received',
+    );
+
+    expect(screen.getByText(/^Entrega por rider · 09:00 – 11:00 · 5,00\s*€$/u)).toBeVisible();
+    expect(screen.getByText('Barrio de entrega: Sants')).toBeVisible();
+    expect(screen.queryByText(/Carrer de Sants/)).not.toBeInTheDocument();
+  });
+
+  it('recoger en casa: aviso mientras está pendiente y la dirección al aceptarla', async () => {
+    const home = { ...RIDER, mode: 'home' as const, fee: null, deliveryNeighborhood: null };
+
+    await openCard(reservation({ delivery: { ...home, deliveryAddress: null } }), 'sent');
+    expect(
+      screen.getByText(
+        'Recoger en casa del propietario · La dirección se mostrará cuando acepten la solicitud.',
+      ),
+    ).toBeVisible();
+  });
+
+  it('recoger en casa aceptada enseña la dirección del propietario', async () => {
+    await openCard(
+      reservation({
+        status: 'accepted',
+        delivery: {
+          ...RIDER,
+          mode: 'home',
+          fee: null,
+          deliveryNeighborhood: null,
+          deliveryAddress: null,
+          ownerAddress: 'Carrer del Sol, 8',
+        },
+      }),
+      'sent',
+    );
+
+    expect(screen.getByText('Recoger en casa del propietario · Carrer del Sol, 8')).toBeVisible();
+  });
+
+  it('punto de recogida: el punto elegido', async () => {
+    await openCard(
+      reservation({
+        delivery: {
+          ...RIDER,
+          mode: 'pickup_point',
+          fee: null,
+          deliveryNeighborhood: null,
+          deliveryAddress: null,
+          pickupPoint: {
+            id: 'p1',
+            name: 'Biblioteca Jaume Fuster',
+            address: 'Plaça de Lesseps, 20-22',
+            neighborhood: 'Gràcia',
+          },
+        },
+      }),
+      'received',
+    );
+
+    expect(
+      screen.getByText('Punto de recogida: Biblioteca Jaume Fuster · Plaça de Lesseps, 20-22'),
+    ).toBeVisible();
+  });
+
+  it('las solicitudes anteriores a la historia no muestran entrega', async () => {
+    await openCard(reservation({ delivery: null }), 'sent');
+
+    expect(screen.queryByText(/Entrega por rider|Recoger en casa|Punto de recogida/)).toBeNull();
   });
 });
