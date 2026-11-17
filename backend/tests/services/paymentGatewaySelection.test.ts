@@ -7,6 +7,7 @@ import {
   getAuthorization,
   isValidPaymentIntentId,
   PaymentActionRequiredError,
+  PaymentNotFoundError,
   THREE_DS_TEST_TOKEN,
 } from '../../src/services/paymentGateway.js';
 import { parseStripeSecretKey } from '../../src/config/env.js';
@@ -57,9 +58,8 @@ describe('3D Secure simulado', () => {
   it('no acepta un id inventado ni con el importe codificado por el cliente', async () => {
     const forged = `simulado_3ds_${Buffer.from(JSON.stringify({ amountCents: 1, metadata: {} })).toString('base64url')}`;
 
-    const info = await getAuthorization(forged);
-
-    expect(info.status).toBe('other');
-    expect(info.amountCents).toBe(0);
+    await expect(getAuthorization(forged)).rejects.toThrow(
+      PaymentNotFoundError,
+    );
   });
 });

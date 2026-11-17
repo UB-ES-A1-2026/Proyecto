@@ -17,6 +17,7 @@ export {
   PaymentActionRequiredError,
   PaymentDeclinedError,
   PaymentGatewayError,
+  PaymentNotFoundError,
   toCents,
   type AuthorizationInfo,
   type PaymentGateway,
@@ -36,6 +37,12 @@ export function createPaymentGateway(
 
 const gateway = createPaymentGateway(env.stripeSecretKey);
 const stripeActive = Boolean(env.stripeSecretKey);
+
+if (!stripeActive && env.isProduction) {
+  console.warn(
+    'AVISO: pasarela simulada (falta STRIPE_SECRET_KEY): los pagos no son reales.',
+  );
+}
 
 // La pasarela la decide solo la configuración. Las referencias «simulado_…» guardadas en la BD
 // (seed de demo o pagos hechos sin clave) no existen en Stripe: con Stripe activo son un no-op.
