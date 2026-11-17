@@ -65,7 +65,7 @@ describe('authorize', () => {
         confirmation_token: 'ctoken_1',
         customer: 'cus_1',
         setup_future_usage: 'off_session',
-        automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
+        allowed_payment_method_types: ['card'],
         metadata: { itemId: 'i' },
       }),
     );

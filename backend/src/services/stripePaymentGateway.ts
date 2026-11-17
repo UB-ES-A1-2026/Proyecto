@@ -72,10 +72,8 @@ export function createStripePaymentGateway(client: Stripe): PaymentGateway {
           customer: customer.id,
           setup_future_usage: 'off_session',
           use_stripe_sdk: true,
-          automatic_payment_methods: {
-            enabled: true,
-            allow_redirects: 'never',
-          },
+          // Igual que allowedPaymentMethodTypes del Payment Element: solo tarjeta (sin redirecciones).
+          allowed_payment_method_types: ['card'],
           metadata,
         });
 
