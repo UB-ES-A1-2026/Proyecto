@@ -144,6 +144,15 @@ describe('planCancellation', () => {
     ).toBeNull();
   });
 
+  it('devuelve null si la fecha de inicio ya ha pasado; empezar hoy aún se puede cancelar', () => {
+    expect(planCancellation('renter', paid('2026-11-16'), NOW)).toBeNull();
+    expect(planCancellation('owner', paid('2026-11-16'), NOW)).toBeNull();
+    expect(planCancellation('renter', paid('2026-11-17'), NOW)).toMatchObject({
+      daysUntilStart: 0,
+      penaltyPercent: 100,
+    });
+  });
+
   it('pendiente con el importe bloqueado: gratis y se libera el bloqueo', () => {
     const plan = planCancellation(
       'renter',

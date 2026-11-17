@@ -108,6 +108,11 @@ export function planCancellation(
   }
 
   const days = daysUntilStart(reservation.startDate, now);
+  // Una reserva cuyo inicio ya ha pasado ha empezado (contrato de #308): ya no se cancela. Las
+  // pendientes vencidas ni llegan aquí, porque se caducan al consultar.
+  if (days < 0) {
+    return null;
+  }
   const { payment } = reservation;
 
   // Pendiente: gratis; el importe bloqueado se libera.
