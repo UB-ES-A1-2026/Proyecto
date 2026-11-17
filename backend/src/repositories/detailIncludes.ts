@@ -26,6 +26,16 @@ export const reservationDetailInclude = {
   renter: { select: { id: true, username: true } },
   payment: { select: { deliveryAmount: true } },
   delivery: { include: { pickupPoint: true } },
+  // Solo las canceladas tienen fila (US-04.05, #308).
+  cancellation: {
+    select: {
+      cancelledAt: true,
+      penaltyPercent: true,
+      penaltyAmount: true,
+      refundAmount: true,
+      cancelledBy: { select: { id: true, username: true } },
+    },
+  },
 } satisfies Prisma.ReservationInclude;
 
 export type ReservationWithDetail = Prisma.ReservationGetPayload<{
