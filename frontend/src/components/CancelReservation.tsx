@@ -1,6 +1,7 @@
 // Generado con asistencia de IA (Claude)
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/useAuth';
+import { daysUntil } from '../utils/rental';
 import { ApiError } from '../services/apiClient';
 import {
   cancelReservation,
@@ -21,8 +22,9 @@ const PREVIEW_FAILED = 'No hemos podido calcular lo que cuesta cancelar. Intént
 type Role = 'sent' | 'received';
 
 // Estados en los que se puede cancelar (US-04.05). Una pendiente recibida no: el propietario la
-// rechaza con «Rechazar».
+// rechaza con «Rechazar». Una que ya ha empezado tampoco; si empieza hoy, sí (al 100 %).
 function canCancel(reservation: Reservation, role: Role): boolean {
+  if (daysUntil(reservation.startDate) < 0) return false;
   if (reservation.status === 'pending') return role === 'sent';
   return reservation.status === 'accepted' || reservation.status === 'paid';
 }
@@ -59,9 +61,9 @@ function PreviewText({
   const refund =
     role === 'sent'
       ? preview.penaltyPercent > 0
-        ? `Te devolvemos ${formatAmount(preview.refundAmount)}. La fianza se libera entera.`
-        : `Te devolvemos todo lo que pagaste (${formatAmount(preview.refundAmount)}). La fianza se libera entera.`
-      : `A ${other} se le devuelve todo lo que pagó (${formatAmount(preview.refundAmount)}) y se libera su fianza.`;
+        ? `Te devolvemos ${formatAmount(preview.refundAmount)}. Recuperas la fianza entera.`
+        : `Te devolvemos todo lo que pagaste (${formatAmount(preview.refundAmount)}). Recuperas la fianza entera.`
+      : `A ${other} se le devuelve todo lo que pagó (${formatAmount(preview.refundAmount)}) y recupera su fianza.`;
 
   return (
     <>
