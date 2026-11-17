@@ -111,7 +111,7 @@ Las fotos van a un bucket **privado** de Supabase Storage a través de su API de
 4. Guarda: Render vuelve a desplegar solo. Comprueba la subida desde la web publicando un objeto con foto. Si el navegador da un error de CORS al hacer el `PUT`, revisa la configuración de CORS del bucket en Supabase.
 
 ### 7. Stripe en modo de prueba (T10 · #285)
-Los pagos usan Stripe con **claves de prueba**. Sin claves, el backend usa la pasarela simulada y el formulario de tarjeta simulado: así funcionan el desarrollo local, el CI, los e2e y el seed de demo. Con las claves puestas, se usa Stripe.
+Los pagos usan Stripe con **claves de prueba**. Sin claves, el backend usa la pasarela simulada y el formulario de tarjeta simulado: así funcionan el desarrollo local, el CI, los e2e y el seed de demo. Con las claves puestas, se usa Stripe. **En staging y producción las dos claves son obligatorias**: sin `STRIPE_SECRET_KEY` los pagos serían simulados (no se mueve nada en Stripe) y el backend escribe en el log «AVISO: pasarela simulada (falta STRIPE_SECRET_KEY): los pagos no son reales».
 
 1. Crea una cuenta en [stripe.com](https://stripe.com) y quédate en el **entorno de prueba** (*Developers → API keys*): copia la clave publicable (`pk_test_…`) y la secreta (`sk_test_…`). **Solo se permiten claves de prueba**: el backend no arranca si `STRIPE_SECRET_KEY` no empieza por `sk_test_`, y nunca se usan claves `live`.
 2. En **Render** → `rentit-api` → *Environment* (en `staging` y en producción): `STRIPE_SECRET_KEY` = `sk_test_…`. Es un secreto: solo en Render.
