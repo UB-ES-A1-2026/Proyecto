@@ -1,9 +1,10 @@
-import { Navigate, type RouteObject } from 'react-router';
+import type { RouteObject } from 'react-router';
 import { Layout } from '../components/Layout';
 import { PrivateRoute } from '../components/PrivateRoute';
 import { ApprovedRiderRoute, GuestOnlyRoute, RenterOnlyRoute } from '../components/RiderRoutes';
 import { AuthProvider } from '../context/AuthContext';
 import { BecomeRiderPage } from '../pages/BecomeRiderPage';
+import { ConfirmRentalPage } from '../pages/ConfirmRentalPage';
 import { HelpPage } from '../pages/HelpPage';
 import { HomePage } from '../pages/HomePage';
 import { ItemDetailPage } from '../pages/ItemDetailPage';
@@ -42,14 +43,14 @@ export const routes: RouteObject[] = [
         children: [
           { path: 'buscar', element: <SearchPage /> },
           { path: 'objetos/:id', element: <ItemDetailPage /> },
-          // El alquiler ahora está en la ficha: los enlaces antiguos a esta pantalla siguen funcionando.
-          { path: 'objetos/:id/solicitar', element: <Navigate to=".." relative="path" replace /> },
           {
             element: <PrivateRoute />,
             children: [
               { path: 'mis-objetos', element: <MyItemsPage /> },
               { path: 'mis-solicitudes', element: <MyReservationsPage /> },
               { path: 'objetos/nuevo', element: <PublishItemPage /> },
+              // «Confirmar y pagar» (US-07.01): el resumen y el pago, con las fechas en la dirección.
+              { path: 'objetos/:id/solicitar', element: <ConfirmRentalPage /> },
             ],
           },
         ],

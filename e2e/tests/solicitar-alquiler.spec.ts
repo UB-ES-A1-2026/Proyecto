@@ -120,11 +120,12 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
     await expect(page.locator('.rental-price').first()).toHaveText(/3 días × 9,00\s€ = 27,00\s€/);
     await expect(panel.getByRole('button', { name: 'Solicitar alquiler' })).toBeEnabled();
 
-    // Las fechas elegidas llegan al resumen
+    // Las fechas elegidas llegan a «Confirmar y pagar» y «Atrás» vuelve con ellas (US-07.01)
     await panel.getByRole('button', { name: 'Solicitar alquiler' }).click();
-    await expect(panel.getByText(`10 de ${monthName} de ${year}`)).toBeVisible();
-    await expect(panel.getByText(`12 de ${monthName} de ${year}`)).toBeVisible();
-    await panel.getByRole('button', { name: 'Volver' }).click();
+    const summary = page.getByRole('region', { name: 'Tu solicitud' });
+    await expect(summary.getByText(`10 de ${monthName} de ${year}`)).toBeVisible();
+    await expect(summary.getByText(`12 de ${monthName} de ${year}`)).toBeVisible();
+    await page.goBack();
     await expect(page.getByLabel('Fecha de inicio')).toHaveValue(`10/${monthNumber}/${year}`);
     await expect(panel.getByText(`${monthName} de ${year}`)).toBeVisible();
   });
@@ -200,7 +201,7 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
   });
 
   // Criterio 4
-  test('antes de enviar se ve un resumen con el objeto, las fechas, el importe y el pago', async ({
+  test('antes de enviar, «Confirmar y pagar» enseña el objeto, las fechas, el importe y el pago', async ({
     page,
     request,
   }) => {
@@ -211,14 +212,10 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
 
     await page.getByRole('button', { name: 'Solicitar alquiler' }).click();
 
-    // El resumen sale en el mismo panel, sin cambiar de pantalla
-    await expect(page).toHaveURL(/\/objetos\/[0-9a-f-]{36}$/);
-    const panel = page.getByRole('complementary', {
-      name: 'Alquiler de este objeto',
-    });
-    await expect(
-      panel.getByRole('heading', { level: 2, name: 'Revisa tu solicitud' }),
-    ).toBeVisible();
+    // El resumen y el pago están en su propia página, con las fechas en la dirección (US-07.01)
+    await expect(page).toHaveURL(/\/objetos\/[0-9a-f-]{36}\/solicitar\?inicio=[\d-]+&fin=[\d-]+$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Confirmar y pagar' })).toBeVisible();
+    const panel = page.getByRole('region', { name: 'Tu solicitud' });
     await expect(panel.getByText(ITEM)).toBeVisible();
     await expect(panel.getByText('Desde')).toBeVisible();
     await expect(panel.getByText('Hasta')).toBeVisible();
@@ -226,12 +223,13 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
     await expect(
       panel.getByText('Importe del alquiler (3 días)').locator('xpath=following-sibling::dd[1]'),
     ).toHaveText(/27,00\s€/);
-    // Pago al solicitar (US-07.01, #286): con fianza, el importe destacado es el total.
-    await expect(panel.locator('.rental-total')).toHaveText(/87,00\s€/);
-    await expect(panel.getByText(/Bloquearemos 27,00\s€ en tu tarjeta/)).toBeVisible();
-    await expect(panel.getByLabel('Número de tarjeta')).toBeVisible();
-    await expect(panel.getByRole('button', { name: 'Volver' })).toBeVisible();
-    await expect(panel.getByRole('button', { name: 'Enviar solicitud' })).toBeVisible();
+    // Pago al solicitar (US-07.01, #286): lo destacado es el total sin fianza; la fianza, aparte.
+    await expect(panel.locator('.rental-total')).toHaveText(/27,00\s€/);
+    await expect(panel.locator('.checkout-deposit')).toContainText(/Total con fianza\s*87,00\s€/);
+    await expect(page.getByText(/Bloquearemos 27,00\s€ en tu tarjeta/)).toBeVisible();
+    await expect(page.getByLabel('Número de tarjeta')).toBeVisible();
+    await expect(page.getByRole('link', { name: new RegExp(`Volver a ${ITEM}`, 'i') })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Confirmar y enviar solicitud' })).toBeVisible();
     // Todavía no se ha creado nada
     expect(await sentCount(request, BRUNO)).toBe(before);
   });
@@ -251,7 +249,7 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
     await page.getByLabel('Número de tarjeta').fill('4242 4242 4242 4242');
     await page.getByLabel('Caducidad').fill('12/30');
     await page.getByLabel('CVC').fill('123');
-    await page.getByRole('button', { name: 'Enviar solicitud' }).click();
+    await page.getByRole('button', { name: 'Confirmar y enviar solicitud' }).click();
 
     await expect(page).toHaveURL('/mis-solicitudes');
     await expect(
