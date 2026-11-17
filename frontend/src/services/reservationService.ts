@@ -1,5 +1,6 @@
 // Generado con asistencia de IA – revisado por Danyal, 01/11/2026
 import { apiRequest } from './apiClient';
+import type { ReservationDelivery } from './deliveryService';
 
 // «expired» (Caducada): el propietario no respondió a tiempo y se liberó el importe bloqueado
 // (pago al solicitar, US-07.01 #286).
@@ -30,6 +31,8 @@ export type Reservation = {
   renter: { id: string; username: string };
   owner: { id: string; username: string };
   createdAt: string;
+  // Modo, hora y destino de la entrega (US-05.01, #282); null en las anteriores a la historia.
+  delivery?: ReservationDelivery | null;
 };
 
 export type MyReservations = {
