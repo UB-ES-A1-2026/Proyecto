@@ -16,8 +16,8 @@ type CardFieldsProps = {
   onChange: (field: CardField, value: string) => void;
 };
 
-// Campos de la tarjeta (US-07.01, #286). PROVISIONAL hasta T10 (#285): se sustituirán por el
-// formulario de Stripe Elements, que pide los mismos datos sin que pasen por nuestro servidor.
+// Campos de la tarjeta simulados (US-07.01, #286). Solo se usan sin VITE_STRIPE_PUBLISHABLE_KEY
+// (local, CI y e2e); con la clave, el formulario es el Payment Element de Stripe (T10, #285).
 export function CardFields({ card, errors, disabled, onChange }: CardFieldsProps) {
   const id = useId();
   const fields: {
@@ -86,20 +86,27 @@ export function CardFields({ card, errors, disabled, onChange }: CardFieldsProps
         })}
       </div>
 
-      <div className="payment-test-cards">
-        <p className="payment-test-cards-title">
-          <Icon name="info" size="1.125rem" />
-          Modo de prueba: no se mueve dinero real. Usa una de estas tarjetas, con cualquier fecha
-          futura y cualquier CVC.
-        </p>
-        <ul>
-          {TEST_CARDS.map((testCard) => (
-            <li key={testCard.number}>
-              <code>{testCard.number}</code> {testCard.result}
-            </li>
-          ))}
-        </ul>
-      </div>
+      <TestCardsNote />
     </>
+  );
+}
+
+// Nota de las tarjetas de prueba: se enseña con los campos simulados y con el formulario de Stripe.
+export function TestCardsNote() {
+  return (
+    <div className="payment-test-cards">
+      <p className="payment-test-cards-title">
+        <Icon name="info" size="1.125rem" />
+        Modo de prueba: no se mueve dinero real. Usa una de estas tarjetas, con cualquier fecha
+        futura y cualquier CVC.
+      </p>
+      <ul>
+        {TEST_CARDS.map((testCard) => (
+          <li key={testCard.number}>
+            <code>{testCard.number}</code> {testCard.result}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

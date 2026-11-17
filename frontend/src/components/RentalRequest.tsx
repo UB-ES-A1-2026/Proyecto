@@ -3,7 +3,14 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import { createPaymentMethod, type CardDetails, type CardField } from '../services/cardGateway';
-import { checkAvailability, requestRental, type Reservation } from '../services/rentalService';
+import {
+  checkAvailability,
+  PaymentVerificationRequired,
+  requestRental,
+  type PaymentCredential,
+  type Reservation,
+} from '../services/rentalService';
+import { isStripeEnabled } from '../services/stripeService';
 import { monthOf, selectRangeDate } from '../utils/calendar';
 import {
   calculateTotalPrice,
@@ -18,9 +25,10 @@ import {
   validateRentalDates,
   type RentalDateErrors,
 } from '../utils/rental';
-import { CardFields } from './CardFields';
+import { CardFields, TestCardsNote } from './CardFields';
 import { DateRangeCalendar } from './DateRangeCalendar';
 import { Icon } from './Icon';
+import { StripePayment, type StripeConfirmer } from './StripePayment';
 
 export type RentalItem = {
   id: string;
@@ -69,6 +77,9 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
   const { session, clearSession } = useAuth();
   const token = session?.token;
   const headingRef = useRef<HTMLHeadingElement>(null);
+  // Con Stripe, el formulario de pago (Payment Element) se maneja a través de este objeto.
+  const stripeConfirmer = useRef<StripeConfirmer | null>(null);
+  const useStripeForm = isStripeEnabled();
   const previousStep = useRef(step);
 
   const today = todayIso();
@@ -177,25 +188,50 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
     if (submitting || !session) return;
     setFormError(null);
 
-    // La tarjeta se comprueba antes de llamar a la API: su número nunca sale hacia Rentit.
-    const method = createPaymentMethod(card);
-    if (!method.ok) {
-      setCardErrors(method.errors);
-      const firstInvalid = (['number', 'expiry', 'cvc'] as const).find(
-        (field) => method.errors[field],
-      );
-      const input = firstInvalid ? event.currentTarget.elements.namedItem(firstInvalid) : null;
-      if (input instanceof HTMLInputElement) input.focus();
-      return;
+    // Sin Stripe, la tarjeta simulada se comprueba antes de llamar a la API: su número nunca sale
+    // hacia Rentit. Con Stripe, el Payment Element valida y da el token al pulsar.
+    let simulatedToken = '';
+    if (!useStripeForm) {
+      const method = createPaymentMethod(card);
+      if (!method.ok) {
+        setCardErrors(method.errors);
+        const firstInvalid = (['number', 'expiry', 'cvc'] as const).find(
+          (field) => method.errors[field],
+        );
+        const input = firstInvalid ? event.currentTarget.elements.namedItem(firstInvalid) : null;
+        if (input instanceof HTMLInputElement) input.focus();
+        return;
+      }
+      simulatedToken = method.confirmationTokenId;
     }
 
     setSubmitting(true);
     try {
-      const reservation = await requestRental(
-        session.token,
-        { itemId: item.id, startDate, endDate },
-        method.confirmationTokenId,
-      );
+      const input = { itemId: item.id, startDate, endDate };
+      let credential: PaymentCredential = simulatedToken;
+      if (useStripeForm) {
+        const confirmer = stripeConfirmer.current;
+        if (!confirmer) throw new ApiError(0, 'El formulario de pago todavía se está cargando.');
+        const result = await confirmer.createToken();
+        if ('error' in result) throw new ApiError(0, result.error);
+        credential = result.confirmationTokenId;
+      }
+
+      let reservation: Reservation;
+      try {
+        reservation = await requestRental(session.token, input, credential);
+      } catch (error) {
+        if (!(error instanceof PaymentVerificationRequired)) throw error;
+        // Tu banco pide verificar el pago (3D Secure): todavía no hay reserva. Con Stripe se abre la
+        // ventana del banco; en el modo simulado se da por verificado.
+        if (stripeConfirmer.current) {
+          const verified = await stripeConfirmer.current.handleNextAction(error.clientSecret);
+          if (verified.error) throw new ApiError(402, verified.error);
+        }
+        reservation = await requestRental(session.token, input, {
+          paymentIntentId: error.paymentIntentId,
+        });
+      }
       onRequested(reservation);
     } catch (error) {
       // Los botones se reactivan siempre, también si el componente sigue montado tras un 401.
@@ -209,7 +245,12 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
       // Errores de #120. Si el problema está en las fechas (409 por solape, con field), se vuelve
       // a elegirlas; si no (tarjeta rechazada, objeto propio, no publicado, solicitud
       // duplicada…), se queda en el resumen con el mensaje de la API para probar otra vez.
-      if (error instanceof ApiError && error.status === 409 && error.field && datesKey) {
+      if (
+        error instanceof ApiError &&
+        error.status === 409 &&
+        (error.field === 'startDate' || error.field === 'endDate') &&
+        datesKey
+      ) {
         // Alguien ha ocupado las fechas después de consultarlas: ahora ya no están libres.
         setAvailability({ datesKey, available: false });
         setStep('dates');
@@ -281,12 +322,23 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
         </div>
 
         <form onSubmit={(event) => void handleConfirm(event)} noValidate>
-          <CardFields
-            card={card}
-            errors={cardErrors}
-            disabled={submitting}
-            onChange={handleCardChange}
-          />
+          {useStripeForm ? (
+            <>
+              <StripePayment
+                amountCents={Math.round(totalPrice * 100)}
+                disabled={submitting}
+                confirmerRef={stripeConfirmer}
+              />
+              <TestCardsNote />
+            </>
+          ) : (
+            <CardFields
+              card={card}
+              errors={cardErrors}
+              disabled={submitting}
+              onChange={handleCardChange}
+            />
+          )}
           {/* Justo encima del botón: es donde se mira al pulsar (p. ej. «Tu tarjeta ha sido rechazada.»). */}
           {formError && (
             <p role="alert" className="form-error rental-payment-error">
