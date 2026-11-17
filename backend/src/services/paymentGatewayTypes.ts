@@ -18,6 +18,9 @@ export class PaymentActionRequiredError extends Error {
 // Fallo de la pasarela que no es un rechazo del banco (red, configuración, Stripe caído).
 export class PaymentGatewayError extends Error {}
 
+// El PaymentIntent no existe (o no es de esta cuenta).
+export class PaymentNotFoundError extends Error {}
+
 // Estado de un bloqueo ya hecho, para comprobarlo en el segundo paso de 3D Secure.
 export interface AuthorizationInfo {
   reference: string;

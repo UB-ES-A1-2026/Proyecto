@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import {
   PaymentActionRequiredError,
   PaymentDeclinedError,
+  PaymentNotFoundError,
   type AuthorizationInfo,
   type PaymentGateway,
 } from './paymentGatewayTypes.js';
@@ -43,14 +44,8 @@ export const simulatedPaymentGateway: PaymentGateway = {
   async getAuthorization(paymentIntentId): Promise<AuthorizationInfo> {
     const pending = pendingAuthorizations.get(paymentIntentId);
     if (!pending) {
-      // Desconocido (inventado o ya liberado): no coincidirá con ninguna solicitud.
-      return {
-        reference: paymentIntentId,
-        status: 'other',
-        amountCents: 0,
-        currency: 'eur',
-        metadata: {},
-      };
+      // Desconocido (inventado o ya liberado), como un PaymentIntent inexistente en Stripe.
+      throw new PaymentNotFoundError('Pago simulado no encontrado.');
     }
     return {
       reference: paymentIntentId,

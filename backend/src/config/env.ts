@@ -208,5 +208,6 @@ export const env = Object.freeze({
   corsPreviewPattern: parseCorsPreviewPattern(process.env.CORS_PREVIEW_PATTERN),
   bcryptRounds: parseBcryptRounds(),
   s3: parseS3Config(),
+  isProduction: process.env.NODE_ENV === 'production',
   stripeSecretKey: parseStripeSecretKey(process.env.STRIPE_SECRET_KEY),
 });

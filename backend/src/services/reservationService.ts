@@ -16,6 +16,7 @@ import {
   PaymentActionRequiredError,
   PaymentDeclinedError,
   PaymentGatewayError,
+  PaymentNotFoundError,
   release,
   toCents,
 } from './paymentGateway.js';
@@ -39,6 +40,8 @@ export const PAYMENT_MISMATCH_MESSAGE =
   'El pago no corresponde a esta solicitud. Vuelve a intentarlo.';
 export const PAYMENT_NOT_COMPLETED_MESSAGE =
   'La verificación del pago no se ha completado. Vuelve a intentarlo.';
+export const PAYMENT_NOT_FOUND_MESSAGE =
+  'No encontramos ese pago. Vuelve a intentarlo.';
 export const PAYMENT_ALREADY_USED_MESSAGE =
   'Este pago ya se ha usado en otra solicitud.';
 export const RENTAL_TOO_LONG_MESSAGE =
@@ -187,6 +190,7 @@ export async function createReservation(
     startDate: input.startDate,
     endDate: input.endDate,
   };
+  const fromIntent = Boolean(input.paymentIntentId);
   let reference: string;
   if (input.paymentIntentId) {
     reference = await verifyAuthorizedIntent(
@@ -203,7 +207,8 @@ export async function createReservation(
   }
 
   // Si la reserva no se llega a guardar, se suelta el bloqueo: nunca queda dinero bloqueado
-  // sin su reserva.
+  // sin su reserva. Pero si otra petición con el mismo PaymentIntent ya creó su reserva (doble
+  // envío, reintento o dos pestañas; solo en el segundo paso del 3D Secure), ese bloqueo es suyo: no se toca y se responde 409.
   let result: InsertReservationResult;
   try {
     result = await insertReservationIfAvailable(
@@ -221,12 +226,18 @@ export async function createReservation(
       OCCUPYING_STATUSES,
     );
   } catch (error) {
+    if (fromIntent && (await isRentalReferenceUsed(reference))) {
+      throw new AppError(409, PAYMENT_ALREADY_USED_MESSAGE, 'paymentIntentId');
+    }
     await release(reference);
     throw error;
   }
 
   if (result.outcome !== 'created') {
     // Alguien se ha adelantado entre la comprobación y la reserva.
+    if (fromIntent && (await isRentalReferenceUsed(reference))) {
+      throw new AppError(409, PAYMENT_ALREADY_USED_MESSAGE, 'paymentIntentId');
+    }
     await release(reference);
     throw conflictError(result.outcome);
   }
@@ -274,6 +285,9 @@ async function verifyAuthorizedIntent(
   try {
     info = await getAuthorization(paymentIntentId);
   } catch (error) {
+    if (error instanceof PaymentNotFoundError) {
+      throw new AppError(409, PAYMENT_NOT_FOUND_MESSAGE, 'paymentIntentId');
+    }
     throw gatewayFailure(error);
   }
 

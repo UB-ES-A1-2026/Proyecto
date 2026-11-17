@@ -7,6 +7,7 @@ import {
   PaymentActionRequiredError,
   PaymentDeclinedError,
   PaymentGatewayError,
+  PaymentNotFoundError,
 } from '../../src/services/paymentGatewayTypes.js';
 
 function fakeClient() {
@@ -18,7 +19,10 @@ function fakeClient() {
       capture: vi.fn(),
       cancel: vi.fn(),
     },
-    refunds: { create: vi.fn().mockResolvedValue({}) },
+    refunds: {
+      create: vi.fn().mockResolvedValue({}),
+      list: vi.fn().mockResolvedValue({ data: [] }),
+    },
   };
   return {
     client,
@@ -139,6 +143,23 @@ describe('getAuthorization', () => {
   });
 });
 
+describe('getAuthorization con un PaymentIntent inexistente', () => {
+  it('resource_missing es PaymentNotFoundError, no un fallo de la pasarela', async () => {
+    const { client, gateway } = fakeClient();
+    client.paymentIntents.retrieve.mockRejectedValue(
+      new Stripe.errors.StripeInvalidRequestError({
+        type: 'invalid_request_error',
+        code: 'resource_missing',
+        message: 'No such payment_intent',
+      } as never),
+    );
+
+    await expect(gateway.getAuthorization('pi_nope')).rejects.toThrow(
+      PaymentNotFoundError,
+    );
+  });
+});
+
 describe('capture, release y refund', () => {
   it('capture cobra el PaymentIntent', async () => {
     const { client, gateway } = fakeClient();
@@ -186,17 +207,67 @@ describe('capture, release y refund', () => {
     await expect(gateway.release('pi_1')).rejects.toThrow();
   });
 
-  it('refund devuelve todo o solo la parte indicada, en céntimos', async () => {
+  it('refund devuelve todo o solo la parte indicada, en céntimos, con clave de idempotencia determinista', async () => {
     const { client, gateway } = fakeClient();
+    client.paymentIntents.retrieve.mockResolvedValue({
+      amount: 1000,
+      amount_received: 1000,
+    });
+
     await gateway.refund('pi_1');
     await gateway.refund('pi_1', 250);
-    expect(client.refunds.create).toHaveBeenNthCalledWith(1, {
-      payment_intent: 'pi_1',
+
+    expect(client.refunds.create).toHaveBeenNthCalledWith(
+      1,
+      { payment_intent: 'pi_1' },
+      { idempotencyKey: 'refund_' + 'pi_1_full' },
+    );
+    expect(client.refunds.create).toHaveBeenNthCalledWith(
+      2,
+      { payment_intent: 'pi_1', amount: 250 },
+      { idempotencyKey: 'refund_' + 'pi_1_250' },
+    );
+  });
+
+  it('refund parcial ya hecho (succeeded o pending) con el mismo importe cuenta como éxito', async () => {
+    const { client, gateway } = fakeClient();
+    client.refunds.list.mockResolvedValue({
+      data: [{ amount: 250, status: 'pending' }],
     });
-    expect(client.refunds.create).toHaveBeenNthCalledWith(2, {
-      payment_intent: 'pi_1',
-      amount: 250,
+
+    await expect(gateway.refund('pi_1', 250)).resolves.toBeUndefined();
+    expect(client.refunds.create).not.toHaveBeenCalled();
+    expect(client.refunds.list).toHaveBeenCalledWith(
+      expect.objectContaining({ payment_intent: 'pi_1' }),
+    );
+  });
+
+  it('un reembolso fallido o de otro importe no impide devolver', async () => {
+    const { client, gateway } = fakeClient();
+    client.refunds.list.mockResolvedValue({
+      data: [
+        { amount: 250, status: 'failed' },
+        { amount: 100, status: 'succeeded' },
+      ],
     });
+
+    await gateway.refund('pi_1', 250);
+
+    expect(client.refunds.create).toHaveBeenCalledTimes(1);
+  });
+
+  it('refund total ya hecho cuenta como éxito', async () => {
+    const { client, gateway } = fakeClient();
+    client.paymentIntents.retrieve.mockResolvedValue({
+      amount: 1000,
+      amount_received: 1000,
+    });
+    client.refunds.list.mockResolvedValue({
+      data: [{ amount: 1000, status: 'succeeded' }],
+    });
+
+    await expect(gateway.refund('pi_1')).resolves.toBeUndefined();
+    expect(client.refunds.create).not.toHaveBeenCalled();
   });
 });
 

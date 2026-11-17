@@ -6,6 +6,7 @@ import {
   PaymentActionRequiredError,
   PaymentDeclinedError,
   PaymentGatewayError,
+  PaymentNotFoundError,
   type PaymentGateway,
 } from './paymentGatewayTypes.js';
 
@@ -108,6 +109,12 @@ export function createStripePaymentGateway(client: Stripe): PaymentGateway {
           metadata: { ...intent.metadata },
         };
       } catch (error) {
+        if (
+          error instanceof Stripe.errors.StripeInvalidRequestError &&
+          error.code === 'resource_missing'
+        ) {
+          throw new PaymentNotFoundError('El PaymentIntent no existe.');
+        }
         throw translateError(error);
       }
     },
@@ -143,17 +150,52 @@ export function createStripePaymentGateway(client: Stripe): PaymentGateway {
       }
     },
 
+    // Idempotente: el reembolso se hace dentro de una transacción de BD y, si Stripe devuelve el
+    // dinero pero falla el commit, el reintento no debe devolverlo otra vez. Dos defensas: una
+    // clave de idempotencia determinista y, antes de crear, buscar un reembolso igual ya hecho.
     async refund(reference, amountCents) {
       try {
-        await client.refunds.create({
+        const existing = await client.refunds.list({
           payment_intent: reference,
-          ...(amountCents === undefined ? {} : { amount: amountCents }),
+          limit: 100,
         });
+        const active = existing.data.filter(
+          (refund) =>
+            refund.status === 'succeeded' || refund.status === 'pending',
+        );
+        if (amountCents === undefined) {
+          const intent = await client.paymentIntents.retrieve(reference);
+          const refunded = active.reduce(
+            (sum, refund) => sum + refund.amount,
+            0,
+          );
+          if (
+            active.length > 0 &&
+            refunded >= (intent.amount_received ?? intent.amount)
+          ) {
+            return;
+          }
+        } else if (active.some((refund) => refund.amount === amountCents)) {
+          return;
+        }
+
+        await client.refunds.create(
+          {
+            payment_intent: reference,
+            ...(amountCents === undefined ? {} : { amount: amountCents }),
+          },
+          { idempotencyKey: `refund_${reference}_${amountCents ?? 'full'}` },
+        );
       } catch (error) {
         throw translateError(error);
       }
     },
 
+    // Limitaciones: la clave de idempotencia solo vale 24 h en Stripe, así que un reintento
+    // pasado ese plazo crearía otro PaymentIntent. Y si Stripe cobra o bloquea pero después falla
+    // saveDeposit (BD caída), la fianza queda «pendiente» en la BD y la siguiente lectura repite
+    // la llamada: dentro de las 24 h la clave devuelve el mismo PaymentIntent y no se duplica;
+    // pasado ese plazo habría una fianza duplicada (en modo de prueba, sin dinero real).
     // Fianza fuera de sesión con la tarjeta guardada del alquiler: bloqueo (manual) o cobro.
     async authorizeDeposit(rentalReference, amountCents, options) {
       try {
