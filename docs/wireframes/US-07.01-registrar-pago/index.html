@@ -23,6 +23,13 @@
         <strong>reserva inmediata</strong> se cobra al momento. Ya no hay que volver a «Mis solicitudes» para pagar.
       </p>
       <p class="wf-meta">
+        <strong>Cambio del 17/11 (Kai):</strong> el resumen y el pago ya no están en el panel de la ficha, donde parecían
+        un paso más. Pasan a una <strong>página propia, «Confirmar y pagar»</strong> (<code>/objetos/:id/solicitar</code>),
+        como en otras webs de alquiler: queda claro que se está confirmando y pagando, hay sitio para el formulario de
+        Stripe en el móvil y «Atrás» del navegador vuelve a la ficha. Las fechas (y la entrega, US-05.01) se siguen
+        eligiendo en el panel.
+      </p>
+      <p class="wf-meta">
         Pantallas 1–6 y 9: lo que hace esta tarea. Pantallas 7, 8 y 10 (reserva inmediata): «si da tiempo», según la
         historia; si no, pasan al Sprint 3.
       </p>
@@ -65,37 +72,29 @@
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Igual que hoy (US-04.01): con las fechas libres se activa «Solicitar alquiler». Pasa al resumen en el mismo panel, que ahora incluye el pago.</li>
+        <li>Igual que hoy (US-04.01): con las fechas libres se activa «Solicitar alquiler». Ya no abre el resumen en el panel: lleva a la página «Confirmar y pagar» con las fechas elegidas.</li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Clic en «Solicitar alquiler»</p>
+    <p class="wf-flecha">Clic en «Solicitar alquiler»: se abre una página nueva</p>
 
     <section class="wf-pantalla" data-captura="2-resumen-con-tarjeta">
-      <h2><span class="wf-paso">2</span>Resumen y tarjeta: solicitar es pagar <code>/objetos/:id</code></h2>
+      <h2><span class="wf-paso">2</span>Página «Confirmar y pagar»: solicitar es pagar <code>/objetos/:id/solicitar</code></h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…/solicitar?inicio=2026-12-05&amp;fin=2026-12-06">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
+            <p class="wf-ayuda"><span class="wf-enlace">← Volver a Hidrolimpiadora Kärcher</span> <span class="wf-marca">1</span></p>
+            <h3 class="wf-h1">Confirmar y pagar</h3>
             <div class="wf-columnas">
-              <div>
-                <div class="wf-imagen"></div>
-                <p class="wf-texto"></p>
-                <h3 class="wf-h1">Hidrolimpiadora Kärcher</h3>
-                <div class="wf-lineas"><span></span><span></span></div>
-              </div>
               <div class="wf-tarjeta">
-                <h3 class="wf-h1">Revisa tu solicitud</h3>
-                <p class="wf-texto"><strong>Hidrolimpiadora Kärcher</strong> · 8,00 € / día</p>
-                <p class="wf-ayuda">Desde: sábado, 5 de diciembre de 2026<br />Hasta: domingo, 6 de diciembre de 2026</p>
-                <p class="wf-texto">Importe del alquiler (2 días): 16,00 €<br />Fianza (se retiene, no se cobra): 50,00 €</p>
-                <p class="wf-texto"><strong>Importe total: 66,00 €</strong> <span class="wf-marca">1</span></p>
-                <p class="wf-aviso">🔒 Bloquearemos 16,00 € en tu tarjeta. <strong>Solo se cobran si ana acepta</strong>; si la rechaza o no responde en 48 horas, se liberan. La fianza (50,00 €) se bloquea el día antes de empezar y se libera al terminar, sin cobrarla. <span class="wf-marca">2</span></p>
+                <p class="wf-texto"><strong>Pago</strong> <span class="wf-marca">3</span></p>
+                <p class="wf-aviso">🔒 Bloquearemos 16,00 € en tu tarjeta. <strong>Solo se cobran si ana acepta</strong>; si la rechaza o no responde en 48 horas, se liberan. La fianza (50,00 €) se bloquea el día antes de empezar y se libera al terminar, sin cobrarla.</p>
                 <div class="wf-tarjeta">
-                  <p class="wf-texto"><strong>Formulario de Stripe</strong> <span class="wf-marca">3</span></p>
+                  <p class="wf-texto"><strong>Formulario de Stripe</strong> <span class="wf-marca">4</span></p>
                   <div class="wf-fila"><span class="wf-boton wf-secundario">Apple Pay</span><span class="wf-boton wf-secundario">Google Pay</span></div>
                   <p class="wf-ayuda">o con tarjeta</p>
                   <div class="wf-campo"><label>Número de tarjeta</label><div class="wf-input">1234 1234 1234 1234</div></div>
@@ -105,10 +104,17 @@
                   </div>
                 </div>
                 <p class="wf-ayuda">Modo de prueba: no se mueve dinero real.<br /><code>4242 4242 4242 4242</code> se acepta · <code>4000 0000 0000 0002</code> se rechaza</p>
-                <div class="wf-fila">
-                  <span class="wf-boton wf-secundario">Volver</span>
-                  <span class="wf-boton">Enviar solicitud</span><span class="wf-marca">4</span>
-                </div>
+                <span class="wf-boton wf-ancho">Confirmar y enviar solicitud</span><span class="wf-marca">5</span>
+                <p class="wf-ayuda">Al confirmar, la solicitud llega a ana y se bloquean 16,00 €.</p>
+              </div>
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>Tu solicitud</strong> <span class="wf-marca">2</span></p>
+                <div class="wf-imagen"></div>
+                <p class="wf-texto"><strong>Hidrolimpiadora Kärcher</strong><br />8,00 € / día · de ana</p>
+                <p class="wf-ayuda">Desde: sábado, 5 de diciembre de 2026<br />Hasta: domingo, 6 de diciembre de 2026 · <span class="wf-enlace">Cambiar</span></p>
+                <p class="wf-texto">Importe del alquiler (2 días): 16,00 €</p>
+                <h3 class="wf-h1">Total: 16,00 €</h3>
+                <p class="wf-ayuda">Fianza (se retiene, no se cobra): 50,00 €<br />Total con fianza: 66,00 €</p>
               </div>
             </div>
           </div>
@@ -116,48 +122,57 @@
         <div class="wf-movil">
           <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
           <div class="wf-contenido">
+            <p class="wf-ayuda"><span class="wf-enlace">← Volver</span></p>
+            <h3 class="wf-h1">Confirmar y pagar</h3>
             <div class="wf-tarjeta">
-              <h3 class="wf-h1">Revisa tu solicitud</h3>
-              <p class="wf-ayuda">5 – 6 de diciembre de 2026</p>
-              <p class="wf-texto">Alquiler (2 días): 16,00 €<br />Fianza: 50,00 €<br /><strong>Importe total: 66,00 €</strong></p>
-              <p class="wf-aviso">🔒 Bloquearemos 16,00 €. Solo se cobran si ana acepta.</p>
-              <div class="wf-tarjeta">
-                <p class="wf-texto"><strong>Formulario de Stripe</strong></p>
-                <span class="wf-boton wf-secundario wf-ancho">Apple Pay</span>
-                <p class="wf-ayuda">o con tarjeta</p>
-                <div class="wf-campo"><label>Número de tarjeta</label><div class="wf-input">1234 1234 1234 1234</div></div>
-                <div class="wf-fila">
-                  <div class="wf-campo"><label>Caducidad</label><div class="wf-input">MM/AA</div></div>
-                  <div class="wf-campo"><label>CVC</label><div class="wf-input">123</div></div>
-                </div>
-              </div>
-              <p class="wf-texto"></p>
-              <span class="wf-boton wf-ancho">Enviar solicitud</span>
-              <p class="wf-texto"></p>
-              <span class="wf-boton wf-secundario wf-ancho">Volver</span>
+              <p class="wf-texto"><strong>Hidrolimpiadora Kärcher</strong></p>
+              <p class="wf-ayuda">5 – 6 de diciembre de 2026 · <span class="wf-enlace">Cambiar</span></p>
+              <p class="wf-texto">Alquiler (2 días): 16,00 €<br /><strong>Total: 16,00 €</strong></p>
+              <p class="wf-ayuda">Fianza: 50,00 € · Total con fianza: 66,00 €</p>
             </div>
+            <p class="wf-aviso">🔒 Bloquearemos 16,00 €. Solo se cobran si ana acepta.</p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>Formulario de Stripe</strong></p>
+              <span class="wf-boton wf-secundario wf-ancho">Apple Pay</span>
+              <p class="wf-ayuda">o con tarjeta</p>
+              <div class="wf-campo"><label>Número de tarjeta</label><div class="wf-input">1234 1234 1234 1234</div></div>
+              <div class="wf-fila">
+                <div class="wf-campo"><label>Caducidad</label><div class="wf-input">MM/AA</div></div>
+                <div class="wf-campo"><label>CVC</label><div class="wf-input">123</div></div>
+              </div>
+            </div>
+            <p class="wf-texto"></p>
+            <span class="wf-boton wf-ancho">Confirmar y enviar solicitud</span>
           </div>
           <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
         </div>
       </div>
       <ol class="wf-notas">
         <li>
-          Criterio 2: objeto, fechas, precio del alquiler, fianza e importe total (alquiler + fianza + entrega si hay
-          rider, US-05.01). El importe destacado es el total.
+          Página propia, sin el panel de la ficha. «Volver» y «Atrás» del navegador llevan a la ficha con las fechas que
+          tenías. Las fechas van en la dirección (<code>?inicio=…&amp;fin=…</code>), así que recargar no las pierde.
+          Necesita sesión, como solicitar hoy.
+        </li>
+        <li>
+          Criterio 2: «Tu solicitud», con la foto, el propietario, las fechas y el precio (más la entrega si hay
+          rider, US-05.01: el modo y la hora salen aquí también). El importe destacado es el <strong>total sin
+          fianza</strong>, lo que se bloquea ahora; debajo, más pequeño, la fianza y el total con fianza, para que la
+          fianza no parezca parte del pago. «Cambiar» vuelve a la ficha. En
+          el escritorio va a la derecha y se queda fija al bajar.
         </li>
         <li>Qué pasa con el dinero, antes de meter la tarjeta: se bloquea, no se cobra hasta que el propietario acepta.</li>
         <li>
           Criterio 3: el <strong>Payment Element de Stripe</strong> en modo de prueba, con las tarjetas de prueba
           indicadas. Muestra lo que admite el dispositivo: tarjeta, Apple Pay (Safari) o Google Pay (Chrome). Los
           wallets solo salen con HTTPS y el dominio registrado en Stripe, no en <code>localhost</code>. Los datos van del
-          navegador a Stripe: Rentit solo recibe un token. Hasta que T10 tenga Stripe, la web usa campos de tarjeta
-          provisionales.
+          navegador a Stripe: Rentit solo recibe un token.
         </li>
         <li>
-          Envía la solicitud con el token de Stripe (<code>POST /reservas</code> con <code>confirmationTokenId</code>).
-          Mientras se procesa dice «Procesando el pago…» y los botones están desactivados. Si el banco pide verificación
-          (3D Secure), Stripe la muestra encima y después se termina de enviar. Con datos no válidos, el error sale en el
-          formulario de Stripe y no se llama a la API.
+          Un solo botón principal, «Confirmar y enviar solicitud», con el importe que se bloquea debajo. Envía la
+          solicitud con el token de Stripe (<code>POST /reservas</code> con <code>confirmationTokenId</code>). Mientras se
+          procesa dice «Procesando el pago…» y no se puede volver a pulsar. Si el banco pide verificación (3D Secure),
+          Stripe la muestra encima y después se termina de enviar. Con datos no válidos, el error sale en el formulario
+          de Stripe y no se llama a la API.
         </li>
       </ol>
     </section>
@@ -165,23 +180,34 @@
     <p class="wf-flecha">Si la tarjeta se rechaza</p>
 
     <section class="wf-pantalla" data-captura="3-tarjeta-rechazada">
-      <h2><span class="wf-paso">3</span>Error: tarjeta rechazada <code>/objetos/:id</code></h2>
+      <h2><span class="wf-paso">3</span>Errores en «Confirmar y pagar» <code>/objetos/:id/solicitar</code></h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…/solicitar?inicio=2026-12-05&amp;fin=2026-12-06">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
-            <div class="wf-centrado wf-tarjeta">
-              <h3 class="wf-h1">Revisa tu solicitud</h3>
-              <p class="wf-texto"><strong>Importe total: 66,00 €</strong></p>
-              <div class="wf-caja">Formulario de Stripe con la tarjeta 4000 0000 0000 0002</div>
-              <p class="wf-texto"></p>
-              <p class="wf-aviso">⚠ Tu tarjeta ha sido rechazada. <span class="wf-marca">1</span></p>
-              <div class="wf-fila">
-                <span class="wf-boton wf-secundario">Volver</span>
-                <span class="wf-boton">Enviar solicitud</span><span class="wf-marca">2</span>
+            <p class="wf-ayuda"><span class="wf-enlace">← Volver a Hidrolimpiadora Kärcher</span></p>
+            <h3 class="wf-h1">Confirmar y pagar</h3>
+            <div class="wf-columnas">
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>Pago</strong></p>
+                <div class="wf-caja">Formulario de Stripe con la tarjeta 4000 0000 0000 0002</div>
+                <p class="wf-texto"></p>
+                <p class="wf-aviso">⚠ Tu tarjeta ha sido rechazada. <span class="wf-marca">1</span></p>
+                <span class="wf-boton wf-ancho">Confirmar y enviar solicitud</span>
+                <p class="wf-texto"></p>
+                <p class="wf-aviso">⚠ Alguien acaba de reservar esas fechas. <span class="wf-enlace">Elegir otras fechas</span> <span class="wf-marca">2</span></p>
+              </div>
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>Tu solicitud</strong> <span class="wf-marca">2</span></p>
+                <div class="wf-imagen"></div>
+                <p class="wf-texto"><strong>Hidrolimpiadora Kärcher</strong><br />8,00 € / día · de ana</p>
+                <p class="wf-ayuda">Desde: sábado, 5 de diciembre de 2026<br />Hasta: domingo, 6 de diciembre de 2026 · <span class="wf-enlace">Cambiar</span></p>
+                <p class="wf-texto">Importe del alquiler (2 días): 16,00 €</p>
+                <h3 class="wf-h1">Total: 16,00 €</h3>
+                <p class="wf-ayuda">Fianza (se retiene, no se cobra): 50,00 €<br />Total con fianza: 66,00 €</p>
               </div>
             </div>
           </div>
@@ -189,10 +215,14 @@
       </div>
       <ol class="wf-notas">
         <li>
-          Criterio 5: el mensaje viene de la API (<code>402</code>) y sale justo encima de los botones, donde se mira al
-          pulsar. <strong>No se crea la solicitud</strong> y no se bloquea nada.
+          Criterio 5: el mensaje viene de la API (<code>402</code>) y sale justo encima del botón, donde se mira al pulsar.
+          <strong>No se crea la solicitud</strong> y no se bloquea nada. Se queda en la página para probar con otra tarjeta.
         </li>
-        <li>Sigue en el resumen, con el botón activo, para probar con otra tarjeta.</li>
+        <li>
+          Si las fechas dejan de estar libres mientras pagas (<code>409</code> de las fechas), lo dice con el enlace a la
+          ficha para elegir otras. Si se entra en la página sin fechas válidas, con un objeto propio o que ya no está
+          publicado, se vuelve a la ficha.
+        </li>
       </ol>
     </section>
 
@@ -300,7 +330,7 @@
     <p class="wf-flecha">Si da tiempo (si no, Sprint 3): un objeto con reserva inmediata. Todavía no está en la web.</p>
 
     <section class="wf-pantalla" data-captura="7-reserva-inmediata">
-      <h2><span class="wf-paso">7</span>Si da tiempo (si no, Sprint 3): reserva inmediata, se cobra al momento <code>/objetos/:id</code></h2>
+      <h2><span class="wf-paso">7</span>Si da tiempo (si no, Sprint 3): reserva inmediata, se cobra al momento <code>/objetos/:id/solicitar</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/objetos/0dd8…">
           <nav class="wf-nav">
@@ -319,7 +349,8 @@
                 <p class="wf-texto"><strong>6,00 € / día</strong> · Disponible<br />Fianza: 40,00 €</p>
                 <p class="wf-ayuda">⚡ <strong>Reserva inmediata:</strong> sin esperar a que ana acepte. <span class="wf-marca">1</span></p>
                 <h3 class="wf-h1">Revisa tu reserva</h3>
-                <p class="wf-texto">Importe del alquiler (3 días): 18,00 €<br />Fianza (se retiene, no se cobra): 40,00 €<br /><strong>Importe total: 58,00 €</strong></p>
+                <p class="wf-texto">Importe del alquiler (3 días): 18,00 €<br /><strong>Total: 18,00 €</strong></p>
+                <p class="wf-ayuda">Fianza (se retiene, no se cobra): 40,00 € · Total con fianza: 58,00 €</p>
                 <p class="wf-aviso">⚡ <strong>Reserva inmediata.</strong> Se cobran 18,00 € ahora y la reserva queda confirmada, sin esperar a ana. <span class="wf-marca">2</span></p>
                 <div class="wf-caja">Formulario de Stripe, como en la pantalla 2</div>
                 <p class="wf-texto"></p>
@@ -331,7 +362,7 @@
       </div>
       <ol class="wf-notas">
         <li>El propietario lo marca al publicar o editar el objeto (pantalla 10).</li>
-        <li>El título pasa a «Revisa tu reserva» y el aviso dice que se cobra ahora.</li>
+        <li>En la página «Confirmar y pagar» (pantalla 2), el aviso dice que se cobra ahora y el botón es «Reservar y pagar».</li>
         <li>Lleva a «Mis solicitudes» con la reserva ya «Pagada» (pantalla 8).</li>
       </ol>
     </section>
@@ -363,20 +394,21 @@
     <p class="wf-flecha">Variante del resumen: un alquiler de más de 6 días</p>
 
     <section class="wf-pantalla" data-captura="9-alquiler-largo">
-      <h2><span class="wf-paso">9</span>Alquiler de más de 6 días: la fianza se cobra y se devuelve <code>/objetos/:id</code></h2>
+      <h2><span class="wf-paso">9</span>Alquiler de más de 6 días: la fianza se cobra y se devuelve <code>/objetos/:id/solicitar</code></h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/objetos/30c7…">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/30c7…/solicitar?inicio=2026-12-14&amp;fin=2026-12-21">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <div class="wf-centrado wf-tarjeta">
-              <h3 class="wf-h1">Revisa tu solicitud</h3>
+              <h3 class="wf-h1">Confirmar y pagar</h3>
               <p class="wf-ayuda">Del 14 al 21 de diciembre de 2026</p>
-              <p class="wf-texto">Importe del alquiler (8 días): 32,00 €<br />Fianza (se cobra y se devuelve al terminar): 40,00 € <span class="wf-marca">1</span><br /><strong>Importe total: 72,00 €</strong></p>
+              <p class="wf-texto">Importe del alquiler (8 días): 32,00 €<br /><strong>Total: 32,00 €</strong></p>
+              <p class="wf-ayuda">Fianza (se cobra y se devuelve al terminar): 40,00 € <span class="wf-marca">1</span><br />Total con fianza: 72,00 €</p>
               <p class="wf-aviso">🔒 Bloquearemos 32,00 € en tu tarjeta. Solo se cobran si ana acepta; si la rechaza o no responde en 48 horas, se liberan. Como el alquiler dura más de 6 días, la fianza (40,00 €) se cobra el día antes de empezar y se devuelve al terminar. <span class="wf-marca">2</span></p>
-              <div class="wf-caja">Formulario de Stripe y botones, como en la pantalla 2</div>
+              <div class="wf-caja">Formulario de Stripe y «Confirmar y enviar solicitud», como en la pantalla 2</div>
             </div>
           </div>
         </div>
