@@ -1,11 +1,25 @@
 # ADR 0003 · Pagos y fianza
 
-- **Estado:** Propuesto (25/10/2026), pendiente de revisión del equipo
+- **Estado:** Actualizado el 17/11/2026 (T10 · #285): **Stripe en modo de prueba** sustituye a la pasarela simulada como decisión; el texto original queda debajo como historial. (Propuesto el 25/10/2026.)
 - **Fecha:** 25/10/2026 · actualizado el 27/10/2026 con la revisión de Francesc en #168 (idempotencia por intento, pagos simultáneos, errores de la pasarela, compensación y reembolso parcial)
 - **Responsable:** Marc (spike SP-01, #90)
 - **Relacionado:** [ADR 0001](0001-stack.md), [`docs/modelo-datos.md`](../modelo-datos.md) (`pago`, `incidencia`), US-07.01 (#72), US-04.05 (#64), US-09.01 (#76), US-09.02 (#77), US-11.01 (#80), prototipo en [`spikes/sp01-pagos/`](../../spikes/sp01-pagos/)
 
 > Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 25/10/2026.
+
+## Actualización del 17/11/2026 (T10 · #285): Stripe en modo de prueba
+
+> Generado con asistencia de IA (Claude) – revisado por Maxim Jaume, 17/11/2026.
+
+**Qué cambia.** En el planning del 10/11 y la reunión del 11/11 el equipo decidió usar **Stripe en modo de prueba** (con sus tarjetas de prueba) en el Sprint 2, en lugar de la pasarela simulada propia («A ahora y B como mejora opcional» de la decisión original). La opción B pasa a ser la decisión; la pasarela simulada se conserva solo como alternativa sin claves. Las dependencias `stripe` (backend), `@stripe/stripe-js` y `@stripe/react-stripe-js` (frontend) quedan aprobadas por la tarea T10. La pasarela, las reglas y los endpoints de más abajo son la propuesta original: el flujo vigente es el de la historia US-07.01 (#72) y lo que sigue.
+
+**Cómo queda.**
+1. **Selección.** Si existe `STRIPE_SECRET_KEY` (solo en `backend/src/config/`, y solo claves `sk_test_…`), se usa Stripe; si no, la pasarela simulada (local sin clave, tests, CI, e2e y seed de demo). Esto sustituye a `PAYMENT_PROVIDER`. La pasarela la decide **solo** la configuración. Firmas (en `backend/src/services/paymentGateway.ts`): `authorize`, `capture`, `release`, `refund`, `authorizeDeposit` y `getAuthorization`; importes en céntimos enteros y en euros. Solo `stripePaymentGateway.ts` importa `stripe`.
+2. **Alquiler.** `POST /api/reservas` crea y confirma un PaymentIntent (`capture_method: manual`, `confirmation_token`, cliente de Stripe por solicitud, `setup_future_usage: off_session`, métodos automáticos sin redirecciones). Aceptar captura; rechazar, cancelar o caducar cancelan el PaymentIntent. Capturar uno ya `succeeded` o cancelar uno ya `canceled` cuenta como éxito, para que un reintento tras un fallo del commit de la BD no falle.
+3. **3D Secure en dos pasos.** Si el banco pide verificación, la API responde `402` `{ error, field: "confirmationTokenId", requiresAction: true, clientSecret, paymentIntentId }` y no crea la reserva. El navegador llama a `stripe.handleNextAction({ clientSecret })` y repite `POST /api/reservas` con `paymentIntentId` en vez del token. El backend recupera el PaymentIntent y comprueba que es `requires_capture`, de importe y moneda (EUR) iguales a los que calcula él, con los metadatos (arrendatario, objeto y fechas) de esta solicitud y que su referencia no está ya en otro pago; si no coincide, responde 409 y lo suelta. Con Stripe activo, un `paymentIntentId` que no sea `pi_…` se rechaza con 400. La pasarela simulada tiene el token `ctoken_3ds` para probar el flujo sin Stripe.
+4. **Fianza (sin tarea programada).** Al leer «Mis solicitudes» a partir del día antes del inicio (fecha de España), la fianza `pendiente` de una reserva pagada se retiene (alquileres de hasta 6 días: PaymentIntent manual, `retenida`) o se cobra (más de 6 días: `cobrada`), fuera de sesión (`off_session`) con la tarjeta guardada del PaymentIntent del alquiler. Es de mejor esfuerzo: si falla, se queda `pendiente` y se reintenta en la siguiente lectura. Una fianza menor de 0,50 € no tiene pago de fianza. Liberarla o devolverla al finalizar es de T13.
+5. **Frontend.** Payment Element de Stripe en modo *deferred intent* (`mode: 'payment'`, `captureMethod: 'manual'`, `setupFutureUsage: 'off_session'`) con `VITE_STRIPE_PUBLISHABLE_KEY`; sin ella, los campos de tarjeta simulados.
+6. **Límites conocidos.** El bloqueo caduca a los ~7 días; las fianzas largas se cobran. Un cobro `off_session` puede exigir autenticación y entonces la fianza queda pendiente. El formulario de Stripe no se cubre con e2e (iframe de otro dominio). Claves y dominios: [despliegue.md](../despliegue.md), paso 7.
 
 ## Contexto
 
