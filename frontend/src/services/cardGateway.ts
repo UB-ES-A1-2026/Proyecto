@@ -27,6 +27,12 @@ export const TEST_CARDS = [
     result: 'se rechaza',
     confirmationTokenId: 'ctoken_declined',
   },
+  // Solo en el modo simulado: el banco pide verificar el pago (3D Secure) y se acepta al repetir.
+  {
+    number: '4000 0027 6000 3184',
+    result: 'pide verificar el pago',
+    confirmationTokenId: 'ctoken_3ds',
+  },
 ] as const;
 
 export const CARD_ERRORS = {
