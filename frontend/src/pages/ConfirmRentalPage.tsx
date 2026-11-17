@@ -7,7 +7,7 @@ import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import { getItemDetail, type ItemDetail } from '../services/itemService';
 import { todayIso, validateRentalDates } from '../utils/rental';
-import { rentalDatesFrom, rentalDatesSearch } from '../utils/rentalDates';
+import { deliverySelectionFrom, rentalDatesFrom, rentalDatesSearch } from '../utils/rentalDates';
 
 type LoadState =
   | { requestKey: string; status: 'success'; item: ItemDetail }
@@ -27,6 +27,9 @@ export function ConfirmRentalPage() {
   const requestKey = JSON.stringify([id, token]);
 
   const dates = rentalDatesFrom(searchParams);
+  // La entrega elegida en la ficha (US-05.01). Sin ella (enlace copiado, pestaña nueva) se vuelve a
+  // elegir en la ficha.
+  const delivery = deliverySelectionFrom(location.state);
   const datesValid =
     dates !== null &&
     Object.keys(validateRentalDates(dates.startDate, dates.endDate, todayIso())).length === 0;
@@ -69,6 +72,7 @@ export function ConfirmRentalPage() {
 
   // Sin fechas válidas (enlace incompleto o fechas que ya han pasado) se eligen en la ficha.
   if (!id || !datesValid || !dates) return <Navigate to={itemPath} replace />;
+  if (!delivery) return <Navigate to={datesPath} replace />;
 
   const current = result?.requestKey === requestKey ? result : null;
 
@@ -121,6 +125,7 @@ export function ConfirmRentalPage() {
         startDate={dates.startDate}
         endDate={dates.endDate}
         datesPath={datesPath}
+        delivery={delivery}
         // Pago al solicitar (US-07.01, #286): «Mis solicitudes» dice qué ha pasado con el dinero.
         onRequested={() =>
           void navigate('/mis-solicitudes', {
