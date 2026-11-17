@@ -85,9 +85,16 @@ async function openCard(
   await user.click(await screen.findByRole('button', { name: title }));
 }
 
+// Las fechas de los datos son fijas: «hoy» es el 16 de noviembre de 2026 en todos los tests.
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date(2026, 10, 16, 12, 0));
+});
+
 afterEach(() => {
   localStorage.clear();
   vi.restoreAllMocks();
+  vi.useRealTimers();
 });
 
 describe('«Cancelar» en Mis solicitudes (criterio 1)', () => {
@@ -135,6 +142,39 @@ describe('«Cancelar» en Mis solicitudes (criterio 1)', () => {
       card(/^Recibida pendiente/).queryByRole('button', { name: /Cancelar/, hidden: true }),
     ).toBeNull();
   });
+
+  it('no sale si la reserva ya ha empezado; si empieza hoy, sí', async () => {
+    logIn();
+    mockApi({
+      'GET /usuarios/me/reservas': Response.json({
+        sent: [
+          reservation({
+            id: 's1',
+            item: { id: 'i1', title: 'Empezó ayer' },
+            startDate: '2026-11-15',
+          }),
+          reservation({
+            id: 's2',
+            item: { id: 'i2', title: 'Empieza hoy' },
+            startDate: '2026-11-16',
+          }),
+        ],
+        received: [],
+      }),
+    });
+
+    renderRoute('/mis-solicitudes');
+    await screen.findByRole('button', { name: /^Empezó ayer/ });
+
+    const card = (name: RegExp) =>
+      within(screen.getByRole('button', { name }).closest('article') as HTMLElement);
+    expect(
+      card(/^Empezó ayer/).queryByRole('button', { name: /Cancelar/, hidden: true }),
+    ).toBeNull();
+    expect(
+      card(/^Empieza hoy/).getByRole('button', { name: 'Cancelar reserva', hidden: true }),
+    ).toBeTruthy();
+  });
 });
 
 describe('Ventana de cancelar (criterios 2, 3 y 4)', () => {
@@ -154,7 +194,7 @@ describe('Ventana de cancelar (criterios 2, 3 y 4)', () => {
     expect(
       await within(dialog).findByText(/Faltan 5 días para el inicio: compensarás a ana con el/),
     ).toHaveTextContent(/35 % del alquiler \(7,00\s€\) por las molestias\./);
-    expect(dialog).toHaveTextContent(/Te devolvemos 13,00\s€\. La fianza se libera entera\./);
+    expect(dialog).toHaveTextContent(/Te devolvemos 13,00\s€\. Recuperas la fianza entera\./);
     // La tabla de porcentajes está en la ayuda, no en la ventana.
     expect(dialog).not.toHaveTextContent(/8 o más/);
   });
@@ -183,7 +223,7 @@ describe('Ventana de cancelar (criterios 2, 3 y 4)', () => {
       /compensarás a bruno con el 100 % del alquiler \(20,00\s€\) por las molestias\./,
     );
     expect(dialog).toHaveTextContent(
-      /A bruno se le devuelve todo lo que pagó \(20,00\s€\) y se libera su fianza\./,
+      /A bruno se le devuelve todo lo que pagó \(20,00\s€\) y recupera su fianza\./,
     );
   });
 

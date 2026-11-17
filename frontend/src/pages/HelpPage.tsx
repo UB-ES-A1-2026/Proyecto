@@ -203,7 +203,7 @@ const SECTIONS: HelpSection[] = [
         </table>
       </>,
     ],
-    note: 'Una solicitud pendiente se cancela gratis. La fianza y la entrega no cuentan para la compensación, y la fianza se libera entera.',
+    note: 'Una solicitud pendiente se cancela gratis. La fianza y la entrega no cuentan para la compensación: se recuperan enteras. Una reserva que ya ha empezado no se puede cancelar.',
   },
   {
     id: 'publicar',
