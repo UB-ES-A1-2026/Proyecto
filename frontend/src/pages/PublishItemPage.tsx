@@ -1,3 +1,4 @@
+// Apartado «Entrega» (barrio de la lista, modos y dirección; US-05.01, T27 #307): generado con asistencia de IA (Claude) – revisado por Marc Sanz, 13/11/2026
 import {
   useEffect,
   useRef,
@@ -12,10 +13,30 @@ import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import { getCategories, type Category } from '../services/categoryService';
 import { ACCEPTED_PHOTO_TYPES, uploadItemPhoto } from '../services/photoService';
+import { getNeighborhoods } from '../services/neighborhoodService';
 import { createItem, type NewItem } from '../services/publishItemService';
+import {
+  ADDRESS_HINT,
+  ADDRESS_MAX,
+  DELIVERY_HINT,
+  DELIVERY_MODE_LABELS,
+  NO_DELIVERY_MODE_ERROR,
+  PICKUP_ONLY_HINT,
+  needsAddress,
+  validateDelivery,
+  type DeliveryModes,
+} from '../utils/delivery';
 
 type Field =
-  'title' | 'description' | 'categoryId' | 'dailyPrice' | 'deposit' | 'neighborhood' | 'photos';
+  | 'title'
+  | 'description'
+  | 'categoryId'
+  | 'dailyPrice'
+  | 'deposit'
+  | 'neighborhood'
+  | 'photos'
+  | 'deliveryModes'
+  | 'address';
 type FieldErrors = Partial<Record<Field, string>>;
 type SelectedPhoto = { id: number; file: File; previewUrl?: string };
 
@@ -28,6 +49,8 @@ const FIELD_ORDER: Field[] = [
   'dailyPrice',
   'deposit',
   'photos',
+  'deliveryModes',
+  'address',
 ];
 
 const FIELD_NAMES: Record<Field, string> = {
@@ -38,6 +61,8 @@ const FIELD_NAMES: Record<Field, string> = {
   deposit: 'fianza',
   neighborhood: 'barrio',
   photos: 'fotografías',
+  deliveryModes: 'modo de entrega',
+  address: 'dirección',
 };
 
 const API_FIELDS: Record<string, Field> = {
@@ -48,6 +73,8 @@ const API_FIELDS: Record<string, Field> = {
   deposit: 'deposit',
   neighborhood: 'neighborhood',
   photos: 'photos',
+  deliveryModes: 'deliveryModes',
+  address: 'address',
 };
 
 const PRICE_PATTERN = /^\d{1,8}([.,]\d{1,2})?$/;
@@ -57,6 +84,8 @@ const GENERIC_ERROR = 'No hemos podido publicar el objeto. Inténtalo de nuevo m
 const PHOTO_UPLOAD_ERROR = 'El anuncio se ha publicado, pero alguna foto no se ha podido subir.';
 
 function fieldError(field: Field): string {
+  // Mismo texto que el backend para «sin ningún modo» (US-05.01, #307).
+  if (field === 'deliveryModes') return NO_DELIVERY_MODE_ERROR;
   return `El campo "${FIELD_NAMES[field]}" no es correcto, revísalo.`;
 }
 
@@ -68,6 +97,8 @@ function validate(values: {
   deposit: string;
   neighborhood: string;
   photos: SelectedPhoto[];
+  modes: DeliveryModes;
+  address: string;
 }): FieldErrors {
   const errors: FieldErrors = {};
   const title = values.title.trim();
@@ -96,7 +127,7 @@ function validate(values: {
   ) {
     errors.photos = fieldError('photos');
   }
-  return errors;
+  return { ...errors, ...validateDelivery(values.modes, values.address) };
 }
 
 function isField(field: string | undefined): field is Field {
@@ -144,7 +175,9 @@ export function PublishItemPage() {
   const [homeDelivery, setHomeDelivery] = useState(false);
   const [riderDelivery, setRiderDelivery] = useState(false);
   const [pickupPointDelivery, setPickupPointDelivery] = useState(false);
+  const [address, setAddress] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
+  const [neighborhoods, setNeighborhoods] = useState<string[]>([]);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [partialSuccessId, setPartialSuccessId] = useState<string | null>(null);
@@ -154,8 +187,12 @@ export function PublishItemPage() {
   const categoryRef = useRef<HTMLSelectElement>(null);
   const dailyPriceRef = useRef<HTMLInputElement>(null);
   const depositRef = useRef<HTMLInputElement>(null);
-  const neighborhoodRef = useRef<HTMLInputElement>(null);
+  const neighborhoodRef = useRef<HTMLSelectElement>(null);
   const photosRef = useRef<HTMLInputElement>(null);
+  const deliveryRef = useRef<HTMLInputElement>(null);
+  const addressRef = useRef<HTMLInputElement>(null);
+  const modes: DeliveryModes = { homeDelivery, riderDelivery, pickupPointDelivery };
+  const showAddress = needsAddress(modes);
   const submittingRef = useRef(false);
   const nextPhotoId = useRef(0);
   const activePreviewUrls = useRef(new Set<string>());
@@ -168,6 +205,14 @@ export function PublishItemPage() {
       })
       .catch(() => {
         if (!ignore) setFormError('No se han podido cargar las categorías.');
+      });
+    // El barrio se elige de la lista de la API (US-05.01, #307).
+    getNeighborhoods()
+      .then((result) => {
+        if (!ignore) setNeighborhoods(result);
+      })
+      .catch(() => {
+        if (!ignore) setFormError('No se han podido cargar los barrios.');
       });
 
     return () => {
@@ -219,6 +264,8 @@ export function PublishItemPage() {
       deposit: depositRef,
       neighborhood: neighborhoodRef,
       photos: photosRef,
+      deliveryModes: deliveryRef,
+      address: addressRef,
     };
     refs[firstInvalid].current?.focus();
     return true;
@@ -263,7 +310,17 @@ export function PublishItemPage() {
     setPartialSuccessId(null);
     if (
       showFieldErrors(
-        validate({ title, description, categoryId, dailyPrice, deposit, neighborhood, photos }),
+        validate({
+          title,
+          description,
+          categoryId,
+          dailyPrice,
+          deposit,
+          neighborhood,
+          photos,
+          modes,
+          address,
+        }),
       )
     ) {
       return;
@@ -282,6 +339,7 @@ export function PublishItemPage() {
       homeDelivery,
       riderDelivery,
       pickupPointDelivery,
+      ...(showAddress ? { address: address.trim() } : {}),
       status,
     };
 
@@ -416,10 +474,9 @@ export function PublishItemPage() {
 
               <div className="form-field">
                 <label htmlFor="publish-item-neighborhood">Barrio</label>
-                <input
+                <select
                   id="publish-item-neighborhood"
                   ref={neighborhoodRef}
-                  type="text"
                   value={neighborhood}
                   onChange={(event) => {
                     setNeighborhood(event.target.value);
@@ -427,7 +484,14 @@ export function PublishItemPage() {
                   }}
                   aria-invalid={errors.neighborhood ? true : undefined}
                   aria-describedby={describedBy('neighborhood')}
-                />
+                >
+                  <option value="">Elige un barrio</option>
+                  {neighborhoods.map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
                 {errors.neighborhood && (
                   <p id="publish-item-neighborhood-error" className="field-error">
                     {errors.neighborhood}
@@ -607,34 +671,85 @@ export function PublishItemPage() {
           </div>
 
           <div className="card publish-section">
-            <fieldset className="publish-fieldset">
+            <fieldset
+              className="publish-fieldset"
+              aria-describedby={describedBy('deliveryModes', 'publish-item-delivery-hint')}
+            >
               <legend>
-                <SectionTitle>Formas de entrega</SectionTitle>
+                <SectionTitle>Entrega</SectionTitle>
               </legend>
+              <p id="publish-item-delivery-hint" className="field-hint">
+                {DELIVERY_HINT}
+              </p>
               <div className="publish-item-options">
                 <OptionCard
+                  ref={deliveryRef}
                   icon="home"
-                  label="Entrega a domicilio"
+                  label={DELIVERY_MODE_LABELS.homeDelivery}
                   type="checkbox"
                   checked={homeDelivery}
-                  onChange={(event) => setHomeDelivery(event.target.checked)}
+                  onChange={(event) => {
+                    setHomeDelivery(event.target.checked);
+                    clearError('deliveryModes');
+                  }}
                 />
                 <OptionCard
                   icon="directions_bike"
-                  label="Entrega con rider"
+                  label={DELIVERY_MODE_LABELS.riderDelivery}
                   type="checkbox"
                   checked={riderDelivery}
-                  onChange={(event) => setRiderDelivery(event.target.checked)}
+                  onChange={(event) => {
+                    setRiderDelivery(event.target.checked);
+                    clearError('deliveryModes');
+                  }}
                 />
                 <OptionCard
                   icon="pin_drop"
-                  label="Punto de recogida"
+                  label={DELIVERY_MODE_LABELS.pickupPointDelivery}
                   type="checkbox"
                   checked={pickupPointDelivery}
-                  onChange={(event) => setPickupPointDelivery(event.target.checked)}
+                  onChange={(event) => {
+                    setPickupPointDelivery(event.target.checked);
+                    clearError('deliveryModes');
+                  }}
                 />
               </div>
+              {errors.deliveryModes && (
+                <p id="publish-item-deliveryModes-error" className="field-error">
+                  {errors.deliveryModes}
+                </p>
+              )}
             </fieldset>
+
+            {showAddress ? (
+              <div className="form-field">
+                <label htmlFor="publish-item-address">Dirección</label>
+                <input
+                  id="publish-item-address"
+                  ref={addressRef}
+                  type="text"
+                  autoComplete="street-address"
+                  maxLength={ADDRESS_MAX}
+                  value={address}
+                  onChange={(event) => {
+                    setAddress(event.target.value);
+                    clearError('address');
+                  }}
+                  aria-invalid={errors.address ? true : undefined}
+                  aria-describedby={describedBy('address', 'publish-item-address-hint')}
+                />
+                <p id="publish-item-address-hint" className="field-hint">
+                  {ADDRESS_HINT}
+                </p>
+                {errors.address && (
+                  <p id="publish-item-address-error" className="field-error">
+                    {errors.address}
+                  </p>
+                )}
+              </div>
+            ) : (
+              pickupPointDelivery && <p className="field-hint">{PICKUP_ONLY_HINT}</p>
+            )}
           </div>
 
           <button type="submit" className="button-primary" disabled={submitting}>
