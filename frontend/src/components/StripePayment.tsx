@@ -33,6 +33,8 @@ export function StripePayment({ amountCents, disabled, confirmerRef }: StripePay
         currency: 'eur',
         captureMethod: 'manual',
         setupFutureUsage: 'off_session',
+        // Solo tarjeta (y sus wallets Apple Pay y Google Pay): sin métodos con redirección.
+        allowedPaymentMethodTypes: ['card'],
         locale: 'es',
       }}
     >
@@ -71,5 +73,5 @@ function PaymentElementWithConfirmer({
     };
   }, [stripe, elements, confirmerRef]);
 
-  return <PaymentElement options={{ readOnly: disabled }} />;
+  return <PaymentElement options={{ readOnly: disabled, wallets: { link: 'never' } }} />;
 }

@@ -143,6 +143,7 @@ describe('Payment Element de Stripe', () => {
       currency: 'eur',
       captureMethod: 'manual',
       setupFutureUsage: 'off_session',
+      allowedPaymentMethodTypes: ['card'],
     });
     expect(screen.getByText('4242 4242 4242 4242')).toBeInTheDocument();
     expect(screen.getByText('4000 0000 0000 0002')).toBeInTheDocument();
