@@ -100,6 +100,8 @@ export function expireOverdueForUser(
         ],
       },
       select: { id: true },
+      // Mismo orden que al aceptar: así dos transacciones no se bloquean en cruz.
+      orderBy: { id: 'asc' },
     });
 
     const references: (string | null)[] = [];
