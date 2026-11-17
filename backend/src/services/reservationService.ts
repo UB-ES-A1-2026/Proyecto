@@ -4,13 +4,18 @@ import { AppError } from '../errors/appError.js';
 import {
   findItemForReservation,
   findReservationConflict,
+  isRentalReferenceUsed,
   hasOverlappingReservation,
   insertReservationIfAvailable,
   type InsertReservationResult,
 } from '../repositories/reservationRepository.js';
 import {
   authorize,
+  getAuthorization,
+  isValidPaymentIntentId,
+  PaymentActionRequiredError,
   PaymentDeclinedError,
+  PaymentGatewayError,
   release,
   toCents,
 } from './paymentGateway.js';
@@ -26,6 +31,16 @@ export const START_DATE_IN_PAST_MESSAGE =
   'La fecha de inicio no puede ser anterior a hoy.';
 export const END_BEFORE_START_MESSAGE =
   'La fecha de fin no puede ser anterior a la fecha de inicio.';
+export const PAYMENT_UNAVAILABLE_MESSAGE =
+  'La pasarela de pago no responde. Inténtalo de nuevo en unos minutos.';
+export const INVALID_PAYMENT_INTENT_MESSAGE =
+  'El pago de la verificación no es correcto.';
+export const PAYMENT_MISMATCH_MESSAGE =
+  'El pago no corresponde a esta solicitud. Vuelve a intentarlo.';
+export const PAYMENT_NOT_COMPLETED_MESSAGE =
+  'La verificación del pago no se ha completado. Vuelve a intentarlo.';
+export const PAYMENT_ALREADY_USED_MESSAGE =
+  'Este pago ya se ha usado en otra solicitud.';
 export const RENTAL_TOO_LONG_MESSAGE =
   'El periodo es demasiado largo: revisa la fecha de fin.';
 
@@ -122,7 +137,9 @@ export async function createReservation(
     itemId: string;
     startDate: string;
     endDate: string;
-    confirmationTokenId: string;
+    // Uno de los dos: el token del formulario de pago o, tras el 3D Secure, el PaymentIntent.
+    confirmationTokenId?: string;
+    paymentIntentId?: string;
   },
   now: Date = new Date(),
 ): Promise<ReservationDetail> {
@@ -163,18 +180,26 @@ export async function createReservation(
   }
 
   // Se bloquea el total: alquiler + entrega (la entrega vale 0 hasta US-05.01).
+  const amountCents = toCents(totalPrice);
+  const metadata = {
+    itemId: input.itemId,
+    renterId,
+    startDate: input.startDate,
+    endDate: input.endDate,
+  };
   let reference: string;
-  try {
-    ({ reference } = await authorize(
-      toCents(totalPrice),
-      input.confirmationTokenId,
-      { itemId: input.itemId, renterId },
-    ));
-  } catch (error) {
-    if (error instanceof PaymentDeclinedError) {
-      throw new AppError(402, error.message, 'confirmationTokenId');
-    }
-    throw error;
+  if (input.paymentIntentId) {
+    reference = await verifyAuthorizedIntent(
+      input.paymentIntentId,
+      amountCents,
+      metadata,
+    );
+  } else {
+    reference = await authorizeRental(
+      amountCents,
+      input.confirmationTokenId ?? '',
+      metadata,
+    );
   }
 
   // Si la reserva no se llega a guardar, se suelta el bloqueo: nunca queda dinero bloqueado
@@ -207,4 +232,95 @@ export async function createReservation(
   }
 
   return toReservationDetail(result.reservation);
+}
+
+// Primer paso: bloquea el importe con el token del formulario de pago.
+async function authorizeRental(
+  amountCents: number,
+  confirmationTokenId: string,
+  metadata: Record<string, string>,
+): Promise<string> {
+  try {
+    const { reference } = await authorize(
+      amountCents,
+      confirmationTokenId,
+      metadata,
+    );
+    return reference;
+  } catch (error) {
+    if (error instanceof PaymentDeclinedError) {
+      throw new AppError(402, error.message, 'confirmationTokenId');
+    }
+    if (error instanceof PaymentActionRequiredError) {
+      // El controlador lo convierte en la respuesta 402 con requiresAction.
+      throw error;
+    }
+    throw gatewayFailure(error);
+  }
+}
+
+// Segundo paso de 3D Secure: el PaymentIntent verificado en el navegador tiene que ser este mismo
+// pago (importe, moneda y metadatos) y no estar usado. Si no coincide, se suelta el bloqueo.
+async function verifyAuthorizedIntent(
+  paymentIntentId: string,
+  amountCents: number,
+  metadata: Record<string, string>,
+): Promise<string> {
+  if (!isValidPaymentIntentId(paymentIntentId)) {
+    throw new AppError(400, INVALID_PAYMENT_INTENT_MESSAGE, 'paymentIntentId');
+  }
+
+  let info;
+  try {
+    info = await getAuthorization(paymentIntentId);
+  } catch (error) {
+    throw gatewayFailure(error);
+  }
+
+  const matches =
+    info.amountCents === amountCents &&
+    info.currency === 'eur' &&
+    Object.entries(metadata).every(
+      ([key, value]) => info.metadata[key] === value,
+    );
+
+  // Si los metadatos no son del usuario, el intent no es suyo: no se toca.
+  if (info.metadata.renterId !== metadata.renterId) {
+    throw new AppError(409, PAYMENT_MISMATCH_MESSAGE, 'paymentIntentId');
+  }
+
+  if (await isRentalReferenceUsed(info.reference)) {
+    throw new AppError(409, PAYMENT_ALREADY_USED_MESSAGE, 'paymentIntentId');
+  }
+
+  if (!matches) {
+    await releaseQuietly(info.reference);
+    throw new AppError(409, PAYMENT_MISMATCH_MESSAGE, 'paymentIntentId');
+  }
+
+  if (info.status !== 'requires_capture') {
+    await releaseQuietly(info.reference);
+    throw new AppError(409, PAYMENT_NOT_COMPLETED_MESSAGE, 'paymentIntentId');
+  }
+
+  return info.reference;
+}
+
+async function releaseQuietly(reference: string): Promise<void> {
+  try {
+    await release(reference);
+  } catch (error) {
+    console.error(
+      'No se ha podido soltar el bloqueo:',
+      error instanceof Error ? error.message : 'error desconocido',
+    );
+  }
+}
+
+function gatewayFailure(error: unknown): unknown {
+  if (error instanceof PaymentGatewayError) {
+    console.error('Fallo de la pasarela de pago:', error.message);
+    return new AppError(502, PAYMENT_UNAVAILABLE_MESSAGE);
+  }
+  return error;
 }
