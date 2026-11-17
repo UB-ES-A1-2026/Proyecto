@@ -35,8 +35,16 @@ const ITEM = {
   dailyPrice: '5.50',
   deposit: '20.00',
   status: 'published',
+  neighborhood: 'Gràcia',
+  homeDelivery: true,
+  riderDelivery: false,
+  pickupPointDelivery: false,
+  address: 'Carrer de Verdi, 12',
   photos: [],
 };
+
+// GET /api/barrios (US-05.01, #307).
+const NEIGHBORHOODS = ['Gràcia', 'Sant Antoni', 'Sants'];
 
 const error = (field: string) => `El campo "${field}" no es correcto, revísalo.`;
 
@@ -55,6 +63,7 @@ function mockItemApi({
 }: { onSave?: Handler; onLoad?: Handler } = {}) {
   return mockFetch((url, init) => {
     if (url.endsWith('/usuarios/me/objetos')) return Response.json(LIST);
+    if (url.endsWith('/barrios')) return Response.json(NEIGHBORHOODS);
     return init?.method === 'PATCH' ? onSave(url, init) : onLoad(url, init);
   });
 }
@@ -348,5 +357,137 @@ describe('añadir fotos al editar (US-02.02, #51)', () => {
 
     await screen.findByRole('status');
     expect(uploadItemPhoto).not.toHaveBeenCalled();
+  });
+});
+
+describe('apartado «Entrega» al editar (US-05.01, #307)', () => {
+  const patchBody = (fetchMock: ReturnType<typeof mockFetch>) =>
+    JSON.parse(
+      String(fetchMock.mock.calls.find(([, init]) => init?.method === 'PATCH')?.[1]?.body),
+    ) as Record<string, unknown>;
+
+  const mode = (dialog: HTMLElement, name: string) =>
+    within(within(dialog).getByRole('group', { name: 'Entrega' })).getByRole('checkbox', { name });
+
+  it('carga el barrio, los modos y la dirección guardados', async () => {
+    mockItemApi();
+    const { dialog } = await openForm();
+
+    expect(within(dialog).getByLabelText('Barrio')).toHaveValue('Gràcia');
+    expect(mode(dialog, 'Recoger en casa del propietario')).toBeChecked();
+    expect(mode(dialog, 'Entrega por rider')).not.toBeChecked();
+    expect(mode(dialog, 'Punto de recogida')).not.toBeChecked();
+    expect(within(dialog).getByLabelText('Dirección')).toHaveValue('Carrer de Verdi, 12');
+  });
+
+  it('un barrio que no está en la lista empieza vacío y obliga a elegir uno', async () => {
+    const old = { ...ITEM, neighborhood: 'Vila de Gràcia' };
+    const fetchMock = mockItemApi({
+      onLoad: () => Response.json(old),
+      onSave: () => Response.json({ ...old, neighborhood: 'Sants' }),
+    });
+    const { user, dialog, save } = await openForm();
+    const barrio = within(dialog).getByLabelText('Barrio');
+
+    expect(barrio).toHaveValue('');
+    expect(
+      within(dialog).getByText(
+        'Antes ponía «Vila de Gràcia», que no está en la lista. Elige el barrio de la lista.',
+      ),
+    ).toBeInTheDocument();
+
+    await user.click(save);
+    expect(within(dialog).getByText(error('barrio'))).toBeInTheDocument();
+    expect(barrio).toHaveFocus();
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(false);
+
+    await user.selectOptions(barrio, 'Sants');
+    await user.click(save);
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(patchBody(fetchMock)).toEqual({
+      title: 'Taladro percutor',
+      description: 'Taladro con maletín y brocas.',
+      dailyPrice: 5.5,
+      deposit: 20,
+      neighborhood: 'Sants',
+    });
+  });
+
+  it('solo envía los modos que cambian y oculta la dirección con solo punto de recogida', async () => {
+    const fetchMock = mockItemApi();
+    const { user, dialog, save } = await openForm();
+
+    await user.click(mode(dialog, 'Punto de recogida'));
+    await user.click(mode(dialog, 'Recoger en casa del propietario'));
+    expect(within(dialog).queryByLabelText('Dirección')).not.toBeInTheDocument();
+    expect(
+      within(dialog).getByText('Solo punto de recogida: no hace falta tu dirección.'),
+    ).toBeInTheDocument();
+    await user.click(save);
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    const body = patchBody(fetchMock);
+    expect(body).toMatchObject({ homeDelivery: false, pickupPointDelivery: true });
+    expect(body).not.toHaveProperty('riderDelivery');
+    expect(body).not.toHaveProperty('address');
+    expect(body).not.toHaveProperty('neighborhood');
+  });
+
+  it('sin ningún modo marcado avisa y no guarda', async () => {
+    const fetchMock = mockItemApi();
+    const { user, dialog, save } = await openForm();
+
+    await user.click(mode(dialog, 'Recoger en casa del propietario'));
+    await user.click(save);
+
+    expect(within(dialog).getByText('Elige al menos un modo de entrega.')).toBeInTheDocument();
+    expect(mode(dialog, 'Recoger en casa del propietario')).toHaveFocus();
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(false);
+  });
+
+  it('un objeto antiguo sin dirección pide añadirla al guardar con domicilio o rider', async () => {
+    const fetchMock = mockItemApi({ onLoad: () => Response.json({ ...ITEM, address: null }) });
+    const { user, dialog, save } = await openForm();
+
+    expect(
+      within(dialog).getByText(
+        'Añade tu dirección: sin ella, nadie puede elegir «Recoger en casa del propietario».',
+      ),
+    ).toBeInTheDocument();
+    await user.click(save);
+
+    expect(within(dialog).getByText(error('dirección'))).toBeInTheDocument();
+    expect(within(dialog).getByLabelText('Dirección')).toHaveFocus();
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(false);
+
+    await user.type(within(dialog).getByLabelText('Dirección'), '  Carrer Gran, 3  ');
+    await user.click(save);
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(patchBody(fetchMock)).toMatchObject({ address: 'Carrer Gran, 3' });
+  });
+
+  it('muestra en su campo el error de dirección que devuelve la API', async () => {
+    mockItemApi({
+      onSave: () => Response.json({ error: error('dirección'), field: 'address' }, { status: 400 }),
+    });
+    const { user, dialog, save } = await openForm();
+
+    await user.click(save);
+
+    expect(await within(dialog).findByText(error('dirección'))).toBeInTheDocument();
+    expect(within(dialog).getByLabelText('Dirección')).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('si no se pueden cargar los barrios lo dice en la ventana', async () => {
+    mockFetch((url) => {
+      if (url.endsWith('/usuarios/me/objetos')) return Response.json(LIST);
+      if (url.endsWith('/barrios')) return Response.json({ error: 'caído' }, { status: 503 });
+      return Response.json(ITEM);
+    });
+    const { dialog } = await openEditor();
+
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      'No se han podido cargar los barrios.',
+    );
   });
 });
