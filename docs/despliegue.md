@@ -135,7 +135,9 @@ Para que la demo no salga vacía, el seed `backend/prisma/seed-demo.ts` crea en 
 | `jordi@demo.rentit.test` | Poblenou: proyector, altavoz, bici y máquina de palomitas |
 | `marta@demo.rentit.test` | Sant Andreu: cortacésped, hidrolimpiadora, silla de bebé y paddle surf |
 
-La contraseña de las tres es el secreto `DEMO_PASSWORD`: **no está en el repo**, tiene como mínimo 12 caracteres y el script se niega a usar la del seed de desarrollo. La persona de DevOps la comparte con el equipo en persona, nunca por WhatsApp.
+Además, para enseñar la demanda de fechas del calendario (US-04.07, #311), el seed crea 6 cuentas de vecinos (`vecino1@demo.rentit.test` … `vecino6@demo.rentit.test`; en local, `@rentit.test`). Cada uno tiene una solicitud **pendiente** de la bici de jordi (bruno en local), entre 8 y 12 días después de cargar los datos, y las 6 coinciden el día 10 (mucha demanda). Al repetir el seed, las fechas se vuelven a calcular desde ese día. Se entra con laura (ana en local) para verlo.
+
+La contraseña de las tres es el secreto `DEMO_PASSWORD`, y también la de los vecinos: **no está en el repo**, tiene como mínimo 12 caracteres y el script se niega a usar la del seed de desarrollo. La persona de DevOps la comparte con el equipo en persona, nunca por WhatsApp.
 
 **Primera vez:** en *Settings → Secrets and variables → Actions* del repo, añade estos secretos (los valores de las dos URLs son los mismos que `DATABASE_URL` y `DIRECT_URL` en Render):
 

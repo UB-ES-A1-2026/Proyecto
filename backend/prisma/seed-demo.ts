@@ -5,7 +5,9 @@
 import { PrismaClient } from '@prisma/client';
 import {
   DEMO_USERS,
+  demandNeighbours,
   demoPasswordError,
+  upsertDemoDemand,
   upsertDemoItems,
   upsertDemoReservations,
   upsertUsers,
@@ -24,10 +26,18 @@ async function main(): Promise<void> {
   const ownerIds = await upsertUsers(prisma, DEMO_USERS, password, rounds);
   const items = await upsertDemoItems(prisma, ownerIds);
   const reservations = await upsertDemoReservations(prisma, ownerIds);
+  // Seis vecinos con solicitudes pendientes en las mismas fechas (US-04.07).
+  const neighbourIds = await upsertUsers(
+    prisma,
+    demandNeighbours('demo.rentit.test'),
+    password,
+    rounds,
+  );
+  const demand = await upsertDemoDemand(prisma, ownerIds, neighbourIds);
 
   // Nunca se escribe la contraseña en el log.
   console.info(
-    `Datos de demo listos: ${DEMO_USERS.length} cuentas (${DEMO_USERS.map(({ email }) => email).join(', ')}), ${items} objetos y ${reservations} solicitudes`,
+    `Datos de demo listos: ${DEMO_USERS.length} cuentas (${DEMO_USERS.map(({ email }) => email).join(', ')}), ${items} objetos y ${reservations + demand} solicitudes`,
   );
 }
 

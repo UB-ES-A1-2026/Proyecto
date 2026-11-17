@@ -278,6 +278,22 @@ Objetos del seed (`backend/prisma/demoData.ts`). En Deporte están la bicicleta 
 | CP-FIL-09 | 1. En móvil, los filtros se abren con su botón | Página de resultados, a 390 px | 1. Pulsar «Filtros» 2. Precio máximo `10` 3. «Aplicar filtros» 4. «Limpiar filtros» junto a los chips | En el paso 1 se abre el panel. En el 3 se cierra y el botón dice «Filtros (1)». En el 4 se vuelve a `/buscar?q=taladro` | `filtrar-objetos.spec.ts` · en móvil |
 | CP-FIL-10 | (Móvil) Sin scroll horizontal | Página de resultados, a 390 px | 1. Ir a `/buscar?q=taladro` | La página no se desplaza en horizontal | `filtrar-objetos.spec.ts` · en móvil |
 
+### US-04.07 Ver la demanda de cada fecha en el calendario (#303) · S2-T33 (#313)
+
+Datos del seed (`DEMO_DEMAND_REQUESTS` en `backend/prisma/demoData.ts`): la bicicleta de montaña de bruno tiene seis solicitudes pendientes; ana ve 1 el día +8, 6 el +10 y 4 el +11. Las de vecino1 no cuentan para sí mismo. La escalera de ana tiene los días +14 y +15 reservados por bruno.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-DEM-01 | 1. Color y etiqueta accesible por nivel | Seed cargado; sesión de ana | 1. Abrir la bicicleta 2. Revisar +8, +10, +11 y +13 | Los días tienen sus clases y aria-label según 1, 6, 4 y 0 solicitudes; los cuatro colores son distintos | `demanda-calendario.spec.ts` · criterio 1 |
+| CP-DEM-02 | 2. Leyenda | Seed cargado; sesión de ana | 1. Abrir la bicicleta | Se muestran, en orden, «Libre», «Poca demanda (1–2)», «Demanda media (3–5)», «Mucha demanda (6 o más)» y «Reservado» | `demanda-calendario.spec.ts` · criterio 2 |
+| CP-DEM-03 | 3. Detalle al señalar o elegir un día | Seed cargado; sesión de ana | 1. Señalar +10 y +8 2. Pulsar +13 | Se muestran los respectivos números; al elegir +13 aparece «Ninguna solicitud para este día» y se rellena «Fecha de inicio» | `demanda-calendario.spec.ts` · criterio 3 |
+| CP-DEM-04 | 4. Solicitudes coincidentes con las fechas | Seed cargado; sesión de ana | 1. Elegir +10 a +11 2. Elegir +8 a +8 3. Elegir +13 a +13 | Los avisos cuentan 6 (sin duplicar solicitudes) y 1; con +13 no hay aviso y «Solicitar alquiler» está activo | `demanda-calendario.spec.ts` · criterio 4 |
+| CP-DEM-05 | 5. No revelar la identidad de quienes solicitan | Seed cargado; sesión de ana | 1. Abrir la bicicleta 2. Consultar la demanda por API entre +8 y +12 | La ficha no menciona vecinos; la respuesta solo tiene `days`, `pendingRequests` y `bookedDays`, y cada día solo `date` y `pendingRequests`, sin correo ni id de usuario | `demanda-calendario.spec.ts` · criterio 5 |
+| CP-DEM-06 | Las solicitudes propias no cuentan | Seed cargado; sesión de vecino1 | 1. Abrir la bicicleta 2. Revisar +8 y +10 | +8 está libre y +10 tiene 5 solicitudes (`has-demand-2`) | `demanda-calendario.spec.ts` · propias |
+| CP-DEM-07 | Error al cargar la demanda | Sesión de ana | 1. Hacer que la API de demanda responda `500` 2. Abrir la bicicleta 3. Pulsar +13 | Se muestra el error, no hay leyenda ni colores, y el día sigue rellenando la fecha de inicio | `demanda-calendario.spec.ts` · error |
+| CP-DEM-08 | Días reservados | Seed cargado; sesión de bruno | 1. Abrir la escalera 2. Revisar +14, +15 y +13 | +14 y +15 tienen «Reservado», `is-booked` y están desactivados; +13 está activo | `demanda-calendario.spec.ts` · días reservados |
+| CP-DEM-09 | El propietario no alquila su objeto | Seed cargado; sesión de bruno | 1. Abrir su bicicleta | Se ve «Este anuncio es tuyo.», sin calendario ni leyenda | `demanda-calendario.spec.ts` · permisos |
+
 ## 5. Métricas de tests
 
 Petición del profesor en la demo del Sprint 1 (#272). Las dos métricas salen solas del CI y de GitHub; solo hace falta seguir las reglas de `AGENTS.md`.
