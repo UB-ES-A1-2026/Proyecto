@@ -3,7 +3,8 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { RentalRequest, type RentalItem } from '../src/components/RentalRequest';
+import type { RentalItem } from '../src/components/RentalRequest';
+import { RentalFlow } from './rentalFlow';
 import { AuthContext } from '../src/context/authContextValue';
 import type { Reservation } from '../src/services/reservationService';
 
@@ -94,7 +95,7 @@ function renderRequest() {
   const onRequested = vi.fn();
   render(
     <AuthContext.Provider value={{ session: SESSION, saveSession: vi.fn(), clearSession: vi.fn() }}>
-      <RentalRequest item={ITEM} onRequested={onRequested} onSessionExpired={vi.fn()} />
+      <RentalFlow item={ITEM} onRequested={onRequested} onSessionExpired={vi.fn()} />
     </AuthContext.Provider>,
   );
   return { onRequested };
@@ -108,7 +109,7 @@ async function goToSummary(user: ReturnType<typeof userEvent.setup>) {
   await user.click(request);
 }
 
-const submitButton = () => screen.getByRole('button', { name: 'Enviar solicitud' });
+const submitButton = () => screen.getByRole('button', { name: 'Confirmar y enviar solicitud' });
 
 beforeEach(() => {
   state.enabled = true;
@@ -320,7 +321,7 @@ describe('3D Secure en dos pasos', () => {
     await user.click(submitButton());
 
     expect(await screen.findByRole('alert')).toHaveTextContent('El pago no corresponde');
-    expect(screen.getByRole('heading', { name: 'Revisa tu solicitud' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Tu solicitud' })).toBeInTheDocument();
   });
 });
 

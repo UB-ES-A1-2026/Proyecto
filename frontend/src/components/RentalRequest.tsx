@@ -1,25 +1,16 @@
 // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 03/11/2026
 // Demanda de fechas en el calendario (US-04.07, #312): generado con asistencia de IA (Claude) –
 // revisado por Marc Sanz, 13/11/2026
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
-import { createPaymentMethod, type CardDetails, type CardField } from '../services/cardGateway';
 import { getItemDemand } from '../services/demandService';
-import {
-  checkAvailability,
-  PaymentVerificationRequired,
-  requestRental,
-  type PaymentCredential,
-  type Reservation,
-} from '../services/rentalService';
-import { isStripeEnabled } from '../services/stripeService';
+import { checkAvailability } from '../services/rentalService';
 import { formatMatchingRequests, monthBounds, monthOf, selectRangeDate } from '../utils/calendar';
 import {
   calculateTotalPrice,
   countRentalDays,
   formatInputDate,
-  formatLongDate,
   formatPrice,
   maskInputDate,
   parseInputDate,
@@ -28,10 +19,8 @@ import {
   validateRentalDates,
   type RentalDateErrors,
 } from '../utils/rental';
-import { CardFields, TestCardsNote } from './CardFields';
 import { DateRangeCalendar, type CalendarDemand } from './DateRangeCalendar';
 import { Icon } from './Icon';
-import { StripePayment, type StripeConfirmer } from './StripePayment';
 
 export type RentalItem = {
   id: string;
@@ -43,17 +32,14 @@ export type RentalItem = {
   ownerName?: string;
 };
 
-const EMPTY_CARD: CardDetails = { number: '', expiry: '', cvc: '' };
-
-// Un bloqueo con tarjeta caduca a los ~7 días: hasta 6 días de alquiler la fianza se bloquea el día
-// antes de empezar; si dura más, se cobra y se devuelve al terminar (propuesta de US-07.01, #286).
-const MAX_DEPOSIT_HOLD_DAYS = 6;
-// Stripe no puede retener menos de 0,50 €: con una fianza menor no hay pago de fianza (#72).
-const MIN_DEPOSIT_TO_HOLD = 0.5;
+export type RentalDates = { startDate: string; endDate: string };
 
 type RentalRequestProps = {
   item: RentalItem;
-  onRequested: (reservation: Reservation) => void;
+  // Las fechas con las que se vuelve de «Confirmar y pagar» (están en la dirección de la ficha).
+  initialDates?: RentalDates;
+  // Con las fechas libres, «Solicitar alquiler» lleva a la página «Confirmar y pagar».
+  onContinue: (dates: RentalDates) => void;
   onSessionExpired: () => void;
 };
 
@@ -71,34 +57,33 @@ type RangeDemandResult = { datesKey: string; pendingRequests: number };
 
 const DEMAND_ERROR_MESSAGE = 'No se ha podido cargar la demanda de las fechas.';
 
-// Selector de fechas, resumen y confirmación de US-04.01 (#121), dentro del panel lateral de la
-// ficha del objeto (#15).
-export function RentalRequest({ item, onRequested, onSessionExpired }: RentalRequestProps) {
+// Selector de fechas de US-04.01 (#121), dentro del panel lateral de la ficha del objeto (#15). El
+// resumen y el pago están en su propia página, «Confirmar y pagar» (US-07.01).
+export function RentalRequest({
+  item,
+  initialDates,
+  onContinue,
+  onSessionExpired,
+}: RentalRequestProps) {
   // Lo que hay escrito en los campos («dd/mm/aaaa»). El calendario escribe en ellos al hacer clic.
-  const [startText, setStartText] = useState('');
-  const [endText, setEndText] = useState('');
+  const [startText, setStartText] = useState(() =>
+    initialDates ? formatInputDate(initialDates.startDate) : '',
+  );
+  const [endText, setEndText] = useState(() =>
+    initialDates ? formatInputDate(initialDates.endDate) : '',
+  );
   const [apiErrors, setApiErrors] = useState<RentalDateErrors>({});
-  const [formError, setFormError] = useState<string | null>(null);
-  const [step, setStep] = useState<'dates' | 'summary'>('dates');
-  const [submitting, setSubmitting] = useState(false);
   const [availability, setAvailability] = useState<AvailabilityResult | null>(null);
   const [monthDemand, setMonthDemand] = useState<MonthDemandResult | null>(null);
   const [rangeDemand, setRangeDemand] = useState<RangeDemandResult | null>(null);
-  const [card, setCard] = useState<CardDetails>(EMPTY_CARD);
-  const [cardErrors, setCardErrors] = useState<Partial<Record<CardField, string>>>({});
   const { session, clearSession } = useAuth();
   const token = session?.token;
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  // Con Stripe, el formulario de pago (Payment Element) se maneja a través de este objeto.
-  // Además del estado: dos envíos seguidos antes de que React pinte (doble clic, Intro repetido)
-  // verían submitting=false los dos.
-  const submittingRef = useRef(false);
-  const stripeConfirmer = useRef<StripeConfirmer | null>(null);
-  const useStripeForm = isStripeEnabled();
-  const previousStep = useRef(step);
 
   const today = todayIso();
-  const [calendarMonth, setCalendarMonth] = useState(monthOf(today));
+  const [calendarMonth, setCalendarMonth] = useState(() =>
+    monthOf(initialDates && initialDates.startDate >= today ? initialDates.startDate : today),
+  );
+
   const startDate = parseInputDate(startText);
   const endDate = parseInputDate(endText);
   const errors = {
@@ -201,16 +186,8 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
     };
   }, [datesKey, token, item.id, startDate, endDate]);
 
-  // El botón pulsado desaparece al cambiar de paso: el foco pasa al título del paso nuevo.
-  useEffect(() => {
-    if (previousStep.current === step) return;
-    previousStep.current = step;
-    headingRef.current?.focus({ preventScroll: true });
-  }, [step]);
-
   function clearErrors() {
     setApiErrors({});
-    setFormError(null);
   }
 
   function changeDateText(setText: (text: string) => void, rawText: string) {
@@ -239,212 +216,12 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
   function handleDatesSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!isAvailable) return;
-    // Un error de un envío anterior (p. ej. el 409 por solape) no se arrastra al resumen nuevo.
-    setFormError(null);
-    setStep('summary');
-  }
-
-  function handleCardChange(field: CardField, value: string) {
-    setCard((current) => ({ ...current, [field]: value }));
-    setCardErrors((current) => ({ ...current, [field]: undefined }));
-  }
-
-  async function handleConfirm(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (submitting || submittingRef.current || !session) return;
-    setFormError(null);
-
-    // Sin Stripe, la tarjeta simulada se comprueba antes de llamar a la API: su número nunca sale
-    // hacia Rentit. Con Stripe, el Payment Element valida y da el token al pulsar.
-    let simulatedToken = '';
-    if (!useStripeForm) {
-      const method = createPaymentMethod(card);
-      if (!method.ok) {
-        setCardErrors(method.errors);
-        const firstInvalid = (['number', 'expiry', 'cvc'] as const).find(
-          (field) => method.errors[field],
-        );
-        const input = firstInvalid ? event.currentTarget.elements.namedItem(firstInvalid) : null;
-        if (input instanceof HTMLInputElement) input.focus();
-        return;
-      }
-      simulatedToken = method.confirmationTokenId;
-    }
-
-    submittingRef.current = true;
-    setSubmitting(true);
-    try {
-      const input = { itemId: item.id, startDate, endDate };
-      let credential: PaymentCredential = simulatedToken;
-      if (useStripeForm) {
-        const confirmer = stripeConfirmer.current;
-        if (!confirmer) throw new ApiError(0, 'El formulario de pago todavía se está cargando.');
-        const result = await confirmer.createToken();
-        if ('error' in result) throw new ApiError(0, result.error);
-        credential = result.confirmationTokenId;
-      }
-
-      let reservation: Reservation;
-      try {
-        reservation = await requestRental(session.token, input, credential);
-      } catch (error) {
-        if (!(error instanceof PaymentVerificationRequired)) throw error;
-        // Tu banco pide verificar el pago (3D Secure): todavía no hay reserva. Con Stripe se abre la
-        // ventana del banco; en el modo simulado se da por verificado.
-        if (stripeConfirmer.current) {
-          const verified = await stripeConfirmer.current.handleNextAction(error.clientSecret);
-          if (verified.error) throw new ApiError(402, verified.error);
-        }
-        reservation = await requestRental(session.token, input, {
-          paymentIntentId: error.paymentIntentId,
-        });
-      }
-      onRequested(reservation);
-    } catch (error) {
-      submittingRef.current = false;
-      // Los botones se reactivan siempre, también si el componente sigue montado tras un 401.
-      setSubmitting(false);
-      // Sesión caducada o revocada: se borra y se vuelve al login.
-      if (error instanceof ApiError && error.status === 401) {
-        clearSession();
-        onSessionExpired();
-        return;
-      }
-      // Errores de #120. Si el problema está en las fechas (409 por solape, con field), se vuelve
-      // a elegirlas; si no (tarjeta rechazada, objeto propio, no publicado, solicitud
-      // duplicada…), se queda en el resumen con el mensaje de la API para probar otra vez.
-      if (
-        error instanceof ApiError &&
-        error.status === 409 &&
-        (error.field === 'startDate' || error.field === 'endDate') &&
-        datesKey
-      ) {
-        // Alguien ha ocupado las fechas después de consultarlas: ahora ya no están libres.
-        setAvailability({ datesKey, available: false });
-        setStep('dates');
-      } else if (
-        error instanceof ApiError &&
-        (error.field === 'startDate' || error.field === 'endDate')
-      ) {
-        setApiErrors({ [error.field]: error.message });
-        setStep('dates');
-      } else if (error instanceof ApiError) {
-        setFormError(error.message);
-      } else {
-        setFormError('Ha ocurrido un error inesperado.');
-      }
-    }
-  }
-
-  if (step === 'summary') {
-    const deposit = (item.deposit ?? 0) >= MIN_DEPOSIT_TO_HOLD ? (item.deposit ?? 0) : 0;
-    const owner = item.ownerName ?? 'el propietario';
-    const depositCharged = days > MAX_DEPOSIT_HOLD_DAYS;
-
-    return (
-      <section key="summary" className="rental-request" aria-labelledby="rental-title">
-        <h2 id="rental-title" ref={headingRef} tabIndex={-1}>
-          Revisa tu solicitud
-        </h2>
-        <div className="rental-item">
-          {item.photoUrl && <img src={item.photoUrl} alt="" className="rental-item-photo" />}
-          <div>
-            <p className="rental-item-title">{item.title}</p>
-            <p className="field-hint">{formatPrice(item.pricePerDay)} / día</p>
-          </div>
-        </div>
-        <dl className="rental-summary">
-          <dt>Desde</dt>
-          <dd>{formatLongDate(startDate)}</dd>
-          <dt>Hasta</dt>
-          <dd>{formatLongDate(endDate)}</dd>
-          <dt>Importe del alquiler ({days === 1 ? '1 día' : `${days} días`})</dt>
-          {/* El importe destacado es siempre el último: el total si hay fianza. */}
-          <dd className={deposit > 0 ? undefined : 'rental-total'}>{formatPrice(totalPrice)}</dd>
-          {deposit > 0 && (
-            <>
-              <dt>
-                {depositCharged
-                  ? 'Fianza (se cobra y se devuelve al terminar)'
-                  : 'Fianza (se retiene, no se cobra)'}
-              </dt>
-              <dd>{formatPrice(deposit)}</dd>
-              <dt>Importe total</dt>
-              <dd className="rental-total">{formatPrice(totalPrice + deposit)}</dd>
-            </>
-          )}
-        </dl>
-
-        {/* Criterio de US-07.01 (#286): qué pasa con el dinero, antes de meter la tarjeta. */}
-        <div className="rental-payment-note">
-          <Icon name="lock" size="1.125rem" />
-          <p>
-            Bloquearemos {formatPrice(totalPrice)} en tu tarjeta.{' '}
-            <strong>Solo se cobran si {owner} acepta</strong>; si la rechaza o no responde en 48
-            horas, se liberan.
-            {deposit > 0 &&
-              (depositCharged
-                ? ` Como el alquiler dura más de ${MAX_DEPOSIT_HOLD_DAYS} días, la fianza (${formatPrice(deposit)}) se cobra el día antes de empezar y se devuelve al terminar.`
-                : ` La fianza (${formatPrice(deposit)}) se bloquea el día antes de empezar y se libera al terminar, sin cobrarla.`)}
-          </p>
-        </div>
-
-        <form onSubmit={(event) => void handleConfirm(event)} noValidate>
-          {useStripeForm ? (
-            <>
-              <StripePayment
-                amountCents={Math.round(totalPrice * 100)}
-                disabled={submitting}
-                confirmerRef={stripeConfirmer}
-              />
-              <TestCardsNote />
-            </>
-          ) : (
-            <CardFields
-              card={card}
-              errors={cardErrors}
-              disabled={submitting}
-              onChange={handleCardChange}
-            />
-          )}
-          {/* Justo encima del botón: es donde se mira al pulsar (p. ej. «Tu tarjeta ha sido rechazada.»). */}
-          {formError && (
-            <p role="alert" className="form-error rental-payment-error">
-              <Icon name="error" size="1.125rem" />
-              {formError}
-            </p>
-          )}
-          <div className="rental-actions">
-            <button
-              type="button"
-              className="button-secondary"
-              disabled={submitting}
-              onClick={() => {
-                setFormError(null);
-                setStep('dates');
-              }}
-            >
-              Volver
-            </button>
-            <button type="submit" className="button-primary" disabled={submitting}>
-              {submitting ? 'Procesando el pago…' : 'Enviar solicitud'}
-            </button>
-          </div>
-        </form>
-      </section>
-    );
+    onContinue({ startDate, endDate });
   }
 
   return (
-    <section key="dates" className="rental-request" aria-labelledby="rental-title">
-      <h2 id="rental-title" ref={headingRef} tabIndex={-1}>
-        Elige las fechas
-      </h2>
-      {formError && (
-        <p role="alert" className="form-error">
-          {formError}
-        </p>
-      )}
+    <section className="rental-request" aria-labelledby="rental-title">
+      <h2 id="rental-title">Elige las fechas</h2>
       <form onSubmit={handleDatesSubmit} noValidate>
         <div className="rental-dates">
           <div className="form-field">

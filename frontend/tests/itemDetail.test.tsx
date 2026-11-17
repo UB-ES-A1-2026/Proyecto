@@ -339,7 +339,7 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     expect(requestButton()).toBeDisabled();
   });
 
-  it('el resumen sale en el mismo panel y «Volver» conserva las fechas', async () => {
+  it('«Solicitar alquiler» abre «Confirmar y pagar» y «Atrás» vuelve a la ficha con las fechas', async () => {
     const fetchMock = mockApi();
     const user = userEvent.setup();
     const { router, container } = renderRoute('/objetos/taladro-1');
@@ -348,29 +348,40 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     await waitFor(() => expect(requestButton()).toBeEnabled());
     await user.click(requestButton());
 
-    const panel = within(screen.getByRole('complementary', { name: 'Alquiler de este objeto' }));
-    expect(panel.getByRole('heading', { name: 'Revisa tu solicitud' })).toBeInTheDocument();
-    expect(panel.getByText(ITEM.title)).toBeInTheDocument();
-    expect(panel.getByText('martes, 10 de noviembre de 2026')).toBeInTheDocument();
-    expect(panel.getByText('jueves, 12 de noviembre de 2026')).toBeInTheDocument();
-    expect(panel.getByText('Importe del alquiler (3 días)')).toBeInTheDocument();
-    expect(panel.getByText('Importe del alquiler (3 días)').nextElementSibling).toHaveTextContent(
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Confirmar y pagar' }),
+    ).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/objetos/taladro-1/solicitar');
+    expect(router.state.location.search).toBe('?inicio=2026-11-10&fin=2026-11-12');
+    const summary = within(screen.getByRole('region', { name: 'Tu solicitud' }));
+    expect(summary.getByText(ITEM.title)).toBeInTheDocument();
+    expect(summary.getByText('martes, 10 de noviembre de 2026')).toBeInTheDocument();
+    expect(summary.getByText(/jueves, 12 de noviembre de 2026/)).toBeInTheDocument();
+    expect(summary.getByText('Importe del alquiler (3 días)').nextElementSibling).toHaveTextContent(
       '15,00 €',
     );
-    // Pago al solicitar (US-07.01, #286): con fianza, el importe destacado es el total.
-    expect(container.querySelector('.rental-total')).toHaveTextContent('35,00 €');
+    // Pago al solicitar (US-07.01, #286): lo destacado es el total sin fianza; la fianza va aparte.
+    expect(container.querySelector('.rental-total')).toHaveTextContent('15,00 €');
+    expect(container.querySelector('.checkout-deposit')).toHaveTextContent(
+      /Total con fianza\s*35,00\s€/,
+    );
     // La foto es decorativa (alt=""), así que no tiene rol «img»: se busca por su clase.
     expect(container.querySelector('.rental-item-photo')).toHaveAttribute(
       'src',
       ITEM.photos[0].url,
     );
-    expect(router.state.location.pathname).toBe('/objetos/taladro-1');
+    expect(screen.getByRole('link', { name: `Volver a ${ITEM.title}` })).toHaveAttribute(
+      'href',
+      '/objetos/taladro-1?inicio=2026-11-10&fin=2026-11-12',
+    );
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false);
 
-    await user.click(panel.getByRole('button', { name: 'Volver' }));
+    await act(() => router.navigate(-1));
 
-    expect(screen.getByLabelText('Fecha de inicio')).toHaveValue('10/11/2026');
+    expect(await screen.findByLabelText('Fecha de inicio')).toHaveValue('10/11/2026');
     expect(screen.getByLabelText('Fecha de fin')).toHaveValue('12/11/2026');
+    expect(router.state.location.pathname).toBe('/objetos/taladro-1');
+    await waitFor(() => expect(requestButton()).toBeEnabled());
   });
 
   it('al enviar crea la solicitud con la tarjeta y lleva a «Mis solicitudes»', async () => {
@@ -381,11 +392,11 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
     await chooseDates('10/11/2026', '12/11/2026');
     await waitFor(() => expect(requestButton()).toBeEnabled());
     await user.click(requestButton());
-    // Pago al solicitar (US-07.01, #286): el resumen pide la tarjeta.
-    await user.type(screen.getByLabelText('Número de tarjeta'), '4242424242424242');
+    // Pago al solicitar (US-07.01, #286): «Confirmar y pagar» pide la tarjeta.
+    await user.type(await screen.findByLabelText('Número de tarjeta'), '4242424242424242');
     await user.type(screen.getByLabelText('Caducidad'), '1230');
     await user.type(screen.getByLabelText('CVC'), '123');
-    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+    await user.click(await screen.findByRole('button', { name: 'Confirmar y enviar solicitud' }));
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/mis-solicitudes'));
     const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
@@ -413,8 +424,27 @@ describe('alquiler en el panel de la ficha (US-04.01, #121)', () => {
   });
 });
 
-describe('ruta antigua /objetos/:id/solicitar', () => {
-  it('con sesión redirige a la ficha, donde están las fechas', async () => {
+describe('página «Confirmar y pagar» (/objetos/:id/solicitar, US-07.01)', () => {
+  beforeEach(() => {
+    // Solo se finge la fecha: «hoy» es el 3 de noviembre de 2026.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 10, 3, 12, 0));
+  });
+
+  afterEach(() => vi.useRealTimers());
+
+  const PAGE = '/objetos/taladro-1/solicitar?inicio=2026-11-10&fin=2026-11-12';
+
+  it('sin sesión pide el login y después vuelve a la página con las fechas', async () => {
+    mockFetch(() => Response.json(ITEM));
+
+    const { router } = renderRoute(PAGE);
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
+    expect(router.state.location.state).toEqual({ from: PAGE });
+  });
+
+  it('sin fechas en la dirección vuelve a la ficha para elegirlas', async () => {
     localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
     mockFetch(() => Response.json(ITEM));
 
@@ -424,12 +454,26 @@ describe('ruta antigua /objetos/:id/solicitar', () => {
     expect(router.state.location.pathname).toBe('/objetos/taladro-1');
   });
 
-  it('sin sesión también redirige a la ficha, sin pedir el login', async () => {
+  it('con fechas que ya han pasado vuelve a la ficha', async () => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
     mockFetch(() => Response.json(ITEM));
 
-    const { router } = renderRoute('/objetos/taladro-1/solicitar');
+    const { router } = renderRoute('/objetos/taladro-1/solicitar?inicio=2026-11-01&fin=2026-11-02');
 
-    expect(await screen.findByRole('button', { name: 'Alquilar' })).toBeInTheDocument();
+    expect(await screen.findByLabelText('Fecha de inicio')).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/objetos/taladro-1');
+  });
+
+  it('con un objeto propio vuelve a la ficha, que explica que es tuyo', async () => {
+    localStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({ ...SESSION, user: { ...SESSION.user, id: 'user-ana', username: 'ana' } }),
+    );
+    mockFetch(() => Response.json(ITEM));
+
+    const { router } = renderRoute(PAGE);
+
+    expect(await screen.findByText('Este anuncio es tuyo.')).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/objetos/taladro-1');
   });
 });

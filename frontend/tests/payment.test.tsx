@@ -3,8 +3,9 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { RentalRequest, type RentalItem } from '../src/components/RentalRequest';
+import type { RentalItem } from '../src/components/RentalRequest';
 import { ReservationCard } from '../src/components/ReservationCard';
+import { RentalFlow } from './rentalFlow';
 import { AuthContext } from '../src/context/authContextValue';
 import {
   CARD_ERRORS,
@@ -70,7 +71,7 @@ function renderRequest(item: RentalItem = ITEM) {
   const onRequested = vi.fn();
   render(
     <AuthContext.Provider value={{ session: SESSION, saveSession: vi.fn(), clearSession: vi.fn() }}>
-      <RentalRequest item={item} onRequested={onRequested} onSessionExpired={vi.fn()} />
+      <RentalFlow item={item} onRequested={onRequested} onSessionExpired={vi.fn()} />
     </AuthContext.Provider>,
   );
   return { onRequested };
@@ -155,18 +156,22 @@ describe('Tarjeta en modo de prueba (provisional hasta Stripe Elements, T10)', (
 });
 
 describe('Pagar al solicitar desde la ficha', () => {
-  it('antes de pagar muestra el alquiler, la fianza, el total y qué pasa con el dinero', async () => {
+  it('antes de pagar destaca el total sin fianza y enseña aparte la fianza y el total con ella', async () => {
     mockRequestApi();
     const user = userEvent.setup();
     renderRequest();
 
     await goToSummary(user);
 
-    expect(screen.getByRole('heading', { name: 'Revisa tu solicitud' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Tu solicitud' })).toBeInTheDocument();
     const summary = document.querySelector('.rental-summary') as HTMLElement;
     expect(summary).toHaveTextContent(/Importe del alquiler \(3 días\)\s*18,00\s€/);
-    expect(summary).toHaveTextContent(/Fianza \(se retiene, no se cobra\)\s*40,00\s€/);
-    expect(summary).toHaveTextContent(/Importe total\s*58,00\s€/);
+    expect(summary).not.toHaveTextContent(/Fianza/);
+    // Lo destacado es lo que se paga ahora: sin la fianza.
+    expect(document.querySelector('.rental-total')).toHaveTextContent(/^18,00\s€$/);
+    const deposit = document.querySelector('.checkout-deposit') as HTMLElement;
+    expect(deposit).toHaveTextContent(/Fianza \(se retiene, no se cobra\)\s*40,00\s€/);
+    expect(deposit).toHaveTextContent(/Total con fianza\s*58,00\s€/);
     expect(screen.getByText(/Bloquearemos 18,00\s€ en tu tarjeta/)).toBeInTheDocument();
     expect(screen.getByText('Solo se cobran si ana acepta')).toBeInTheDocument();
     expect(
@@ -177,7 +182,7 @@ describe('Pagar al solicitar desde la ficha', () => {
     // Indica qué tarjetas de prueba usar.
     expect(screen.getByText(VISA)).toBeInTheDocument();
     expect(screen.getByText(DECLINED)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Enviar solicitud' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Confirmar y enviar solicitud' })).toBeEnabled();
   });
 
   // Un bloqueo con tarjeta caduca a los ~7 días: con más de 6 días de alquiler, la fianza se cobra
@@ -213,7 +218,7 @@ describe('Pagar al solicitar desde la ficha', () => {
 
     await goToSummary(user);
     fillCard();
-    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+    await user.click(screen.getByRole('button', { name: 'Confirmar y enviar solicitud' }));
 
     await waitFor(() => expect(onRequested).toHaveBeenCalledWith(reservation()));
     const [post] = postCalls(fetchMock);
@@ -234,7 +239,7 @@ describe('Pagar al solicitar desde la ficha', () => {
 
     await goToSummary(user);
     fillCard('1234', '99', '1');
-    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+    await user.click(screen.getByRole('button', { name: 'Confirmar y enviar solicitud' }));
 
     expect(screen.getByLabelText('Número de tarjeta')).toHaveAttribute('aria-invalid', 'true');
     expect(screen.getByText(CARD_ERRORS.number)).toBeInTheDocument();
@@ -252,7 +257,7 @@ describe('Pagar al solicitar desde la ficha', () => {
 
     await goToSummary(user);
     fillCard(VISA, '13/30');
-    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+    await user.click(screen.getByRole('button', { name: 'Confirmar y enviar solicitud' }));
 
     expect(screen.getByLabelText('Caducidad')).toHaveFocus();
   });
@@ -269,20 +274,20 @@ describe('Pagar al solicitar desde la ficha', () => {
 
     await goToSummary(user);
     fillCard(DECLINED);
-    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+    await user.click(screen.getByRole('button', { name: 'Confirmar y enviar solicitud' }));
 
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('Tu tarjeta ha sido rechazada.');
     // Sale justo encima de los botones, donde se mira al pulsar.
     expect(alert.nextElementSibling).toContainElement(
-      screen.getByRole('button', { name: 'Enviar solicitud' }),
+      screen.getByRole('button', { name: 'Confirmar y enviar solicitud' }),
     );
-    expect(screen.getByRole('heading', { name: 'Revisa tu solicitud' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Enviar solicitud' })).toBeEnabled();
+    expect(screen.getByRole('heading', { name: 'Tu solicitud' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Confirmar y enviar solicitud' })).toBeEnabled();
     expect(onRequested).not.toHaveBeenCalled();
   });
 
-  it('sin fianza no hay fila de fianza ni de total: el alquiler es todo', async () => {
+  it('sin fianza no hay bloque de fianza: el total es el alquiler', async () => {
     mockRequestApi();
     const user = userEvent.setup();
     renderRequest({ ...ITEM, deposit: 0 });
@@ -290,7 +295,7 @@ describe('Pagar al solicitar desde la ficha', () => {
     await goToSummary(user);
 
     expect(screen.queryByText(/Fianza/)).not.toBeInTheDocument();
-    expect(screen.queryByText('Importe total')).not.toBeInTheDocument();
+    expect(document.querySelector('.checkout-deposit')).toBeNull();
     expect(document.querySelector('.rental-total')).toHaveTextContent(/18,00\s€/);
   });
 
@@ -341,7 +346,7 @@ describe('Ficha y «Mis solicitudes» con el pago al solicitar', () => {
     await screen.findByRole('complementary', { name: 'Alquiler de este objeto' });
     await goToSummary(user);
     fillCard();
-    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+    await user.click(screen.getByRole('button', { name: 'Confirmar y enviar solicitud' }));
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/mis-solicitudes'));
     expect(await screen.findByRole('status')).toHaveTextContent(
