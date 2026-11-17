@@ -83,6 +83,7 @@ describe('GET /api/usuarios/me/reservas', () => {
           renter: { id: bruno.id, username: 'bruno' },
           owner: { id: ana.id, username: 'ana' },
           createdAt: reservation.createdAt.toISOString(),
+          cancellation: null,
         },
       ],
       received: [],

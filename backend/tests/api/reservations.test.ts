@@ -285,6 +285,7 @@ describe('POST /api/reservas', () => {
       renter: { id: renter.id, username: 'bruno' },
       owner: { id: owner.id, username: 'ana' },
       createdAt: expect.any(String),
+      cancellation: null,
     });
 
     const saved = await prisma.reservation.findUniqueOrThrow({
