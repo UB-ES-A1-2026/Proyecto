@@ -78,7 +78,7 @@ test.describe('US-04.03 Aceptar una solicitud', () => {
   });
 
   // Criterio 2
-  test('al aceptar una solicitud pendiente pasa a «Aceptada», también para quien la pidió', async ({
+  test('al aceptar una solicitud pendiente se cobra y pasa a «Pagada», también para quien la pidió (#72)', async ({
     page,
   }) => {
     await login(page, ANA);
@@ -90,17 +90,17 @@ test.describe('US-04.03 Aceptar una solicitud', () => {
 
     await expect(taladro.getByText('Has aceptado la solicitud.')).toBeVisible();
     await expect(
-      taladro.getByRole('button', { name: /Taladro percutor Bosch.*Aceptada/ }),
+      taladro.getByRole('button', { name: /Taladro percutor Bosch.*Pagada/ }),
     ).toBeVisible();
 
-    // bruno la ve aceptada en sus enviadas
+    // bruno la ve pagada en sus enviadas
     await page.goto('/perfil');
     await page.getByRole('button', { name: 'Cerrar sesión' }).click();
     await login(page, BRUNO);
     await openMyReservations(page);
     await expect(
       card(page, 'Enviadas', 'Taladro percutor Bosch').getByRole('button', {
-        name: /Taladro percutor Bosch.*Aceptada/,
+        name: /Taladro percutor Bosch.*Pagada/,
       }),
     ).toBeVisible();
   });
