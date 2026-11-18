@@ -30,17 +30,22 @@ const RENTAL = {
 
 type Handler = () => Response | Promise<Response>;
 
-// GET /reservas/disponibilidad (#204) lo responde `onAvailability` (por defecto, libre); el resto
-// de peticiones, que son el POST /reservas, las responde `handler`.
+// Sin demanda en el calendario (US-04.07, #312).
+const NO_DEMAND = { days: [], pendingRequests: 0, bookedDays: [] };
+
+// GET /reservas/disponibilidad (#204) lo responde `onAvailability` (por defecto, libre) y la demanda
+// del calendario sale vacía; el resto de peticiones, que son el POST /reservas, las responde
+// `handler`. Así la demanda no gasta las respuestas preparadas para el POST.
 function mockFetch(
   handler: Handler = () => Response.json(RENTAL, { status: 201 }),
   onAvailability: Handler = () => Response.json({ available: true }),
 ) {
-  return vi
-    .spyOn(globalThis, 'fetch')
-    .mockImplementation(async (input) =>
-      String(input).includes('/reservas/disponibilidad') ? onAvailability() : handler(),
-    );
+  return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+    const url = String(input);
+    if (url.includes('/reservas/disponibilidad')) return onAvailability();
+    if (url.includes('/demanda')) return Response.json(NO_DEMAND);
+    return handler();
+  });
 }
 
 // Las llamadas a la API sin las de la demanda del calendario (US-04.07, #312).
