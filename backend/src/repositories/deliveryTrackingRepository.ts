@@ -13,10 +13,23 @@ export function findReservationForTracking(reservationId: string) {
       status: true,
       renterId: true,
       deliveryMode: true,
-      item: { select: { ownerId: true } },
+      startDate: true,
+      endDate: true,
+      renter: { select: { id: true, username: true } },
+      item: {
+        select: {
+          id: true,
+          title: true,
+          ownerId: true,
+          address: true,
+          owner: { select: { id: true, username: true } },
+        },
+      },
       delivery: {
         select: {
           status: true,
+          slot: true,
+          pickupPoint: { select: { name: true, address: true } },
           riderId: true,
           deliveryCode: true,
           codeAttempts: true,
