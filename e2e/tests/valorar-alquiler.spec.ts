@@ -1,4 +1,4 @@
-// Generado con asistencia de IA – pendiente de revisión humana.
+// Generado con asistencia de IA (Claude) – revisado por Danyal Anwar, 18/11/2026
 /**
  * US-08.01 Valorar un alquiler (issue #74) · tests e2e de la tarea #297
  * Necesita el frontend y el backend en marcha y `npm run db:seed` ejecutado.
