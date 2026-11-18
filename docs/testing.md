@@ -327,6 +327,23 @@ Se usan bruno, ana y el «Cortacésped eléctrico» del seed (9 €/día, fianza
 
 C6 (rechazar libera el bloqueo): cubierto por `rechazar-solicitud.spec.ts`. C7 (fianza el día antes): **Pendiente de e2e**; depende de la fecha real y lo cubren los unitarios del backend.
 
+### US-01.4 Perfil público (#48) · S2-T40 (#336)
+
+Datos del seed (`backend/prisma/demoSeed.ts`): ana tiene bio y publica el taladro; su tienda de campaña está pausada. Nadie tiene foto ni valoraciones. Los casos que editan usan una cuenta nueva, así que no cambian la BD del seed. Sin S3 (en local y en el CI) no se pueden subir fotos: en CP-PER-09 el test simula el almacenamiento. El acceso desde las valoraciones se probará cuando existan (US-08.01 y US-08.02).
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-PER-01 | 1. Se llega al perfil desde la ficha del objeto | Seed cargado | 1. Ir a `/buscar?q=taladro` y abrir el taladro 2. En «Publicado por», pulsar «ana» 3. En «Objetos publicados», pulsar el taladro | En el paso 2 se va a `/usuarios/<id>` con el nombre, la bio, «Todavía sin valoraciones», «Miembro desde …» y el taladro, sin la tienda de campaña (pausada). En el 3 se abre la ficha del taladro | `perfil-publico.spec.ts` · criterio 1 |
+| CP-PER-02 | 2. Con otra cuenta no se puede editar | Sesión de bruno | 1. Abrir el perfil de ana desde la ficha del taladro | Se ve el perfil, pero no salen «Editar perfil», «Tu perfil · así lo ven los demás», «Publicar un objeto» ni `ana@rentit.test` | `perfil-publico.spec.ts` · criterio 2 (otra cuenta) |
+| CP-PER-03 | 2. Sin sesión el perfil se ve, pero no se edita | Sin sesión iniciada | 1. Abrir el perfil de ana desde la ficha del taladro | Lo mismo que en CP-PER-02 | `perfil-publico.spec.ts` · criterio 2 (sin sesión) |
+| CP-PER-04 | 2. La API solo deja editar el propio perfil | — | 1. `PATCH /api/usuarios/me` sin token 2. `PATCH /api/usuarios/<id de ana>` con el token de bruno | 1: `401`. 2: `404` (no hay ninguna ruta para editar a otra persona). La bio de ana no cambia | `perfil-publico.spec.ts` · criterio 2 (API) |
+| CP-PER-05 | 3. «Mi perfil» lleva al perfil propio; el correo solo lo ve su dueño | Sesión de ana | 1. Pulsar «Mi perfil» 2. Ir a `/perfil` | En el paso 1 se va a `/usuarios/<id>` con «Tu perfil · así lo ven los demás», «Editar perfil» y `ana@rentit.test` («solo lo ves tú»). En el 2 se llega al mismo perfil | `perfil-publico.spec.ts` · criterio 3 |
+| CP-PER-06 | Editar la bio | Cuenta nueva con sesión | 1. «Mi perfil» › «Editar perfil» 2. Escribir una bio 3. Pulsar «Guardar» 4. Recargar la página | El contador cambia (n/500). Se cierra la ventana, sale «Perfil actualizado.» y la bio nueva, que sigue ahí al recargar | `perfil-publico.spec.ts` · editar la bio |
+| CP-PER-07 | (Validación) Bio de más de 500 caracteres | Cuenta nueva con sesión | 1. «Editar perfil» 2. Escribir 501 caracteres 3. `PATCH /api/usuarios/me` con 501 caracteres | En el paso 2 el campo se queda en 500 (500/500); si se quita ese límite y se pulsa «Guardar», sale «El campo "bio" no es correcto, revísalo.» y no se envía. En el 3, `400` con ese mensaje y `field: "bio"` | `perfil-publico.spec.ts` · bio de más de 500 |
+| CP-PER-08 | (Validación) Foto que no es JPG, PNG o WebP, o de más de 5 MB | Cuenta nueva con sesión | 1. «Editar perfil» 2. Elegir un GIF 3. `POST /api/usuarios/me/foto/subida` con un `size` de 6 MB | En el paso 2 sale «Solo se pueden subir fotos JPG, PNG o WebP.» sin llamar a la API. En el 3, `400` «La foto no puede ocupar más de 5 MB.» | `perfil-publico.spec.ts` · foto no válida |
+| CP-PER-09 | Cambiar la foto y la bio | Cuenta nueva con sesión; almacenamiento simulado (sin S3) | 1. «Editar perfil» 2. Elegir un PNG y escribir una bio 3. Pulsar «Guardar» | Se cierra la ventana, sale «Perfil actualizado.» y el perfil muestra la bio nueva y la foto en lugar de la inicial | `perfil-publico.spec.ts` · foto y bio |
+| CP-PER-10 | (Error) El usuario no existe | — | 1. Ir a `/usuarios/00000000-0000-4000-8000-000000000000` y a `/usuarios/xyz` 2. Pulsar «Volver al inicio» | En el paso 1 sale «No hemos encontrado este usuario.». En el 2 se vuelve a `/` | `perfil-publico.spec.ts` · usuario que no existe |
+
 ## 5. Métricas de tests
 
 Petición del profesor en la demo del Sprint 1 (#272). Las dos métricas salen solas del CI y de GitHub; solo hace falta seguir las reglas de `AGENTS.md`.
