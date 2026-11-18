@@ -9,6 +9,7 @@ import { UserAvatar } from '../components/UserAvatar';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import { getPublicProfile, type PublicProfile } from '../services/userService';
+import { RIDER_JOBS_PATH, isApprovedRider, isRiderSession } from '../utils/rider';
 
 const dateFormatter = new Intl.DateTimeFormat('es-ES', { dateStyle: 'long' });
 const ratingFormatter = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 });
@@ -110,6 +111,9 @@ function PublicProfileView({ id }: { id: string }) {
   if (!profile) return <ProfileSkeleton />;
 
   const { rating } = profile;
+  // Tu perfil si eres rider (US-10.03): no alquilas ni publicas, así que en lugar de los objetos ves
+  // lo tuyo de rider. Generado con asistencia de IA (Claude).
+  const riderOwnProfile = profile.isOwnProfile && isRiderSession(session);
 
   return (
     <>
@@ -180,34 +184,54 @@ function PublicProfileView({ id }: { id: string }) {
         </div>
       </div>
 
-      <section className="public-profile-items" aria-labelledby="public-profile-items-title">
-        <div className="public-profile-section-header">
-          <h2 id="public-profile-items-title" className="public-profile-section-title">
-            Objetos publicados
-          </h2>
-          {profile.isOwnProfile && (
-            <Link to="/objetos/nuevo" className="button-primary public-profile-publish">
-              Publicar un objeto
-            </Link>
+      {riderOwnProfile ? (
+        <div className="card public-profile-rider">
+          {isApprovedRider(session) ? (
+            <>
+              <p>Elige las entregas que quieres hacer.</p>
+              <Link to={RIDER_JOBS_PATH} className="button-primary">
+                Ver trabajos
+              </Link>
+            </>
+          ) : (
+            <>
+              <p>Tu solicitud para ser rider aún no está aceptada.</p>
+              <Link to="/" className="button-secondary">
+                Ver el estado de tu solicitud
+              </Link>
+            </>
           )}
         </div>
-        {profile.items.length === 0 ? (
-          <div className="empty-state card">
-            <Icon name="inventory_2" />
-            <p>
-              {profile.isOwnProfile
-                ? 'Todavía no has publicado ningún objeto.'
-                : 'Todavía no tiene objetos publicados.'}
-            </p>
+      ) : (
+        <section className="public-profile-items" aria-labelledby="public-profile-items-title">
+          <div className="public-profile-section-header">
+            <h2 id="public-profile-items-title" className="public-profile-section-title">
+              Objetos publicados
+            </h2>
+            {profile.isOwnProfile && (
+              <Link to="/objetos/nuevo" className="button-primary public-profile-publish">
+                Publicar un objeto
+              </Link>
+            )}
           </div>
-        ) : (
-          <ul className="item-grid stagger">
-            {profile.items.map((item) => (
-              <ItemCard key={item.id} item={item} headingLevel="h3" />
-            ))}
-          </ul>
-        )}
-      </section>
+          {profile.items.length === 0 ? (
+            <div className="empty-state card">
+              <Icon name="inventory_2" />
+              <p>
+                {profile.isOwnProfile
+                  ? 'Todavía no has publicado ningún objeto.'
+                  : 'Todavía no tiene objetos publicados.'}
+              </p>
+            </div>
+          ) : (
+            <ul className="item-grid stagger">
+              {profile.items.map((item) => (
+                <ItemCard key={item.id} item={item} headingLevel="h3" />
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       {editing && (
         <EditProfileDialog
