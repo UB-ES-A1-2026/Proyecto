@@ -338,14 +338,15 @@ Se crean en la migración `crea_punto_recogida_y_entrega`, en la tarea de backen
 
 Todavía **no tiene** `estado`, `codigo_entrega` (US-05.02, #288) ni `rider_id` (US-10.01, #292): cada una de esas historias añade sus columnas con una migración nueva. El diagrama de arriba refleja solo lo creado hasta ahora. `sentido` (ida y vuelta) y `hora_programada` quedan sustituidos por `franja`.
 
-## Tabla `valoracion` (Sprint 2 · #295)
+## Tabla `valoracion` (Sprint 2 · #295 y #298)
 
 Se crea en la migración `crea_valoracion` (US-08.01). Una sola tabla para las dos valoraciones de un alquiler: el arrendatario valora el alquiler (`tipo = alquiler`, US-08.01) y el propietario valora al arrendatario (`tipo = usuario`, US-08.02).
 
 | Decisión | Por qué |
 |---|---|
 | Clave única `(reserva_id, autor_id)` | Cada persona valora un alquiler una sola vez. Lo impide la BD, así que también funciona con un doble clic. |
-| `valorado_id` es el propietario del objeto cuando valora el arrendatario | La valoración va siempre a una persona: así US-08.02 puede calcular la media de lo que ha recibido cada usuario. |
+| `valorado_id` es la otra parte: el propietario cuando valora el arrendatario, y el arrendatario cuando valora el propietario | La valoración va siempre a una persona: así se puede calcular la media de lo que ha recibido cada usuario. |
+| El `tipo` lo decide el backend por la sesión, no lo envía el frontend | Nadie puede valorar con un tipo que no le toca. |
 | `CHECK` en la BD: `puntuacion` entre 1 y 5 y `autor_id <> valorado_id` | El backend también lo valida, pero así la BD nunca guarda una puntuación imposible ni una valoración a uno mismo. |
 | Solo se valora un alquiler `finalizada` | Lo comprueba el backend (409): la BD no sabe en qué estado estaba la reserva al valorarla. |
 | `Restrict` con la reserva y los usuarios | Las valoraciones son historial, como las reservas. |
@@ -353,13 +354,17 @@ Se crea en la migración `crea_valoracion` (US-08.01). Una sola tabla para las d
 En Prisma, el modelo es `Rating` y el enum `RatingType` (`rental`, `user`).
 
 **API:**
-- `POST /api/reservas/:id/valoracion`, con sesión, y el cuerpo `{ "score": 1-5, "comment"?: "…" }`. Devuelve **201** con `{ id, reservationId, type, score, comment, createdAt }`. Errores:
+- `POST /api/reservas/:id/valoracion`, con sesión, y el cuerpo `{ "score": 1-5, "comment"?: "…" }`. Sirve para las dos partes: si quien valora es el arrendatario, se guarda con `type: "rental"`; si es el propietario, con `type: "user"`. Devuelve **201** con `{ id, reservationId, type, score, comment, createdAt }`. Errores:
   - **400** con `field: "score"` o `field: "comment"`;
   - **401** sin sesión;
-  - **403** si no eres el arrendatario;
+  - **403** si no has participado en el alquiler («Solo quien ha participado en este alquiler puede valorarlo.»);
   - **404** si el alquiler no existe;
   - **409** si no está finalizado o ya lo has valorado.
-- `GET /api/usuarios/me/reservas`: cada reserva lleva `myRating`, la valoración que ha escrito el usuario (`{ score, comment, createdAt }`) o `null`. Con `status: "finished"` y `myRating: null`, el frontend enseña «Valorar».
+- `GET /api/usuarios/me/reservas`: cada reserva lleva dos valoraciones, cada una `{ score, comment, createdAt }` o `null`:
+  - `myRating`: la que ha escrito el usuario. Con `status: "finished"` y `myRating: null`, el frontend enseña «Valorar».
+  - `receivedRating`: la que le ha puesto la otra parte.
+
+**Media de un usuario:** `getUserRating(userId)` de `ratingService` devuelve `{ average, count }` con todas las valoraciones que ha **recibido**, como propietario y como arrendatario. `average` va redondeada a un decimal, y es `null` si no tiene ninguna. La calcula la BD con `AVG` y `COUNT` sobre el índice de `valorado_id`. Es el campo `rating` del perfil público (US-01.4): al juntar las historias en `develop`, el `getRating` de `profileService` llamará a esta función.
 
 ## Qué tablas entran en cada sprint
 
