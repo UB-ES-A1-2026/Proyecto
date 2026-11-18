@@ -41,6 +41,7 @@ model User {
   items            Item[]
   reservations     Reservation[]
   riderApplication RiderApplication?
+  deliveries       Delivery[]        @relation("DeliveryRider")
 
   @@map("usuario")
 }
@@ -141,6 +142,18 @@ enum ReservationStatus {
   expired     @map("caducada")
 
   @@map("estado_reserva")
+}
+
+// Estado de la entrega (US-05.02, #288). Con rider: pending → assigned → picked_up → on_the_way →
+// delivered. Con domicilio o punto de recogida: pending → delivered («Ya tengo el objeto»).
+enum DeliveryStatus {
+  pending    @map("pendiente")
+  assigned   @map("asignada")
+  picked_up  @map("recogida")
+  on_the_way @map("en_camino")
+  delivered  @map("entregada")
+
+  @@map("estado_entrega")
 }
 
 enum DeliveryMode {
@@ -303,20 +316,35 @@ model PickupPoint {
 
 // Una entrega por reserva. tarifa > 0 cuando no es NULL: CHECK en la migración.
 model Delivery {
-  id                   String       @id @default(uuid()) @db.Uuid
-  reservationId        String       @unique @map("reserva_id") @db.Uuid
-  pickupPointId        String?      @map("punto_recogida_id") @db.Uuid
+  id                   String         @id @default(uuid()) @db.Uuid
+  reservationId        String         @unique @map("reserva_id") @db.Uuid
+  pickupPointId        String?        @map("punto_recogida_id") @db.Uuid
   // «HH:MM-HH:MM». NULL = «Lo antes posible»; solo tiene sentido con rider.
-  slot                 String?      @map("franja") @db.VarChar(11)
-  deliveryAddress      String?      @map("direccion_destino") @db.VarChar(200)
-  deliveryNeighborhood String?      @map("barrio_destino") @db.VarChar(100)
+  slot                 String?        @map("franja") @db.VarChar(11)
+  deliveryAddress      String?        @map("direccion_destino") @db.VarChar(200)
+  deliveryNeighborhood String?        @map("barrio_destino") @db.VarChar(100)
   // Tarifa del rider, calculada por el servidor. El importe del alquiler sigue en reserva.precio_total.
-  fee                  Decimal?     @map("tarifa") @db.Decimal(10, 2)
-  createdAt            DateTime     @default(now()) @map("creada_en")
+  fee                  Decimal?       @map("tarifa") @db.Decimal(10, 2)
+  // Seguimiento (US-05.02, #288). Cada estado guarda su fecha y hora; no se puede saltar ni volver atrás.
+  status               DeliveryStatus @default(pending) @map("estado")
+  // Quién reparte: lo rellena US-10.01 (#292) al aceptar el trabajo. null sin rider.
+  riderId              String?        @map("rider_id") @db.Uuid
+  // 6 cifras de un solo uso, solo con rider. Solo lo ve el arrendatario. Se bloquea tras 5 intentos.
+  deliveryCode         String?        @map("codigo_entrega") @db.Char(6)
+  codeAttempts         Int            @default(0) @map("intentos_codigo") @db.SmallInt
+  assignedAt           DateTime?      @map("asignada_en")
+  pickedUpAt           DateTime?      @map("recogida_en")
+  onTheWayAt           DateTime?      @map("en_camino_en")
+  deliveredAt          DateTime?      @map("entregada_en")
+  // «He devuelto el objeto»: la reserva pasa a «Finalizada».
+  returnedAt           DateTime?      @map("devuelta_en")
+  createdAt            DateTime       @default(now()) @map("creada_en")
   // Restrict: las reservas son historial y no se borran; un punto de recogida en uso tampoco.
-  reservation          Reservation  @relation(fields: [reservationId], references: [id], onDelete: Restrict)
-  pickupPoint          PickupPoint? @relation(fields: [pickupPointId], references: [id], onDelete: Restrict)
+  reservation          Reservation    @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  pickupPoint          PickupPoint?   @relation(fields: [pickupPointId], references: [id], onDelete: Restrict)
+  rider                User?          @relation("DeliveryRider", fields: [riderId], references: [id], onDelete: Restrict)
 
   @@index([pickupPointId])
+  @@index([riderId])
   @@map("entrega")
 }
