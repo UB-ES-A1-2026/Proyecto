@@ -323,3 +323,112 @@ describe('POST /api/entregas/:id/estado', () => {
     expect(response.status).toBe(401);
   });
 });
+
+// Lleva la entrega hasta «En camino», el paso anterior a «Entregada».
+async function onTheWay(id: string, riderToken: string) {
+  await advance(id, { status: 'picked_up' }, riderToken);
+  await advance(id, { status: 'on_the_way' }, riderToken);
+}
+
+function deliver(id: string, code: unknown, token: string) {
+  return advance(id, { status: 'delivered', code }, token);
+}
+
+describe('POST /api/entregas/:id/estado con el código de entrega', () => {
+  it('with the right code marks it delivered and the reservation in progress', async () => {
+    const { reservation, riderToken } = await setUp();
+    await onTheWay(reservation.id, riderToken);
+
+    const response = await deliver(reservation.id, CODE, riderToken);
+
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe('delivered');
+    expect(response.body.reservationStatus).toBe('in_progress');
+    expect(response.body.steps[3]).toEqual({
+      status: 'delivered',
+      at: expect.any(String),
+    });
+  });
+
+  it('with a wrong code returns 400, counts the attempt and changes nothing', async () => {
+    const { reservation, riderToken } = await setUp();
+    await onTheWay(reservation.id, riderToken);
+
+    const response = await deliver(reservation.id, '111111', riderToken);
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      error: 'El código no es correcto. Te quedan 4 intentos.',
+      field: 'code',
+    });
+    const delivery = await prisma.delivery.findUniqueOrThrow({
+      where: { reservationId: reservation.id },
+    });
+    expect(delivery.status).toBe('on_the_way');
+    expect(delivery.codeAttempts).toBe(1);
+  });
+
+  it('locks the code after 5 wrong attempts, even if the 6th is right', async () => {
+    const { reservation, riderToken } = await setUp();
+    await onTheWay(reservation.id, riderToken);
+
+    const wrong = [];
+    for (let i = 0; i < 5; i += 1) {
+      wrong.push(await deliver(reservation.id, '111111', riderToken));
+    }
+    const right = await deliver(reservation.id, CODE, riderToken);
+
+    expect(wrong[3]?.body.error).toBe(
+      'El código no es correcto. Te queda 1 intento.',
+    );
+    expect(wrong[4]?.body.error).toBe(
+      'El código se ha bloqueado tras 5 intentos fallidos.',
+    );
+    expect(right.status).toBe(409);
+    expect(right.body.field).toBe('code');
+  });
+
+  it.each([undefined, '12345', '1234567', 'abcdef', 123456])(
+    'returns 400 without counting an attempt when the code is %j',
+    async (code) => {
+      const { reservation, riderToken } = await setUp();
+      await onTheWay(reservation.id, riderToken);
+
+      const response = await deliver(reservation.id, code, riderToken);
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        error: 'El código de entrega tiene 6 cifras.',
+        field: 'code',
+      });
+      const delivery = await prisma.delivery.findUniqueOrThrow({
+        where: { reservationId: reservation.id },
+      });
+      expect(delivery.codeAttempts).toBe(0);
+    },
+  );
+
+  it('returns 409 when marking it delivered before «En camino»', async () => {
+    const { reservation, riderToken } = await setUp();
+
+    const response = await deliver(reservation.id, CODE, riderToken);
+
+    expect(response.status).toBe(409);
+  });
+
+  it('only delivers once on a double click', async () => {
+    const { reservation, riderToken } = await setUp();
+    await onTheWay(reservation.id, riderToken);
+
+    const responses = await Promise.all([
+      deliver(reservation.id, CODE, riderToken),
+      deliver(reservation.id, CODE, riderToken),
+    ]);
+
+    expect(responses.map(({ status }) => status).sort()).toEqual([200, 409]);
+    const saved = await prisma.reservation.findUniqueOrThrow({
+      where: { id: reservation.id },
+    });
+    expect(saved.status).toBe('in_progress');
+  });
+});

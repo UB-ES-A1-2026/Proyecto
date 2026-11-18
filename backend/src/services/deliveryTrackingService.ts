@@ -8,8 +8,11 @@ import type {
 import { AppError } from '../errors/appError.js';
 import {
   findReservationForTracking,
+  markDelivered,
   moveDelivery,
+  recordFailedCodeAttempt,
 } from '../repositories/deliveryTrackingRepository.js';
+import { MAX_CODE_ATTEMPTS } from './deliveryCode.js';
 
 export const NOT_FOUND_MESSAGE = 'No hemos encontrado esta entrega.';
 export const NOT_PARTICIPANT_MESSAGE =
@@ -20,6 +23,14 @@ export const NOT_PAID_MESSAGE =
   'La entrega empieza cuando la reserva está pagada.';
 export const NOT_NEXT_STEP_MESSAGE =
   'La entrega no puede pasar a ese estado: los estados van en orden.';
+export const CODE_LOCKED_MESSAGE = `El código se ha bloqueado tras ${MAX_CODE_ATTEMPTS} intentos fallidos.`;
+
+// «El código no es correcto. Te quedan 3 intentos.»
+export function wrongCodeMessage(attemptsLeft: number): string {
+  if (attemptsLeft === 0) return CODE_LOCKED_MESSAGE;
+  const attempts = attemptsLeft === 1 ? 'intento' : 'intentos';
+  return `El código no es correcto. Te queda${attemptsLeft === 1 ? '' : 'n'} ${attemptsLeft} ${attempts}.`;
+}
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -123,13 +134,14 @@ const NEXT_RIDER_STEP: Partial<Record<DeliveryStatus, DeliveryStatus>> = {
 };
 
 // POST /api/entregas/:id/estado: el rider pasa la entrega al estado que indica, que tiene que ser
-// el siguiente. «delivered» necesita el código (se añade en el paso siguiente).
+// el siguiente. Para «delivered» introduce el código que le enseña el arrendatario.
 export async function advanceDelivery(
   userId: string,
   reservationId: string,
-  status: 'picked_up' | 'on_the_way',
+  input: { status: 'picked_up' | 'on_the_way' | 'delivered'; code?: string },
   now = new Date(),
 ): Promise<DeliveryTracking> {
+  const { status } = input;
   const loaded = await loadTracking(userId, reservationId);
   const { reservation, delivery, mode, viewer } = loaded;
 
@@ -142,8 +154,28 @@ export async function advanceDelivery(
   if (NEXT_RIDER_STEP[delivery.status] !== status) {
     throw new AppError(409, NOT_NEXT_STEP_MESSAGE);
   }
+
+  let changed: boolean;
+  if (status === 'delivered') {
+    if (delivery.codeAttempts >= MAX_CODE_ATTEMPTS) {
+      throw new AppError(409, CODE_LOCKED_MESSAGE, 'code');
+    }
+    if (input.code !== delivery.deliveryCode) {
+      const counted = await recordFailedCodeAttempt(
+        reservationId,
+        MAX_CODE_ATTEMPTS,
+      );
+      if (!counted) throw new AppError(409, CODE_LOCKED_MESSAGE, 'code');
+      const attemptsLeft = MAX_CODE_ATTEMPTS - delivery.codeAttempts - 1;
+      throw new AppError(400, wrongCodeMessage(attemptsLeft), 'code');
+    }
+    changed = await markDelivered(reservationId, delivery.status, now);
+  } else {
+    changed = await moveDelivery(reservationId, delivery.status, status, now);
+  }
+
   // Si otra petición se ha adelantado, la entrega ya no está en el estado que hemos leído.
-  if (!(await moveDelivery(reservationId, delivery.status, status, now))) {
+  if (!changed) {
     throw new AppError(409, NOT_NEXT_STEP_MESSAGE);
   }
 

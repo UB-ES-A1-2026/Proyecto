@@ -52,3 +52,47 @@ export async function moveDelivery(
   });
   return count === 1;
 }
+
+// Suma un intento fallido de código, solo mientras queden intentos: así nunca pasa del máximo,
+// ni con dos peticiones a la vez. Devuelve false si ya estaba bloqueado.
+export async function recordFailedCodeAttempt(
+  reservationId: string,
+  maxAttempts: number,
+): Promise<boolean> {
+  const { count } = await prisma.delivery.updateMany({
+    where: { reservationId, codeAttempts: { lt: maxAttempts } },
+    data: { codeAttempts: { increment: 1 } },
+  });
+  return count === 1;
+}
+
+class DeliveryConflict extends Error {}
+
+// Con el código correcto: la entrega pasa a «Entregada» y la reserva a «En curso», las dos en la
+// misma transacción. Devuelve false, sin cambiar nada, si otra petición se ha adelantado.
+export async function markDelivered(
+  reservationId: string,
+  from: DeliveryStatus,
+  at: Date,
+): Promise<boolean> {
+  try {
+    return await prisma.$transaction(async (transaction) => {
+      const delivery = await transaction.delivery.updateMany({
+        where: { reservationId, status: from },
+        data: { status: 'delivered', deliveredAt: at },
+      });
+      const reservation = await transaction.reservation.updateMany({
+        where: { id: reservationId, status: 'paid' },
+        data: { status: 'in_progress' },
+      });
+      if (delivery.count !== 1 || reservation.count !== 1) {
+        // Deshace lo que se haya cambiado dentro de la transacción.
+        throw new DeliveryConflict();
+      }
+      return true;
+    });
+  } catch (error) {
+    if (error instanceof DeliveryConflict) return false;
+    throw error;
+  }
+}
