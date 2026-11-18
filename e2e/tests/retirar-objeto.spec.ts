@@ -5,8 +5,10 @@ import { test, expect, type APIRequestContext, type Browser, type Page } from '@
  * US-02.03 Retirar un objeto (issue #52) · tests e2e de la tarea #172
  * Un test por criterio de aceptación (casos CP-RET-01..05 de docs/testing.md §4).
  * Necesita el frontend y el backend en marcha y `npm run db:seed` ejecutado. Retirar no se puede
- * deshacer, así que solo se retira la «Máquina de palomitas» de bruno, que no usa ningún otro
- * e2e. El seed la vuelve a dejar publicada.
+ * deshacer, así que solo se retira la «Máquina de palomitas» de bruno. El seed la vuelve a dejar
+ * publicada. Ojo: valorar-alquiler.spec.ts (US-08.01) valora el alquiler finalizado de ana con este
+ * mismo objeto. Funciona porque retirar no esconde los alquileres ya finalizados; si eso cambia,
+ * usad otro objeto en uno de los dos.
  */
 const API_URL = process.env.API_URL ?? 'http://localhost:3000/api';
 const PASSWORD = 'Rentit2026';
