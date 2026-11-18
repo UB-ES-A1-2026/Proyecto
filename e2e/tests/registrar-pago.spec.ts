@@ -1,7 +1,7 @@
 /**
  * US-07.01 Registrar un pago (issue #72) · tests e2e de la tarea #287
+ * Generado con asistencia de IA (Claude) – revisado por Danyal Anwar, 18/11/2026
  */
-// Generado con asistencia de IA (Claude) – revisado por Danyal Anwar, 18/11/2026
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test';
 
 const API_URL = process.env.API_URL ?? 'http://localhost:3000/api';
