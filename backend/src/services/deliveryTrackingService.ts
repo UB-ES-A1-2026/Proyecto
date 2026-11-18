@@ -6,11 +6,20 @@ import type {
   ReservationStatus,
 } from '@prisma/client';
 import { AppError } from '../errors/appError.js';
-import { findReservationForTracking } from '../repositories/deliveryTrackingRepository.js';
+import {
+  findReservationForTracking,
+  moveDelivery,
+} from '../repositories/deliveryTrackingRepository.js';
 
 export const NOT_FOUND_MESSAGE = 'No hemos encontrado esta entrega.';
 export const NOT_PARTICIPANT_MESSAGE =
   'Solo las personas de esta reserva y su rider pueden ver la entrega.';
+export const NOT_RIDER_MESSAGE =
+  'Solo el rider de esta entrega puede cambiar su estado.';
+export const NOT_PAID_MESSAGE =
+  'La entrega empieza cuando la reserva está pagada.';
+export const NOT_NEXT_STEP_MESSAGE =
+  'La entrega no puede pasar a ese estado: los estados van en orden.';
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -104,4 +113,39 @@ export async function getDeliveryTracking(
   reservationId: string,
 ): Promise<DeliveryTracking> {
   return toTracking(await loadTracking(userId, reservationId));
+}
+
+// El estado siguiente de cada uno con rider (#67): no se puede saltar ni volver atrás.
+const NEXT_RIDER_STEP: Partial<Record<DeliveryStatus, DeliveryStatus>> = {
+  assigned: 'picked_up',
+  picked_up: 'on_the_way',
+  on_the_way: 'delivered',
+};
+
+// POST /api/entregas/:id/estado: el rider pasa la entrega al estado que indica, que tiene que ser
+// el siguiente. «delivered» necesita el código (se añade en el paso siguiente).
+export async function advanceDelivery(
+  userId: string,
+  reservationId: string,
+  status: 'picked_up' | 'on_the_way',
+  now = new Date(),
+): Promise<DeliveryTracking> {
+  const loaded = await loadTracking(userId, reservationId);
+  const { reservation, delivery, mode, viewer } = loaded;
+
+  if (mode !== 'rider' || viewer !== 'rider') {
+    throw new AppError(403, NOT_RIDER_MESSAGE);
+  }
+  if (reservation.status !== 'paid') {
+    throw new AppError(409, NOT_PAID_MESSAGE);
+  }
+  if (NEXT_RIDER_STEP[delivery.status] !== status) {
+    throw new AppError(409, NOT_NEXT_STEP_MESSAGE);
+  }
+  // Si otra petición se ha adelantado, la entrega ya no está en el estado que hemos leído.
+  if (!(await moveDelivery(reservationId, delivery.status, status, now))) {
+    throw new AppError(409, NOT_NEXT_STEP_MESSAGE);
+  }
+
+  return getDeliveryTracking(userId, reservationId);
 }
