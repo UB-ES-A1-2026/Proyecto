@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DeliveryTracking } from '../src/services/deliveryTrackingService';
 import { renderRoute } from './renderRoute';
-import { pickupTracking, sseResponse, tracking } from './trackingFixtures';
+import { apiTracking, pickupTracking, sseResponse, tracking } from './trackingFixtures';
 
 const SESSION = {
   token: 'token-de-prueba',
@@ -29,20 +29,27 @@ function mockApi({
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     const url = String(input);
     if (url.endsWith('/eventos/stream')) return stream();
-    if (init?.method === 'PATCH' && patch) return patch();
-    if (init?.method === 'POST' && post) return post();
+    // Las acciones de la API de T13 (#288): el rider con «/estado», el arrendatario con «/recibida»
+    // (las dos cambian la entrega) y «/devuelta».
+    if (init?.method === 'POST' && /\/(estado|recibida)$/.test(url) && patch) return patch();
+    if (init?.method === 'POST' && url.endsWith('/devuelta') && post) return post();
     return get();
   });
 }
 
-function calls(fetchMock: ReturnType<typeof mockApi>, method: string) {
-  return fetchMock.mock.calls.filter(
-    ([url, init]) => !String(url).endsWith('/eventos/stream') && (init?.method ?? 'GET') === method,
-  );
+// GET: las lecturas del seguimiento. CAMBIO: «/estado» y «/recibida». DEVUELTA: «/devuelta».
+function calls(fetchMock: ReturnType<typeof mockApi>, kind: 'GET' | 'CAMBIO' | 'DEVUELTA') {
+  return fetchMock.mock.calls.filter(([url, init]) => {
+    const path = String(url);
+    if (path.endsWith('/eventos/stream')) return false;
+    if (kind === 'GET') return (init?.method ?? 'GET') === 'GET';
+    if (kind === 'CAMBIO') return /\/(estado|recibida)$/.test(path);
+    return path.endsWith('/devuelta');
+  });
 }
 
 function json(data: DeliveryTracking) {
-  return () => Response.json(data);
+  return () => Response.json(apiTracking(data));
 }
 
 beforeEach(() => localStorage.setItem('rentit.session', JSON.stringify(SESSION)));
@@ -103,8 +110,8 @@ describe('Seguimiento de la entrega (US-05.02, #67)', () => {
     await user.click(await screen.findByRole('button', { name: 'Marcar como Recogida' }));
 
     expect(await screen.findByRole('button', { name: 'Marcar como En camino' })).toBeVisible();
-    const [[url, init]] = calls(fetchMock, 'PATCH');
-    expect(url).toBe('http://localhost:3000/api/reservas/r1/entrega');
+    const [[url, init]] = calls(fetchMock, 'CAMBIO');
+    expect(url).toBe('http://localhost:3000/api/entregas/r1/estado');
     expect(JSON.parse(String(init?.body))).toEqual({ status: 'picked_up' });
     // El rider llega desde sus trabajos, no desde «Mis solicitudes».
     expect(
@@ -128,11 +135,13 @@ describe('Seguimiento de la entrega (US-05.02, #67)', () => {
               },
               { status: 400 },
             )
-          : Response.json({
-              ...riderTracking,
-              deliveryStatus: 'delivered',
-              reservationStatus: 'in_progress',
-            });
+          : Response.json(
+              apiTracking({
+                ...riderTracking,
+                deliveryStatus: 'delivered',
+                reservationStatus: 'in_progress',
+              }),
+            );
       },
     });
 
@@ -145,7 +154,7 @@ describe('Seguimiento de la entrega (US-05.02, #67)', () => {
       'Escribe las 6 cifras del código de entrega.',
     );
     expect(input).toHaveAttribute('aria-invalid', 'true');
-    expect(calls(fetchMock, 'PATCH')).toHaveLength(0);
+    expect(calls(fetchMock, 'CAMBIO')).toHaveLength(0);
 
     await user.type(input, '111 111');
     await user.click(button);
@@ -160,7 +169,7 @@ describe('Seguimiento de la entrega (US-05.02, #67)', () => {
     await waitFor(() =>
       expect(screen.queryByRole('button', { name: /Marcar como/ })).not.toBeInTheDocument(),
     );
-    expect(JSON.parse(String(calls(fetchMock, 'PATCH')[1][1]?.body))).toEqual({
+    expect(JSON.parse(String(calls(fetchMock, 'CAMBIO')[1][1]?.body))).toEqual({
       status: 'delivered',
       code: '482193',
     });
@@ -192,7 +201,7 @@ describe('Seguimiento de la entrega (US-05.02, #67)', () => {
     expect(within(dialog).getByText('¿Ya tienes el objeto? No se puede deshacer')).toBeVisible();
     await user.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(calls(fetchMock, 'PATCH')).toHaveLength(0);
+    expect(calls(fetchMock, 'CAMBIO')).toHaveLength(0);
 
     await user.click(screen.getByRole('button', { name: 'Ya tengo el objeto' }));
     dialog = screen.getByRole('dialog', { name: 'Ya tengo el objeto' });
@@ -203,9 +212,9 @@ describe('Seguimiento de la entrega (US-05.02, #67)', () => {
 
     expect(await screen.findByRole('button', { name: 'He devuelto el objeto' })).toBeVisible();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(JSON.parse(String(calls(fetchMock, 'PATCH')[0][1]?.body))).toEqual({
-      status: 'delivered',
-    });
+    const [[url, init]] = calls(fetchMock, 'CAMBIO');
+    expect(url).toBe('http://localhost:3000/api/entregas/r1/recibida');
+    expect(init?.body).toBeUndefined();
     expect(screen.queryByText(/Recógela en/)).not.toBeInTheDocument();
   });
 
@@ -238,8 +247,8 @@ describe('Seguimiento de la entrega (US-05.02, #67)', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Sí, lo he devuelto' }));
 
     expect(await screen.findByText('Alquiler finalizado.')).toBeVisible();
-    const [[url]] = calls(fetchMock, 'POST');
-    expect(url).toBe('http://localhost:3000/api/reservas/r1/devolucion');
+    const [[url]] = calls(fetchMock, 'DEVUELTA');
+    expect(url).toBe('http://localhost:3000/api/entregas/r1/devuelta');
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
     expect(screen.queryByText(/Valorar/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Actualizado al momento/)).not.toBeInTheDocument();
@@ -249,7 +258,7 @@ describe('Seguimiento de la entrega (US-05.02, #67)', () => {
     const user = userEvent.setup();
     let current = pickupTracking();
     const fetchMock = mockApi({
-      get: () => Response.json(current),
+      get: () => Response.json(apiTracking(current)),
       patch: () => {
         current = pickupTracking({ deliveryStatus: 'delivered', reservationStatus: 'in_progress' });
         return Response.json(
@@ -315,7 +324,7 @@ describe('Seguimiento de la entrega (US-05.02, #67)', () => {
     const stream = sseResponse();
     let current = tracking();
     const fetchMock = mockApi({
-      get: () => Response.json(current),
+      get: () => Response.json(apiTracking(current)),
       stream: () => stream.response,
     });
 
