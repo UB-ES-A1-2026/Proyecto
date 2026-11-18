@@ -596,7 +596,9 @@
   min-width: 0;
 }
 
-.publish-option input {
+/* [type] gana a `.form-field input` (width: 100%) de styles.css, que va después: sin él, las casillas
+   dentro de un .form-field (cuestionario de «Hazte rider») ocupan toda la tarjeta y tapan el texto. */
+.publish-option input[type] {
   flex-shrink: 0;
   width: 1.125rem;
   height: 1.125rem;
