@@ -24,6 +24,10 @@ export const NOT_PAID_MESSAGE =
 export const NOT_NEXT_STEP_MESSAGE =
   'La entrega no puede pasar a ese estado: los estados van en orden.';
 export const CODE_LOCKED_MESSAGE = `El código se ha bloqueado tras ${MAX_CODE_ATTEMPTS} intentos fallidos.`;
+export const NOT_RENTER_MESSAGE =
+  'Solo el arrendatario puede marcar este paso.';
+export const RIDER_DELIVERY_MESSAGE =
+  'Con rider, la entrega la marca el rider con tu código.';
 
 // «El código no es correcto. Te quedan 3 intentos.»
 export function wrongCodeMessage(attemptsLeft: number): string {
@@ -176,6 +180,37 @@ export async function advanceDelivery(
 
   // Si otra petición se ha adelantado, la entrega ya no está en el estado que hemos leído.
   if (!changed) {
+    throw new AppError(409, NOT_NEXT_STEP_MESSAGE);
+  }
+
+  return getDeliveryTracking(userId, reservationId);
+}
+
+// POST /api/entregas/:id/recibida: «Ya tengo el objeto». Con domicilio o punto de recogida, el
+// arrendatario marca la entrega y la reserva pasa a «En curso» (#67).
+export async function confirmReceived(
+  userId: string,
+  reservationId: string,
+  now = new Date(),
+): Promise<DeliveryTracking> {
+  const { reservation, delivery, mode, viewer } = await loadTracking(
+    userId,
+    reservationId,
+  );
+
+  if (viewer !== 'renter') {
+    throw new AppError(403, NOT_RENTER_MESSAGE);
+  }
+  if (mode === 'rider') {
+    throw new AppError(409, RIDER_DELIVERY_MESSAGE);
+  }
+  if (reservation.status !== 'paid') {
+    throw new AppError(409, NOT_PAID_MESSAGE);
+  }
+  if (
+    delivery.status !== 'pending' ||
+    !(await markDelivered(reservationId, 'pending', now))
+  ) {
     throw new AppError(409, NOT_NEXT_STEP_MESSAGE);
   }
 

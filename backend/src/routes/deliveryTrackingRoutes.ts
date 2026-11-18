@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   advanceDelivery,
   getDeliveryTracking,
+  confirmReceived,
 } from '../controllers/deliveryTrackingController.js';
 import { requireAuth } from '../middlewares/requireAuth.js';
 
@@ -13,4 +14,9 @@ deliveryTrackingRoutes.post(
   '/entregas/:id/estado',
   requireAuth,
   advanceDelivery,
+);
+deliveryTrackingRoutes.post(
+  '/entregas/:id/recibida',
+  requireAuth,
+  confirmReceived,
 );
