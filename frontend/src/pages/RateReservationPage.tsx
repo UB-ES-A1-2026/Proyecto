@@ -156,12 +156,8 @@ export function RateReservationPage() {
 
     setSubmitting(true);
     try {
-      await rateReservation(
-        token,
-        reservation.id,
-        { score, comment: comment.trim() },
-        rater === 'owner' ? 'user' : 'rental',
-      );
+      // Quién valora a quién lo decide el backend por la sesión (#298): no se manda el tipo.
+      await rateReservation(token, reservation.id, { score, comment: comment.trim() });
       navigate('/mis-solicitudes', { state: { notice: RATING_DONE } });
     } catch (requestError: unknown) {
       // Síncrono: las estrellas tienen que estar activas otra vez para poder recibir el foco.
