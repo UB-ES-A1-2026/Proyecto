@@ -4,6 +4,7 @@ import {
   createItem,
   findCategoryById,
 } from '../repositories/itemRepository.js';
+import { assertNotRiderAccount } from './riderService.js';
 import { toItemDetail, type ItemDetail } from './itemDetail.js';
 
 // Mensaje del criterio 5 de US-02.01: «El campo "X" no es correcto, revísalo.»
@@ -30,6 +31,10 @@ export async function publishItem(
   ownerId: string,
   input: PublishItemInput,
 ): Promise<ItemDetail> {
+  // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+  // Las cuentas de rider no publican objetos (US-10.03).
+  await assertNotRiderAccount(ownerId);
+
   if (!(await findCategoryById(input.categoryId))) {
     throw new AppError(400, invalidFieldMessage('categoría'), 'categoryId');
   }

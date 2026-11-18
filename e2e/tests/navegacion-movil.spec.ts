@@ -28,6 +28,7 @@ test.describe('Navegación en el móvil', () => {
     await page.goto('/');
 
     const nav = mainNav(page);
+    // «Hazte rider» está en Crear cuenta, no en la barra (US-10.03, #355).
     await expect(nav.getByRole('link')).toHaveText(['Inicio', 'Iniciar sesión', 'Crear cuenta']);
     await expect(page.getByRole('button', { name: 'Abrir menú' })).toHaveCount(0);
 
