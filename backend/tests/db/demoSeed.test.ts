@@ -249,13 +249,21 @@ describe('solicitudes de la demo', () => {
     );
   });
 
-  it('la reserva pagada tiene la entrega pendiente y repetir el seed reinicia el seguimiento', async () => {
+  it('hay una reserva pagada de cada modo, con la entrega pendiente, y repetir el seed reinicia el seguimiento', async () => {
     const userIds = await seedWithReservations();
-    const paid = await prisma.reservation.findFirstOrThrow({
+    const paidReservations = await prisma.reservation.findMany({
       where: { status: 'paid' },
       include: { delivery: true },
     });
-    expect(paid.deliveryMode).toBe('pickup_point');
+    expect(
+      paidReservations.map(({ deliveryMode }) => deliveryMode).sort(),
+    ).toEqual(['home', 'pickup_point', 'rider']);
+    for (const reservation of paidReservations) {
+      expect(reservation.delivery?.status).toBe('pending');
+    }
+    const paid = paidReservations.find(
+      ({ deliveryMode }) => deliveryMode === 'pickup_point',
+    )!;
     expect(paid.delivery?.status).toBe('pending');
     // ana la recibe y la devuelve al probar la demo…
     await prisma.reservation.update({
