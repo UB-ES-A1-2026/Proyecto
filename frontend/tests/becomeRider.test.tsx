@@ -34,14 +34,17 @@ async function fillValid(user: ReturnType<typeof userEvent.setup>) {
 
 afterEach(() => localStorage.clear());
 
-describe('«Hazte rider» en la cabecera (US-10.03)', () => {
-  it('sin sesión aparece y lleva a /hazte-rider', () => {
-    renderRoute('/');
+// «Hazte rider» está en Crear cuenta y no en la cabecera (#355). Generado con asistencia de IA (Claude).
+describe('«Hazte rider» en Crear cuenta (US-10.03)', () => {
+  it('sin sesión está debajo de Crear cuenta, no en la cabecera, y lleva a /hazte-rider', () => {
+    renderRoute('/registro');
 
-    expect(mainNav().getByRole('link', { name: 'Hazte rider' })).toHaveAttribute(
+    expect(screen.getByText('¿Quieres repartir?')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Hazte rider' })).toHaveAttribute(
       'href',
       '/hazte-rider',
     );
+    expect(mainNav().queryByRole('link', { name: 'Hazte rider' })).not.toBeInTheDocument();
   });
 
   it('con una sesión normal no aparece, y /hazte-rider vuelve al inicio', () => {

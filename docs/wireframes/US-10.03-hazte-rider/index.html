@@ -14,47 +14,54 @@
       </p>
       <p class="wf-meta">
         Issue #304 · Tarea T35 (#315) · Contrato del backend: #322 y #325 (<code>POST /api/riders</code>) · Wireframe de
-        baja fidelidad · Generado con asistencia de IA (Claude) – validado por Marc el 13/11/2026
+        baja fidelidad · Generado con asistencia de IA (Claude) – validado por Marc el 13/11/2026; entrada desde Crear cuenta validada por Kai el 18/11/2026
       </p>
     </header>
 
     <section class="wf-pantalla" data-captura="1-entrada">
-      <h2><span class="wf-paso">1</span>Punto de entrada: cualquier página sin sesión <code>/</code></h2>
+      <h2><span class="wf-paso">1</span>Punto de entrada: Crear cuenta, sin sesión <code>/registro</code></h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/">
+        <div class="wf-escritorio" data-url="rentit.app/registro">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces"
-              ><span class="wf-enlace">Hazte rider</span><span class="wf-marca">1</span><span class="wf-enlace">Iniciar sesión</span
-              ><span class="wf-enlace">Crear cuenta</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span
+              ><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span
+              ><span class="wf-icono-ayuda" title="Ayuda">?</span></span
             >
           </nav>
           <div class="wf-contenido">
-            <h3 class="wf-h1">Lo que necesitas, a la vuelta de la esquina</h3>
-            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
-            <div class="wf-campo">
-              <label>¿Qué quieres alquilar?</label>
-              <div class="wf-input">Por ejemplo, taladro <span class="wf-boton">Buscar</span></div>
+            <div class="wf-centrado wf-tarjeta">
+              <h3 class="wf-h1">Crear cuenta</h3>
+              <p class="wf-texto">Únete a tu barrio y alquila sin complicaciones.</p>
+              <div class="wf-campo"><label>Nombre de usuario</label><div class="wf-input"></div></div>
+              <div class="wf-campo"><label>Correo electrónico</label><div class="wf-input"></div></div>
+              <div class="wf-campo"><label>Contraseña</label><div class="wf-input"></div></div>
+              <span class="wf-boton wf-ancho">Crear cuenta</span>
+              <p class="wf-ayuda">¿Ya tienes cuenta? <span class="wf-enlace">Inicia sesión</span></p>
+              <p class="wf-ayuda">¿Quieres repartir? <span class="wf-enlace">Hazte rider</span> <span class="wf-marca">1</span></p>
             </div>
-            <div class="wf-caja">Explora por categoría · Novedades · Cómo funciona</div>
           </div>
         </div>
         <div class="wf-movil">
           <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
           <div class="wf-contenido">
-            <h3 class="wf-h1">Lo que necesitas, a la vuelta de la esquina</h3>
-            <p class="wf-texto">Alquila objetos a tus vecinos.</p>
-            <div class="wf-campo"><div class="wf-input">Por ejemplo, taladro</div></div>
+            <div class="wf-tarjeta">
+              <h3 class="wf-h1">Crear cuenta</h3>
+              <div class="wf-campo"><label>Nombre de usuario</label><div class="wf-input"></div></div>
+              <div class="wf-campo"><label>Correo electrónico</label><div class="wf-input"></div></div>
+              <div class="wf-campo"><label>Contraseña</label><div class="wf-input"></div></div>
+              <span class="wf-boton wf-ancho">Crear cuenta</span>
+              <p class="wf-ayuda">¿Ya tienes cuenta? <span class="wf-enlace">Inicia sesión</span></p>
+              <p class="wf-ayuda">¿Quieres repartir? <span class="wf-enlace">Hazte rider</span></p>
+            </div>
           </div>
-          <div class="wf-barra-inferior">
-            <span>Inicio</span><span>Iniciar sesión</span><span>Crear cuenta</span><span>Hazte rider</span>
-          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Iniciar sesión</span><span>Crear cuenta</span></div>
         </div>
       </div>
       <ol class="wf-notas">
         <li>
-          «Hazte rider» está en la cabecera de todas las páginas mientras no hay sesión (criterio 1). En el móvil va en la
-          barra inferior. Lleva a <code>/hazte-rider</code>. Con sesión no se ve (decisión 4).
+          «Hazte rider» está en Crear cuenta, debajo de «¿Ya tienes cuenta?», y lleva a <code>/hazte-rider</code>. Ya no
+          está en la cabecera ni en la barra inferior del móvil (decisión 7). Con sesión no se ve (decisión 4).
         </li>
       </ol>
     </section>
@@ -68,7 +75,7 @@
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces"
-              ><span class="wf-enlace">Hazte rider</span><span class="wf-enlace">Iniciar sesión</span
+              ><span class="wf-enlace">Iniciar sesión</span
               ><span class="wf-enlace">Crear cuenta</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span
             >
           </nav>
@@ -170,7 +177,7 @@
             <span class="wf-boton wf-ancho">Enviar solicitud</span>
           </div>
           <div class="wf-barra-inferior">
-            <span>Inicio</span><span>Iniciar sesión</span><span>Crear cuenta</span><span>Hazte rider</span>
+            <span>Inicio</span><span>Iniciar sesión</span><span>Crear cuenta</span>
           </div>
         </div>
       </div>
@@ -208,7 +215,7 @@
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces"
-              ><span class="wf-enlace">Hazte rider</span><span class="wf-enlace">Iniciar sesión</span
+              ><span class="wf-enlace">Iniciar sesión</span
               ><span class="wf-enlace">Crear cuenta</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span
             >
           </nav>
@@ -279,7 +286,7 @@
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces"
-              ><span class="wf-enlace">Hazte rider</span><span class="wf-enlace">Iniciar sesión</span
+              ><span class="wf-enlace">Iniciar sesión</span
               ><span class="wf-enlace">Crear cuenta</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span
             >
           </nav>
@@ -367,7 +374,7 @@
               <div class="wf-chips"><span class="wf-chip">Solicitud rechazada</span></div>
               <p class="wf-texto">Hola, pau.rider. Un admin ha rechazado tu solicitud para ser rider.</p>
               <p class="wf-aviso">Motivo: la zona indicada está fuera de la ciudad. <span class="wf-marca">1</span></p>
-              <p class="wf-texto"><strong>Qué puedes hacer:</strong> revisa el motivo. Si cambian tus datos, más adelante puedes volver a solicitarlo con otra cuenta desde «Hazte rider». <span class="wf-marca">2</span></p>
+              <p class="wf-texto"><strong>Qué puedes hacer:</strong> revisa el motivo. Si cambian tus datos, más adelante puedes volver a solicitarlo con otra cuenta desde «Hazte rider», en Crear cuenta. <span class="wf-marca">2</span></p>
               <span class="wf-boton wf-secundario">Cerrar sesión</span>
             </div>
           </div>
@@ -437,6 +444,10 @@
         <li>Con una sesión normal no se ve «Hazte rider».</li>
         <li>Un rider solo ve el estado de su solicitud y «Trabajos», con «Mi perfil».</li>
         <li>Pendiente de Max (T34): que el login y <code>/api/usuarios/me</code> devuelvan <code>rejectionReason</code>.</li>
+        <li>
+          Cambio de Kai al revisar (18/11/2026): «Hazte rider» sale solo en Crear cuenta, debajo de «¿Ya tienes cuenta?»,
+          y no en la cabecera ni en la barra inferior del móvil.
+        </li>
       </ol>
     </section>
   </body>

@@ -73,10 +73,12 @@ test.describe('US-10.03 Hazte rider', () => {
     await page.goto('/');
   });
 
-  // Criterio 1a
-  test('sin sesión, la cabecera permite abrir Hazte rider', async ({ page }) => {
+  // Criterio 1a: se entra desde Crear cuenta, no desde la cabecera (#355)
+  test('sin sesión, Crear cuenta permite abrir Hazte rider', async ({ page }) => {
     const navigation = page.getByRole('navigation', { name: 'Principal' });
-    await navigation.getByRole('link', { name: 'Hazte rider' }).click();
+    await expect(navigation.getByRole('link', { name: 'Hazte rider' })).toHaveCount(0);
+    await navigation.getByRole('link', { name: 'Crear cuenta' }).click();
+    await page.getByRole('main').getByRole('link', { name: 'Hazte rider' }).click();
 
     await expect(page).toHaveURL('/hazte-rider');
     await expect(page.getByRole('heading', { name: 'Hazte rider', exact: true })).toBeVisible();

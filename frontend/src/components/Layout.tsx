@@ -4,8 +4,8 @@ import { RIDER_JOBS_PATH, isApprovedRider, isRiderSession } from '../utils/rider
 import { Icon } from './Icon';
 
 // Layout base (#21): cabecera con la navegación entre login, registro, perfil y ayuda.
-// Cabecera de rider y «Hazte rider» (US-10.03, T35 #315): generado con asistencia de IA (Claude) –
-// revisado por Marc Sanz, 13/11/2026.
+// Cabecera de rider (US-10.03, T35 #315): generado con asistencia de IA (Claude) – revisado por
+// Marc Sanz, 13/11/2026. «Hazte rider» está en Crear cuenta, no en la cabecera (#355).
 export function Layout() {
   const { session } = useAuth();
   const rider = isRiderSession(session);
@@ -69,11 +69,6 @@ export function Layout() {
                 <NavLink to="/registro" className="nav-link">
                   <Icon name="person_add" />
                   Crear cuenta
-                </NavLink>
-                {/* US-10.03: la cuenta de rider es aparte, así que solo se ofrece sin sesión. */}
-                <NavLink to="/hazte-rider" className="nav-link">
-                  <Icon name="pedal_bike" />
-                  Hazte rider
                 </NavLink>
               </>
             )}

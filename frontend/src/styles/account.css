@@ -69,6 +69,13 @@
   border-top: var(--border-width) solid var(--color-divider);
 }
 
+/* Segunda línea (Crear cuenta: «¿Quieres repartir?», #355): sin otra raya encima. */
+.auth-switch + .auth-switch {
+  margin-top: var(--space-sm);
+  padding-top: 0;
+  border-top: 0;
+}
+
 .auth-switch a {
   font-weight: var(--font-weight-medium);
 }
@@ -596,7 +603,9 @@
   min-width: 0;
 }
 
-.publish-option input {
+/* [type] gana a `.form-field input` (width: 100%) de styles.css, que va después: sin él, las casillas
+   dentro de un .form-field (cuestionario de «Hazte rider») ocupan toda la tarjeta y tapan el texto. */
+.publish-option input[type] {
   flex-shrink: 0;
   width: 1.125rem;
   height: 1.125rem;
@@ -664,6 +673,13 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
   gap: var(--space-sm);
+}
+
+.rider-option-hours {
+  display: block;
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 .rider-terms {
