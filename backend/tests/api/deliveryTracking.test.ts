@@ -432,3 +432,76 @@ describe('POST /api/entregas/:id/estado con el código de entrega', () => {
     expect(saved.status).toBe('in_progress');
   });
 });
+
+function received(id: string, token?: string) {
+  const call = request(app).post(`/api/entregas/${id}/recibida`);
+  return token ? call.set('Authorization', `Bearer ${token}`) : call;
+}
+
+describe('POST /api/entregas/:id/recibida («Ya tengo el objeto»)', () => {
+  it.each(['home', 'pickup_point'] as const)(
+    'with %s delivery the renter marks it delivered and the reservation is in progress',
+    async (mode) => {
+      const { reservation, renterToken } = await setUp(mode);
+
+      const response = await received(reservation.id, renterToken);
+
+      expect(response.status).toBe(200);
+      expect(response.body.status).toBe('delivered');
+      expect(response.body.reservationStatus).toBe('in_progress');
+      expect(response.body.steps).toEqual([
+        { status: 'pending', at: null },
+        { status: 'delivered', at: expect.any(String) },
+      ]);
+    },
+  );
+
+  it('returns 403 when the owner tries to mark it', async () => {
+    const { reservation, ownerToken } = await setUp('home');
+
+    const response = await received(reservation.id, ownerToken);
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({
+      error: 'Solo el arrendatario puede marcar este paso.',
+    });
+  });
+
+  it('returns 409 with rider: the rider marks it with the code', async () => {
+    const { reservation, renterToken } = await setUp('rider');
+
+    const response = await received(reservation.id, renterToken);
+
+    expect(response.status).toBe(409);
+    expect(response.body).toEqual({
+      error: 'Con rider, la entrega la marca el rider con tu código.',
+    });
+  });
+
+  it('returns 409 while the reservation is not paid', async () => {
+    const { reservation, renterToken } = await setUp('home');
+    await prisma.reservation.update({
+      where: { id: reservation.id },
+      data: { status: 'accepted' },
+    });
+
+    expect((await received(reservation.id, renterToken)).status).toBe(409);
+  });
+
+  it('only changes once on a double click', async () => {
+    const { reservation, renterToken } = await setUp('home');
+
+    const responses = await Promise.all([
+      received(reservation.id, renterToken),
+      received(reservation.id, renterToken),
+    ]);
+
+    expect(responses.map(({ status }) => status).sort()).toEqual([200, 409]);
+  });
+
+  it('returns 401 without a session', async () => {
+    const { reservation } = await setUp('home');
+
+    expect((await received(reservation.id)).status).toBe(401);
+  });
+});
