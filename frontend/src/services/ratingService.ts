@@ -22,19 +22,16 @@ export type PublishedRating = {
   createdAt: string;
 };
 
-// Valorar un alquiler finalizado. El arrendatario valora el alquiler (US-08.01, #296) y el
-// propietario valora al inquilino (US-08.02, #299), que manda `type: "user"` (#339). Errores: 400
-// (field "score" o "comment"), 403, 404 y 409 (no finalizado o ya valorado).
+// Valorar un alquiler finalizado (US-08.01, #296). Quién valora a quién lo decide el backend por
+// la sesión. Errores: 400 (field "score" o "comment"), 403, 404 y 409 (no finalizado o ya valorado).
 export function rateReservation(
   token: string,
   reservationId: string,
   rating: NewRating,
-  type: RatingType = 'rental',
 ): Promise<PublishedRating> {
   return apiRequest<PublishedRating>(`/reservas/${encodeURIComponent(reservationId)}/valoracion`, {
     method: 'POST',
     token,
-    // La del alquiler se manda como en US-08.01, sin `type`: el backend la deduce por la sesión.
-    body: type === 'user' ? { ...rating, type } : rating,
+    body: rating,
   });
 }

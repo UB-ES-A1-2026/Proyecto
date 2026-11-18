@@ -399,7 +399,7 @@ describe('Formulario «Valorar» (US-08.01, #296)', () => {
 });
 
 // US-08.02 Valorar un usuario, frontend (#299): el propietario valora al inquilino desde «Recibidas».
-// Criterios de la historia (#75). Contrato de #339: el mismo endpoint, con `type: "user"`.
+// Criterios de la historia (#75). Contrato de #298: el mismo endpoint; el tipo lo pone el backend.
 describe('Valorar al inquilino (US-08.02, #299)', () => {
   const OWNER_SESSION = {
     ...SESSION,
@@ -532,7 +532,7 @@ describe('Valorar al inquilino (US-08.02, #299)', () => {
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false);
   });
 
-  it('publica con `type: "user"` y vuelve a Mis solicitudes con su valoración (criterio 6)', async () => {
+  it('publica sin mandar el tipo y vuelve a Mis solicitudes con su valoración (criterio 6)', async () => {
     logInAsOwner();
     const fetchMock = mockApi({
       'GET /usuarios/me/reservas': [
@@ -568,7 +568,6 @@ describe('Valorar al inquilino (US-08.02, #299)', () => {
     expect(JSON.parse(String(post?.[1]?.body))).toEqual({
       score: 5,
       comment: 'Lo devolvió limpio y a tiempo.',
-      type: 'user',
     });
 
     await user.click(await screen.findByRole('button', { name: /Taladro percutor Bosch/ }));
