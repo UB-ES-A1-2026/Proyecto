@@ -304,6 +304,8 @@ test.describe('US-10.03 Hazte rider', () => {
       itemId,
       startDate: start.toISOString().slice(0, 10),
       endDate: end.toISOString().slice(0, 10),
+      // Solicitar = pagar (US-07.01): la tarjeta de prueba que se acepta.
+      confirmationTokenId: 'ctoken_simulado',
     };
     const objectBody = {
       title: `Rider e2e ${Date.now()} ${Math.floor(Math.random() * 1_000_000)}`,
