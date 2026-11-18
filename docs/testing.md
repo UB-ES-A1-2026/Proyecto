@@ -327,6 +327,25 @@ Se usan bruno, ana y el «Cortacésped eléctrico» del seed (9 €/día, fianza
 
 C6 (rechazar libera el bloqueo): cubierto por `rechazar-solicitud.spec.ts`. C7 (fianza el día antes): **Pendiente de e2e**; depende de la fecha real y lo cubren los unitarios del backend.
 
+### US-05.01 Elegir modo y hora de entrega (#66) · S2-T8 (#283)
+
+Antes de cada ejecución, vuelve a ejecutar `npm run db:seed` en `backend/`: los e2e de aceptar y rechazar solicitudes cambian la BD. Las solicitudes nuevas de esta suite usan fechas aleatorias de 3 a 4 años en el futuro y solo se crean para el «Cortacésped eléctrico» y la «Silla de coche para bebé». El «Carro de la compra plegable» solo se usa para consultar sus modos y comprobar el rechazo de la API; no se confirma ninguna solicitud para ese objeto.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-ENT-01 | 1. Publicar sin modos | Sesión de ana | 1. Rellenar el anuncio 2. No marcar ningún modo 3. Pulsar «Publicar» | Sale «Elige al menos un modo de entrega.» y no se envía ningún `POST` | `modo-entrega.spec.ts` · criterio 1 |
+| CP-ENT-02 | 1. Recogida en casa requiere dirección | Sesión de ana | 1. Rellenar el anuncio 2. Marcar solo «Recoger en casa del propietario» 3. Dejar la dirección vacía 4. Publicar | Sale `El campo "dirección" no es correcto, revísalo.` | `modo-entrega.spec.ts` · criterio 1 |
+| CP-ENT-03 | 1. Solo punto de recogida | Sesión de ana | 1. Publicar un anuncio único con solo «Punto de recogida» 2. Consultarlo en la API | No aparece el campo «Dirección», se muestra «Solo punto de recogida: no hace falta tu dirección.» y la API devuelve `homeDelivery: false`, `riderDelivery: false`, `pickupPointDelivery: true` | `modo-entrega.spec.ts` · criterio 1 |
+| CP-ENT-04 | 1. Editar requiere mantener algún modo | Sesión de ana | 1. Crear un anuncio de punto de recogida 2. Editarlo 3. Desmarcar el modo 4. Guardar | Sale «Elige al menos un modo de entrega.» | `modo-entrega.spec.ts` · criterio 1 |
+| CP-ENT-05 | 2. Solo se ofrecen los modos del objeto | Sesión de bruno; «Cortacésped eléctrico» y «Carro de la compra plegable» de ana | 1. Abrir la entrega de cada objeto, sin confirmar solicitudes | El Cortacésped ofrece solo recogida en casa; el Carro solo ofrece punto de recogida | `modo-entrega.spec.ts` · criterio 2 |
+| CP-ENT-06 | Validar que se elija un modo | Sesión de bruno; Cortacésped | 1. Elegir fechas 2. Pulsar «Continuar» sin elegir un modo | Sale «Elige un modo de entrega.» | `modo-entrega.spec.ts` · validación |
+| CP-ENT-07 | 2. La API valida el modo ofrecido | Sesión de bruno | 1. `POST /api/reservas` con `home` para el Carro 2. Repetir para el Cortacésped | El Carro responde `400` y «Este objeto no ofrece ese modo de entrega.»; el Cortacésped responde `201` | `modo-entrega.spec.ts` · criterio 2 |
+| CP-ENT-08 | 3. Rider, hora, dirección, barrio y coste | Sesión de bruno; Silla | 1. Elegir rider y continuar sin completar los campos 2. Elegir «Lo antes posible», dirección y Gràcia 3. Continuar y confirmar | Se ven los tres errores; hay «Lo antes posible» y franjas de dos horas; la tarifa es `3`, `5` o `7 €`, el total suma alquiler y entrega y la tarjeta muestra hora, coste y desglose | `modo-entrega.spec.ts` · criterio 3 |
+| CP-ENT-09 | 4. La dirección del propietario depende del estado | Sesión de bruno | 1. Solicitar el Cortacésped con fechas únicas 2. Abrir la solicitud pendiente 3. Abrir la Escalera aceptada del seed 4. Consultar el objeto del Cortacésped por API | La pendiente solo muestra el aviso de dirección; la aceptada muestra la dirección de ana; la API del Cortacésped no expone la dirección | `modo-entrega.spec.ts` · criterio 4 |
+| CP-ENT-10 | 5. Elegir punto de recogida | Sesión de bruno; Silla | 1. Elegir «Punto de recogida» 2. Continuar sin elegir punto 3. Elegir uno y confirmar | Se muestran varios puntos; sin elección sale «Elige un punto de recogida.»; el seleccionado aparece en el resumen y en la tarjeta | `modo-entrega.spec.ts` · criterio 5 |
+| CP-ENT-11 | 6. El propietario ve la solicitud rider sin la dirección de entrega | Sesión de ana; Taladro del seed | 1. Abrir la solicitud recibida | Se ven «Entrega por rider», la hora, el coste y el barrio Poblenou; no se ve la dirección de entrega | `modo-entrega.spec.ts` · criterio 6 |
+| — | Lo ve el rider (US-10.01) | Sesión del rider | Pendiente de la historia US-10.01 | **Pendiente** | Fuera del alcance de US-05.01 |
+
 ## 5. Métricas de tests
 
 Petición del profesor en la demo del Sprint 1 (#272). Las dos métricas salen solas del CI y de GitHub; solo hace falta seguir las reglas de `AGENTS.md`.
