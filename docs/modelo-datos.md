@@ -136,6 +136,15 @@ erDiagram
     texto direccion_destino "solo rider"
     texto barrio_destino "solo rider"
     decimal tarifa "solo rider"
+    enum estado "pendiente | asignada | recogida | en_camino | entregada"
+    id rider_id FK "null sin rider"
+    texto codigo_entrega "6 cifras, solo rider"
+    entero intentos_codigo "0 a 5"
+    fecha_hora asignada_en
+    fecha_hora recogida_en
+    fecha_hora en_camino_en
+    fecha_hora entregada_en
+    fecha_hora devuelta_en
     fecha_hora creada_en
   }
   FOTO_ESTADO {
@@ -336,7 +345,52 @@ Se crean en la migración `crea_punto_recogida_y_entrega`, en la tarea de backen
 | `reserva.precio_total` **sigue siendo solo el alquiler** | La tarifa vive en `entrega.tarifa`; el pago (US-07.01) suma las dos cosas. |
 | La entrega y el punto de recogida **no se pueden borrar** si hay reservas | `ON DELETE RESTRICT`: las reservas son historial. |
 
-Todavía **no tiene** `estado`, `codigo_entrega` (US-05.02, #288) ni `rider_id` (US-10.01, #292): cada una de esas historias añade sus columnas con una migración nueva. El diagrama de arriba refleja solo lo creado hasta ahora. `sentido` (ida y vuelta) y `hora_programada` quedan sustituidos por `franja`.
+`estado`, `rider_id`, `codigo_entrega`, `intentos_codigo` y la hora de cada paso los añade US-05.02 (#288) con la migración `seguimiento_entrega` (ver la sección siguiente). `rider_id` iba a ser de US-10.01 (#292), pero lo crea US-05.02 porque lo necesita para los permisos; US-10.01 solo lo rellena al aceptar el trabajo. `sentido` (ida y vuelta) y `hora_programada` quedan sustituidos por `franja`.
+
+## Seguimiento de la entrega (Sprint 2 · US-05.02 · #288)
+
+Columnas nuevas de `entrega`, en la migración `seguimiento_entrega`. Es solo una máquina de estados, sin mapa (#67).
+
+**Estados y quién hace cada paso:**
+
+| Modo | Pasos | Quién |
+|---|---|---|
+| Rider | `pendiente` → `asignada` | US-10.01: el rider acepta el trabajo y se guarda en `rider_id`. |
+| Rider | `asignada` → `recogida` → `en_camino` | El rider de la entrega, en orden. |
+| Rider | `en_camino` → `entregada` | El rider, con el código de 6 cifras que le enseña el arrendatario. |
+| Domicilio o punto de recogida | `pendiente` → `entregada` | El arrendatario, con «Ya tengo el objeto». |
+
+Al llegar a `entregada`, la reserva pasa de `pagada` a `en_curso` en la misma transacción. Con «He devuelto el objeto», el arrendatario la pasa de `en_curso` a `finalizada` y se guarda `devuelta_en`: a partir de ahí, las dos personas pueden valorarla (US-08.01 y US-08.02).
+
+| Decisión | Por qué |
+|---|---|
+| Una columna con la hora de cada paso, no una tabla de historial | Los estados son pocos y fijos, y no se puede volver atrás: el seguimiento sale en una sola consulta. |
+| El seguimiento empieza con la reserva `pagada` | Lo dice la historia: «despliega una reserva pagada y pulsa "Ver entrega"». |
+| Cada paso cambia solo si la entrega sigue en el estado anterior (`updateMany` con el estado de partida) | No se puede saltar ni volver atrás un estado, ni con un doble clic ni con dos peticiones a la vez. |
+| `codigo_entrega`: 6 cifras con `node:crypto`, al crear una entrega con rider | No se puede adivinar. Solo lo ve el arrendatario, y deja de salir al entregarse (es de un solo uso). |
+| `intentos_codigo`: como mucho 5 | Con 6 cifras hay un millón de códigos: sin límite, se podrían probar todos. Al quinto fallo, el código queda bloqueado. |
+| `CHECK` en la BD | El código son 6 cifras; los intentos, de 0 a 5; `entregada` siempre tiene `entregada_en` (y al revés); y `devuelta_en` solo con la entrega `entregada`. |
+| `rider_id` con `ON DELETE RESTRICT` | Las entregas son historial, como las reservas. |
+
+En Prisma, los campos nuevos son `status` (enum `DeliveryStatus`: `pending`, `assigned`, `picked_up`, `on_the_way`, `delivered`), `riderId`, `deliveryCode`, `codeAttempts`, `assignedAt`, `pickedUpAt`, `onTheWayAt`, `deliveredAt` y `returnedAt`.
+
+**API** (`:id` es el de la reserva, como en US-10.01). Todas con sesión:
+- `GET /api/entregas/:id`: `{ reservationId, reservationStatus, mode, status, steps, returnedAt, rider, deliveryCode }`. `steps` son los pasos del modo en orden, cada uno con su hora (`at`) o `null`. `deliveryCode` solo sale al arrendatario, con rider y antes de entregarse.
+- `POST /api/entregas/:id/estado`, el rider: `{ "status": "picked_up" | "on_the_way" | "delivered", "code"?: "123456" }`. El estado tiene que ser exactamente el siguiente; `delivered` necesita el código.
+- `POST /api/entregas/:id/recibida`, el arrendatario: «Ya tengo el objeto» (domicilio o punto de recogida).
+- `POST /api/entregas/:id/devuelta`, el arrendatario: «He devuelto el objeto».
+
+Las cuatro devuelven el seguimiento actualizado. Errores:
+- **400**: estado desconocido (`field: "status"`); código que no son 6 cifras (`field: "code"`, no cuenta como intento); código incorrecto (`field: "code"`, cuenta y dice cuántos intentos quedan).
+- **401**: sin sesión.
+- **403**: no es de la reserva ni su rider, o la acción no le toca (por ejemplo, el arrendatario no avanza los pasos del rider).
+- **404**: la reserva no existe o no tiene entrega (las anteriores a US-05.01).
+- **409**: no es el paso siguiente, la reserva no está pagada, «He devuelto» sin estar en curso, «Ya tengo el objeto» con rider, o el código bloqueado.
+
+**Pendiente al juntar con el resto de US-05.02:**
+- Avisar a las dos personas y al rider de cada cambio con el canal en tiempo real de T14 (`publish`, en `feature/US-05.02-seguimiento-entrega`).
+- Hasta entonces, el frontend puede consultar el seguimiento cada pocos segundos: la historia admite «en menos de 10 s».
+- Preparar en el seed una entrega con rider cuando existan el rider de demo (US-10.03) y la asignación de trabajos (US-10.01).
 
 ## Tabla `valoracion` (Sprint 2 · #295)
 
