@@ -85,7 +85,12 @@ test.describe('US-04.02 Consultar mis solicitudes', () => {
     );
     await expect(detail.getByText(/^Fecha: \d{1,2} de \w+ de \d{4}$/)).toBeVisible();
     // 12 €/día × 1 día
-    await expect(detail.getByText(/^Importe total: 12,00\s€$/)).toBeVisible();
+    await expect(
+      detail.getByText(
+        /^Alquiler: 12,00\s€ · Entrega: \d+,\d{2}\s€ · Total: \d+,\d{2}\s€$/,
+      ),
+    ).toBeVisible();
+    await expect(detail.getByText(/^Entrega por rider · .+$/)).toBeVisible();
     await expect(detail.getByText('Estado: Pendiente')).toBeVisible();
     await expect(detail.getByText('Propietario: bruno')).toBeVisible();
   });
