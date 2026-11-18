@@ -675,6 +675,13 @@
   gap: var(--space-sm);
 }
 
+.rider-option-hours {
+  display: block;
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
 .rider-terms {
   margin-bottom: var(--space-lg);
 }

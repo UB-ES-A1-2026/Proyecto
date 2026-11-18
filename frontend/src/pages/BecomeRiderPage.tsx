@@ -396,7 +396,10 @@ export function BecomeRiderPage() {
                     checked={values.slots.includes(option.value)}
                     onChange={() => update('slots', toggle(values.slots, option.value))}
                   />
-                  <span className="publish-option-text">{option.label}</span>
+                  {/* El horario, debajo y entero (#355): el nombre accesible sigue siendo «Tarde (14 – 20 h)». */}
+                  <span className="publish-option-text">
+                    {option.label} <span className="rider-option-hours">({option.hours})</span>
+                  </span>
                 </label>
               ))}
             </div>

@@ -26,10 +26,11 @@ export const RIDER_WEEKDAYS: readonly { value: RiderWeekday; label: string }[] =
   { value: 'sunday', label: 'Domingo' },
 ];
 
-export const RIDER_SLOTS: readonly { value: RiderSlot; label: string }[] = [
-  { value: 'morning', label: 'Mañana (9 – 14 h)' },
-  { value: 'afternoon', label: 'Tarde (14 – 20 h)' },
-  { value: 'night', label: 'Noche (20 – 23 h)' },
+// El horario va aparte para enseñarlo en su propia línea (#355). Generado con asistencia de IA (Claude).
+export const RIDER_SLOTS: readonly { value: RiderSlot; label: string; hours: string }[] = [
+  { value: 'morning', label: 'Mañana', hours: '9 – 14 h' },
+  { value: 'afternoon', label: 'Tarde', hours: '14 – 20 h' },
+  { value: 'night', label: 'Noche', hours: '20 – 23 h' },
 ];
 
 export type RiderApplicationInput = {
