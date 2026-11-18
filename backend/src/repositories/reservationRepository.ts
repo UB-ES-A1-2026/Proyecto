@@ -92,6 +92,8 @@ export interface ReservationDeliveryData {
   deliveryAddress?: string;
   deliveryNeighborhood?: string;
   fee?: string;
+  // Solo con rider (US-05.02, #288).
+  deliveryCode?: string;
 }
 
 export type InsertReservationResult =
