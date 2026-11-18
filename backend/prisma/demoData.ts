@@ -317,6 +317,31 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
     days: 2,
     status: 'finished',
   },
+  // Pagada con entrega en el domicilio del dueño (US-05.02, #288): el arrendatario marca «Ya tengo
+  // el objeto» y después «He devuelto el objeto».
+  {
+    item: { owner: 2, title: 'Cortacésped eléctrico' },
+    renter: 1,
+    delivery: { mode: 'home' },
+    startInDays: 3,
+    days: 2,
+    status: 'paid',
+  },
+  // Pagada con rider (US-05.02, #288). El rider de la demo (dani, US-10.03) se le asigna cuando esa
+  // historia esté en develop.
+  {
+    item: { owner: 2, title: 'Hidrolimpiadora Kärcher' },
+    renter: 1,
+    delivery: {
+      mode: 'rider',
+      slot: '09:00-11:00',
+      address: 'Carrer de Pallars, 120, 3º 1ª',
+      neighborhood: 'Poblenou',
+    },
+    startInDays: 2,
+    days: 2,
+    status: 'paid',
+  },
 ];
 
 // Demanda de fechas en el calendario (US-04.07, #311). Seis vecinos tienen solicitudes pendientes
