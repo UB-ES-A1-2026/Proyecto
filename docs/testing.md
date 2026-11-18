@@ -313,6 +313,20 @@ Datos del seed (`DEMO_DEMAND_REQUESTS` en `backend/prisma/demoData.ts`): la bici
 | CP-RID-11 | 5. La API bloquea solicitudes y publicaciones para riders | Seed cargado; token de carla, dani y bruno | 1. Buscar el cortacésped y una categoría 2. Crear la misma reserva válida con bruno 3. Enviar reserva y objeto con los tokens de carla y dani | La reserva de bruno responde `201`; los POST de riders responden `403` y `{ "error": "Las cuentas de rider no pueden solicitar ni publicar objetos." }` | `hazte-rider.spec.ts` · criterio 5b |
 | CP-RID-12 | 4. Una cuenta rider rechazada no ve trabajos y ve el motivo | Rider rechazado con motivo | 1. Iniciar sesión con esa cuenta | No ve «Trabajos»; ve el motivo del rechazo | **Pendiente**: no hay rider rechazado en el seed ni API del admin; cubierto por los unitarios de `riderAccount.test.tsx` |
 
+### US-07.01 Registrar un pago (#72) · S2-T12 (#287)
+
+Se usan bruno, ana y el «Cortacésped eléctrico» del seed (9 €/día, fianza de 60 €); las fechas de cada solicitud son aleatorias, a 3–4 años, para poder repetir los tests.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-PAG-01 | 2 y 3. Resumen y condiciones del pago | Sesión de bruno | 1. Abrir «Confirmar y pagar» para 3 días | El resumen muestra el objeto, fechas, 27,00 €, fianza retenida de 60 € y total de 87,00 €. Se explica el bloqueo, la aceptación de ana y las tarjetas de prueba | `registrar-pago.spec.ts` · criterios 2 y 3 |
+| CP-PAG-02 | 5. Tarjeta rechazada | Sesión de bruno | 1. Pagar un día con `4000 0000 0000 0002` | Sale «Tu tarjeta ha sido rechazada.», la página conserva las fechas, el botón vuelve a estar activo y no se crea una solicitud | `registrar-pago.spec.ts` · criterio 5 |
+| CP-PAG-03 | 5. Validación de tarjeta | Sesión de bruno | 1. Enviar `1234 5678 9012 3456`, `01/20` y CVC `12` | Los tres campos quedan inválidos; no se envía `POST /api/reservas` ni se crea solicitud | `registrar-pago.spec.ts` · validación |
+| CP-PAG-04 | 1 y 4. Pago aceptado y reserva pagada al aceptar | Sesión de bruno | 1. Pagar con `4242 4242 4242 4242` 2. Aceptar con el token de ana | Se muestra «Solicitud enviada. Hemos bloqueado el importe hasta que ana responda.». El número de tarjeta no llega a la API; la reserva pasa de `pending` a `paid` | `registrar-pago.spec.ts` · criterios 1 y 4 |
+| CP-PAG-05 | 8. No se puede aceptar dos veces | Sesión de bruno | 1. Pagar con `4242 4242 4242 4242` 2. Ana acepta dos veces | La primera respuesta es `200`; la segunda, `409` con `{"error":"Esta solicitud ya no está pendiente."}`. La reserva sigue `paid` | `registrar-pago.spec.ts` · criterio 8 |
+
+C6 (rechazar libera el bloqueo): cubierto por `rechazar-solicitud.spec.ts`. C7 (fianza el día antes): **Pendiente de e2e**; depende de la fecha real y lo cubren los unitarios del backend.
+
 ## 5. Métricas de tests
 
 Petición del profesor en la demo del Sprint 1 (#272). Las dos métricas salen solas del CI y de GitHub; solo hace falta seguir las reglas de `AGENTS.md`.
