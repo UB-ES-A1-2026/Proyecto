@@ -47,3 +47,15 @@ export async function insertRating(data: {
     throw error;
   }
 }
+// Media y número de las valoraciones que ha recibido un usuario (US-08.02, #298): como
+// propietario (las de tipo alquiler) y como arrendatario (las de tipo usuario). La media es
+// null si no tiene ninguna.
+export async function findRatingStats(ratedUserId: string) {
+  const { _avg, _count } = await prisma.rating.aggregate({
+    where: { ratedUserId },
+    _avg: { score: true },
+    _count: { _all: true },
+  });
+
+  return { average: _avg.score, count: _count._all };
+}
