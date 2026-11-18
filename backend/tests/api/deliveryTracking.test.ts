@@ -36,7 +36,13 @@ async function setUp(mode: DeliveryMode = 'rider') {
     username: 'rita',
     email: 'rita@rentit.test',
   });
-  const item = await createTestItem(owner.id);
+  const item = await createTestItem(owner.id, {
+    homeDelivery: true,
+    riderDelivery: true,
+    pickupPointDelivery: true,
+  });
+  // Los puntos de recogida los crea la migración.
+  const point = await prisma.pickupPoint.findFirstOrThrow();
   const reservation = await createTestReservation(item.id, renter.id, {
     status: 'paid',
   });
@@ -53,13 +59,19 @@ async function setUp(mode: DeliveryMode = 'rider') {
               status: 'assigned',
               assignedAt: new Date(),
             }
-          : {},
+          : mode === 'pickup_point'
+            ? { pickupPointId: point.id }
+            : {},
       },
     },
   });
 
   return {
     reservation,
+    owner,
+    renter,
+    item,
+    point,
     rider,
     renterToken: await loginAs('bruno@rentit.test'),
     ownerToken: await loginAs('ana@rentit.test'),
@@ -74,13 +86,22 @@ function track(id: string, token?: string) {
 
 describe('GET /api/entregas/:id', () => {
   it('shows the renter the rider steps in order and the delivery code', async () => {
-    const { reservation, rider, renterToken } = await setUp();
+    const { reservation, rider, owner, renter, item, renterToken } =
+      await setUp();
 
     const response = await track(reservation.id, renterToken);
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
       reservationId: reservation.id,
+      role: 'renter',
+      item: { id: item.id, title: item.title },
+      startDate: '2026-12-01',
+      endDate: '2026-12-03',
+      slot: 'asap',
+      renter: { id: renter.id, username: 'bruno' },
+      owner: { id: owner.id, username: 'ana' },
+      pickupAddress: null,
       reservationStatus: 'paid',
       mode: 'rider',
       status: 'assigned',
@@ -106,6 +127,26 @@ describe('GET /api/entregas/:id', () => {
     expect(asOwner.body.deliveryCode).toBeNull();
     expect(asRider.status).toBe(200);
     expect(asRider.body.deliveryCode).toBeNull();
+  });
+
+  it('tells the renter where to pick the object up, and nobody else', async () => {
+    const home = await setUp('home');
+    const asRenter = await track(home.reservation.id, home.renterToken);
+    const asOwner = await track(home.reservation.id, home.ownerToken);
+
+    expect(asRenter.body.role).toBe('renter');
+    expect(asRenter.body.pickupAddress).toBe('Carrer de Prova, 1');
+    expect(asOwner.body.role).toBe('owner');
+    expect(asOwner.body.pickupAddress).toBeNull();
+  });
+
+  it('with a pickup point, the address is the point name and address', async () => {
+    const { reservation, point, renterToken } = await setUp('pickup_point');
+
+    const response = await track(reservation.id, renterToken);
+
+    expect(response.body.pickupAddress).toBe(`${point.name}, ${point.address}`);
+    expect(response.body.slot).toBeNull();
   });
 
   it('hides the code once the object has been delivered', async () => {

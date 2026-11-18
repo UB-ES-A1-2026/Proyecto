@@ -56,8 +56,19 @@ export type Viewer = 'renter' | 'owner' | 'rider';
 
 export type DeliveryTracking = {
   reservationId: string;
+  // Quién lo mira, para que el frontend sepa qué botones enseñar.
+  role: Viewer;
+  item: { id: string; title: string };
+  startDate: string;
+  endDate: string;
   reservationStatus: ReservationStatus;
   mode: DeliveryMode;
+  // Con rider: «HH:MM-HH:MM» o «asap» (lo antes posible), como en US-05.01. Sin rider: null.
+  slot: string | null;
+  renter: { id: string; username: string };
+  owner: { id: string; username: string };
+  // Sin rider, dónde recoger el objeto. Solo al arrendatario.
+  pickupAddress: string | null;
   status: DeliveryStatus;
   steps: { status: DeliveryStatus; at: Date | null }[];
   returnedAt: Date | null;
@@ -102,6 +113,11 @@ export async function loadTracking(userId: string, reservationId: string) {
   return { reservation, delivery, mode: reservation.deliveryMode, viewer };
 }
 
+// «AAAA-MM-DD»: las fechas de la reserva son DATE.
+function toIsoDate(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
 function toTracking({
   reservation,
   delivery,
@@ -109,14 +125,30 @@ function toTracking({
   viewer,
 }: Awaited<ReturnType<typeof loadTracking>>): DeliveryTracking {
   const steps = mode === 'rider' ? RIDER_STEPS : DIRECT_STEPS;
+  const isRenter = viewer === 'renter';
   // El código solo lo ve el arrendatario, con rider y mientras no se haya usado.
   const showsCode =
-    viewer === 'renter' && mode === 'rider' && delivery.status !== 'delivered';
+    isRenter && mode === 'rider' && delivery.status !== 'delivered';
+  // La dirección del propietario o del punto solo la ve el arrendatario (como en US-05.01).
+  let pickupAddress: string | null = null;
+  if (isRenter && mode === 'home') {
+    pickupAddress = reservation.item.address;
+  } else if (isRenter && mode === 'pickup_point' && delivery.pickupPoint) {
+    pickupAddress = `${delivery.pickupPoint.name}, ${delivery.pickupPoint.address}`;
+  }
 
   return {
     reservationId: reservation.id,
+    role: viewer,
+    item: { id: reservation.item.id, title: reservation.item.title },
+    startDate: toIsoDate(reservation.startDate),
+    endDate: toIsoDate(reservation.endDate),
     reservationStatus: reservation.status,
     mode,
+    slot: mode === 'rider' ? (delivery.slot ?? 'asap') : null,
+    renter: reservation.renter,
+    owner: reservation.item.owner,
+    pickupAddress,
     status: delivery.status,
     steps: steps.map((status) => ({ status, at: stepTime(delivery, status) })),
     returnedAt: delivery.returnedAt,
