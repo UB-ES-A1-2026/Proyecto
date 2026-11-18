@@ -11,6 +11,7 @@ import {
   type RiderWeekday,
 } from '@prisma/client';
 import { quoteRiderFee } from '../src/services/deliveryFee.js';
+import { generateDeliveryCode } from '../src/services/deliveryCode.js';
 import {
   DEMO_DEMAND_ITEM,
   DEMO_DEMAND_REQUESTS,
@@ -168,12 +169,23 @@ async function demoDeliveryData(
   delivery: DemoDelivery,
   itemNeighborhood: string,
 ) {
+  // El seguimiento (US-05.02, #288) vuelve al principio: repetir el seed deja otra vez la entrega
+  // pendiente, sin rider, sin intentos de código y sin la hora de ningún paso.
   const empty = {
     pickupPointId: null,
     slot: null,
     deliveryAddress: null,
     deliveryNeighborhood: null,
     fee: null,
+    status: 'pending' as const,
+    riderId: null,
+    deliveryCode: null,
+    codeAttempts: 0,
+    assignedAt: null,
+    pickedUpAt: null,
+    onTheWayAt: null,
+    deliveredAt: null,
+    returnedAt: null,
   };
 
   switch (delivery.mode) {
@@ -186,6 +198,8 @@ async function demoDeliveryData(
         deliveryAddress: delivery.address,
         deliveryNeighborhood: delivery.neighborhood,
         fee: quoteRiderFee(itemNeighborhood, delivery.neighborhood).fee,
+        // Como al solicitar: con rider, la entrega tiene su código (US-05.02, #288).
+        deliveryCode: generateDeliveryCode(),
       };
     case 'pickup_point': {
       const point = await prisma.pickupPoint.findFirst({
