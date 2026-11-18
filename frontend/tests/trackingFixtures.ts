@@ -1,7 +1,11 @@
 // Generado con asistencia de IA (Claude)
-import type { DeliveryTracking } from '../src/services/deliveryTrackingService';
+import type {
+  ApiDeliveryTracking,
+  DeliveryStatus,
+  DeliveryTracking,
+} from '../src/services/deliveryTrackingService';
 
-// Un seguimiento de ejemplo con el contrato propuesto a T13 (#288): entrega con rider, en camino.
+// Un seguimiento de ejemplo, tal como lo pinta la vista: entrega con rider, en camino.
 export function tracking(overrides: Partial<DeliveryTracking> = {}): DeliveryTracking {
   return {
     reservationId: 'r1',
@@ -39,6 +43,35 @@ export function pickupTracking(overrides: Partial<DeliveryTracking> = {}): Deliv
     deliveryCode: null,
     ...overrides,
   });
+}
+
+// El mismo seguimiento como lo devuelve la API de T13 (#288): todos los pasos del modo con su hora o
+// null, «asap» para «Lo antes posible» y la hora de la devolución aparte.
+export function apiTracking(view: DeliveryTracking): ApiDeliveryTracking {
+  const modeSteps: DeliveryStatus[] =
+    view.mode === 'rider'
+      ? ['assigned', 'picked_up', 'on_the_way', 'delivered']
+      : ['pending', 'delivered'];
+  const timeOf = (status: string) =>
+    view.history.filter((entry) => entry.status === status).at(-1)?.at ?? null;
+  return {
+    reservationId: view.reservationId,
+    role: view.role,
+    item: view.item,
+    startDate: view.startDate,
+    endDate: view.endDate,
+    reservationStatus: view.reservationStatus,
+    mode: view.mode,
+    slot: view.mode === 'rider' ? (view.slot ?? 'asap') : null,
+    renter: { id: 'u2', username: view.renter.username },
+    owner: { id: 'u1', username: view.owner.username },
+    pickupAddress: view.pickupAddress,
+    status: view.deliveryStatus,
+    steps: modeSteps.map((status) => ({ status, at: timeOf(status) })),
+    returnedAt: timeOf('finished'),
+    rider: view.mode === 'rider' ? { id: 'u3', username: 'dani' } : null,
+    deliveryCode: view.deliveryCode,
+  };
 }
 
 // Una respuesta del canal SSE que el test va llenando: `send` manda texto y `close` lo corta.
