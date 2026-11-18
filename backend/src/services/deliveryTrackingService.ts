@@ -11,6 +11,7 @@ import {
   markDelivered,
   moveDelivery,
   recordFailedCodeAttempt,
+  markReturned,
 } from '../repositories/deliveryTrackingRepository.js';
 import { MAX_CODE_ATTEMPTS } from './deliveryCode.js';
 
@@ -28,6 +29,8 @@ export const NOT_RENTER_MESSAGE =
   'Solo el arrendatario puede marcar este paso.';
 export const RIDER_DELIVERY_MESSAGE =
   'Con rider, la entrega la marca el rider con tu código.';
+export const NOT_IN_PROGRESS_MESSAGE =
+  'Solo puedes marcar «He devuelto el objeto» con el alquiler en curso.';
 
 // «El código no es correcto. Te quedan 3 intentos.»
 export function wrongCodeMessage(attemptsLeft: number): string {
@@ -212,6 +215,28 @@ export async function confirmReceived(
     !(await markDelivered(reservationId, 'pending', now))
   ) {
     throw new AppError(409, NOT_NEXT_STEP_MESSAGE);
+  }
+
+  return getDeliveryTracking(userId, reservationId);
+}
+
+// POST /api/entregas/:id/devuelta: «He devuelto el objeto». La reserva pasa a «Finalizada» y las
+// dos personas ya pueden valorarla (US-08.01 y US-08.02).
+export async function confirmReturned(
+  userId: string,
+  reservationId: string,
+  now = new Date(),
+): Promise<DeliveryTracking> {
+  const { reservation, viewer } = await loadTracking(userId, reservationId);
+
+  if (viewer !== 'renter') {
+    throw new AppError(403, NOT_RENTER_MESSAGE);
+  }
+  if (
+    reservation.status !== 'in_progress' ||
+    !(await markReturned(reservationId, now))
+  ) {
+    throw new AppError(409, NOT_IN_PROGRESS_MESSAGE);
   }
 
   return getDeliveryTracking(userId, reservationId);

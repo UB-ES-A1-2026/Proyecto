@@ -3,6 +3,7 @@ import {
   advanceDelivery,
   getDeliveryTracking,
   confirmReceived,
+  confirmReturned,
 } from '../controllers/deliveryTrackingController.js';
 import { requireAuth } from '../middlewares/requireAuth.js';
 
@@ -19,4 +20,9 @@ deliveryTrackingRoutes.post(
   '/entregas/:id/recibida',
   requireAuth,
   confirmReceived,
+);
+deliveryTrackingRoutes.post(
+  '/entregas/:id/devuelta',
+  requireAuth,
+  confirmReturned,
 );
