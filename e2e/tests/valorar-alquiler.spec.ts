@@ -194,51 +194,56 @@ test.describe('US-08.01 Valorar un alquiler', () => {
     });
   });
 
-  // Criterio 6 y Criterio 8
-  test('ana publica una valoración que aparece en la tarjeta y no se puede repetir', async ({
-    page,
-    request,
-  }) => {
-    const token = await apiToken(request, ANA);
-    const reservation = await sentReservation(request, token, 'Máquina de palomitas');
-    const comment = `Valoración e2e ${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  // Criterio 6 y Criterio 8. Publica una valoración y cambia la BD: sin reintentos en el CI, porque
+  // un reintento daría siempre 409 (ya está valorada) y escondería el fallo original.
+  test.describe('publicar la valoración', () => {
+    test.describe.configure({ retries: 0 });
 
-    await login(page, ANA);
-    await openMyReservations(page);
-    const popcorn = card(page, 'Enviadas', 'Máquina de palomitas');
-    await popcorn.getByRole('button', { name: /Máquina de palomitas/ }).click();
-    await popcorn
-      .getByRole('link', { name: 'Valorar el alquiler de Máquina de palomitas' })
-      .click();
-    await page.getByRole('group', { name: 'Puntuación' }).locator('label')
-      .filter({ hasText: '4 estrellas: Bien' })
-      .click();
-    await page.getByLabel('Comentario (opcional)').fill(comment);
-    await page.getByRole('button', { name: 'Publicar' }).click();
+    test('ana publica una valoración que aparece en la tarjeta y no se puede repetir', async ({
+      page,
+      request,
+    }) => {
+      const token = await apiToken(request, ANA);
+      const reservation = await sentReservation(request, token, 'Máquina de palomitas');
+      const comment = `Valoración e2e ${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-    await expect(page).toHaveURL(/\/mis-solicitudes$/);
-    await expect(page.getByText('Valoración publicada.')).toBeVisible();
-    const ratedCard = card(page, 'Enviadas', 'Máquina de palomitas');
-    await ratedCard.getByRole('button', { name: /Máquina de palomitas/ }).click();
-    await expect(ratedCard.getByText('Tu valoración')).toBeVisible();
-    await expect(ratedCard.getByRole('img', { name: '4 de 5 estrellas' })).toBeVisible();
-    await expect(ratedCard.getByText(`«${comment}»`)).toBeVisible();
-    await expect(ratedCard.getByRole('link', { name: /Valorar/ })).toHaveCount(0);
+      await login(page, ANA);
+      await openMyReservations(page);
+      const popcorn = card(page, 'Enviadas', 'Máquina de palomitas');
+      await popcorn.getByRole('button', { name: /Máquina de palomitas/ }).click();
+      await popcorn
+        .getByRole('link', { name: 'Valorar el alquiler de Máquina de palomitas' })
+        .click();
+      await page.getByRole('group', { name: 'Puntuación' }).locator('label')
+        .filter({ hasText: '4 estrellas: Bien' })
+        .click();
+      await page.getByLabel('Comentario (opcional)').fill(comment);
+      await page.getByRole('button', { name: 'Publicar' }).click();
 
-    expect((await sentReservation(request, token, 'Máquina de palomitas')).myRating).toMatchObject({
-      score: 4,
-      comment,
+      await expect(page).toHaveURL(/\/mis-solicitudes$/);
+      await expect(page.getByText('Valoración publicada.')).toBeVisible();
+      const ratedCard = card(page, 'Enviadas', 'Máquina de palomitas');
+      await ratedCard.getByRole('button', { name: /Máquina de palomitas/ }).click();
+      await expect(ratedCard.getByText('Tu valoración')).toBeVisible();
+      await expect(ratedCard.getByRole('img', { name: '4 de 5 estrellas' })).toBeVisible();
+      await expect(ratedCard.getByText(`«${comment}»`)).toBeVisible();
+      await expect(ratedCard.getByRole('link', { name: /Valorar/ })).toHaveCount(0);
+
+      expect((await sentReservation(request, token, 'Máquina de palomitas')).myRating).toMatchObject({
+        score: 4,
+        comment,
+      });
+
+      await page.goto(`/mis-solicitudes/${reservation.id}/valorar`);
+      await expect(page.getByRole('alert')).toHaveText('Ya has valorado este alquiler.');
+      await expect(page.getByRole('button', { name: 'Publicar' })).toHaveCount(0);
+
+      const duplicate = await request.post(
+        `${API_URL}/reservas/${reservation.id}/valoracion`,
+        { headers: { Authorization: `Bearer ${token}` }, data: { score: 4, comment } },
+      );
+      expect(duplicate.status()).toBe(409);
+      expect(await duplicate.json()).toEqual({ error: 'Ya has valorado este alquiler.' });
     });
-
-    await page.goto(`/mis-solicitudes/${reservation.id}/valorar`);
-    await expect(page.getByRole('alert')).toHaveText('Ya has valorado este alquiler.');
-    await expect(page.getByRole('button', { name: 'Publicar' })).toHaveCount(0);
-
-    const duplicate = await request.post(
-      `${API_URL}/reservas/${reservation.id}/valoracion`,
-      { headers: { Authorization: `Bearer ${token}` }, data: { score: 4, comment } },
-    );
-    expect(duplicate.status()).toBe(409);
-    expect(await duplicate.json()).toEqual({ error: 'Ya has valorado este alquiler.' });
   });
 });
