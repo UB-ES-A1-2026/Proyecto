@@ -3,6 +3,7 @@
 import type { RatingType } from '@prisma/client';
 import { AppError } from '../errors/appError.js';
 import {
+  findRatingStats,
   findReservationForRating,
   insertRating,
 } from '../repositories/ratingRepository.js';
@@ -66,4 +67,17 @@ export async function rateRental(
   }
 
   return rating;
+}
+
+export type UserRating = { average: number | null; count: number };
+
+// Valoración media de un usuario, redondeada a un decimal (US-08.02, #298). Es el formato del
+// perfil público (US-01.4): su getRating de profileService llamará a esta función.
+export async function getUserRating(userId: string): Promise<UserRating> {
+  const { average, count } = await findRatingStats(userId);
+
+  return {
+    average: average === null ? null : Math.round(average * 10) / 10,
+    count,
+  };
 }
