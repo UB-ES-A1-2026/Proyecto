@@ -61,6 +61,11 @@ async function fillDates(page: Page, start: string, end: string) {
   await page.getByLabel('Fecha de fin').fill(end);
 }
 
+async function chooseDelivery(page: Page) {
+  await page.getByRole('radio', { name: 'Recoger en casa del propietario' }).check();
+  await page.getByRole('button', { name: 'Continuar' }).click();
+}
+
 async function sentCount(request: APIRequestContext, user: User): Promise<number> {
   const login = await request.post(`${API_URL}/auth/login`, { data: user });
   const { token } = await login.json();
@@ -122,8 +127,10 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
 
     // Las fechas elegidas llegan al resumen
     await panel.getByRole('button', { name: 'Solicitar alquiler' }).click();
+    await chooseDelivery(page);
     await expect(panel.getByText(`10 de ${monthName} de ${year}`)).toBeVisible();
     await expect(panel.getByText(`12 de ${monthName} de ${year}`)).toBeVisible();
+    await panel.getByRole('button', { name: 'Volver' }).click();
     await panel.getByRole('button', { name: 'Volver' }).click();
     await expect(page.getByLabel('Fecha de inicio')).toHaveValue(`10/${monthNumber}/${year}`);
     await expect(panel.getByText(`${monthName} de ${year}`)).toBeVisible();
@@ -210,6 +217,7 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
     await fillDates(page, inDaysText(start), inDaysText(start + 2));
 
     await page.getByRole('button', { name: 'Solicitar alquiler' }).click();
+    await chooseDelivery(page);
 
     // El resumen sale en el mismo panel, sin cambiar de pantalla
     await expect(page).toHaveURL(/\/objetos\/[0-9a-f-]{36}$/);
@@ -237,6 +245,7 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
     const start = freeStart();
     await fillDates(page, inDaysText(start), inDaysText(start + 2));
     await page.getByRole('button', { name: 'Solicitar alquiler' }).click();
+    await chooseDelivery(page);
 
     await page.getByRole('button', { name: 'Confirmar' }).click();
 
@@ -269,7 +278,12 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
     const start = freeStart();
     const response = await request.post(`${API_URL}/reservas`, {
       headers: { Authorization: `Bearer ${token}` },
-      data: { itemId, startDate: inDays(start), endDate: inDays(start + 1) },
+      data: {
+        itemId,
+        startDate: inDays(start),
+        endDate: inDays(start + 1),
+        deliveryMode: 'home',
+      },
     });
     expect(response.status()).toBe(403);
   });
