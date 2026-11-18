@@ -278,6 +278,19 @@ Objetos del seed (`backend/prisma/demoData.ts`). En Deporte están la bicicleta 
 | CP-FIL-09 | 1. En móvil, los filtros se abren con su botón | Página de resultados, a 390 px | 1. Pulsar «Filtros» 2. Precio máximo `10` 3. «Aplicar filtros» 4. «Limpiar filtros» junto a los chips | En el paso 1 se abre el panel. En el 3 se cierra y el botón dice «Filtros (1)». En el 4 se vuelve a `/buscar?q=taladro` | `filtrar-objetos.spec.ts` · en móvil |
 | CP-FIL-10 | (Móvil) Sin scroll horizontal | Página de resultados, a 390 px | 1. Ir a `/buscar?q=taladro` | La página no se desplaza en horizontal | `filtrar-objetos.spec.ts` · en móvil |
 
+### US-08.01 Valorar un alquiler (#74) · S2-T22 (#297)
+
+Datos del seed: ana tiene una solicitud finalizada y sin valorar de la «Máquina de palomitas», alquilada a bruno, y una solicitud pendiente del «Proyector Full HD» de bruno. El último test cambia la BD al publicar una valoración; en local, ejecuta `npm run db:seed` en `backend/` antes de repetirlo.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-VAL-01 | 1, 2 y 3. Abrir el formulario, elegir estrellas y cancelar | Sesión de ana; seed cargado | 1. Abrir la tarjeta de la «Máquina de palomitas» en «Enviadas» 2. Pulsar «Valorar» 3. Elegir 4 estrellas 4. Pulsar «Cancelar» | Se muestra «Valorar el alquiler», las 5 puntuaciones y el comentario; queda marcada «4 estrellas: Bien». Se vuelve a `/mis-solicitudes` y la solicitud sigue sin `myRating` | `valorar-alquiler.spec.ts` · criterios 1–3 |
+| CP-VAL-02 | 4 y 5. Publicar sin puntuación | Sesión de ana; valoración sin publicar | 1. Abrir la valoración de la palomitas 2. Escribir un comentario 3. Pulsar «Publicar» sin estrellas | No se publica; se muestra «Elige una puntuación de 1 a 5 estrellas.», el grupo tiene `aria-invalid="true"`, el foco queda en la primera estrella y la API sigue sin `myRating` | `valorar-alquiler.spec.ts` · criterios 4–5 |
+| CP-VAL-03 | 5. La API valida puntuación y comentario | Solicitud finalizada de ana, sin valorar | 1. Enviar `POST /api/reservas/<id>/valoracion` sin `score` 2. Enviar un comentario de 1001 caracteres | Ambas peticiones responden `400`, con `field: "score"` y `field: "comment"` respectivamente; no se crea `myRating` | `valorar-alquiler.spec.ts` · criterio 5 (API) |
+| CP-VAL-04 | 7. Solo quien pidió el alquiler puede valorar | Sesión de bruno; solicitud finalizada que pidió ana | 1. Abrir la palomitas en «Recibidas» 2. Intentar valorar por la API con el token de bruno | No aparece el enlace «Valorar»; la API responde `403` con «Solo quien ha alquilado el objeto puede valorar este alquiler.» | `valorar-alquiler.spec.ts` · criterio 7 |
+| CP-VAL-05 | Solo se puede valorar un alquiler finalizado | Sesión de ana; solicitud pendiente del proyector | 1. Abrir el proyector en «Enviadas» 2. Ir a su ruta de valoración 3. Enviar la valoración por la API | No aparece el enlace «Valorar» y se muestra «Solo se puede valorar un alquiler finalizado.»; la API responde `409` con ese mismo error | `valorar-alquiler.spec.ts` · estado no finalizado |
+| CP-VAL-06 | 6 y 8. Publicar y evitar una valoración duplicada | Sesión de ana; solicitud finalizada de la palomitas, sin valorar | 1. Elegir 4 estrellas, escribir un comentario único y publicar 2. Reabrir la ruta y enviar otro `POST` | Se muestra «Valoración publicada.» y la tarjeta muestra «Tu valoración», «4 de 5 estrellas» y el comentario entre «»; `myRating` contiene la puntuación y el comentario. Ya no hay enlace ni botón «Publicar»; el acceso directo avisa «Ya has valorado este alquiler.» y el segundo `POST` responde `409` con ese error. **Cambia la BD** | `valorar-alquiler.spec.ts` · criterios 6 y 8 |
+
 ## 5. Métricas de tests
 
 Petición del profesor en la demo del Sprint 1 (#272). Las dos métricas salen solas del CI y de GitHub; solo hace falta seguir las reglas de `AGENTS.md`.
