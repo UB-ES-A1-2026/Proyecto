@@ -88,6 +88,7 @@ test.describe('US-02.01 Publicar un objeto', () => {
     await openPublishForm(page);
     const category = page.getByLabel('Categoría');
 
+    await expect(category.getByRole('option')).toHaveCount(9);
     const options = (await category.getByRole('option').allTextContents()).slice(1);
     expect(options.sort()).toEqual(CATEGORIES);
 

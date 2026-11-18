@@ -61,6 +61,11 @@ async function fillDates(page: Page, start: string, end: string) {
   await page.getByLabel('Fecha de fin').fill(end);
 }
 
+async function chooseDelivery(page: Page) {
+  await page.getByRole('radio', { name: 'Recoger en casa del propietario' }).check();
+  await page.getByRole('button', { name: 'Continuar' }).click();
+}
+
 async function sentCount(request: APIRequestContext, user: User): Promise<number> {
   const login = await request.post(`${API_URL}/auth/login`, { data: user });
   const { token } = await login.json();
@@ -122,6 +127,7 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
 
     // Las fechas elegidas llegan a «Confirmar y pagar» y «Atrás» vuelve con ellas (US-07.01)
     await panel.getByRole('button', { name: 'Solicitar alquiler' }).click();
+    await chooseDelivery(page);
     const summary = page.getByRole('region', { name: 'Tu solicitud' });
     await expect(summary.getByText(`10 de ${monthName} de ${year}`)).toBeVisible();
     await expect(summary.getByText(`12 de ${monthName} de ${year}`)).toBeVisible();
@@ -211,6 +217,7 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
     await fillDates(page, inDaysText(start), inDaysText(start + 2));
 
     await page.getByRole('button', { name: 'Solicitar alquiler' }).click();
+    await chooseDelivery(page);
 
     // El resumen y el pago están en su propia página, con las fechas en la dirección (US-07.01)
     await expect(page).toHaveURL(/\/objetos\/[0-9a-f-]{36}\/solicitar\?inicio=[\d-]+&fin=[\d-]+$/);
@@ -244,6 +251,7 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
     const start = freeStart();
     await fillDates(page, inDaysText(start), inDaysText(start + 2));
     await page.getByRole('button', { name: 'Solicitar alquiler' }).click();
+    await chooseDelivery(page);
 
     // Pago al solicitar (US-07.01, #286): tarjeta de prueba que acepta la pasarela simulada.
     await page.getByLabel('Número de tarjeta').fill('4242 4242 4242 4242');
@@ -284,6 +292,7 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
         itemId,
         startDate: inDays(start),
         endDate: inDays(start + 1),
+        deliveryMode: 'home',
         confirmationTokenId: 'ctoken_simulado',
       },
     });
