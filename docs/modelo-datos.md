@@ -374,7 +374,13 @@ Al llegar a `entregada`, la reserva pasa de `pagada` a `en_curso` en la misma tr
 En Prisma, los campos nuevos son `status` (enum `DeliveryStatus`: `pending`, `assigned`, `picked_up`, `on_the_way`, `delivered`), `riderId`, `deliveryCode`, `codeAttempts`, `assignedAt`, `pickedUpAt`, `onTheWayAt`, `deliveredAt` y `returnedAt`.
 
 **API** (`:id` es el de la reserva, como en US-10.01). Todas con sesión:
-- `GET /api/entregas/:id`: `{ reservationId, reservationStatus, mode, status, steps, returnedAt, rider, deliveryCode }`. `steps` son los pasos del modo en orden, cada uno con su hora (`at`) o `null`. `deliveryCode` solo sale al arrendatario, con rider y antes de entregarse.
+- `GET /api/entregas/:id`: `{ reservationId, role, item, startDate, endDate, reservationStatus, mode, slot, renter, owner, pickupAddress, status, steps, returnedAt, rider, deliveryCode }`.
+  - `role`: quién lo mira (`renter`, `owner` o `rider`), para saber qué botones enseñar.
+  - `item` es `{ id, title }`; `renter`, `owner` y `rider` son `{ id, username }` (`rider`, `null` sin rider).
+  - `slot`: con rider, `"HH:MM-HH:MM"` o `"asap"`, como en US-05.01; sin rider, `null`.
+  - `pickupAddress`: solo al arrendatario y sin rider: la dirección del objeto (domicilio) o «nombre, dirección» del punto de recogida. A los demás, `null`.
+  - `steps` son los pasos del modo en orden, cada uno con su hora (`at`) o `null`.
+  - `deliveryCode` solo sale al arrendatario, con rider y antes de entregarse.
 - `POST /api/entregas/:id/estado`, el rider: `{ "status": "picked_up" | "on_the_way" | "delivered", "code"?: "123456" }`. El estado tiene que ser exactamente el siguiente; `delivered` necesita el código.
 - `POST /api/entregas/:id/recibida`, el arrendatario: «Ya tengo el objeto» (domicilio o punto de recogida).
 - `POST /api/entregas/:id/devuelta`, el arrendatario: «He devuelto el objeto».
