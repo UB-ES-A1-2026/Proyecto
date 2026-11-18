@@ -363,6 +363,19 @@ Antes de cada ejecución, vuelve a ejecutar `npm run db:seed` en `backend/`: los
 | CP-ENT-11 | 6. El propietario ve la solicitud rider sin la dirección de entrega | Sesión de ana; Taladro del seed | 1. Abrir la solicitud recibida | Se ven «Entrega por rider», la hora, el coste y el barrio Poblenou; no se ve la dirección de entrega | `modo-entrega.spec.ts` · criterio 6 |
 | — | Lo ve el rider (US-10.01) | Sesión del rider | Pendiente de la historia US-10.01 | **Pendiente** | Fuera del alcance de US-05.01 |
 
+### US-08.01 Valorar un alquiler (#74) · S2-T22 (#297)
+
+Datos del seed: ana tiene una solicitud finalizada y sin valorar de la «Máquina de palomitas», alquilada a bruno, y una solicitud pendiente del «Proyector Full HD» de bruno. El último test cambia la BD al publicar una valoración; en local, ejecuta `npm run db:seed` en `backend/` antes de repetirlo.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-VAL-01 | 1, 2 y 3. Abrir el formulario, elegir estrellas y cancelar | Sesión de ana; seed cargado | 1. Abrir la tarjeta de la «Máquina de palomitas» en «Enviadas» 2. Pulsar «Valorar» 3. Elegir 4 estrellas 4. Pulsar «Cancelar» | Se muestra «Valorar el alquiler», las 5 puntuaciones y el comentario; queda marcada «4 estrellas: Bien». Se vuelve a `/mis-solicitudes` y la solicitud sigue sin `myRating` | `valorar-alquiler.spec.ts` · criterios 1–3 |
+| CP-VAL-02 | 4 y 5. Publicar sin puntuación | Sesión de ana; valoración sin publicar | 1. Abrir la valoración de la palomitas 2. Escribir un comentario 3. Pulsar «Publicar» sin estrellas | No se publica; se muestra «Elige una puntuación de 1 a 5 estrellas.», el grupo tiene `aria-invalid="true"`, el foco queda en la primera estrella y la API sigue sin `myRating` | `valorar-alquiler.spec.ts` · criterios 4–5 |
+| CP-VAL-03 | 5. La API valida puntuación y comentario | Solicitud finalizada de ana, sin valorar | 1. Enviar `POST /api/reservas/<id>/valoracion` sin `score` 2. Enviar un comentario de 1001 caracteres | Ambas peticiones responden `400`, con `field: "score"` y `field: "comment"` respectivamente; no se crea `myRating` | `valorar-alquiler.spec.ts` · criterio 5 (API) |
+| CP-VAL-04 | 7. Solo quien pidió el alquiler puede valorar | Sesión de bruno; solicitud finalizada que pidió ana | 1. Abrir la palomitas en «Recibidas» 2. Intentar valorar por la API con el token de bruno | No aparece el enlace «Valorar»; la API responde `403` con «Solo quien ha alquilado el objeto puede valorar este alquiler.» | `valorar-alquiler.spec.ts` · criterio 7 |
+| CP-VAL-05 | Solo se puede valorar un alquiler finalizado | Sesión de ana; solicitud pendiente del proyector | 1. Abrir el proyector en «Enviadas» 2. Ir a su ruta de valoración 3. Enviar la valoración por la API | No aparece el enlace «Valorar» y se muestra «Solo se puede valorar un alquiler finalizado.»; la API responde `409` con ese mismo error | `valorar-alquiler.spec.ts` · estado no finalizado |
+| CP-VAL-06 | 6 y 8. Publicar y evitar una valoración duplicada | Sesión de ana; solicitud finalizada de la palomitas, sin valorar | 1. Elegir 4 estrellas, escribir un comentario único y publicar 2. Reabrir la ruta y enviar otro `POST` | Se muestra «Valoración publicada.» y la tarjeta muestra «Tu valoración», «4 de 5 estrellas» y el comentario entre «»; `myRating` contiene la puntuación y el comentario. Ya no hay enlace ni botón «Publicar»; el acceso directo avisa «Ya has valorado este alquiler.» y el segundo `POST` responde `409` con ese error. **Cambia la BD** | `valorar-alquiler.spec.ts` · criterios 6 y 8 |
+
 ## 5. Métricas de tests
 
 Petición del profesor en la demo del Sprint 1 (#272). Las dos métricas salen solas del CI y de GitHub; solo hace falta seguir las reglas de `AGENTS.md`.
