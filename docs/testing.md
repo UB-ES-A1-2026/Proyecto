@@ -278,6 +278,20 @@ Objetos del seed (`backend/prisma/demoData.ts`). En Deporte están la bicicleta 
 | CP-FIL-09 | 1. En móvil, los filtros se abren con su botón | Página de resultados, a 390 px | 1. Pulsar «Filtros» 2. Precio máximo `10` 3. «Aplicar filtros» 4. «Limpiar filtros» junto a los chips | En el paso 1 se abre el panel. En el 3 se cierra y el botón dice «Filtros (1)». En el 4 se vuelve a `/buscar?q=taladro` | `filtrar-objetos.spec.ts` · en móvil |
 | CP-FIL-10 | (Móvil) Sin scroll horizontal | Página de resultados, a 390 px | 1. Ir a `/buscar?q=taladro` | La página no se desplaza en horizontal | `filtrar-objetos.spec.ts` · en móvil |
 
+### US-07.01 Registrar un pago (#72) · S2-T12 (#287)
+
+Se usan bruno, ana y el «Cortacésped eléctrico» del seed (9 €/día, fianza de 60 €); las fechas de cada solicitud son aleatorias, a 3–4 años, para poder repetir los tests.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-PAG-01 | 2 y 3. Resumen y condiciones del pago | Sesión de bruno | 1. Abrir «Confirmar y pagar» para 3 días | El resumen muestra el objeto, fechas, 27,00 €, fianza retenida de 60 € y total de 87,00 €. Se explica el bloqueo, la aceptación de ana y las tarjetas de prueba | `registrar-pago.spec.ts` · criterios 2 y 3 |
+| CP-PAG-02 | 5. Tarjeta rechazada | Sesión de bruno | 1. Pagar un día con `4000 0000 0000 0002` | Sale «Tu tarjeta ha sido rechazada.», la página conserva las fechas, el botón vuelve a estar activo y no se crea una solicitud | `registrar-pago.spec.ts` · criterio 5 |
+| CP-PAG-03 | 5. Validación de tarjeta | Sesión de bruno | 1. Enviar `1234 5678 9012 3456`, `01/20` y CVC `12` | Los tres campos quedan inválidos; no se envía `POST /api/reservas` ni se crea solicitud | `registrar-pago.spec.ts` · validación |
+| CP-PAG-04 | 1 y 4. Pago aceptado y reserva pagada al aceptar | Sesión de bruno | 1. Pagar con `4242 4242 4242 4242` 2. Aceptar con el token de ana | Se muestra «Solicitud enviada. Hemos bloqueado el importe hasta que ana responda.». El número de tarjeta no llega a la API; la reserva pasa de `pending` a `paid` | `registrar-pago.spec.ts` · criterios 1 y 4 |
+| CP-PAG-05 | 8. No se puede aceptar dos veces | Sesión de bruno | 1. Pagar con `4242 4242 4242 4242` 2. Ana acepta dos veces | La primera respuesta es `200`; la segunda, `409` con `{"error":"Esta solicitud ya no está pendiente."}`. La reserva sigue `paid` | `registrar-pago.spec.ts` · criterio 8 |
+
+C6 (rechazar libera el bloqueo): cubierto por `rechazar-solicitud.spec.ts`. C7 (fianza el día antes): **Pendiente de e2e**; depende de la fecha real y lo cubren los unitarios del backend.
+
 ## 5. Pendiente
 
 - **Smoke test en el CI:** el workflow de GitHub Actions que arranca PostgreSQL, el backend y el frontend y ejecuta `npm run test:smoke`. Se coordina con el CI general (#19, Kai). En el CI conviene servir el frontend compilado (`npm run build` + `npm run preview`) en lugar de `npm run dev`, para evitar la espera de la primera carga de Vite.
