@@ -96,3 +96,30 @@ export async function markDelivered(
     throw error;
   }
 }
+
+// «He devuelto el objeto»: la reserva pasa de «En curso» a «Finalizada» y la entrega guarda la
+// hora de la devolución, las dos en la misma transacción. false si ya no estaba en curso.
+export async function markReturned(
+  reservationId: string,
+  at: Date,
+): Promise<boolean> {
+  try {
+    return await prisma.$transaction(async (transaction) => {
+      const reservation = await transaction.reservation.updateMany({
+        where: { id: reservationId, status: 'in_progress' },
+        data: { status: 'finished' },
+      });
+      const delivery = await transaction.delivery.updateMany({
+        where: { reservationId, status: 'delivered', returnedAt: null },
+        data: { returnedAt: at },
+      });
+      if (reservation.count !== 1 || delivery.count !== 1) {
+        throw new DeliveryConflict();
+      }
+      return true;
+    });
+  } catch (error) {
+    if (error instanceof DeliveryConflict) return false;
+    throw error;
+  }
+}

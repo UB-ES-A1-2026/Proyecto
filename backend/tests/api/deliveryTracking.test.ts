@@ -505,3 +505,64 @@ describe('POST /api/entregas/:id/recibida («Ya tengo el objeto»)', () => {
     expect((await received(reservation.id)).status).toBe(401);
   });
 });
+
+function returned(id: string, token?: string) {
+  const call = request(app).post(`/api/entregas/${id}/devuelta`);
+  return token ? call.set('Authorization', `Bearer ${token}`) : call;
+}
+
+// Reserva «En curso»: con domicilio, el arrendatario ya ha marcado «Ya tengo el objeto».
+async function inProgress() {
+  const data = await setUp('home');
+  await received(data.reservation.id, data.renterToken);
+  return data;
+}
+
+describe('POST /api/entregas/:id/devuelta («He devuelto el objeto»)', () => {
+  it('finishes the reservation and saves the time of the return', async () => {
+    const { reservation, renterToken } = await inProgress();
+
+    const response = await returned(reservation.id, renterToken);
+
+    expect(response.status).toBe(200);
+    expect(response.body.reservationStatus).toBe('finished');
+    expect(response.body.returnedAt).toEqual(expect.any(String));
+  });
+
+  it('returns 409 while the reservation is not in progress', async () => {
+    const { reservation, renterToken } = await setUp('home');
+
+    const response = await returned(reservation.id, renterToken);
+
+    expect(response.status).toBe(409);
+    expect(response.body).toEqual({
+      error:
+        'Solo puedes marcar «He devuelto el objeto» con el alquiler en curso.',
+    });
+  });
+
+  it('returns 403 when the owner tries to mark it', async () => {
+    const { reservation, ownerToken } = await inProgress();
+
+    const response = await returned(reservation.id, ownerToken);
+
+    expect(response.status).toBe(403);
+  });
+
+  it('only finishes once on a double click', async () => {
+    const { reservation, renterToken } = await inProgress();
+
+    const responses = await Promise.all([
+      returned(reservation.id, renterToken),
+      returned(reservation.id, renterToken),
+    ]);
+
+    expect(responses.map(({ status }) => status).sort()).toEqual([200, 409]);
+  });
+
+  it('returns 401 without a session', async () => {
+    const { reservation } = await inProgress();
+
+    expect((await returned(reservation.id)).status).toBe(401);
+  });
+});
