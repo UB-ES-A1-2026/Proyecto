@@ -9,29 +9,51 @@ import { expireOverdueReservations } from './reservationExpiry.js';
 import type { DeliveryViewer } from './deliveryView.js';
 import { toReservationDetail, type ReservationDetail } from './reservation.js';
 
-// La valoración que ha escrito el usuario de este alquiler, o null si aún no la ha escrito
-// (US-08.01, #295).
-export interface OwnRating {
+// Una valoración de este alquiler tal como sale en «Mis solicitudes».
+export interface RatingSummary {
   score: number;
   comment: string | null;
   createdAt: Date;
 }
 
-export type MyReservation = ReservationDetail & { myRating: OwnRating | null };
+// myRating: la que ha escrito el usuario (US-08.01, #295). receivedRating: la que le ha puesto
+// la otra parte (US-08.02, #298). null si aún no existe.
+export type MyReservation = ReservationDetail & {
+  myRating: RatingSummary | null;
+  receivedRating: RatingSummary | null;
+};
 
 export interface MyReservations {
   sent: MyReservation[];
   received: MyReservation[];
 }
 
+type ReservationWithRatings = ReservationWithDetail & {
+  ratings: (RatingSummary & { authorId: string })[];
+};
+
+// Sin authorId: quién la ha escrito ya se sabe por si es la propia o la recibida.
+function toSummary(
+  rating: (RatingSummary & { authorId: string }) | undefined,
+): RatingSummary | null {
+  if (!rating) return null;
+  const { score, comment, createdAt } = rating;
+  return { score, comment, createdAt };
+}
+
 // El rol decide qué dirección de entrega se ve (US-05.01): la del arrendatario o la del propietario.
 function toMyReservation(
-  reservation: ReservationWithDetail & { ratings: OwnRating[] },
+  userId: string,
+  reservation: ReservationWithRatings,
   viewer: DeliveryViewer,
 ): MyReservation {
+  const { ratings } = reservation;
   return {
     ...toReservationDetail(reservation, viewer),
-    myRating: reservation.ratings[0] ?? null,
+    myRating: toSummary(ratings.find(({ authorId }) => authorId === userId)),
+    receivedRating: toSummary(
+      ratings.find(({ authorId }) => authorId !== userId),
+    ),
   };
 }
 
@@ -51,9 +73,11 @@ export async function getMyReservations(
   ]);
 
   return {
-    sent: sent.map((reservation) => toMyReservation(reservation, 'renter')),
+    sent: sent.map((reservation) =>
+      toMyReservation(userId, reservation, 'renter'),
+    ),
     received: received.map((reservation) =>
-      toMyReservation(reservation, 'owner'),
+      toMyReservation(userId, reservation, 'owner'),
     ),
   };
 }

@@ -263,4 +263,32 @@ describe('POST /api/reservas/:id/valoracion', () => {
     // El propietario aún no ha escrito la suya (eso es US-08.02).
     expect(ownerView.body.received[0].myRating).toBeNull();
   });
+
+  it('shows each side the rating it has received in «Mis solicitudes»', async () => {
+    const { reservation, renterToken, ownerToken } = await finishedRental();
+    await rate(reservation.id, { score: 5, comment: 'Genial' }, renterToken);
+    await rate(
+      reservation.id,
+      { score: 2, comment: 'Llegó tarde' },
+      ownerToken,
+    );
+
+    const renterView = await request(app)
+      .get('/api/usuarios/me/reservas')
+      .set('Authorization', `Bearer ${renterToken}`);
+    const ownerView = await request(app)
+      .get('/api/usuarios/me/reservas')
+      .set('Authorization', `Bearer ${ownerToken}`);
+
+    const renterSide = renterView.body.sent[0];
+    const ownerSide = ownerView.body.received[0];
+    expect(renterSide.myRating).toMatchObject({ score: 5, comment: 'Genial' });
+    expect(renterSide.receivedRating).toEqual({
+      score: 2,
+      comment: 'Llegó tarde',
+      createdAt: expect.any(String),
+    });
+    expect(ownerSide.myRating).toMatchObject({ score: 2 });
+    expect(ownerSide.receivedRating).toMatchObject({ score: 5 });
+  });
 });
