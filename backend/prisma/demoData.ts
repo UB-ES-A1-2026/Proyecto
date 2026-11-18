@@ -297,7 +297,8 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
     days: 2,
     status: 'rejected',
   },
-  // Pagada (US-07.01, #284): ana ya la ha pagado y la fianza está retenida.
+  // Pagada (US-07.01, #284): ana ya la ha pagado y la fianza está retenida. En el seguimiento
+  // (US-05.02, #288), ana marca «Ya tengo el objeto» y después «He devuelto el objeto».
   {
     item: { owner: 1, title: 'Bicicleta de montaña talla M' },
     renter: 0,

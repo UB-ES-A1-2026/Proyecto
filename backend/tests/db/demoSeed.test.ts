@@ -249,6 +249,53 @@ describe('solicitudes de la demo', () => {
     );
   });
 
+  it('la reserva pagada tiene la entrega pendiente y repetir el seed reinicia el seguimiento', async () => {
+    const userIds = await seedWithReservations();
+    const paid = await prisma.reservation.findFirstOrThrow({
+      where: { status: 'paid' },
+      include: { delivery: true },
+    });
+    expect(paid.deliveryMode).toBe('pickup_point');
+    expect(paid.delivery?.status).toBe('pending');
+    // ana la recibe y la devuelve al probar la demo…
+    await prisma.reservation.update({
+      where: { id: paid.id },
+      data: { status: 'finished' },
+    });
+    await prisma.delivery.update({
+      where: { reservationId: paid.id },
+      data: { status: 'delivered', deliveredAt: TODAY, returnedAt: TODAY },
+    });
+
+    // …y repetir el seed la deja otra vez pagada y con la entrega pendiente.
+    await upsertDemoReservations(prisma, userIds, TODAY);
+
+    const again = await prisma.reservation.findUniqueOrThrow({
+      where: { id: paid.id },
+      include: { delivery: true },
+    });
+    expect(again.status).toBe('paid');
+    expect(again.delivery).toMatchObject({
+      status: 'pending',
+      deliveredAt: null,
+      returnedAt: null,
+      codeAttempts: 0,
+    });
+  });
+
+  it('las entregas con rider tienen su código de 6 cifras', async () => {
+    await seedWithReservations();
+
+    const riderDeliveries = await prisma.delivery.findMany({
+      where: { reservation: { deliveryMode: 'rider' } },
+    });
+
+    expect(riderDeliveries.length).toBeGreaterThan(0);
+    for (const delivery of riderDeliveries) {
+      expect(delivery.deliveryCode).toMatch(/^[0-9]{6}$/);
+    }
+  });
+
   it('falla con un mensaje claro si no se han creado antes los objetos', async () => {
     const userIds = await upsertUsers(prisma, DEMO_USERS, DEMO_PASSWORD, 4);
 
