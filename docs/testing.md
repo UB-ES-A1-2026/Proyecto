@@ -300,7 +300,7 @@ Datos del seed (`DEMO_DEMAND_REQUESTS` en `backend/prisma/demoData.ts`): la bici
 
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
-| CP-RID-01 | 1. Una persona sin sesión puede abrir «Hazte rider» | Sin sesión | 1. En «Principal», pulsar «Hazte rider» | Se abre `/hazte-rider` con el título, la información de la solicitud y el botón «Enviar solicitud» | `hazte-rider.spec.ts` · criterio 1a |
+| CP-RID-01 | 1. Una persona sin sesión puede abrir «Hazte rider» | Sin sesión | 1. Comprobar que «Principal» no tiene «Hazte rider» 2. Pulsar «Crear cuenta» y, debajo del formulario, «Hazte rider» | Se abre `/hazte-rider` con el título, la información de la solicitud y el botón «Enviar solicitud» | `hazte-rider.spec.ts` · criterio 1a |
 | CP-RID-02 | 1. Una cuenta normal no ve el enlace ni el formulario | Sesión de ana | 1. Comprobar la cabecera 2. Ir a `/hazte-rider` | No hay enlace «Hazte rider» y la ruta vuelve a `/` | `hazte-rider.spec.ts` · criterio 1b |
 | CP-RID-03 | 2. Se muestran todos los campos y opciones del cuestionario | Sin sesión | 1. Ir a `/hazte-rider` | Hay campos de cuenta, teléfono y zona; 5 vehículos, 7 días, 3 franjas, aceptación de condiciones y «Enviar solicitud» | `hazte-rider.spec.ts` · criterio 2a |
 | CP-RID-04 | 2. Enviar el formulario vacío valida todos los campos | Sin sesión | 1. Ir a `/hazte-rider` 2. Pulsar «Enviar solicitud» | Cada campo tiene su mensaje y `aria-invalid="true"`; el foco queda en «Nombre de usuario» y no se muestra la confirmación | `hazte-rider.spec.ts` · criterio 2b |

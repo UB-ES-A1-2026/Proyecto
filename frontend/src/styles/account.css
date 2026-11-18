@@ -69,6 +69,13 @@
   border-top: var(--border-width) solid var(--color-divider);
 }
 
+/* Segunda línea (Crear cuenta: «¿Quieres repartir?», #355): sin otra raya encima. */
+.auth-switch + .auth-switch {
+  margin-top: var(--space-sm);
+  padding-top: 0;
+  border-top: 0;
+}
+
 .auth-switch a {
   font-weight: var(--font-weight-medium);
 }

@@ -22,19 +22,14 @@ async function logIn(page: Page) {
 test.describe('Navegación en el móvil', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test('sin sesión, la barra inferior lleva a inicio, iniciar sesión, crear cuenta y hazte rider', async ({
+  test('sin sesión, la barra inferior lleva a inicio, iniciar sesión y crear cuenta', async ({
     page,
   }) => {
     await page.goto('/');
 
     const nav = mainNav(page);
-    // «Hazte rider» también va en la barra del móvil sin sesión (US-10.03, #315).
-    await expect(nav.getByRole('link')).toHaveText([
-      'Inicio',
-      'Iniciar sesión',
-      'Crear cuenta',
-      'Hazte rider',
-    ]);
+    // «Hazte rider» está en Crear cuenta, no en la barra (US-10.03, #355).
+    await expect(nav.getByRole('link')).toHaveText(['Inicio', 'Iniciar sesión', 'Crear cuenta']);
     await expect(page.getByRole('button', { name: 'Abrir menú' })).toHaveCount(0);
 
     const box = await nav.boundingBox();
