@@ -294,6 +294,25 @@ Datos del seed (`DEMO_DEMAND_REQUESTS` en `backend/prisma/demoData.ts`): la bici
 | CP-DEM-08 | Días reservados | Seed cargado; sesión de bruno | 1. Abrir la escalera 2. Revisar +14, +15 y +13 | +14 y +15 tienen «Reservado», `is-booked` y están desactivados; +13 está activo | `demanda-calendario.spec.ts` · días reservados |
 | CP-DEM-09 | El propietario no alquila su objeto | Seed cargado; sesión de bruno | 1. Abrir su bicicleta | Se ve «Este anuncio es tuyo.», sin calendario ni leyenda | `demanda-calendario.spec.ts` · permisos |
 
+### US-10.03 Solicitar ser rider (#304) · S2-T36 (#316)
+
+**Datos comunes:** BD con el seed cargado. Usuarios: `carla@rentit.test` (rider pendiente), `dani@rentit.test` (rider aceptado), `ana@rentit.test` y `bruno@rentit.test` (cuentas normales). Contraseña: `Rentit2026`.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-RID-01 | 1. Una persona sin sesión puede abrir «Hazte rider» | Sin sesión | 1. En «Principal», pulsar «Hazte rider» | Se abre `/hazte-rider` con el título, la información de la solicitud y el botón «Enviar solicitud» | `hazte-rider.spec.ts` · criterio 1a |
+| CP-RID-02 | 1. Una cuenta normal no ve el enlace ni el formulario | Sesión de ana | 1. Comprobar la cabecera 2. Ir a `/hazte-rider` | No hay enlace «Hazte rider» y la ruta vuelve a `/` | `hazte-rider.spec.ts` · criterio 1b |
+| CP-RID-03 | 2. Se muestran todos los campos y opciones del cuestionario | Sin sesión | 1. Ir a `/hazte-rider` | Hay campos de cuenta, teléfono y zona; 5 vehículos, 7 días, 3 franjas, aceptación de condiciones y «Enviar solicitud» | `hazte-rider.spec.ts` · criterio 2a |
+| CP-RID-04 | 2. Enviar el formulario vacío valida todos los campos | Sin sesión | 1. Ir a `/hazte-rider` 2. Pulsar «Enviar solicitud» | Cada campo tiene su mensaje y `aria-invalid="true"`; el foco queda en «Nombre de usuario» y no se muestra la confirmación | `hazte-rider.spec.ts` · criterio 2b |
+| CP-RID-05 | 2. Se valida el teléfono y la contraseña | Sin sesión | 1. Completar el formulario, excepto el teléfono `12345` y la contraseña `corta` 2. Enviar | Solo teléfono y contraseña quedan inválidos y muestran sus errores | `hazte-rider.spec.ts` · criterio 2c |
+| CP-RID-06 | 2. No se puede reutilizar un correo registrado | Sin sesión; ana existe en el seed | 1. Completar el formulario con `ana@rentit.test` 2. Enviar | El correo queda inválido con «Ya existe una cuenta con este correo.» | `hazte-rider.spec.ts` · criterio 2d |
+| CP-RID-07 | 3. Una solicitud válida crea una cuenta rider pendiente | Sin sesión; nombre y correo únicos | 1. Completar y enviar el formulario 2. Pulsar «Iniciar sesión» 3. Iniciar sesión 4. Consultar el login de la API | Se muestra «Solicitud enviada», el correo se rellena en login, la home indica «Pendiente de revisión» y la API devuelve `isRider: true`, `riderStatus: "pending"` | `hazte-rider.spec.ts` · criterio 3 |
+| CP-RID-08 | 4. El rider pendiente no ve ni abre «Trabajos» | Sesión de carla | 1. Iniciar sesión 2. Ir a `/trabajos` | En la home ve «Tu solicitud para ser rider» y «Pendiente de revisión»; `/trabajos` vuelve a `/` | `hazte-rider.spec.ts` · criterio 4a |
+| CP-RID-09 | 4. El rider aceptado ve «Trabajos» | Sesión de dani | 1. Iniciar sesión | Se abre `/trabajos`, la cabecera enlaza a «Trabajos» y se ve ese título | `hazte-rider.spec.ts` · criterio 4b |
+| CP-RID-10 | 5. El rider no puede solicitar ni publicar desde la web | Sesión de dani | 1. Revisar la cabecera 2. Ir a `/buscar?q=taladro`, `/objetos/nuevo` y `/mis-objetos` | No ve «Mis objetos» ni «Mis solicitudes»; cada ruta lleva a `/trabajos` | `hazte-rider.spec.ts` · criterio 5a |
+| CP-RID-11 | 5. La API bloquea solicitudes y publicaciones para riders | Seed cargado; token de carla, dani y bruno | 1. Buscar el cortacésped y una categoría 2. Crear la misma reserva válida con bruno 3. Enviar reserva y objeto con los tokens de carla y dani | La reserva de bruno responde `201`; los POST de riders responden `403` y `{ "error": "Las cuentas de rider no pueden solicitar ni publicar objetos." }` | `hazte-rider.spec.ts` · criterio 5b |
+| CP-RID-12 | 4. Una cuenta rider rechazada no ve trabajos y ve el motivo | Rider rechazado con motivo | 1. Iniciar sesión con esa cuenta | No ve «Trabajos»; ve el motivo del rechazo | **Pendiente**: no hay rider rechazado en el seed ni API del admin; cubierto por los unitarios de `riderAccount.test.tsx` |
+
 ## 5. Métricas de tests
 
 Petición del profesor en la demo del Sprint 1 (#272). Las dos métricas salen solas del CI y de GitHub; solo hace falta seguir las reglas de `AGENTS.md`.
