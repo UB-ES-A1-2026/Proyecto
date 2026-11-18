@@ -182,3 +182,144 @@ describe('GET /api/entregas/:id', () => {
     });
   });
 });
+
+function advance(id: string, body: unknown, token?: string) {
+  const call = request(app)
+    .post(`/api/entregas/${id}/estado`)
+    .send(body as object);
+  return token ? call.set('Authorization', `Bearer ${token}`) : call;
+}
+
+describe('POST /api/entregas/:id/estado', () => {
+  it('lets the rider advance the steps in order, saving the time of each', async () => {
+    const { reservation, riderToken } = await setUp();
+
+    const pickedUp = await advance(
+      reservation.id,
+      { status: 'picked_up' },
+      riderToken,
+    );
+    const onTheWay = await advance(
+      reservation.id,
+      { status: 'on_the_way' },
+      riderToken,
+    );
+
+    expect(pickedUp.status).toBe(200);
+    expect(pickedUp.body.status).toBe('picked_up');
+    expect(onTheWay.status).toBe(200);
+    expect(onTheWay.body.status).toBe('on_the_way');
+    expect(onTheWay.body.steps).toEqual([
+      { status: 'assigned', at: expect.any(String) },
+      { status: 'picked_up', at: expect.any(String) },
+      { status: 'on_the_way', at: expect.any(String) },
+      { status: 'delivered', at: null },
+    ]);
+  });
+
+  it('returns 409 when skipping a step or going back', async () => {
+    const { reservation, riderToken } = await setUp();
+
+    const skip = await advance(
+      reservation.id,
+      { status: 'on_the_way' },
+      riderToken,
+    );
+    await advance(reservation.id, { status: 'picked_up' }, riderToken);
+    const again = await advance(
+      reservation.id,
+      { status: 'picked_up' },
+      riderToken,
+    );
+
+    expect(skip.status).toBe(409);
+    expect(skip.body).toEqual({
+      error:
+        'La entrega no puede pasar a ese estado: los estados van en orden.',
+    });
+    expect(again.status).toBe(409);
+  });
+
+  it('only changes once on a double click', async () => {
+    const { reservation, riderToken } = await setUp();
+
+    const responses = await Promise.all([
+      advance(reservation.id, { status: 'picked_up' }, riderToken),
+      advance(reservation.id, { status: 'picked_up' }, riderToken),
+    ]);
+
+    expect(responses.map(({ status }) => status).sort()).toEqual([200, 409]);
+  });
+
+  it('returns 403 when the renter or the owner try to advance it', async () => {
+    const { reservation, renterToken, ownerToken } = await setUp();
+
+    const byRenter = await advance(
+      reservation.id,
+      { status: 'picked_up' },
+      renterToken,
+    );
+    const byOwner = await advance(
+      reservation.id,
+      { status: 'picked_up' },
+      ownerToken,
+    );
+
+    expect(byRenter.status).toBe(403);
+    expect(byRenter.body).toEqual({
+      error: 'Solo el rider de esta entrega puede cambiar su estado.',
+    });
+    expect(byOwner.status).toBe(403);
+  });
+
+  it('returns 403 for a delivery without rider', async () => {
+    const { reservation, renterToken } = await setUp('home');
+
+    const response = await advance(
+      reservation.id,
+      { status: 'picked_up' },
+      renterToken,
+    );
+
+    expect(response.status).toBe(403);
+  });
+
+  it('returns 409 while the reservation is not paid', async () => {
+    const { reservation, riderToken } = await setUp();
+    await prisma.reservation.update({
+      where: { id: reservation.id },
+      data: { status: 'accepted' },
+    });
+
+    const response = await advance(
+      reservation.id,
+      { status: 'picked_up' },
+      riderToken,
+    );
+
+    expect(response.status).toBe(409);
+    expect(response.body).toEqual({
+      error: 'La entrega empieza cuando la reserva está pagada.',
+    });
+  });
+
+  it.each([undefined, 'flying', 3])(
+    'returns 400 when the status is %j',
+    async (status) => {
+      const { reservation, riderToken } = await setUp();
+
+      const response = await advance(reservation.id, { status }, riderToken);
+
+      expect(response.status).toBe(400);
+      expect(response.body.field).toBe('status');
+    },
+  );
+
+  it('returns 401 without a session', async () => {
+    const { reservation } = await setUp();
+
+    const response = await advance(reservation.id, { status: 'picked_up' });
+
+    expect(response.status).toBe(401);
+  });
+});
