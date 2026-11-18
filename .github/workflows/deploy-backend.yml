@@ -2,7 +2,8 @@
 # - push a main → producción (como siempre). Mientras no exista RENDER_DEPLOY_HOOK_URL, el job avisa y termina en verde.
 #   Producción solo se despliega desde main: una ejecución manual desde otra rama no hace nada.
 # - push a staging → preproducción (US-12.03, #279): otro servicio de Render, otra base de datos y otros secretos.
-#   Después se aplican las migraciones y se cargan los datos de demo en la BD de preproducción.
+#   Después se aplican las migraciones, se cargan los datos de demo en la BD de preproducción y se pasa el smoke
+#   test e2e contra la web y la API de preproducción (T5, #280).
 # Así Render no necesita la app de GitHub instalada en la organización (lo tendría que aprobar
 # el dueño de la org): el servicio se crea desde la URL del repo público (docs/despliegue.md).
 #
@@ -10,10 +11,11 @@
 # distintos a los de producción a propósito: si un secreto de staging tuviera el mismo nombre que uno de
 # producción (a nivel de repo) y faltara, GitHub usaría el de producción sin avisar (docs/despliegue.md).
 # El Environment ya existe, así que faltar un STAGING_* es un error de configuración (rojo), nunca un aviso en verde.
-# Si algo falla (config, hook, health, migración o seed), el workflow queda en rojo: ese check rojo en el commit de
-# staging es la señal de que no se abre el PR a main.
+# Si algo falla (config, hook, health, migración, seed o smoke test), el workflow queda en rojo: ese check rojo en
+# el commit de staging es la señal de que no se abre el PR a main.
 # Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 25/10/2026
 # Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+# Generado con asistencia de IA (Claude) – revisado por Danyal Anwar, 18/11/2026
 name: Despliegue del backend
 
 on:
@@ -157,11 +159,71 @@ jobs:
       - name: Resumen
         run: echo "### Preproducción lista (migraciones aplicadas y datos de demo cargados)" >> "$GITHUB_STEP_SUMMARY"
 
-  # Smoke test e2e contra preproducción (US-12.03, T5 #280, de Danyal). Aquí irá un job `smoke` con
-  #   needs: seed
-  #   if: github.ref == 'refs/heads/staging' && needs.seed.result == 'success'  (o un primer paso que falle si no)
-  #   environment: staging
-  # El smoke DEBE usar `needs: seed` y fallar si seed no terminó en success (si no, un seed saltado o fallido
-  # dejaría el smoke en verde sin haber probado nada). Que lance `npm run test:smoke` en e2e/ con BASE_URL = vars.STAGING_WEB_URL y
-  # API_URL = vars.STAGING_API_URL (variables del Environment «staging»). Si falla, el workflow queda en rojo.
-  # No se implementa aquí: es la tarea #280.
+  # Smoke test e2e contra preproducción (US-12.03, T5 #280): `npm run test:smoke` de e2e/ contra la web y la API
+  # de staging, cuando ya están desplegadas y con los datos de demo. Corre aunque `seed` falle o se salte
+  # (`!cancelled()`), y entonces su primer paso falla: un seed fallido o saltado nunca deja el smoke en verde
+  # sin haber probado nada.
+  # Si falla, el workflow queda en rojo y no se abre el PR a main (docs/despliegue.md).
+  smoke:
+    name: Smoke test (preproducción)
+    needs: seed
+    if: github.ref == 'refs/heads/staging' && !cancelled()
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: staging
+    defaults:
+      run:
+        working-directory: e2e
+    env:
+      BASE_URL: ${{ vars.STAGING_WEB_URL }}
+      API_URL: ${{ vars.STAGING_API_URL }}
+    steps:
+      # Antes del checkout todavía no existe la carpeta e2e/ de los defaults.
+      - name: Comprobar el seed y las URL de preproducción
+        working-directory: .
+        env:
+          SEED: ${{ needs.seed.result }}
+        run: |
+          if [ "$SEED" != "success" ]; then
+            echo "::error::Los datos de preproducción no se cargaron (seed: $SEED): el smoke test no se da por bueno."
+            exit 1
+          fi
+          if [ -z "$BASE_URL" ] || [ -z "$API_URL" ]; then
+            echo "::error::Falta la variable STAGING_WEB_URL o STAGING_API_URL del Environment «staging» (ver docs/despliegue.md)."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      # El frontend se despliega en otro workflow (deploy-frontend.yml) a la vez: se espera a que la web responda.
+      - name: Esperar a que la web de preproducción responda
+        run: |
+          for _ in $(seq 1 20); do
+            if curl -fsS --max-time 10 "$BASE_URL" > /dev/null; then
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::La web de preproducción no responde ($BASE_URL)."
+          exit 1
+
+      # Con CI=true, Playwright reintenta 2 veces y guarda la traza del primer reintento en test-results/.
+      - name: Smoke test
+        run: npm run test:smoke
+
+      - name: Trazas de Playwright
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-preproduccion
+          path: e2e/test-results/
+          retention-days: 7
+
+      - name: Resumen
+        run: echo "### Smoke test de preproducción en verde ($BASE_URL)" >> "$GITHUB_STEP_SUMMARY"
