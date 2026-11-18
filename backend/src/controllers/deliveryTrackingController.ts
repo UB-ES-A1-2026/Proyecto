@@ -53,3 +53,16 @@ export const advanceDelivery: RequestHandler<{ id: string }> = async (
 
   response.status(200).json(tracking);
 };
+
+// POST /api/entregas/:id/recibida
+export const confirmReceived: RequestHandler<{ id: string }> = async (
+  request,
+  response,
+) => {
+  const tracking = await deliveryTrackingService.confirmReceived(
+    request.auth!.userId,
+    request.params.id,
+  );
+
+  response.status(200).json(tracking);
+};
