@@ -301,6 +301,8 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
   {
     item: { owner: 1, title: 'Bicicleta de montaña talla M' },
     renter: 0,
+    // La bici solo se ofrece en punto de recogida (US-05.01).
+    delivery: { mode: 'pickup_point', pickupPoint: 'Biblioteca Jaume Fuster' },
     startInDays: 4,
     days: 2,
     status: 'paid',
