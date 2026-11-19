@@ -306,13 +306,18 @@ test.describe('US-10.03 Hazte rider', () => {
       endDate: end.toISOString().slice(0, 10),
       // Solicitar = pagar (US-07.01): la tarjeta de prueba que se acepta.
       confirmationTokenId: 'ctoken_simulado',
+      // El Cortacésped ofrece la recogida en casa del propietario (US-05.01).
+      deliveryMode: 'home',
     };
     const objectBody = {
       title: `Rider e2e ${Date.now()} ${Math.floor(Math.random() * 1_000_000)}`,
       description: 'Objeto de prueba para comprobar las restricciones de la cuenta rider.',
       dailyPrice: 100,
       categoryId,
-      neighborhood: 'Barcelona',
+      // US-05.01: un barrio de la lista y al menos un modo de entrega (el punto de recogida no pide
+      // dirección).
+      neighborhood: 'Gràcia',
+      pickupPointDelivery: true,
     };
 
     const brunoToken = await loginWithApi(page, 'bruno@rentit.test');
