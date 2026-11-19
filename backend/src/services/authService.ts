@@ -18,7 +18,7 @@ export const INVALID_PASSWORD_MESSAGE =
   'El campo "contraseña" no es correcto, revísalo.';
 
 // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
-// El `user` incluye isRider y riderStatus (US-10.03) para que el frontend sepa qué pantalla mostrar.
+// El `user` incluye isRider, riderStatus y rejectionReason (US-10.03, US-11.03) para que el frontend sepa qué pantalla mostrar.
 export interface LoginResult {
   token: string;
   expiresAt: Date;
@@ -51,9 +51,7 @@ export function uniqueConstraintField(
 
   if (fields.some((field) => field === 'email')) return 'email';
   if (
-    fields.some(
-      (field) => field === 'username' || field === 'nombre_usuario',
-    )
+    fields.some((field) => field === 'username' || field === 'nombre_usuario')
   ) {
     return 'username';
   }

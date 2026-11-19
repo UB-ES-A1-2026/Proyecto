@@ -5,7 +5,11 @@ import { prisma } from '../../src/repositories/prisma.js';
 import { resetDb } from '../helpers/db.js';
 import { createTestItem } from '../helpers/items.js';
 import { createTestReservation } from '../helpers/reservations.js';
-import { createTestUser, TEST_PASSWORD } from '../helpers/users.js';
+import {
+  createTestAdmin,
+  createTestUser,
+  TEST_PASSWORD,
+} from '../helpers/users.js';
 
 // GET /api/usuarios/me/reservas (US-04.02, #123): contrato acordado con Danyal en la issue.
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 02/11/2026
@@ -83,10 +87,40 @@ describe('GET /api/usuarios/me/reservas', () => {
           renter: { id: bruno.id, username: 'bruno' },
           owner: { id: ana.id, username: 'ana' },
           delivery: null,
+          cancellationReason: null,
           createdAt: reservation.createdAt.toISOString(),
         },
       ],
       received: [],
+    });
+  });
+
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 13/11/2026
+  it('exposes cancellationReason item_withdrawn on both sides after an admin withdraws the item (US-11.03)', async () => {
+    const { bruno, item } = await setUp();
+    const reservation = await createTestReservation(item.id, bruno.id);
+    const admin = await createTestAdmin();
+    const adminLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: admin.email, password: TEST_PASSWORD });
+    const withdrawn = await request(app)
+      .post(`/api/admin/objetos/${item.id}/retirar`)
+      .set('Authorization', `Bearer ${adminLogin.body.token}`)
+      .send({ reason: 'prohibited' });
+    expect(withdrawn.status).toBe(204);
+
+    const sent = await getMyReservations(await loginAs('bruno@rentit.test'));
+    const received = await getMyReservations(await loginAs('ana@rentit.test'));
+
+    expect(sent.body.sent[0]).toMatchObject({
+      id: reservation.id,
+      status: 'cancelled',
+      cancellationReason: 'item_withdrawn',
+    });
+    expect(received.body.received[0]).toMatchObject({
+      id: reservation.id,
+      status: 'cancelled',
+      cancellationReason: 'item_withdrawn',
     });
   });
 

@@ -49,6 +49,7 @@ describe('userService.getProfile', () => {
       role: 'user',
       isRider: true,
       riderStatus: 'approved',
+      rejectionReason: null,
       createdAt,
     });
     expect(profile).not.toHaveProperty('passwordHash');
