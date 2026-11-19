@@ -6,6 +6,16 @@ import type { ReservationWithDetail } from '../repositories/detailIncludes.js';
 // GET /api/usuarios/me/reservas (#123) y aceptar/rechazar (#125). De las personas solo salen
 // id y username, nunca el correo.
 
+// Quién canceló la reserva, cuándo y con qué penalización (US-04.05, #308). Los importes, como
+// texto con 2 decimales, igual que el resto de la API.
+export interface CancellationDetail {
+  by: { id: string; username: string };
+  at: Date;
+  penaltyPercent: number;
+  penaltyAmount: string;
+  refundAmount: string;
+}
+
 export interface ReservationDetail {
   id: string;
   item: { id: string; title: string };
@@ -21,6 +31,8 @@ export interface ReservationDetail {
   renter: { id: string; username: string };
   owner: { id: string; username: string };
   createdAt: Date;
+  // null salvo en las canceladas con su fila de cancelación.
+  cancellation: CancellationDetail | null;
 }
 
 // «AAAA-MM-DD»: la columna es DATE y Prisma la devuelve como medianoche en UTC.
@@ -47,5 +59,15 @@ export function toReservationDetail(
     renter: reservation.renter,
     owner: reservation.item.owner,
     createdAt: reservation.createdAt,
+    cancellation:
+      reservation.status === 'cancelled' && reservation.cancellation
+        ? {
+            by: reservation.cancellation.cancelledBy,
+            at: reservation.cancellation.cancelledAt,
+            penaltyPercent: reservation.cancellation.penaltyPercent,
+            penaltyAmount: reservation.cancellation.penaltyAmount.toFixed(2),
+            refundAmount: reservation.cancellation.refundAmount.toFixed(2),
+          }
+        : null,
   };
 }

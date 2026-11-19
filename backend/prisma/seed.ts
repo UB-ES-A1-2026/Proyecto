@@ -32,8 +32,12 @@ async function main(): Promise<void> {
 
   // Los objetos son de ana y bruno; admin no publica nada.
   const items = await upsertDemoItems(prisma, [anaId, brunoId, anaId]);
-  // Las solicitudes son entre ana (0) y bruno (1).
-  const reservations = await upsertDemoReservations(prisma, [anaId, brunoId]);
+  // Las solicitudes son entre ana (0 y 2, como en los objetos) y bruno (1).
+  const reservations = await upsertDemoReservations(prisma, [
+    anaId,
+    brunoId,
+    anaId,
+  ]);
   // Seis vecinos con solicitudes pendientes en las mismas fechas (US-04.07).
   const neighbourIds = await upsertUsers(
     prisma,

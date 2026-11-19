@@ -113,6 +113,13 @@ export async function upsertDemoItems(
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+// Estado del pago según el de la reserva. Una cancelada con pago se reembolsó (US-04.05).
+const PAYMENT_STATUS = {
+  pending: 'authorized',
+  paid: 'paid',
+  cancelled: 'refunded',
+} as const;
+
 // Fecha (sin hora) a N días de `today`, a medianoche UTC, como guarda Prisma las columnas DATE.
 function daysFrom(today: Date, days: number): Date {
   const midnight = Date.UTC(
@@ -179,16 +186,51 @@ export async function upsertDemoReservations(
     // y rechazadas son del flujo antiguo y no llevan pago. Sin referencias: pagos sin pasarela.
     // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 14/11/2026
     await prisma.payment.deleteMany({ where: { reservationId: id } });
-    if (reservation.status === 'pending' || reservation.status === 'paid') {
+    const hasPayment =
+      reservation.status === 'pending' ||
+      reservation.status === 'paid' ||
+      reservation.status === 'cancelled';
+    if (hasPayment) {
       await prisma.payment.create({
         data: {
           reservationId: id,
           rentalAmount: data.totalPrice,
           depositAmount: item.deposit,
-          status: reservation.status === 'paid' ? 'paid' : 'authorized',
+          status: PAYMENT_STATUS[reservation.status],
           // La fianza se retiene el día antes de empezar (#72): de momento, «pendiente». Sin fianza
-          // (menos de 0,50 €) no hay estado.
-          depositStatus: item.deposit.gte(0.5) ? 'pending' : null,
+          // (menos de 0,50 €) no hay estado. En la cancelada (US-04.05) ya está liberada.
+          depositStatus: item.deposit.gte(0.5)
+            ? reservation.status === 'cancelled'
+              ? 'released'
+              : 'pending'
+            : null,
+        },
+      });
+    }
+
+    // Cancelaciones (US-04.05, #308): quién canceló, con qué penalización y lo reembolsado. Se
+    // rehacen en cada ejecución, así que una reserva cancelada al probar vuelve a su estado.
+    await prisma.cancellation.deleteMany({ where: { reservationId: id } });
+    if (reservation.status === 'cancelled') {
+      const cancelledById = userIds[reservation.cancellation?.by ?? -1];
+      if (!reservation.cancellation || !cancelledById) {
+        throw new Error(
+          `Falta quién canceló la reserva de «${reservation.item.title}»`,
+        );
+      }
+      const penaltyAmount = data.totalPrice
+        .times(reservation.cancellation.penaltyPercent)
+        .dividedBy(100)
+        .toDecimalPlaces(2);
+      await prisma.cancellation.create({
+        data: {
+          reservationId: id,
+          cancelledById,
+          // Un día antes de hoy: ya está cancelada de antes de cargar el seed.
+          cancelledAt: new Date(today.getTime() - DAY_MS),
+          penaltyPercent: reservation.cancellation.penaltyPercent,
+          penaltyAmount,
+          refundAmount: data.totalPrice.minus(penaltyAmount),
         },
       });
     }

@@ -45,6 +45,7 @@ describe('toReservationDetail', () => {
       renter: { id: renter.id, username: 'bruno' },
       owner: { id: owner.id, username: 'ana' },
       createdAt: reservation.createdAt,
+      cancellation: null,
     });
   });
 });

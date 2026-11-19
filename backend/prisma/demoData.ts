@@ -211,7 +211,10 @@ export interface DemoReservation {
   renter: number;
   startInDays: number;
   days: number;
-  status: 'pending' | 'accepted' | 'rejected' | 'paid';
+  status: 'pending' | 'accepted' | 'rejected' | 'paid' | 'cancelled';
+  // Solo en las canceladas (US-04.05, #308): quién la canceló (índice de usuario) y la penalización
+  // que se aplicó. Se guarda como una cancelación hecha por la API: con el pago reembolsado.
+  cancellation?: { by: number; penaltyPercent: 0 | 35 | 100 };
 }
 
 export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
@@ -257,6 +260,27 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
     startInDays: 4,
     days: 2,
     status: 'paid',
+  },
+  // Cancelación (US-04.05, #308). Pagada a 12 días: se puede cancelar sin penalización (marta la
+  // cancela como propietaria o jordi como arrendatario; en local, ana y bruno); la bici, a 4 días,
+  // cuesta el 35 %. No es la «Máquina de palomitas»: la retira un e2e, y con una reserva pagada no
+  // se puede retirar.
+  {
+    item: { owner: 2, title: 'Hidrolimpiadora Kärcher' },
+    renter: 1,
+    startInDays: 12,
+    days: 2,
+    status: 'paid',
+  },
+  // Ya cancelada por el arrendatario (bruno) a 6 días: el 35 % de 16 € son 5,60 € para ana, y a
+  // bruno se le devuelven 10,40 €. Las dos personas la ven «Cancelada» en «Mis solicitudes».
+  {
+    item: { owner: 0, title: 'Tienda de campaña para 4 personas' },
+    renter: 1,
+    startInDays: 6,
+    days: 2,
+    status: 'cancelled',
+    cancellation: { by: 1, penaltyPercent: 35 },
   },
 ];
 
