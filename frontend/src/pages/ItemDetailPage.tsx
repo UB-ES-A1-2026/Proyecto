@@ -1,12 +1,13 @@
 // Generado con asistencia de IA – revisado por Danyal, 01/11/2026
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { Icon, type IconName } from '../components/Icon';
 import { RentalRequest } from '../components/RentalRequest';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import { getItemDetail, type ItemDetail } from '../services/itemService';
 import { formatPrice } from '../utils/rental';
+import { rentalDatesFrom, rentalDatesSearch } from '../utils/rentalDates';
 
 type ItemDetailState =
   | { requestKey: string; status: 'success'; item: ItemDetail }
@@ -81,7 +82,10 @@ function ItemGallery({ title, photos }: Pick<ItemDetail, 'title' | 'photos'>) {
 function RentalAction({ item }: { item: ItemDetail }) {
   const { session } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const itemPath = `/objetos/${encodeURIComponent(item.id)}`;
+  // Al volver de «Confirmar y pagar», las fechas siguen elegidas: van en la dirección de la ficha.
+  const initialDates = rentalDatesFrom(searchParams);
 
   const goToLogin = useCallback(() => {
     navigate('/login', { state: { from: itemPath } });
@@ -120,13 +124,15 @@ function RentalAction({ item }: { item: ItemDetail }) {
   return (
     <RentalRequest
       key={item.id}
-      item={{
-        id: item.id,
-        title: item.title,
-        pricePerDay: Number(item.dailyPrice),
-        photoUrl: item.photos[0]?.url,
+      item={{ id: item.id, title: item.title, pricePerDay: Number(item.dailyPrice) }}
+      initialDates={initialDates ?? undefined}
+      // Las fechas se guardan en la dirección de la ficha, para que «Atrás» desde la página de pago
+      // vuelva con ellas, y se abre «Confirmar y pagar» (US-07.01).
+      onContinue={(dates) => {
+        const search = `?${rentalDatesSearch(dates)}`;
+        void navigate({ search }, { replace: true });
+        void navigate(`${itemPath}/solicitar${search}`);
       }}
-      onRequested={() => navigate('/mis-solicitudes')}
       onSessionExpired={goToLogin}
     />
   );

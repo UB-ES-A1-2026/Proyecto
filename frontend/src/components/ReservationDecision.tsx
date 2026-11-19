@@ -31,6 +31,7 @@ export function ReservationDecision({
   const [error, setError] = useState<string | null>(null);
   const [terminalError, setTerminalError] = useState(false);
   const [acceptBlocked, setAcceptBlocked] = useState(false);
+  const [charged, setCharged] = useState(false);
 
   if (!session) return null;
   if (status !== 'pending' && completed === null && error === null) return null;
@@ -46,6 +47,8 @@ export function ReservationDecision({
           ? await acceptReservation(token, reservationId)
           : await rejectReservation(token, reservationId);
       setCompleted(decision);
+      // Pago al solicitar (US-07.01, #286): al aceptar se cobra lo bloqueado y queda «Pagada».
+      setCharged(updated.status === 'paid');
       onDecided(updated);
     } catch (requestError: unknown) {
       if (requestError instanceof ApiError && requestError.status === 401) {
@@ -73,7 +76,11 @@ export function ReservationDecision({
     return (
       <p className={`reservation-decision-message is-${completed}`} role="status">
         <Icon name={completed === 'accept' ? 'check_circle' : 'cancel'} />
-        {completed === 'accept' ? 'Has aceptado la solicitud.' : 'Has rechazado la solicitud.'}
+        {completed === 'reject'
+          ? 'Has rechazado la solicitud. Se ha liberado el importe bloqueado.'
+          : charged
+            ? 'Has aceptado la solicitud. Se ha cobrado el alquiler.'
+            : 'Has aceptado la solicitud.'}
       </p>
     );
   }

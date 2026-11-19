@@ -57,7 +57,7 @@ function renderRentalRequest() {
   const clearSession = vi.fn();
   render(
     <AuthContext.Provider value={{ session: SESSION, saveSession: vi.fn(), clearSession }}>
-      <RentalRequest item={ITEM} onRequested={vi.fn()} onSessionExpired={onSessionExpired} />
+      <RentalRequest item={ITEM} onContinue={vi.fn()} onSessionExpired={onSessionExpired} />
     </AuthContext.Provider>,
   );
   return { onSessionExpired, clearSession };

@@ -100,7 +100,8 @@ erDiagram
     fecha fecha_fin
     decimal precio_total
     enum modo_entrega "domicilio | rider | punto_recogida"
-    enum estado "pendiente | aceptada | rechazada | cancelada | pagada | en_curso | finalizada"
+    enum estado "pendiente | aceptada | rechazada | cancelada | pagada | en_curso | finalizada | caducada"
+    fecha_hora caduca_en "solo en las pendientes"
     fecha_hora creada_en
     fecha_hora actualizada_en
   }
@@ -110,10 +111,12 @@ erDiagram
     decimal importe_alquiler
     decimal importe_entrega
     decimal importe_fianza
-    enum estado "pendiente | pagado | rechazado | reembolsado"
-    enum estado_fianza "retenida | liberada | ejecutada"
-    texto referencia_pasarela
+    enum estado "autorizado | pagado | liberado | reembolsado"
+    enum estado_fianza "pendiente | retenida | liberada | ejecutada | cobrada | devuelta, null sin fianza"
+    texto referencia_alquiler UK
+    texto referencia_fianza UK
     fecha_hora creado_en
+    fecha_hora actualizado_en
   }
   PUNTO_RECOGIDA {
     id id PK
@@ -282,6 +285,39 @@ Se crea en la migración `crea_solicitud_rider` como parte de US-10.03 (#304, «
 | Un usuario con solicitud **no se puede borrar** | La solicitud es el historial de la revisión. |
 
 En Prisma, el modelo es `RiderApplication` y los enums son `RiderVehicle` (`on_foot`, `bike`, `scooter`, `motorbike`, `car`), `RiderApplicationStatus` (`pending`, `approved`, `rejected`), `RiderWeekday` (`monday` … `sunday`) y `RiderSlot` (`morning`, `afternoon`, `night`).
+
+## Tabla `pago` (Sprint 2 · #284)
+
+Se crea en la migración `crea_pago` como parte de US-07.01 (#72, tarea T9), con el flujo acordado en #72: **solicitar es pagar**. Al solicitar se bloquea el total en la tarjeta sin cobrarlo; al aceptar se cobra, y si la solicitud se rechaza, se cancela o caduca, se libera.
+
+| Momento | `reserva.estado` | `pago.estado` | Quién |
+|---|---|---|---|
+| Solicitar (`POST /api/reservas`) | `pendiente`, con `caduca_en` = ahora + 48 h | `autorizado` (importe bloqueado) | T9 (#284) |
+| Aceptar | `pagada` | `pagado` (se cobra) | Alex |
+| Rechazar o cancelar antes de aceptar | `rechazada` o `cancelada` | `liberado` | Alex |
+| Pasan 48 h sin respuesta (se comprueba al consultar) | `caducada` | `liberado` | T10 (#285) |
+| Cancelar después de pagar | `cancelada` | `reembolsado` (todo o en parte) | T28 (#308) |
+
+Lo que no se ve en el diagrama:
+
+| Decisión | Por qué |
+|---|---|
+| `reserva_id` es **único** | Una reserva tiene como mucho un pago: la BD impide **registrar** dos pagos de la misma reserva. Que no se bloquee dinero de más lo evita el backend: comprueba los conflictos antes de llamar a la pasarela y, si la reserva no se llega a guardar, suelta el bloqueo. |
+| Los importes se **copian** de la reserva y del objeto al solicitar | Si el propietario cambia la fianza después, el pago conserva lo que se bloqueó. |
+| `importe_entrega` vale 0 por defecto | Con recogida no hay coste, y hasta que la tabla `entrega` (US-05.01) esté en `develop` tampoco. El importe bloqueado es el total: alquiler + entrega. |
+| `estado_fianza` empieza en `pendiente`, o es `null` | La fianza se retiene (alquiler de hasta 6 días) o se cobra (más de 6 días) el día antes de empezar (T10). Si es menor de 0,50 €, el mínimo que Stripe puede retener, no hay fianza y el estado es `null`. Un `CHECK` lo garantiza. |
+| Dos referencias, `referencia_alquiler` y `referencia_fianza`, **únicas** | En Stripe el alquiler y la fianza son dos PaymentIntent distintos, y hacen falta los dos para liberar o reembolsar. Que sean únicas permite encontrar el pago desde un webhook. En los datos de demo valen `null`: son pagos **sin pasarela**, y la T10 no debe llamar a Stripe con ellos: al aceptar o rechazar una solicitud de demo, el pago pasa a «pagado» o «liberado» sin llamar a la pasarela (#343). |
+| `CHECK` en la BD: `importe_alquiler > 0` y los demás `>= 0` | El backend también lo valida, pero así la BD nunca guarda datos imposibles. |
+| Una reserva con pago **no se puede borrar** | El pago es el historial de lo que se bloqueó y se cobró. |
+| Las reservas `aceptada` del flujo antiguo **no se tocan** | No tienen pago; cualquiera de las dos partes puede cancelarlas. |
+
+En Prisma, el modelo es `Payment`, y los enums son `PaymentStatus` (`authorized`, `paid`, `released`, `refunded`) y `DepositStatus` (`pending`, `held`, `released`, `charged`, `collected`, `returned`). La reserva tiene el estado nuevo `expired` y el campo `expiresAt`.
+
+**Pasarela** (`backend/src/services/paymentGateway.ts`): de momento simulada; la T10 la cambia por Stripe con las mismas firmas. Los importes van siempre en céntimos enteros (`toCents`, desde el `Decimal`):
+- `authorize(amountCents, confirmationTokenId, metadata)` → `{ reference }`, o `PaymentDeclinedError` si el banco lo rechaza. En la simulada, el token `ctoken_declined` se rechaza y cualquier otro se acepta.
+- `capture(reference)`, `release(reference)` y `refund(reference, amountCents?)`.
+
+**`POST /api/reservas`** pide ahora `confirmationTokenId`, el token del formulario de pago de Stripe. Hasta la T11 (#286), el frontend envía uno simulado (`ctoken_simulado`). Errores nuevos: 400 sin token y 402 tarjeta rechazada, los dos con `field: "confirmationTokenId"`. Los 409 de siempre se comprueban antes de bloquear nada. La reserva devuelve también `deposit`, `deliveryAmount` y `expiresAt` (solo si está pendiente; si no, `null`). El antiguo `POST /api/reservas/:id/pago` ya no existe.
 
 ## Qué tablas entran en cada sprint
 

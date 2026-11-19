@@ -1,6 +1,7 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
 import type { RequestHandler } from 'express';
 import { AppError } from '../errors/appError.js';
+import { PaymentActionRequiredError } from '../services/paymentGateway.js';
 import * as reservationService from '../services/reservationService.js';
 
 const UUID_PATTERN =
@@ -12,6 +13,8 @@ const INVALID_START_DATE_MESSAGE =
   'El campo "fecha de inicio" no es correcto, revísalo.';
 const INVALID_END_DATE_MESSAGE =
   'El campo "fecha de fin" no es correcto, revísalo.';
+const MISSING_PAYMENT_MESSAGE =
+  'El campo "método de pago" no es correcto, revísalo.';
 
 // Acepta solo fechas reales en formato AAAA-MM-DD: rechaza, por ejemplo, 2026-02-30.
 function isValidDate(value: unknown): value is string {
@@ -52,12 +55,43 @@ function readReservationInput(source: unknown): {
 // POST /api/reservas (US-04.01, #120). requireAuth garantiza que request.auth existe.
 export const createReservation: RequestHandler = async (request, response) => {
   const input = readReservationInput(request.body);
-  const reservation = await reservationService.createReservation(
-    request.auth!.userId,
-    input,
-  );
 
-  response.status(201).json(reservation);
+  // Token del formulario de pago de Stripe (US-07.01, #72): sin él no se puede bloquear el importe.
+  // Tras el 3D Secure, el navegador repite la petición con paymentIntentId en su lugar.
+  const { confirmationTokenId, paymentIntentId } = (request.body ??
+    {}) as Record<string, unknown>;
+  const hasIntent =
+    typeof paymentIntentId === 'string' && paymentIntentId.length > 0;
+  if (
+    !hasIntent &&
+    (typeof confirmationTokenId !== 'string' || !confirmationTokenId)
+  ) {
+    throw new AppError(400, MISSING_PAYMENT_MESSAGE, 'confirmationTokenId');
+  }
+
+  try {
+    const reservation = await reservationService.createReservation(
+      request.auth!.userId,
+      hasIntent
+        ? { ...input, paymentIntentId }
+        : { ...input, confirmationTokenId: confirmationTokenId as string },
+    );
+
+    response.status(201).json(reservation);
+  } catch (error) {
+    if (error instanceof PaymentActionRequiredError) {
+      // El banco pide verificar el pago: todavía no hay reserva (flujo de 3D Secure, #72).
+      response.status(402).json({
+        error: error.message,
+        field: 'confirmationTokenId',
+        requiresAction: true,
+        clientSecret: error.clientSecret,
+        paymentIntentId: error.paymentIntentId,
+      });
+      return;
+    }
+    throw error;
+  }
 };
 
 // GET /api/reservas/disponibilidad (US-04.01, #120).

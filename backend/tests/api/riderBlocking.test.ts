@@ -13,6 +13,10 @@ import {
 } from '../helpers/users.js';
 
 // US-10.03: una cuenta de rider (con cualquier estado de solicitud) no publica ni solicita.
+// Solicitar = pagar (US-07.01): un token que la pasarela simulada acepta. Sin él, la API responde
+// 400 antes de mirar si la cuenta es de rider.
+const PAYMENT_TOKEN = 'ctoken_ok';
+
 const BLOCKED = {
   error: 'Las cuentas de rider no pueden solicitar ni publicar objetos.',
 };
@@ -76,6 +80,7 @@ describe.each(['pending', 'approved', 'rejected'] as const)(
           itemId: item.id,
           startDate: tomorrow(),
           endDate: tomorrow(),
+          confirmationTokenId: PAYMENT_TOKEN,
         });
 
       expect(response.status).toBe(403);
@@ -102,7 +107,12 @@ describe('a regular account', () => {
     const reserved = await request(app)
       .post('/api/reservas')
       .set('Authorization', `Bearer ${token}`)
-      .send({ itemId: item.id, startDate: tomorrow(), endDate: tomorrow() });
+      .send({
+        itemId: item.id,
+        startDate: tomorrow(),
+        endDate: tomorrow(),
+        confirmationTokenId: PAYMENT_TOKEN,
+      });
 
     expect(published.status).toBe(201);
     expect(reserved.status).toBe(201);
