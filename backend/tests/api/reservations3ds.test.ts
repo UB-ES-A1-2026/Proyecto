@@ -18,7 +18,10 @@ function daysFromToday(days: number): string {
 async function setUp(dailyPrice = 5) {
   const owner = await createTestUser();
   await createTestUser({ username: 'bruno', email: 'bruno@rentit.test' });
-  const item = await createTestItem(owner.id, { dailyPrice });
+  const item = await createTestItem(owner.id, {
+    dailyPrice,
+    homeDelivery: true,
+  });
   const login = await request(app)
     .post('/api/auth/login')
     .send({ email: 'bruno@rentit.test', password: TEST_PASSWORD });
@@ -26,10 +29,13 @@ async function setUp(dailyPrice = 5) {
 }
 
 function post(token: string, body: object) {
-  return request(app)
-    .post('/api/reservas')
-    .set('Authorization', `Bearer ${token}`)
-    .send(body);
+  return (
+    request(app)
+      .post('/api/reservas')
+      .set('Authorization', `Bearer ${token}`)
+      // Entrega de US-05.01: por defecto, recogida en casa del propietario.
+      .send({ deliveryMode: 'home', ...body })
+  );
 }
 
 beforeEach(async () => {
