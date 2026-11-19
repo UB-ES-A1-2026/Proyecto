@@ -475,7 +475,7 @@ En Prisma, el modelo es `Cancellation` (`reservationId`, `cancelledById`, `cance
 
 Antes de cancelar se caducan las solicitudes pendientes vencidas del usuario (#343), así que una pendiente que ya venció da `409`. Las llamadas a la pasarela se hacen dentro de la transacción, antes de confirmar: primero la fianza (soltar un bloqueo se puede repetir sin riesgo) y, lo último, el reembolso del alquiler.
 
-**Datos de demo:** `DEMO_RESERVATIONS` incluye, además de la bici pagada (a 4 días: penalización del 35 %), una pagada a 12 días («Máquina de palomitas»: cancelar es gratis) y una ya **cancelada** por bruno con su fila de `cancelacion` («Tienda de campaña»: 35 % de 16 € = 5,60 € para ana, 10,40 € devueltos a bruno). Repetir el seed rehace las cancelaciones.
+**Datos de demo:** `DEMO_RESERVATIONS` incluye, además de la bici pagada (a 4 días: penalización del 35 %), una pagada a 12 días («Hidrolimpiadora Kärcher», que jordi alquila a marta, o bruno a ana en local: cancelar es gratis) y una ya **cancelada** por bruno con su fila de `cancelacion` («Tienda de campaña»: 35 % de 16 € = 5,60 € para ana, 10,40 € devueltos a bruno). Repetir el seed rehace las cancelaciones.
 
 ## Qué tablas entran en cada sprint
 
