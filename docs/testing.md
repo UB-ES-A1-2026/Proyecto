@@ -175,7 +175,7 @@ Se edita la «Hidrolimpiadora Kärcher» de ana (8 €/día, fianza 50 €), que
 
 ### US-04.02 Consultar mis solicitudes (#61) · S1-T38 (#176)
 
-Solicitudes del seed (`DEMO_RESERVATIONS` en `backend/prisma/demoData.ts`, #210): bruno pide a ana la escalera (aceptada), y ana pide a bruno el proyector (pendiente) y el altavoz (rechazada). Las pendientes del taladro y del carro son para los e2e de aceptar y rechazar, y estos tests no las usan. Para cancelar (US-04.05, #308) hay tres más: ana tiene pagadas la bici de bruno (empieza a 4 días: penalización del 35 %) y las palomitas (a 12 días: gratis), y bruno canceló la tienda de ana (a 6 días: 5,60 € para ana y 10,40 € devueltos a bruno), que sale «Cancelada» a los dos.
+Solicitudes del seed (`DEMO_RESERVATIONS` en `backend/prisma/demoData.ts`, #210): bruno pide a ana la escalera (aceptada), y ana pide a bruno el proyector (pendiente) y el altavoz (rechazada). Las pendientes del taladro y del carro son para los e2e de aceptar y rechazar, y estos tests no las usan. Para cancelar (US-04.05, #308) hay tres más: ana tiene pagada la bici de bruno (empieza a 4 días: penalización del 35 %), bruno tiene pagada la hidrolimpiadora de ana (a 12 días: gratis), y bruno canceló la tienda de ana (a 6 días: 5,60 € para ana y 10,40 € devueltos a bruno), que sale «Cancelada» a los dos.
 
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
