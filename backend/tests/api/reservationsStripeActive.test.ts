@@ -28,7 +28,7 @@ describe('POST /api/reservas con Stripe activo', () => {
     async (paymentIntentId) => {
       const owner = await createTestUser();
       await createTestUser({ username: 'bruno', email: 'bruno@rentit.test' });
-      const item = await createTestItem(owner.id);
+      const item = await createTestItem(owner.id, { homeDelivery: true });
       const login = await request(app)
         .post('/api/auth/login')
         .send({ email: 'bruno@rentit.test', password: TEST_PASSWORD });
@@ -43,6 +43,7 @@ describe('POST /api/reservas con Stripe activo', () => {
           itemId: item.id,
           startDate: day,
           endDate: day,
+          deliveryMode: 'home',
           paymentIntentId,
         });
 
