@@ -44,12 +44,17 @@ function day(offset: number): string {
 async function setUpWithCreatedReservation() {
   const owner = await createTestUser();
   await createTestUser({ username: 'bruno', email: 'bruno@rentit.test' });
-  const item = await createTestItem(owner.id);
+  const item = await createTestItem(owner.id, { homeDelivery: true });
   const login = await request(app)
     .post('/api/auth/login')
     .send({ email: 'bruno@rentit.test', password: TEST_PASSWORD });
   const token = login.body.token as string;
-  const body = { itemId: item.id, startDate: day(10), endDate: day(12) };
+  const body = {
+    itemId: item.id,
+    startDate: day(10),
+    endDate: day(12),
+    deliveryMode: 'home',
+  };
   const post = (extra: object) =>
     request(app)
       .post('/api/reservas')

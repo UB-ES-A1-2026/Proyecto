@@ -145,6 +145,16 @@ async function openDeliveryStep(page: Page, itemPath: string, startDate: Date) {
   await expect(page.getByRole('heading', { level: 2, name: 'Entrega', exact: true })).toBeVisible();
 }
 
+// Con la entrega elegida, «Continuar» lleva a «Confirmar y pagar» (US-07.01): se paga con la tarjeta
+// simulada que se acepta y se envía la solicitud. Unión de la entrega y el pago (#350).
+async function payAndSend(page: Page) {
+  await expect(page.getByRole('heading', { level: 1, name: 'Confirmar y pagar' })).toBeVisible();
+  await page.getByLabel('Número de tarjeta').fill('4242 4242 4242 4242');
+  await page.getByLabel('Caducidad').fill('12/30');
+  await page.getByLabel('CVC').fill('123');
+  await page.getByRole('button', { name: 'Confirmar y enviar solicitud' }).click();
+}
+
 function reservationCard(
   page: Page,
   sectionName: 'Enviadas' | 'Recibidas',
@@ -308,6 +318,7 @@ test.describe('US-05.01 Elegir modo y hora de entrega', () => {
       startDate: isoDate(date),
       endDate: isoDate(date),
       deliveryMode: 'home',
+      confirmationTokenId: 'ctoken_simulado',
     });
 
     const unsupported = await request.post(`${API_URL}/reservas`, {
@@ -370,12 +381,12 @@ test.describe('US-05.01 Elegir modo y hora de entrega', () => {
     expect(totalCents).toBe(rentalCents + feeCents);
     await page.getByRole('button', { name: 'Continuar' }).click();
 
-    const panel = page.getByRole('complementary', { name: 'Alquiler de este objeto' });
-    await expect(panel.getByRole('heading', { level: 2, name: 'Revisa tu solicitud' })).toBeVisible();
-    expect(priceCents(await panel.locator('.rental-total').innerText(), /([\d.,]+)\s*€/)).toBe(
+    const summary = page.getByRole('region', { name: 'Tu solicitud' });
+    await expect(summary).toBeVisible();
+    expect(priceCents(await summary.locator('.rental-total').innerText(), /([\d.,]+)\s*€/)).toBe(
       totalCents,
     );
-    await page.getByRole('button', { name: 'Confirmar' }).click();
+    await payAndSend(page);
     await expect(page).toHaveURL('/mis-solicitudes');
 
     const card = reservationCard(page, 'Enviadas', SILLA, startDate);
@@ -409,7 +420,7 @@ test.describe('US-05.01 Elegir modo y hora de entrega', () => {
     await openDeliveryStep(page, itemPath, startDate);
     await page.getByRole('radio', { name: 'Recoger en casa del propietario' }).check();
     await page.getByRole('button', { name: 'Continuar' }).click();
-    await page.getByRole('button', { name: 'Confirmar' }).click();
+    await payAndSend(page);
     await expect(page).toHaveURL('/mis-solicitudes');
 
     const pending = reservationCard(page, 'Enviadas', CORTACESPED, startDate);
@@ -459,10 +470,10 @@ test.describe('US-05.01 Elegir modo y hora de entrega', () => {
     const pointAddress = addressParts.join(' · ');
     await selectedPoint.check();
     await page.getByRole('button', { name: 'Continuar' }).click();
-    const panel = page.getByRole('complementary', { name: 'Alquiler de este objeto' });
-    await expect(panel.getByText(`Punto de recogida: ${pointName}`)).toBeVisible();
-    await expect(panel.getByText(pointAddress, { exact: false })).toBeVisible();
-    await page.getByRole('button', { name: 'Confirmar' }).click();
+    const summary = page.getByRole('region', { name: 'Tu solicitud' });
+    await expect(summary.getByText(`Punto de recogida: ${pointName}`)).toBeVisible();
+    await expect(summary.getByText(pointAddress, { exact: false })).toBeVisible();
+    await payAndSend(page);
     await expect(page).toHaveURL('/mis-solicitudes');
 
     const card = reservationCard(page, 'Enviadas', SILLA, startDate);

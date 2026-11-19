@@ -729,6 +729,7 @@ describe('POST /api/reservas: bloqueo del pago', () => {
   it('leaves the deposit status empty when the deposit is under 0.50 €', async () => {
     const { owner, token } = await setUp();
     const item = await createTestItem(owner.id, {
+      homeDelivery: true,
       title: 'Carro',
       deposit: 0.4,
     });
