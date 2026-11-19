@@ -7,6 +7,7 @@ import {
   withdrawItemByAdmin,
 } from '../repositories/adminItemWithdrawRepository.js';
 import { ADMIN_ONLY_WITHDRAW_MESSAGE, assertAdmin } from './adminService.js';
+import { releaseHoldsBestEffort } from './reservationExpiry.js';
 
 export const ITEM_NOT_FOUND_MESSAGE = 'No hemos encontrado este objeto.';
 export const ALREADY_WITHDRAWN_BY_ADMIN_MESSAGE =
@@ -82,4 +83,8 @@ export async function withdrawItemAsAdmin(
   if (!withdrawn) {
     throw new AppError(409, ALREADY_WITHDRAWN_BY_ADMIN_MESSAGE);
   }
+
+  // Después de confirmar la retirada: si Stripe no responde, el objeto queda retirado igual y el
+  // bloqueo caduca solo en la tarjeta.
+  await releaseHoldsBestEffort(withdrawn.releaseReferences);
 }
