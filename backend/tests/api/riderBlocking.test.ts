@@ -13,8 +13,8 @@ import {
 } from '../helpers/users.js';
 
 // US-10.03: una cuenta de rider (con cualquier estado de solicitud) no publica ni solicita.
-// Solicitar = pagar (US-07.01): un token que la pasarela simulada acepta. Sin él, la API responde
-// 400 antes de mirar si la cuenta es de rider.
+// Solicitar = pagar (US-07.01): un token que la pasarela simulada acepta. Sin él, o sin un modo de
+// entrega que el objeto ofrezca (US-05.01), la API responde 400 antes de mirar si la cuenta es de rider.
 const PAYMENT_TOKEN = 'ctoken_ok';
 
 const BLOCKED = {
@@ -41,6 +41,8 @@ async function publishBody() {
     dailyPrice: 7.5,
     deposit: '40',
     neighborhood: 'Sants',
+    // US-05.01: al menos un modo de entrega; el punto de recogida no necesita dirección.
+    pickupPointDelivery: true,
   };
 }
 
@@ -69,7 +71,7 @@ describe.each(['pending', 'approved', 'rejected'] as const)(
 
     it('cannot request a reservation', async () => {
       const owner = await createTestUser();
-      const item = await createTestItem(owner.id);
+      const item = await createTestItem(owner.id, { homeDelivery: true });
       await createTestRider(status);
       const token = await loginAs('rider@rentit.test');
 
@@ -80,6 +82,7 @@ describe.each(['pending', 'approved', 'rejected'] as const)(
           itemId: item.id,
           startDate: tomorrow(),
           endDate: tomorrow(),
+          deliveryMode: 'home',
           confirmationTokenId: PAYMENT_TOKEN,
         });
 
@@ -97,7 +100,7 @@ describe('a regular account', () => {
       username: 'bruno',
       email: 'bruno@rentit.test',
     });
-    const item = await createTestItem(owner.id);
+    const item = await createTestItem(owner.id, { homeDelivery: true });
     const token = await loginAs('ana@rentit.test');
 
     const published = await request(app)
@@ -111,6 +114,7 @@ describe('a regular account', () => {
         itemId: item.id,
         startDate: tomorrow(),
         endDate: tomorrow(),
+        deliveryMode: 'home',
         confirmationTokenId: PAYMENT_TOKEN,
       });
 

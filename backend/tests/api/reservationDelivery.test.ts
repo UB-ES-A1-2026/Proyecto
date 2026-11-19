@@ -56,6 +56,8 @@ function post(token: string, body: object) {
     .post('/api/reservas')
     .set('Authorization', `Bearer ${token}`)
     .send({
+      // Pago al solicitar (US-07.01): token que la pasarela simulada acepta.
+      confirmationTokenId: 'ctoken_ok',
       startDate: daysFromToday(10),
       endDate: daysFromToday(12),
       ...body,
