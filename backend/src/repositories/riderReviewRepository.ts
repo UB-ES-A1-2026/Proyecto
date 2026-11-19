@@ -4,7 +4,7 @@ import type { Prisma, RiderApplicationStatus } from '@prisma/client';
 import { prisma } from './prisma.js';
 
 const reviewInclude = {
-  user: { select: { username: true, email: true } },
+  user: { select: { id: true, username: true, email: true } },
   reviewedBy: { select: { id: true, username: true } },
 } as const;
 
@@ -13,17 +13,18 @@ export type ReviewedApplicationRow = Prisma.RiderApplicationGetPayload<{
 }>;
 
 // Pendientes: la más antigua primero (hay que atenderlas en orden). Resueltas: la última
-// revisada primero. El id desempata para que el orden sea estable.
+// revisada primero. Sin filtro (null), todas, de la más antigua a la más nueva. El id desempata
+// para que el orden sea estable.
 export function findApplicationsByStatus(
-  status: RiderApplicationStatus,
+  status: RiderApplicationStatus | null,
 ): Promise<ReviewedApplicationRow[]> {
   const orderBy: Prisma.RiderApplicationOrderByWithRelationInput[] =
-    status === 'pending'
+    status === null || status === 'pending'
       ? [{ createdAt: 'asc' }, { id: 'asc' }]
       : [{ reviewedAt: 'desc' }, { id: 'asc' }];
 
   return prisma.riderApplication.findMany({
-    where: { status },
+    where: status === null ? {} : { status },
     include: reviewInclude,
     orderBy,
   });
