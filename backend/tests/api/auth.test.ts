@@ -48,7 +48,7 @@ describe('POST /api/auth/login', () => {
         role: 'user',
         isRider: false,
         riderStatus: null,
-        riderRejectionReason: null,
+        rejectionReason: null,
       },
     });
     expect(JSON.stringify(response.body)).not.toContain('passwordHash');
@@ -73,7 +73,7 @@ describe('POST /api/auth/login', () => {
         role: 'user',
         isRider: true,
         riderStatus: status,
-        riderRejectionReason: null,
+        rejectionReason: null,
       });
     },
   );
@@ -90,7 +90,7 @@ describe('POST /api/auth/login', () => {
 
     expect(response.body.user).toMatchObject({
       riderStatus: 'rejected',
-      riderRejectionReason: 'Zona sin cobertura.',
+      rejectionReason: 'Zona sin cobertura.',
     });
   });
 
