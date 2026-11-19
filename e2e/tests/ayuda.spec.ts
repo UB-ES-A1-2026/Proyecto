@@ -10,24 +10,29 @@ import { test, expect } from "@playwright/test";
 const HOME_PATH = "/";
 const HELP_PATH = "/ayuda";
 
+// Sin el desplazamiento suave (la web lo quita con «reducir movimiento»): si no, al pulsar el
+// siguiente enlace del índice mientras sigue el desplazamiento anterior, a veces no se llega al
+// apartado, sobre todo al último. El test sigue comprobando que el enlace lleva a su apartado.
+test.use({ reducedMotion: "reduce" });
+
 // Flujos entregados hasta ahora. Al entregar uno nuevo, se añade aquí y en la página.
 const DELIVERED_FLOWS = [
-  'Crear una cuenta',
-  'Hacerte rider',
-  'Iniciar sesión',
-  'Ver y editar tu perfil',
-  'Cerrar sesión',
-  'Buscar un objeto',
-  'Filtrar los resultados',
-  'Ver la ficha de un objeto',
-  'Solicitar un alquiler',
-  'Consultar tus solicitudes',
-  'Aceptar o rechazar una solicitud',
-  'Valorar un alquiler',
-  'Publicar un objeto',
-  'Editar un objeto',
-  'Pausar o reanudar un objeto',
-  'Retirar un objeto',
+  "Crear una cuenta",
+  "Hacerte rider",
+  "Iniciar sesión",
+  "Ver y editar tu perfil",
+  "Cerrar sesión",
+  "Buscar un objeto",
+  "Filtrar los resultados",
+  "Ver la ficha de un objeto",
+  "Solicitar un alquiler",
+  "Consultar tus solicitudes",
+  "Aceptar o rechazar una solicitud",
+  "Valorar un alquiler",
+  "Publicar un objeto",
+  "Editar un objeto",
+  "Pausar o reanudar un objeto",
+  "Retirar un objeto",
 ];
 
 // Criterio 1
