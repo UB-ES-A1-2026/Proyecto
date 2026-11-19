@@ -48,6 +48,7 @@ describe('toReservationDetail', () => {
       // Reserva anterior a US-05.01: sin modo de entrega.
       delivery: null,
       createdAt: reservation.createdAt,
+      cancellation: null,
     });
   });
 });

@@ -40,13 +40,14 @@ model User {
   sessions                  Session[]
   items                     Item[]
   reservations              Reservation[]
+  ratingsWritten            Rating[]           @relation("RatingAuthor")
+  ratingsReceived           Rating[]           @relation("RatingRated")
+  deliveries                Delivery[]         @relation("DeliveryRider")
+  cancellations             Cancellation[]
   // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
   riderApplication          RiderApplication?  @relation("RiderApplicant")
   // Solicitudes de rider que ha resuelto este usuario (si es admin, US-11.03).
   reviewedRiderApplications RiderApplication[] @relation("RiderReviewer")
-  ratingsWritten            Rating[]           @relation("RatingAuthor")
-  ratingsReceived           Rating[]           @relation("RatingRated")
-  deliveries                Delivery[]         @relation("DeliveryRider")
   // Objetos que ha retirado este usuario (si es admin, US-11.03).
   moderatedItems            ItemModeration[]   @relation("ItemModerator")
 
@@ -204,6 +205,7 @@ model Reservation {
   renter             User                @relation(fields: [renterId], references: [id], onDelete: Restrict)
   payment            Payment?
   ratings            Rating[]
+  cancellation       Cancellation?
 
   @@index([itemId, status])
   @@index([renterId])
@@ -429,4 +431,27 @@ model ItemModeration {
   admin       User             @relation("ItemModerator", fields: [adminId], references: [id], onDelete: Restrict)
 
   @@map("retirada_objeto")
+}
+
+// Cancelación de una reserva (US-04.05, #308): quién la canceló, cuándo y qué penalización y
+// reembolso se aplicaron. Una fila por reserva cancelada (reserva_id único), en una tabla aparte
+// para no tocar `reserva`, que también modifican otras historias del sprint.
+// porcentaje IN (0, 35, 100), penalizacion >= 0 y reembolso >= 0: CHECK en la migración.
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 17/11/2026
+model Cancellation {
+  id             String      @id @default(uuid()) @db.Uuid
+  reservationId  String      @unique @map("reserva_id") @db.Uuid
+  cancelledById  String      @map("cancelada_por") @db.Uuid
+  cancelledAt    DateTime    @default(now()) @map("cancelada_en")
+  // Penalización (% del precio del alquiler) por los días que faltaban para el inicio.
+  penaltyPercent Int         @map("porcentaje")
+  // La recibe la otra persona. Si cancela el propietario solo se registra, no se cobra.
+  penaltyAmount  Decimal     @map("penalizacion") @db.Decimal(10, 2)
+  // Lo que se devolvió al arrendatario (alquiler y entrega, menos la penalización si cancela él).
+  refundAmount   Decimal     @map("reembolso") @db.Decimal(10, 2)
+  reservation    Reservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  cancelledBy    User        @relation(fields: [cancelledById], references: [id], onDelete: Restrict)
+
+  @@index([cancelledById])
+  @@map("cancelacion")
 }
