@@ -21,14 +21,11 @@ vi.mock('../../src/services/sessionService.js', () => ({
 import { register } from '../../src/services/authService.js';
 
 function uniqueConstraintError(target: string) {
-  return new Prisma.PrismaClientKnownRequestError(
-    'Unique constraint failed',
-    {
-      code: 'P2002',
-      clientVersion: Prisma.prismaVersion.client,
-      meta: { target: [target] },
-    },
-  );
+  return new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+    code: 'P2002',
+    clientVersion: Prisma.prismaVersion.client,
+    meta: { target: [target] },
+  });
 }
 
 beforeEach(() => {

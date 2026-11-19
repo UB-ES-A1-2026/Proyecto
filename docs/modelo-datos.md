@@ -12,7 +12,10 @@ Siguiendo el diseño emergente que pide la asignatura, en cada sprint solo se cr
 erDiagram
   USUARIO ||--o{ SESION : "inicia"
   USUARIO ||--o| SOLICITUD_RIDER : "solicita ser rider"
+  USUARIO |o--o{ SOLICITUD_RIDER : "revisa (admin)"
   USUARIO ||--o{ OBJETO : "publica"
+  OBJETO ||--o| RETIRADA_OBJETO : "retira (admin)"
+  USUARIO ||--o{ RETIRADA_OBJETO : "retira (admin)"
   CATEGORIA ||--o{ OBJETO : "clasifica"
   OBJETO ||--o{ FOTO_OBJETO : "tiene"
   USUARIO ||--o{ RESERVA : "solicita (arrendatario)"
@@ -63,6 +66,9 @@ erDiagram
     fecha_hora condiciones_aceptadas_en
     enum estado "pendiente | aceptada | rechazada"
     fecha_hora creada_en
+    id revisada_por_id FK "admin que la resolvió, null si pendiente"
+    fecha_hora revisada_en "null = pendiente"
+    texto motivo_rechazo "opcional, solo si rechazada"
   }
   CATEGORIA {
     id id PK
@@ -102,8 +108,17 @@ erDiagram
     enum modo_entrega "domicilio | rider | punto_recogida"
     enum estado "pendiente | aceptada | rechazada | cancelada | pagada | en_curso | finalizada | caducada"
     fecha_hora caduca_en "solo en las pendientes"
+    enum motivo_cancelacion "objeto_retirado, opcional, solo si cancelada por el sistema"
     fecha_hora creada_en
     fecha_hora actualizada_en
+  }
+  RETIRADA_OBJETO {
+    id id PK
+    id objeto_id FK,UK
+    id admin_id FK
+    enum motivo "posible_estafa | prohibido | enganoso | otro"
+    texto detalles "≤ 500, obligatorio si motivo = otro"
+    fecha_hora retirado_en
   }
   PAGO {
     id id PK
@@ -263,7 +278,7 @@ En Prisma, el modelo es `Reservation`, y los enums son `ReservationStatus` (`pen
 
 ## Tabla `solicitud_rider` (Sprint 2 · #314)
 
-Se crea en la migración `crea_solicitud_rider` como parte de US-10.03 (#304, «Solicitar ser rider»). Guarda las respuestas del cuestionario de «Hazte rider». La cuenta de rider es un `usuario` con `es_rider = true` (se crea junto con la solicitud, en una sola transacción), y su solicitud empieza en `pendiente`. US-11.03 (#305) la acepta o la rechaza; los campos de esa revisión (quién, cuándo y el motivo) los añade esa tarea con otra migración.
+Se crea en la migración `crea_solicitud_rider` como parte de US-10.03 (#304, «Solicitar ser rider»). Guarda las respuestas del cuestionario de «Hazte rider». La cuenta de rider es un `usuario` con `es_rider = true` (se crea junto con la solicitud, en una sola transacción), y su solicitud empieza en `pendiente`. US-11.03 (#305) la acepta o la rechaza; los campos de esa revisión (quién, cuándo y el motivo) los añade la migración `revision_solicitud_rider` (#317).
 
 | Campo | Tipo | Obligatorio | Restricciones | Para qué |
 |---|---|---|---|---|
@@ -277,12 +292,17 @@ Se crea en la migración `crea_solicitud_rider` como parte de US-10.03 (#304, «
 | `condiciones_aceptadas_en` | fecha y hora | sí | | Cuándo aceptó las condiciones |
 | `estado` | enum `pendiente`, `aceptada`, `rechazada` | sí | por defecto `pendiente` | Estado de la revisión |
 | `creada_en` | fecha y hora | sí | por defecto «ahora» | Orden de revisión: de la más antigua a la más nueva |
+| `revisada_por_id` | UUID | no | FK → `usuario.id`, borrado restringido | Admin que la resolvió (`null` mientras está pendiente) |
+| `revisada_en` | fecha y hora | no | `CHECK` | Cuándo se resolvió (`null` mientras está pendiente) |
+| `motivo_rechazo` | texto (≤ 500) | no | `CHECK`: solo si `estado = rechazada` | Motivo opcional que verá la persona |
 
 | Decisión | Por qué |
 |---|---|
 | Se reutiliza `usuario.es_rider` | Vale `true` en toda cuenta de rider, sea cual sea el estado de su solicitud. Que pueda repartir lo dice `solicitud_rider.estado = aceptada`. Una cuenta con `es_rider` no puede solicitar ni publicar objetos. |
 | `dias` y `franjas` son arrays de enums de Postgres | Son listas cortas y cerradas que se leen siempre juntas con la solicitud; una tabla aparte no aporta nada. El backend rechaza repetidos. |
-| Un usuario con solicitud **no se puede borrar** | La solicitud es el historial de la revisión. |
+| Revisión coherente (`CHECK`) | `pendiente` si y solo si `revisada_en` y `revisada_por_id` son `null`; una solicitud resuelta siempre tiene `revisada_en`. El revisor solo puede faltar en las resueltas anteriores a la migración (datos de ejemplo), a las que se les dio como fecha de revisión la de creación. |
+| Resolver es una transición única | El backend actualiza con `WHERE estado = 'pendiente'`: si dos admins resuelven a la vez, solo uno lo consigue y el otro recibe un 409. |
+| Un usuario con solicitud, o que haya revisado alguna, **no se puede borrar** | La solicitud es el historial de la revisión. |
 
 En Prisma, el modelo es `RiderApplication` y los enums son `RiderVehicle` (`on_foot`, `bike`, `scooter`, `motorbike`, `car`), `RiderApplicationStatus` (`pending`, `approved`, `rejected`), `RiderWeekday` (`monday` … `sunday`) y `RiderSlot` (`morning`, `afternoon`, `night`).
 
@@ -319,11 +339,35 @@ En Prisma, el modelo es `Payment`, y los enums son `PaymentStatus` (`authorized`
 
 **`POST /api/reservas`** pide ahora `confirmationTokenId`, el token del formulario de pago de Stripe. Hasta la T11 (#286), el frontend envía uno simulado (`ctoken_simulado`). Errores nuevos: 400 sin token y 402 tarjeta rechazada, los dos con `field: "confirmationTokenId"`. Los 409 de siempre se comprueban antes de bloquear nada. La reserva devuelve también `deposit`, `deliveryAmount` y `expiresAt` (solo si está pendiente; si no, `null`). El antiguo `POST /api/reservas/:id/pago` ya no existe.
 
+## Tabla `retirada_objeto` y `reserva.motivo_cancelacion` (Sprint 2 · #317)
+
+Las crea la migración `retirada_objeto_por_admin` como parte de US-11.03 (#305): el admin retira un objeto indicando un motivo. Guarda quién lo retiró, por qué y cuándo; el propietario lo ve en «Mis objetos». Un objeto que retira su propietario (US-02.03) **no** tiene fila aquí.
+
+| Campo | Tipo | Obligatorio | Restricciones | Para qué |
+|---|---|---|---|---|
+| `id` | UUID | sí | PK | Identificador |
+| `objeto_id` | UUID | sí | FK → `objeto.id`, único, borrado restringido | Una sola retirada por objeto |
+| `admin_id` | UUID | sí | FK → `usuario.id`, borrado restringido | Admin que lo retiró |
+| `motivo` | enum `motivo_retirada`: `posible_estafa`, `prohibido`, `enganoso`, `otro` | sí | | Motivo que ve el propietario |
+| `detalles` | texto (≤ 500) | no | `CHECK`: obligatorio y no en blanco si `motivo = otro` | Explicación para el propietario |
+| `retirado_en` | fecha y hora | sí | por defecto «ahora» | Cuándo se retiró |
+
+Además, `reserva` gana la columna `motivo_cancelacion` (enum `motivo_cancelacion`, por ahora solo `objeto_retirado`; opcional, `null` en el resto de reservas) para que las dos partes sepan por qué se canceló una reserva sin que nadie la cancelase.
+
+| Decisión | Por qué |
+|---|---|
+| **Reservas activas al retirar un objeto** | Retirar es atómico (una transacción): el objeto pasa a `retirado`, se guarda la retirada y las reservas `pendiente` y `aceptada` del objeto pasan a `cancelada` con `motivo_cancelacion = objeto_retirado`. El pago de las `pendiente` pasa a `liberado` y, ya confirmada la transacción, se suelta su bloqueo en la tarjeta (si Stripe no responde, la retirada vale igual y el bloqueo caduca solo; los pagos de demo no llaman a la pasarela). Las `pagada`, `en_curso` y `finalizada` **no se tocan**: ya tienen pago, entrega o historial detrás y su cierre, y el reembolso, se resuelven con cancelación y penalización (US-04.05) y las incidencias. Esto difiere de la retirada por el propietario (US-02.03), que se bloquea si hay reservas activas: el admin retira por moderación y no puede esperar a que se resuelvan. |
+| La retirada es una transición única | El backend actualiza el objeto con `WHERE estado <> 'retirado'`: si dos admins retiran a la vez, solo uno lo consigue y el otro recibe un 409. |
+| `retirada_objeto` es historial | Un objeto o un admin con retirada **no se pueden borrar**. |
+| El propietario no ve qué admin fue | La API de «Mis objetos» devuelve solo `motivo`, `detalles` y `retirado_en`, nunca el `admin_id`. |
+
+En Prisma, los modelos son `ItemModeration` y los enums `WithdrawalReason` (`scam`, `prohibited`, `misleading`, `other`) y `CancellationReason` (`item_withdrawn`).
+
 ## Qué tablas entran en cada sprint
 
 | Sprint | Tablas nuevas | Historias |
 |---|---|---|
 | S0 | `usuario`, `sesion` | US-01.1, US-01.2, US-01.3 |
 | S1 | `categoria`, `objeto`, `foto_objeto`, `reserva` | US-02.x, US-03.x, US-04.01–04.04 |
-| S2 | `solicitud_rider` (US-10.03), `pago`, `punto_recogida`, `entrega`, `valoracion` (+ campos de perfil y rider en `usuario`) | US-07.01, US-05.01–05.02, US-10.01, US-10.03, US-08.x, US-01.4 |
+| S2 | `solicitud_rider` (US-10.03), `retirada_objeto` (US-11.03), `pago`, `punto_recogida`, `entrega`, `valoracion` (+ campos de perfil y rider en `usuario`) | US-07.01, US-05.01–05.02, US-10.01, US-10.03, US-08.x, US-01.4 |
 | S3 | `conversacion`, `mensaje`, `notificacion`, `incidencia`, `foto_estado` | US-06.x, US-09.x, US-11.01, US-04.05 |

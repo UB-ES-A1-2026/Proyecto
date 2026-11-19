@@ -1,5 +1,5 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 02/11/2026
-import type { ReservationStatus } from '@prisma/client';
+import type { CancellationReason, ReservationStatus } from '@prisma/client';
 import type { ReservationWithDetail } from '../repositories/detailIncludes.js';
 
 // Representación de una reserva en la API: la devuelven POST /api/reservas (#120),
@@ -18,6 +18,8 @@ export interface ReservationDetail {
   status: ReservationStatus;
   // Hasta cuándo puede responder el propietario; null si ya no está pendiente.
   expiresAt: Date | null;
+  // Por qué se canceló sin que lo pidiera nadie (US-11.03); null en el resto.
+  cancellationReason: CancellationReason | null;
   renter: { id: string; username: string };
   owner: { id: string; username: string };
   createdAt: Date;
@@ -44,6 +46,7 @@ export function toReservationDetail(
       : '0.00',
     status: reservation.status,
     expiresAt: reservation.status === 'pending' ? reservation.expiresAt : null,
+    cancellationReason: reservation.cancellationReason,
     renter: reservation.renter,
     owner: reservation.item.owner,
     createdAt: reservation.createdAt,

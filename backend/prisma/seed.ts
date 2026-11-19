@@ -4,8 +4,10 @@
 // contraseña está en el repo (docs/despliegue.md). Para producción está seed-demo.ts.
 import { PrismaClient, UserRole } from '@prisma/client';
 import {
+  DEV_ADMIN_EMAIL,
   DEV_PASSWORD,
   upsertDemoItems,
+  upsertDemoModerations,
   upsertDemoReservations,
   upsertDemoRiders,
   upsertUsers,
@@ -32,6 +34,8 @@ async function main(): Promise<void> {
 
   // Los objetos son de ana y bruno; admin no publica nada.
   const items = await upsertDemoItems(prisma, [anaId, brunoId, anaId]);
+  // El admin retira un objeto de bruno con motivo (US-11.03).
+  await upsertDemoModerations(prisma, [anaId, brunoId, anaId], DEV_ADMIN_EMAIL);
   // Las solicitudes son entre ana (0) y bruno (1).
   const reservations = await upsertDemoReservations(prisma, [anaId, brunoId]);
   // Seis vecinos con solicitudes pendientes en las mismas fechas (US-04.07).
@@ -44,7 +48,8 @@ async function main(): Promise<void> {
   const demand = await upsertDemoDemand(prisma, [anaId, brunoId], neighbourIds);
 
   // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
-  // Dos cuentas de rider (US-10.03): carla pendiente y dani aceptada.
+  // Tres cuentas de rider (US-10.03 y US-11.03): carla pendiente, dani aceptada y eva rechazada;
+  // las dos resueltas las revisó el admin de arriba.
   const riders = await upsertDemoRiders(prisma, DEV_PASSWORD, rounds);
 
   console.info(
