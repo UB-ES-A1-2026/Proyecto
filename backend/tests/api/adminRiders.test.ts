@@ -116,7 +116,7 @@ describe('acceso: solo un admin', () => {
 });
 
 describe('GET /api/admin/riders', () => {
-  it('por defecto lista las pendientes, de la más antigua a la más nueva, con su forma', async () => {
+  it('sin filtro lista todas (contrato de #317), de la más antigua a la más nueva, con su forma', async () => {
     const { token } = await adminToken();
     const newer = await createTestRider('pending', {
       username: 'nueva',
@@ -128,29 +128,32 @@ describe('GET /api/admin/riders', () => {
       email: 'vieja@rentit.test',
       createdAt: new Date('2026-11-01T10:00:00.000Z'),
     });
-    await createTestRider('approved', {
+    const approved = await createTestRider('approved', {
       username: 'otra',
       email: 'otra@rentit.test',
+      createdAt: new Date('2026-11-12T10:00:00.000Z'),
     });
 
     const response = await list(token);
 
     expect(response.status).toBe(200);
-    expect(response.body).toHaveLength(2);
     expect(
-      response.body.map(({ username }: { username: string }) => username),
-    ).toEqual(['vieja', 'nueva']);
+      response.body.map(
+        ({ user, status }: { user: { username: string }; status: string }) =>
+          `${user.username}:${status}`,
+      ),
+    ).toEqual(['vieja:pending', 'nueva:pending', 'otra:approved']);
     const application = await applicationOf(older.id);
     expect(response.body[0]).toEqual({
       id: application.id,
-      username: 'vieja',
-      email: 'vieja@rentit.test',
+      user: { id: older.id, username: 'vieja', email: 'vieja@rentit.test' },
       phone: '612345678',
       zone: 'Gràcia',
       vehicle: 'bike',
       days: ['monday', 'friday'],
       slots: ['morning'],
       createdAt: '2026-11-01T10:00:00.000Z',
+      termsAcceptedAt: application.termsAcceptedAt.toISOString(),
       status: 'pending',
       reviewedAt: null,
       reviewedBy: null,
@@ -159,6 +162,7 @@ describe('GET /api/admin/riders', () => {
       deliveriesCount: 0,
     });
     expect(response.body[1].id).toBe((await applicationOf(newer.id)).id);
+    expect(response.body[2].id).toBe((await applicationOf(approved.id)).id);
     expect(JSON.stringify(response.body)).not.toContain('passwordHash');
   });
 
@@ -207,7 +211,9 @@ describe('GET /api/admin/riders', () => {
 
     expect(rejected.status).toBe(200);
     expect(
-      rejected.body.map(({ username }: { username: string }) => username),
+      rejected.body.map(
+        ({ user }: { user: { username: string } }) => user.username,
+      ),
     ).toEqual(['dos', 'uno']);
     expect(rejected.body[1]).toMatchObject({
       status: 'rejected',
@@ -217,7 +223,7 @@ describe('GET /api/admin/riders', () => {
     });
     expect(approved.body).toHaveLength(1);
     expect(approved.body[0]).toMatchObject({
-      username: 'tres',
+      user: { username: 'tres' },
       status: 'approved',
       reviewedBy: { id: admin.id, username: 'admin' },
     });
@@ -259,14 +265,14 @@ describe('POST /api/admin/riders/:id/aceptar', () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
       id,
-      username: 'rider',
-      email: 'rider@rentit.test',
+      user: { id: rider.id, username: 'rider', email: 'rider@rentit.test' },
       phone: '612345678',
       zone: 'Gràcia',
       vehicle: 'bike',
       days: ['monday', 'friday'],
       slots: ['morning'],
       createdAt: expect.any(String),
+      termsAcceptedAt: expect.any(String),
       status: 'approved',
       reviewedAt: expect.any(String),
       reviewedBy: { id: admin.id, username: 'admin' },
@@ -475,7 +481,7 @@ describe('el rider ve el resultado en su perfil', () => {
     expect(response.body).toMatchObject({
       isRider: true,
       riderStatus: 'rejected',
-      riderRejectionReason: 'Zona sin cobertura.',
+      rejectionReason: 'Zona sin cobertura.',
     });
   });
 
@@ -491,7 +497,7 @@ describe('el rider ve el resultado en su perfil', () => {
 
     expect(response.body).toMatchObject({
       riderStatus: 'approved',
-      riderRejectionReason: null,
+      rejectionReason: null,
     });
   });
 });

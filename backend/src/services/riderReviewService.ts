@@ -33,8 +33,9 @@ const STATUS_BY_FILTER: Record<string, RiderApplicationStatus> = {
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function parseStatusFilter(estado: unknown): RiderApplicationStatus {
-  if (estado === undefined) return 'pending';
+// Sin ?estado= devuelve todas (contrato de #317): el panel separa pendientes, aceptadas y rechazadas.
+function parseStatusFilter(estado: unknown): RiderApplicationStatus | null {
+  if (estado === undefined) return null;
 
   const status =
     typeof estado === 'string' && Object.hasOwn(STATUS_BY_FILTER, estado)
