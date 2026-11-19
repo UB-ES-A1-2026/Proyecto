@@ -115,10 +115,12 @@ const SECTIONS: HelpSection[] = [
       'Con la sesión iniciada, abre la ficha del objeto.',
       'Elige la fecha de inicio y la fecha de fin en el panel de alquiler. Rentit comprueba si el objeto está libre esos días.',
       'El calendario colorea cada día según cuántas solicitudes pendientes de otras personas tiene (de poca a mucha demanda, con su leyenda) y marca como «Reservado» los días que ya están ocupados. Al elegir las fechas, te avisa si otras solicitudes coinciden con las tuyas: así sabes si es posible que no te acepten.',
-      'Pulsa «Solicitar alquiler», revisa las fechas y el importe, y pulsa «Confirmar».',
+      'Pulsa «Solicitar alquiler» y elige cómo te llega el objeto: «Recoger en casa del propietario», «Entrega por rider» o «Punto de recogida». Solo salen los que ofrece ese objeto.',
+      'Con rider, elige la hora («Lo antes posible» o una franja de dos horas), la dirección y el barrio de entrega: la tarifa del rider se suma al total. Con punto de recogida, elige uno de los puntos cercanos. Después pulsa «Continuar».',
+      'En «Confirmar y pagar», revisa «Tu solicitud» (fechas, entrega e importe), escribe los datos de la tarjeta y pulsa «Confirmar y enviar solicitud».',
       'Irás a «Mis solicitudes», donde verás tu solicitud como «Pendiente» hasta que responda el propietario.',
     ],
-    note: 'Con «Volver» puedes cambiar las fechas antes de confirmar. No puedes alquilar un objeto que has publicado tú.',
+    note: 'El importe se bloquea en tu tarjeta, pero solo se cobra si el propietario acepta; si la rechaza o no responde en 48 horas, se libera. La fianza se bloquea el día antes de empezar. Es un pago de prueba: usa la tarjeta 4242 4242 4242 4242 (se acepta) o 4000 0000 0000 0002 (se rechaza). Con «Volver» puedes cambiar la entrega o las fechas antes de pagar. No puedes alquilar un objeto que has publicado tú.',
   },
   {
     id: 'mis-solicitudes',
@@ -129,7 +131,7 @@ const SECTIONS: HelpSection[] = [
         menú.
       </>,
       'En «Enviadas» están las que has pedido tú, y en «Recibidas», las que te han pedido por tus objetos.',
-      'Pulsa una solicitud para ver el detalle. Su estado puede ser «Pendiente», «Aceptada» o «Rechazada».',
+      'Pulsa una solicitud para ver el detalle: las fechas, cómo es la entrega y el desglose del importe (alquiler, entrega y total). Su estado puede ser «Pendiente», «Pagada», «Rechazada» o «Caducada».',
     ],
   },
   {
@@ -137,10 +139,10 @@ const SECTIONS: HelpSection[] = [
     title: 'Aceptar o rechazar una solicitud',
     steps: [
       'En «Mis solicitudes», abre en «Recibidas» una solicitud «Pendiente».',
-      'Revisa quién lo pide y las fechas.',
-      'Pulsa «Aceptar» o «Rechazar». La solicitud cambia de estado y ya no se puede volver a responder.',
+      'Revisa quién lo pide, las fechas y cómo será la entrega.',
+      'Pulsa «Aceptar» o «Rechazar». Si aceptas, se cobra lo que tenía bloqueado y la solicitud pasa a «Pagada»; si la rechazas, se le libera. Ya no se puede volver a responder.',
     ],
-    note: 'Las fechas quedan ocupadas cuando aceptas. Si otra reserva ya ocupa esas fechas, no se podrá aceptar y verás un aviso.',
+    note: 'Tienes 48 horas para responder: si no, la solicitud caduca y se libera el importe. Las fechas quedan ocupadas cuando aceptas. Si otra reserva ya ocupa esas fechas, no se podrá aceptar y verás un aviso.',
   },
   {
     id: 'publicar',
