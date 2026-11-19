@@ -261,11 +261,13 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
     days: 2,
     status: 'paid',
   },
-  // Cancelación (US-04.05, #308). Pagada a 12 días: se puede cancelar sin penalización (jordi la
-  // cancela como propietario o laura como arrendataria); la bici, a 4 días, cuesta el 35 %.
+  // Cancelación (US-04.05, #308). Pagada a 12 días: se puede cancelar sin penalización (marta la
+  // cancela como propietaria o jordi como arrendatario; en local, ana y bruno); la bici, a 4 días,
+  // cuesta el 35 %. No es la «Máquina de palomitas»: la retira un e2e, y con una reserva pagada no
+  // se puede retirar.
   {
-    item: { owner: 1, title: 'Máquina de palomitas' },
-    renter: 0,
+    item: { owner: 2, title: 'Hidrolimpiadora Kärcher' },
+    renter: 1,
     startInDays: 12,
     days: 2,
     status: 'paid',
