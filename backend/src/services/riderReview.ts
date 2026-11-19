@@ -6,14 +6,15 @@ import type { ReviewedApplicationRow } from '../repositories/riderReviewReposito
 // y rechazar comparten esta forma.
 export interface RiderApplicationReview {
   id: string;
-  username: string;
-  email: string;
+  user: { id: string; username: string; email: string };
   phone: string;
   zone: string;
   vehicle: ReviewedApplicationRow['vehicle'];
   days: ReviewedApplicationRow['days'];
   slots: ReviewedApplicationRow['slots'];
   createdAt: Date;
+  // Cuándo aceptó las condiciones en el cuestionario (US-10.03).
+  termsAcceptedAt: Date;
   status: RiderApplicationStatus;
   reviewedAt: Date | null;
   reviewedBy: { id: string; username: string } | null;
@@ -27,14 +28,14 @@ export function toRiderApplicationReview(
 ): RiderApplicationReview {
   return {
     id: row.id,
-    username: row.user.username,
-    email: row.user.email,
+    user: row.user,
     phone: row.phone,
     zone: row.zone,
     vehicle: row.vehicle,
     days: row.days,
     slots: row.slots,
     createdAt: row.createdAt,
+    termsAcceptedAt: row.termsAcceptedAt,
     status: row.status,
     reviewedAt: row.reviewedAt,
     reviewedBy: row.reviewedBy,

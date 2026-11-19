@@ -41,7 +41,7 @@ describe('GET /api/usuarios/me', () => {
       role: 'user',
       isRider: false,
       riderStatus: null,
-      riderRejectionReason: null,
+      rejectionReason: null,
       createdAt: user.createdAt.toISOString(),
     });
     expect(response.body).not.toHaveProperty('passwordHash');
@@ -65,7 +65,7 @@ describe('GET /api/usuarios/me', () => {
       expect(response.body).toMatchObject({
         isRider: true,
         riderStatus: status,
-        riderRejectionReason: null,
+        rejectionReason: null,
       });
     },
   );
@@ -84,7 +84,7 @@ describe('GET /api/usuarios/me', () => {
 
     expect(response.body).toMatchObject({
       riderStatus: 'rejected',
-      riderRejectionReason: 'Zona sin cobertura.',
+      rejectionReason: 'Zona sin cobertura.',
     });
   });
 
