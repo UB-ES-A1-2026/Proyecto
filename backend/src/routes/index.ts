@@ -19,6 +19,7 @@ import { riderRoutes } from './riderRoutes.js';
 import { userRoutes } from './userRoutes.js';
 import { itemDemandRoutes } from './itemDemandRoutes.js';
 import { profileRoutes } from './profileRoutes.js';
+import { deliveryTrackingRoutes } from './deliveryTrackingRoutes.js';
 
 export const apiRoutes = Router();
 
@@ -43,3 +44,4 @@ apiRoutes.use(categoryRoutes);
 apiRoutes.use(neighborhoodRoutes);
 apiRoutes.use(itemRoutes);
 apiRoutes.use(photoRoutes);
+apiRoutes.use(deliveryTrackingRoutes);

@@ -12,6 +12,7 @@ import {
   upsertUsers,
   demandNeighbours,
   upsertDemoDemand,
+  assignDemoRider,
 } from './demoSeed.js';
 
 const prisma = new PrismaClient();
@@ -27,8 +28,13 @@ async function main(): Promise<void> {
 
   // Los objetos son de ana y bruno; admin no publica nada.
   const items = await upsertDemoItems(prisma, [anaId, brunoId, anaId]);
-  // Las solicitudes son entre ana (0) y bruno (1).
-  const reservations = await upsertDemoReservations(prisma, [anaId, brunoId]);
+  // Las solicitudes son entre ana (0 y 2) y bruno (1), con los mismos dueños que los objetos: así
+  // también se pueden usar los objetos del tercer dueño (US-05.02, #288).
+  const reservations = await upsertDemoReservations(prisma, [
+    anaId,
+    brunoId,
+    anaId,
+  ]);
   // Seis vecinos con solicitudes pendientes en las mismas fechas (US-04.07).
   const neighbourIds = await upsertUsers(
     prisma,
@@ -41,6 +47,8 @@ async function main(): Promise<void> {
   // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
   // Dos cuentas de rider (US-10.03): carla pendiente y dani aceptada.
   const riders = await upsertDemoRiders(prisma, DEV_PASSWORD, rounds);
+  // dani ya ha aceptado el trabajo de la «Hidrolimpiadora Kärcher» (US-05.02, #288).
+  await assignDemoRider(prisma, [anaId, brunoId, anaId], 'dani@rentit.test');
 
   console.info(
     `Seed completado: ${DEV_USERS.length} usuarios de prueba, ${riders} riders, ${items} objetos y ${reservations + demand} solicitudes`,
