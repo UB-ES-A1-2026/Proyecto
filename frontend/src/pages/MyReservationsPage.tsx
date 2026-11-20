@@ -6,6 +6,7 @@ import { Icon, type IconName } from '../components/Icon';
 import { ReservationCard } from '../components/ReservationCard';
 import { ReservationDecision } from '../components/ReservationDecision';
 import { useAuth } from '../context/useAuth';
+import { useWideLayout } from '../hooks/useWideLayout';
 import { ApiError } from '../services/apiClient';
 import type { DecidedReservation } from '../services/reservationDecisionService';
 import {
@@ -50,6 +51,78 @@ function ReservationSection({
   );
 }
 
+// Lista y detalle (decisión de Kai, 20/11): las dos listas a la izquierda y la solicitud elegida,
+// entera, a la derecha. Al entrar se elige la primera. Generado con asistencia de IA (Claude).
+function ReservationsMasterDetail({
+  reservations,
+  renderDecision,
+}: {
+  reservations: MyReservations;
+  renderDecision: (reservation: MyReservations['received'][number]) => ReactNode;
+}) {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const entries = [
+    ...reservations.sent.map((reservation) => ({ reservation, role: 'sent' as const })),
+    ...reservations.received.map((reservation) => ({ reservation, role: 'received' as const })),
+  ];
+  const selected = entries.find((entry) => entry.reservation.id === selectedId) ?? entries[0];
+
+  return (
+    <div className="reservation-master-detail">
+      <div className="reservation-master-list">
+        <ReservationSection
+          headingId="sent-reservations-heading"
+          title="Enviadas"
+          icon="arrow_forward"
+          count={reservations.sent.length}
+          emptyMessage="No tienes solicitudes abiertas"
+        >
+          {reservations.sent.map((reservation) => (
+            <ReservationCard
+              key={reservation.id}
+              reservation={reservation}
+              role="sent"
+              view="row"
+              selected={reservation.id === selected?.reservation.id}
+              onSelect={() => setSelectedId(reservation.id)}
+            />
+          ))}
+        </ReservationSection>
+        <ReservationSection
+          headingId="received-reservations-heading"
+          title="Recibidas"
+          icon="mail"
+          count={reservations.received.length}
+          emptyMessage="Todavía no has recibido solicitudes."
+        >
+          {reservations.received.map((reservation) => (
+            <ReservationCard
+              key={reservation.id}
+              reservation={reservation}
+              role="received"
+              view="row"
+              selected={reservation.id === selected?.reservation.id}
+              onSelect={() => setSelectedId(reservation.id)}
+            />
+          ))}
+        </ReservationSection>
+      </div>
+      {selected && (
+        <section className="reservation-detail-pane" aria-label="Solicitud elegida">
+          <ReservationCard
+            key={selected.reservation.id}
+            reservation={selected.reservation}
+            role={selected.role}
+            view="detail"
+          >
+            {selected.role === 'received' ? renderDecision(selected.reservation) : undefined}
+          </ReservationCard>
+        </section>
+      )}
+    </div>
+  );
+}
+
 export function MyReservationsPage() {
   const { session, clearSession } = useAuth();
   const token = session?.token;
@@ -57,6 +130,7 @@ export function MyReservationsPage() {
   const [error, setError] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const wide = useWideLayout();
   // Aviso que deja otra pantalla al volver aquí, como «Solicitud enviada.» (US-07.01, #286).
   const [notice] = useState<string | null>(() => {
     const state: unknown = location.state;
@@ -152,6 +226,18 @@ export function MyReservationsPage() {
           <Icon name="error" />
           {error}
         </p>
+      ) : reservations && wide ? (
+        <ReservationsMasterDetail
+          reservations={reservations}
+          renderDecision={(reservation) => (
+            <ReservationDecision
+              reservationId={reservation.id}
+              status={reservation.status}
+              onDecided={handleDecided}
+              onOutdated={refreshReservations}
+            />
+          )}
+        />
       ) : reservations ? (
         <div className="reservation-sections">
           <ReservationSection
