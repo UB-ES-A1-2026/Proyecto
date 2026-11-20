@@ -4,6 +4,7 @@ import { EditItemDialog } from '../components/EditItemDialog';
 import { Icon } from '../components/Icon';
 import { WithdrawItemDialog } from '../components/WithdrawItemDialog';
 import { useAuth } from '../context/useAuth';
+import { useWideLayout } from '../hooks/useWideLayout';
 import { ApiError } from '../services/apiClient';
 import {
   getMyItems,
@@ -60,6 +61,9 @@ export function MyItemsPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
+  // Lista y detalle en pantallas anchas (decisión de Kai, 20/11): el objeto elegido, a la derecha.
+  const wide = useWideLayout();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const visibleItems =
     filter === 'all' ? (items ?? []) : (items ?? []).filter((item) => item.status === filter);
 
@@ -173,6 +177,49 @@ export function MyItemsPage() {
     setMessage('El anuncio se ha retirado.');
   }
 
+  // Retirar es definitivo: un objeto retirado no se puede editar (409, #202) ni pausar, reanudar o
+  // volver a retirar.
+  function renderActions(item: MyItem) {
+    if (item.status === 'withdrawn') return null;
+    return (
+      <div className="item-actions">
+        <button
+          type="button"
+          className="button-secondary button-edit"
+          aria-label={`Editar ${item.title}`}
+          onClick={() => openEditor(item.id)}
+        >
+          Editar
+        </button>
+        <button
+          type="button"
+          className="button-secondary"
+          aria-label={`${item.status === 'paused' ? 'Reanudar' : 'Pausar'} ${item.title}`}
+          disabled={togglingId !== null}
+          onClick={() => togglePause(item)}
+        >
+          {togglingId === item.id
+            ? item.status === 'paused'
+              ? 'Reanudando…'
+              : 'Pausando…'
+            : item.status === 'paused'
+              ? 'Reanudar'
+              : 'Pausar'}
+        </button>
+        <button
+          type="button"
+          className="button-quiet button-withdraw"
+          aria-label={`Retirar anuncio ${item.title}`}
+          onClick={() => openWithdraw(item)}
+        >
+          Retirar anuncio
+        </button>
+      </div>
+    );
+  }
+
+  const selectedItem = visibleItems.find((item) => item.id === selectedId) ?? visibleItems[0];
+
   return (
     <section className="my-items">
       <div className="page-header">
@@ -241,6 +288,77 @@ export function MyItemsPage() {
               <Icon name="filter_alt" />
               <p>No tienes objetos en este estado.</p>
             </div>
+          ) : wide && selectedItem ? (
+            <div className="item-master-detail">
+              <ul key={filter} className="item-list item-list-compact stagger">
+                {visibleItems.map((item) => {
+                  const isSelected = item.id === selectedItem.id;
+                  return (
+                    <li
+                      key={item.id}
+                      className={`item-row card item-row-${item.status}${isSelected ? ' is-selected' : ''}`}
+                    >
+                      <div className="item-photo" aria-hidden="true">
+                        {item.photo ? <img src={item.photo} alt="" /> : <Icon name="image" />}
+                      </div>
+                      <div className="item-info">
+                        <div className="item-heading">
+                          <h2 className="item-title">
+                            {/* Toda la fila elige el objeto: el botón se estira sobre la tarjeta. */}
+                            <button
+                              type="button"
+                              className="item-select"
+                              aria-pressed={isSelected}
+                              onClick={() => setSelectedId(item.id)}
+                            >
+                              {item.title}
+                            </button>
+                          </h2>
+                          <span className={`badge ${STATUS_STYLES[item.status].badge} item-status`}>
+                            {STATUS_LABELS[item.status]}
+                          </span>
+                        </div>
+                        <p className="item-price">
+                          <strong>{priceFormatter.format(Number(item.dailyPrice))}</strong> / día
+                        </p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+              <section
+                className={`my-item-detail card item-row-${selectedItem.status}`}
+                aria-label="Objeto elegido"
+              >
+                <div className="item-photo my-item-detail-photo" aria-hidden="true">
+                  {selectedItem.photo ? (
+                    <img src={selectedItem.photo} alt="" />
+                  ) : (
+                    <Icon name="image" />
+                  )}
+                </div>
+                <div className="item-heading">
+                  <h2 className="item-title">{selectedItem.title}</h2>
+                  <span
+                    key={selectedItem.status}
+                    className={`badge ${STATUS_STYLES[selectedItem.status].badge} item-status`}
+                  >
+                    {STATUS_LABELS[selectedItem.status]}
+                  </span>
+                </div>
+                <p className="item-price">
+                  <strong>{priceFormatter.format(Number(selectedItem.dailyPrice))}</strong> / día ·{' '}
+                  {selectedItem.neighborhood}
+                </p>
+                <p className="item-hint">{STATUS_HINTS[selectedItem.status]}</p>
+                {renderActions(selectedItem)}
+                {selectedItem.status !== 'withdrawn' && (
+                  <Link to={`/objetos/${selectedItem.id}`} className="my-item-detail-link">
+                    Ver el anuncio
+                  </Link>
+                )}
+              </section>
+            </div>
           ) : (
             // Cambiar de filtro vuelve a montar la lista para repetir su animación de entrada.
             <ul key={filter} className="item-list stagger">
@@ -264,43 +382,7 @@ export function MyItemsPage() {
                     </p>
                     <p className="item-hint">{STATUS_HINTS[item.status]}</p>
                   </div>
-                  {/* Retirar es definitivo: un objeto retirado no se puede editar (409, #202)
-                      ni pausar, reanudar o volver a retirar. */}
-                  {item.status !== 'withdrawn' && (
-                    <div className="item-actions">
-                      <button
-                        type="button"
-                        className="button-secondary button-edit"
-                        aria-label={`Editar ${item.title}`}
-                        onClick={() => openEditor(item.id)}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        type="button"
-                        className="button-secondary"
-                        aria-label={`${item.status === 'paused' ? 'Reanudar' : 'Pausar'} ${item.title}`}
-                        disabled={togglingId !== null}
-                        onClick={() => togglePause(item)}
-                      >
-                        {togglingId === item.id
-                          ? item.status === 'paused'
-                            ? 'Reanudando…'
-                            : 'Pausando…'
-                          : item.status === 'paused'
-                            ? 'Reanudar'
-                            : 'Pausar'}
-                      </button>
-                      <button
-                        type="button"
-                        className="button-quiet button-withdraw"
-                        aria-label={`Retirar anuncio ${item.title}`}
-                        onClick={() => openWithdraw(item)}
-                      >
-                        Retirar anuncio
-                      </button>
-                    </div>
-                  )}
+                  {renderActions(item)}
                 </li>
               ))}
             </ul>
