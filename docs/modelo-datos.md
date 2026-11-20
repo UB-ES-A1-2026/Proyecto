@@ -393,10 +393,9 @@ Las cuatro devuelven el seguimiento actualizado. Errores:
 - **404**: la reserva no existe o no tiene entrega (las anteriores a US-05.01).
 - **409**: no es el paso siguiente, la reserva no está pagada, «He devuelto» sin estar en curso, «Ya tengo el objeto» con rider, o el código bloqueado.
 
-**Pendiente al juntar con el resto de US-05.02:**
-- Avisar a las dos personas y al rider de cada cambio con el canal en tiempo real de T14 (`publish`, en `feature/US-05.02-seguimiento-entrega`).
-- Hasta entonces, el frontend puede consultar el seguimiento cada pocos segundos: la historia admite «en menos de 10 s».
-- Preparar en el seed una entrega con rider cuando existan el rider de demo (US-10.03) y la asignación de trabajos (US-10.01).
+**Tiempo real:** después de guardar cada cambio, el service avisa con el canal de T14 (`publish`, ver `docs/arquitectura.md`) a las dos personas de la reserva y a su rider, si lo hay. El evento es `entrega.estado` con `{ reservationId, status, at }`: `status` es el nuevo estado de la entrega o `finished` al devolver el objeto. Nunca lleva el código: el frontend, al recibirlo, vuelve a pedir el `GET`. Si el cambio se rechaza, no se avisa a nadie.
+
+**Pendiente:** preparar en el seed una entrega con rider asignado cuando exista la asignación de trabajos (US-10.01).
 
 ## Tabla `valoracion` (Sprint 2 · #295)
 
