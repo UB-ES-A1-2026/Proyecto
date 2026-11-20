@@ -156,7 +156,7 @@ const SECTIONS: HelpSection[] = [
       'Sin rider, cuando tengas el objeto pulsa «Ya tengo el objeto».',
       'Cuando lo devuelvas, pulsa «He devuelto el objeto»: el alquiler pasa a «Finalizada».',
     ],
-    note: 'El rider marca cada paso en orden con «Marcar como…»; no se puede saltar ninguno ni volver atrás.',
+    note: 'El rider marca cada paso en orden con «Marcar como…»; no se puede saltar ninguno ni volver atrás. Si el rider escribe mal el código 5 veces, se bloquea: quien alquila pulsa «Generar un código nuevo» y el anterior deja de valer.',
   },
   {
     id: 'publicar',

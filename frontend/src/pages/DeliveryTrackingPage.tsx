@@ -10,6 +10,7 @@ import {
   advanceDelivery,
   confirmItemReceived,
   getDeliveryTracking,
+  requestNewDeliveryCode,
   returnItem,
   type DeliveryTracking,
 } from '../services/deliveryTrackingService';
@@ -33,6 +34,7 @@ const NOT_FOUND_MESSAGE = 'No hemos encontrado esta entrega.';
 const OUTDATED_MESSAGE =
   'Este paso ya no está disponible: el estado ha cambiado. Te enseñamos el actual.';
 const CODE_FORMAT_MESSAGE = 'Escribe las 6 cifras del código de entrega.';
+const NEW_CODE_MESSAGE = 'Hemos generado un código nuevo. El anterior ya no vale.';
 
 type LoadState =
   | { status: 'loading' }
@@ -107,6 +109,8 @@ export function DeliveryTrackingPage() {
   const token = session?.token;
   const [state, setState] = useState<LoadState>({ status: 'loading' });
   const [notice, setNotice] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [renewingCode, setRenewingCode] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [dialog, setDialog] = useState<RenterAction | null>(null);
@@ -167,10 +171,11 @@ export function DeliveryTrackingPage() {
     enabled: tracking?.reservationStatus !== 'finished',
   });
 
-  async function runAction(action: () => Promise<DeliveryTracking>) {
+  async function runAction(action: () => Promise<DeliveryTracking>, successMessage?: string) {
     if (submitting) return;
     setSubmitting(true);
     setNotice(null);
+    setSuccess(null);
     setActionError(null);
     try {
       const updated = await action();
@@ -178,6 +183,7 @@ export function DeliveryTrackingPage() {
       setState({ status: 'success', tracking: updated });
       setCode('');
       setCodeError(null);
+      if (successMessage) setSuccess(successMessage);
     } catch (requestError) {
       if (requestError instanceof ApiError && requestError.status === 401) {
         clearSession();
@@ -198,6 +204,7 @@ export function DeliveryTrackingPage() {
       }
     } finally {
       setSubmitting(false);
+      setRenewingCode(false);
       setDialog(null);
     }
   }
@@ -264,6 +271,13 @@ export function DeliveryTrackingPage() {
     );
   }
 
+  // Si el código se bloquea tras 5 intentos, el arrendatario pide otro (POST …/codigo, T13).
+  function renewCode() {
+    if (!token) return;
+    setRenewingCode(true);
+    void runAction(() => requestNewDeliveryCode(token, id), NEW_CODE_MESSAGE);
+  }
+
   const dialogTexts = dialog ? RENTER_DIALOGS[dialog] : null;
 
   return (
@@ -292,6 +306,12 @@ export function DeliveryTrackingPage() {
             {actionError}
           </p>
         )}
+        {success && (
+          <p role="status" className="form-success manage-notice">
+            <Icon name="check_circle" />
+            {success}
+          </p>
+        )}
 
         <StepList steps={steps} />
 
@@ -301,6 +321,19 @@ export function DeliveryTrackingPage() {
             Tu código de entrega: <strong>{formatDeliveryCode(current.deliveryCode)}</strong>.
             Enséñaselo al rider cuando te dé el objeto.
           </p>
+        )}
+        {isRenter && current.mode === 'rider' && current.deliveryCode && !delivered && (
+          <>
+            <p className="field-hint">¿El rider te dice que el código se ha bloqueado?</p>
+            <button
+              type="button"
+              className="button-secondary tracking-action"
+              disabled={submitting}
+              onClick={renewCode}
+            >
+              {renewingCode ? 'Generando…' : 'Generar un código nuevo'}
+            </button>
+          </>
         )}
 
         {isRenter && current.mode !== 'rider' && !delivered && (
