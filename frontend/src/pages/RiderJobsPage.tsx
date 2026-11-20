@@ -1,18 +1,17 @@
 // Generado con asistencia de IA (Claude)
-// «Trabajos» de un rider aceptado (US-10.01, #293): los disponibles, agrupados por día, para
-// seleccionar varios y aceptarlos a la vez, y «Mis trabajos», con la dirección completa. Sustituye
-// a la pantalla provisional de US-10.03.
-import { Fragment, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Link, NavLink, useLocation, useMatch, useNavigate } from 'react-router';
+// «Trabajos» de un rider aceptado (US-10.01, #293): los disponibles, agrupados por día, cada uno con
+// su botón «Aceptar», y «Mis trabajos», con la dirección completa. Sustituye a la pantalla
+// provisional de US-10.03.
+import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Link, NavLink, useMatch } from 'react-router';
 import { Icon, type IconName } from '../components/Icon';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import {
-  acceptJobs,
+  acceptJob,
   ASAP_SLOT,
   getAvailableJobs,
   getMyJobs,
-  type AcceptJobsResult,
   type AvailableJob,
   type JobStatus,
   type MyJob,
@@ -22,7 +21,7 @@ const AVAILABLE_PATH = '/trabajos';
 const MINE_PATH = '/trabajos/mios';
 
 const LOAD_FAILED = 'No se han podido cargar los trabajos.';
-const ACCEPT_FAILED = 'No se han podido aceptar los trabajos. Inténtalo de nuevo.';
+const ACCEPT_FAILED = 'No se ha podido aceptar el trabajo. Inténtalo de nuevo.';
 
 const priceFormatter = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 const dayFormatter = new Intl.DateTimeFormat('es-ES', {
@@ -31,9 +30,10 @@ const dayFormatter = new Intl.DateTimeFormat('es-ES', {
   month: 'long',
 });
 
-// Resultado de «Aceptar trabajos» que se lleva a «Mis trabajos» con la navegación.
-type AcceptedState = { accepted: AcceptJobsResult };
-type Notice = { id: string; result: AcceptJobsResult };
+// Aviso del último «Aceptar»: aceptado, ya era de otro rider (criterio 4) o error.
+type NoticeContent =
+  { kind: 'accepted' | 'taken'; title: string } | { kind: 'error'; message: string };
+type Notice = NoticeContent & { id: number };
 
 // Estados de la entrega con los nombres de la historia US-05.02 (#67). Los valores de la API se
 // fijan con la máquina de estados de T13 (#288).
@@ -75,8 +75,13 @@ function formatFee(fee: string | number): string {
   return priceFormatter.format(Number(fee));
 }
 
-function jobsText(count: number): string {
-  return count === 1 ? '1 trabajo' : `${count} trabajos`;
+// El mismo orden que la API: por fecha y, dentro del día, «Lo antes posible» primero.
+function byStart(a: AvailableJob, b: AvailableJob): number {
+  if (a.startDate !== b.startDate) return a.startDate.localeCompare(b.startDate);
+  if (a.slot === b.slot) return 0;
+  if (a.slot === ASAP_SLOT) return -1;
+  if (b.slot === ASAP_SLOT) return 1;
+  return a.slot.localeCompare(b.slot);
 }
 
 // Los trabajos ya llegan ordenados por fecha: se agrupan por día conservando ese orden.
@@ -101,14 +106,13 @@ function loadErrorMessage(error: unknown): string {
 export function RiderJobsPage() {
   const { session, clearSession } = useAuth();
   const token = session?.token;
-  const navigate = useNavigate();
-  const location = useLocation();
   const showingMine = useMatch(MINE_PATH) !== null;
 
   const [available, setAvailable] = useState<AvailableJob[] | null>(null);
   const [mine, setMine] = useState<MyJob[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const [accepting, setAccepting] = useState<ReadonlySet<string>>(new Set());
   const [notice, setNotice] = useState<Notice | null>(null);
   const noticeCount = useRef(0);
 
@@ -141,27 +145,53 @@ export function RiderJobsPage() {
     setAttempt((current) => current + 1);
   }
 
-  const handleAccepted = useCallback(
-    (accepted: AcceptJobsResult) => {
-      // Con alguno asignado va a «Mis trabajos»; el resultado viaja con la navegación porque la
-      // página se vuelve a montar al cambiar de ruta.
-      if (accepted.assigned.length > 0) {
-        navigate(MINE_PATH, { state: { accepted } satisfies AcceptedState });
+  function showNotice(next: NoticeContent) {
+    noticeCount.current += 1;
+    setNotice({ ...next, id: noticeCount.current });
+  }
+
+  function setAcceptingJob(id: string, value: boolean) {
+    setAccepting((current) => {
+      const next = new Set(current);
+      if (value) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
+  // Cada trabajo se acepta por separado (decisión de Kai, 20/11). Al aceptarlo pasa a «Mis
+  // trabajos» y la página se queda en «Disponibles» para seguir aceptando.
+  async function accept(job: AvailableJob) {
+    if (!token) return;
+    setAcceptingJob(job.id, true);
+    try {
+      const { job: accepted } = await acceptJob(token, job.id);
+      setAvailable((current) => current && current.filter((entry) => entry.id !== job.id));
+      setMine(
+        (current) =>
+          current &&
+          [...current.filter((entry) => entry.id !== accepted.id), accepted].sort(byStart),
+      );
+      showNotice({ kind: 'accepted', title: job.item.title });
+    } catch (error: unknown) {
+      if (error instanceof ApiError && error.status === 401) {
+        clearSession();
         return;
       }
-      // Ninguno: se queda en «Disponibles» con el aviso, sin los que ya eran de otro rider.
-      const taken = new Set(accepted.alreadyTaken.map((job) => job.id));
-      noticeCount.current += 1;
-      setNotice({ id: `aviso-${noticeCount.current}`, result: accepted });
-      setAvailable((current) => current && current.filter((job) => !taken.has(job.id)));
-      setAttempt((current) => current + 1);
-    },
-    [navigate],
-  );
+      // 409: otro rider lo aceptó antes (o ya no está disponible). Sale de la lista y se recarga.
+      if (error instanceof ApiError && (error.status === 409 || error.status === 404)) {
+        setAvailable((current) => current && current.filter((entry) => entry.id !== job.id));
+        showNotice({ kind: 'taken', title: job.item.title });
+        setAttempt((current) => current + 1);
+        return;
+      }
+      const showApiMessage = error instanceof ApiError && [0, 403].includes(error.status);
+      showNotice({ kind: 'error', message: showApiMessage ? error.message : ACCEPT_FAILED });
+    } finally {
+      setAcceptingJob(job.id, false);
+    }
+  }
 
-  const navigatedResult = (location.state as AcceptedState | null)?.accepted;
-  const shownNotice =
-    notice ?? (navigatedResult ? { id: location.key, result: navigatedResult } : null);
   const loaded = available !== null && mine !== null;
 
   return (
@@ -170,7 +200,7 @@ export function RiderJobsPage() {
         <div>
           <h1 className="page-title">Trabajos</h1>
           <p className="page-subtitle">
-            Elige las entregas que quieras hacer. Verás las direcciones completas al aceptarlas.
+            Acepta las entregas que quieras hacer. Verás las direcciones completas al aceptarlas.
           </p>
         </div>
       </div>
@@ -183,9 +213,6 @@ export function RiderJobsPage() {
           {loaded ? `Mis trabajos (${mine.length})` : 'Mis trabajos'}
         </NavLink>
       </nav>
-
-      {/* La clave cambia en cada aceptación: el aviso se vuelve a montar y a anunciar. */}
-      {shownNotice && <AcceptResultNotice key={shownNotice.id} result={shownNotice.result} />}
 
       {loadError ? (
         <div className="jobs-load-error">
@@ -211,22 +238,19 @@ export function RiderJobsPage() {
       ) : showingMine ? (
         <MyJobsList jobs={mine} />
       ) : (
-        token && (
-          <AvailableJobsList
-            jobs={available}
-            token={token}
-            onAccepted={handleAccepted}
-            onSessionExpired={clearSession}
-          />
-        )
+        <>
+          {/* La clave cambia en cada «Aceptar»: el aviso se vuelve a montar y a anunciar. */}
+          {notice && <AcceptNotice key={notice.id} notice={notice} />}
+          <AvailableJobsList jobs={available} accepting={accepting} onAccept={accept} />
+        </>
       )}
     </section>
   );
 }
 
-// Cuántos se han asignado y cuáles ya eran de otro rider (criterio 4). Se lleva el foco aquí
-// para que se lea al terminar.
-function AcceptResultNotice({ result }: { result: AcceptJobsResult }) {
+// Resultado del último «Aceptar». La tarjeta aceptada desaparece, así que el foco viene aquí para
+// que se lea el resultado.
+function AcceptNotice({ notice }: { notice: Notice }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -235,23 +259,28 @@ function AcceptResultNotice({ result }: { result: AcceptJobsResult }) {
 
   return (
     <div ref={ref} tabIndex={-1} className="jobs-result">
-      {result.assigned.length > 0 && (
+      {notice.kind === 'accepted' && (
         <p role="status" className="jobs-assigned">
           <Icon name="check_circle" />
-          Te hemos asignado {jobsText(result.assigned.length)}.
+          <span>
+            Has aceptado «{notice.title}». Lo tienes en <Link to={MINE_PATH}>Mis trabajos</Link>,
+            con las direcciones.
+          </span>
         </p>
       )}
-      {result.alreadyTaken.length > 0 && (
-        <ul role="alert" className="jobs-taken">
-          {result.alreadyTaken.map((job) => (
-            <li key={job.id}>
-              <Icon name="warning" />
-              <span>
-                <strong>{job.item.title}</strong>: Ya asignado a otro rider.
-              </span>
-            </li>
-          ))}
-        </ul>
+      {notice.kind === 'taken' && (
+        <p role="alert" className="jobs-taken">
+          <Icon name="warning" />
+          <span>
+            <strong>{notice.title}</strong>: Ya asignado a otro rider.
+          </span>
+        </p>
+      )}
+      {notice.kind === 'error' && (
+        <p role="alert" className="form-error manage-notice">
+          <Icon name="error" />
+          {notice.message}
+        </p>
       )}
     </div>
   );
@@ -267,17 +296,9 @@ function EmptyJobs({ icon, children }: { icon: IconName; children: ReactNode }) 
 }
 
 // El trayecto de una entrega: de dónde se recoge a dónde se entrega. Hasta aceptar, solo barrios.
-function JobRoute({
-  id,
-  pickup,
-  delivery,
-}: {
-  id?: string;
-  pickup: ReactNode;
-  delivery: ReactNode;
-}) {
+function JobRoute({ pickup, delivery }: { pickup: ReactNode; delivery: ReactNode }) {
   return (
-    <span id={id} className="job-route">
+    <span className="job-route">
       <span className="job-stop">
         <span className="job-stop-label">Recogida</span>{' '}
         <span className="job-stop-place">{pickup}</span>
@@ -290,9 +311,9 @@ function JobRoute({
   );
 }
 
-function JobFee({ id, fee }: { id?: string; fee: string }) {
+function JobFee({ fee }: { fee: string }) {
   return (
-    <span id={id} className="job-fee">
+    <span className="job-fee">
       <span className="job-fee-label">Tarifa</span>{' '}
       <span className="job-fee-amount">{formatFee(fee)}</span>
     </span>
@@ -305,146 +326,57 @@ function DayHeading({ day }: { day: string }) {
 
 function AvailableJobsList({
   jobs,
-  token,
-  onAccepted,
-  onSessionExpired,
+  accepting,
+  onAccept,
 }: {
   jobs: AvailableJob[];
-  token: string;
-  onAccepted: (result: AcceptJobsResult) => void;
-  onSessionExpired: () => void;
+  accepting: ReadonlySet<string>;
+  onAccept: (job: AvailableJob) => Promise<void>;
 }) {
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Solo cuentan los seleccionados que siguen en la lista.
-  const marked = jobs.filter((job) => selected.has(job.id));
-  const total = marked.reduce((sum, job) => sum + Number(job.fee), 0);
-
-  function toggle(id: string) {
-    setError(null);
-    setSelected((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  async function accept() {
-    setSubmitting(true);
-    setError(null);
-    try {
-      const accepted = await acceptJobs(
-        token,
-        marked.map((job) => job.id),
-      );
-      setSelected(new Set());
-      onAccepted(accepted);
-    } catch (requestError: unknown) {
-      if (requestError instanceof ApiError && requestError.status === 401) {
-        onSessionExpired();
-        return;
-      }
-      const showApiMessage =
-        requestError instanceof ApiError && [0, 400, 403].includes(requestError.status);
-      setError(showApiMessage ? requestError.message : ACCEPT_FAILED);
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
   if (jobs.length === 0) {
     return <EmptyJobs icon="pedal_bike">No hay trabajos disponibles ahora mismo.</EmptyJobs>;
   }
 
   return (
-    <form
-      className="jobs-form"
-      aria-label="Trabajos disponibles"
-      onSubmit={(event) => {
-        event.preventDefault();
-        if (marked.length > 0 && !submitting) void accept();
-      }}
-    >
-      {error && (
-        <p role="alert" className="form-error manage-notice">
-          <Icon name="error" />
-          {error}
-        </p>
-      )}
-      <div className="jobs-day-list">
-        {groupByDay(jobs).map((group) => (
-          <Fragment key={group.day}>
-            <DayHeading day={group.day} />
-            <ul className="jobs-list">
-              {group.jobs.map((job) => {
-                const ids = `job-${job.id}`;
-                const checked = selected.has(job.id);
-                return (
-                  <li key={job.id}>
-                    {/* Toda la tarjeta selecciona; el lector lee el objeto y luego el detalle. */}
-                    <label className={`job-card job-option${checked ? ' is-selected' : ''}`}>
-                      <input
-                        type="checkbox"
-                        className="job-check"
-                        checked={checked}
-                        disabled={submitting}
-                        aria-labelledby={`${ids}-title`}
-                        aria-describedby={`${ids}-route ${ids}-when ${ids}-fee`}
-                        onChange={() => toggle(job.id)}
-                      />
-                      <span className="job-main">
-                        <span id={`${ids}-title`} className="job-title">
-                          {job.item.title}
-                        </span>
-                        <JobRoute
-                          id={`${ids}-route`}
-                          pickup={job.pickupNeighborhood}
-                          delivery={job.deliveryNeighborhood}
-                        />
-                        <span id={`${ids}-when`} className="job-slot">
-                          <Icon name="schedule" />
-                          <span className="manage-visually-hidden">
-                            {formatDay(job.startDate)},
-                          </span>{' '}
-                          {formatSlot(job.slot)}
-                        </span>
-                      </span>
-                      <JobFee id={`${ids}-fee`} fee={job.fee} />
-                    </label>
-                  </li>
-                );
-              })}
-            </ul>
-          </Fragment>
-        ))}
-      </div>
-      <div className="jobs-action-bar">
-        <p aria-live="polite" className="jobs-action-summary">
-          {marked.length === 0 ? (
-            'Selecciona los trabajos que quieras hacer.'
-          ) : (
-            <>
-              <span>
-                {marked.length === 1 ? '1 seleccionado' : `${marked.length} seleccionados`}
-              </span>{' '}
-              <span className="jobs-action-total">
-                Total <strong>{formatFee(total)}</strong>
-              </span>
-            </>
-          )}
-        </p>
-        <button
-          type="submit"
-          className="button-primary"
-          disabled={marked.length === 0 || submitting}
-        >
-          {submitting ? 'Aceptando…' : 'Aceptar trabajos'}
-        </button>
-      </div>
-    </form>
+    <div className="jobs-day-list">
+      {groupByDay(jobs).map((group) => (
+        <Fragment key={group.day}>
+          <DayHeading day={group.day} />
+          <ul className="jobs-list" aria-label={`Trabajos de ${formatDay(group.day)}`}>
+            {group.jobs.map((job) => {
+              const busy = accepting.has(job.id);
+              return (
+                <li key={job.id} className="job-card">
+                  <div className="job-main">
+                    <h3 className="job-title">{job.item.title}</h3>
+                    <JobRoute pickup={job.pickupNeighborhood} delivery={job.deliveryNeighborhood} />
+                    <span className="job-slot">
+                      <Icon name="schedule" />
+                      {formatSlot(job.slot)}
+                    </span>
+                  </div>
+                  <div className="job-side">
+                    <JobFee fee={job.fee} />
+                    {/* El nombre lleva el objeto: hay un «Aceptar» por tarjeta. */}
+                    <button
+                      type="button"
+                      className="button-primary job-accept"
+                      aria-label={
+                        busy ? `Aceptando ${job.item.title}…` : `Aceptar ${job.item.title}`
+                      }
+                      disabled={busy}
+                      onClick={() => void onAccept(job)}
+                    >
+                      {busy ? 'Aceptando…' : 'Aceptar'}
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </Fragment>
+      ))}
+    </div>
   );
 }
 
@@ -460,7 +392,7 @@ function MyJobsList({ jobs }: { jobs: MyJob[] }) {
           <DayHeading day={group.day} />
           <ul className="jobs-list">
             {group.jobs.map((job) => (
-              <li key={job.id} className="job-card job-assigned">
+              <li key={job.id} className="job-card">
                 <div className="job-main">
                   <div className="job-header">
                     <h3 className="job-title">{job.item.title}</h3>
