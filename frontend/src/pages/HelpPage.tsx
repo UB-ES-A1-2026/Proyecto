@@ -181,6 +181,42 @@ const SECTIONS: HelpSection[] = [
     note: 'Solo se puede valorar un alquiler finalizado, una sola vez. La puntuación es obligatoria. La valoración la verá esa persona en sus solicitudes, y otras personas en su perfil.',
   },
   {
+    id: 'cancelar',
+    title: 'Cancelar una reserva',
+    steps: [
+      'En «Mis solicitudes», abre la reserva: en «Enviadas» si la pediste tú, o en «Recibidas» si es de tu objeto.',
+      'Pulsa «Cancelar reserva» (o «Cancelar solicitud» si todavía está pendiente). Si la reserva ya está pagada, verás la compensación que te tocaría pagar hoy.',
+      'Pulsa «Cancelar reserva» para confirmarlo o «Volver» para dejarla como está.',
+      <>
+        Si la reserva ya está pagada, quien cancela compensa a la otra persona por las molestias con
+        una parte del alquiler, según los días que faltan para el inicio:
+        <table className="help-table">
+          <thead>
+            <tr>
+              <th scope="col">Días que faltan para el inicio</th>
+              <th scope="col">Compensación por las molestias</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Menos de 3</td>
+              <td>100 % del alquiler</td>
+            </tr>
+            <tr>
+              <td>De 3 a 7</td>
+              <td>35 % del alquiler</td>
+            </tr>
+            <tr>
+              <td>8 o más</td>
+              <td>Nada</td>
+            </tr>
+          </tbody>
+        </table>
+      </>,
+    ],
+    note: 'Una solicitud pendiente se cancela gratis. La fianza y la entrega no cuentan para la compensación: se recuperan enteras. Una reserva que ya ha empezado no se puede cancelar.',
+  },
+  {
     id: 'publicar',
     title: 'Publicar un objeto',
     steps: [
