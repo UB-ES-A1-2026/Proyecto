@@ -17,6 +17,7 @@ const SECTIONS = [
   { id: 'mis-solicitudes', title: 'Consultar tus solicitudes' },
   { id: 'responder-solicitud', title: 'Aceptar o rechazar una solicitud' },
   { id: 'valorar', title: 'Valorar un alquiler' },
+  { id: 'cancelar', title: 'Cancelar una reserva' },
   { id: 'publicar', title: 'Publicar un objeto' },
   { id: 'editar', title: 'Editar un objeto' },
   { id: 'pausar', title: 'Pausar o reanudar un objeto' },
@@ -46,6 +47,24 @@ describe('página de ayuda (#89)', () => {
       expect(region).toHaveAttribute('id', section.id);
       expect(within(region).getAllByRole('listitem').length).toBeGreaterThan(1);
     }
+  });
+
+  it('«Cancelar una reserva» explica la compensación por las molestias con una tabla', () => {
+    renderRoute('/ayuda');
+
+    const section = within(screen.getByRole('region', { name: 'Cancelar una reserva' }));
+    const rows = section
+      .getAllByRole('row')
+      .slice(1)
+      .map((row) => row.textContent);
+    expect(
+      section.getByRole('columnheader', { name: 'Compensación por las molestias' }),
+    ).toBeInTheDocument();
+    expect(rows).toEqual([
+      'Menos de 3100 % del alquiler',
+      'De 3 a 735 % del alquiler',
+      '8 o másNada',
+    ]);
   });
 
   it('el índice enlaza a cada sección', () => {
