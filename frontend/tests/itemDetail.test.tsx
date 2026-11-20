@@ -73,7 +73,8 @@ describe('pantalla de detalle del objeto (US-03.03, #58)', () => {
     expect(screen.getByText('Entrega a domicilio')).toBeInTheDocument();
     expect(screen.getByText('Entrega con rider')).toBeInTheDocument();
     expect(screen.getByText('Punto de recogida')).toBeInTheDocument();
-    expect(screen.getByText('Publicado por ana')).toBeInTheDocument();
+    // El nombre del propietario enlaza a su perfil público (US-01.4).
+    expect(screen.getByRole('link', { name: 'ana' })).toHaveAttribute('href', '/usuarios/user-ana');
     expect(screen.getByRole('region', { name: 'Propietario' })).toHaveTextContent(
       /^APublicado por ana$/,
     );

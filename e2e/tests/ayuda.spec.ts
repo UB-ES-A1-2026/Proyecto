@@ -15,7 +15,7 @@ const DELIVERED_FLOWS = [
   'Crear una cuenta',
   'Hacerte rider',
   'Iniciar sesión',
-  'Ver tu perfil',
+  'Ver y editar tu perfil',
   'Cerrar sesión',
   'Buscar un objeto',
   'Filtrar los resultados',

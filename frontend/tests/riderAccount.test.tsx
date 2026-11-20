@@ -46,6 +46,19 @@ function mockMe(riderStatus: RiderStatus, rejectionReason?: string) {
         ...(rejectionReason ? { rejectionReason } : {}),
       });
     }
+    // Su perfil público (US-01.4): «Mi perfil» lleva a /usuarios/r1.
+    if (url.endsWith('/usuarios/r1')) {
+      return Response.json({
+        id: 'r1',
+        username: 'pau.rider',
+        bio: null,
+        photo: null,
+        memberSince: '2026-11-01T10:00:00.000Z',
+        rating: { average: null, count: 0 },
+        items: [],
+        isOwnProfile: true,
+      });
+    }
     return Response.json({ error: 'No esperado en este test.' }, { status: 500 });
   });
 }
@@ -217,6 +230,7 @@ describe('«Trabajos» con otras cuentas', () => {
   });
 });
 
+// Con US-01.4, «Mi perfil» es el perfil público propio: el rider ve ahí su bloque, sin objetos.
 describe('«Mi perfil» de un rider (US-10.03)', () => {
   it('pendiente: no enseña lo de arrendatario ni pide sus cifras', async () => {
     const fetchMock = mockMe('pending');
@@ -224,7 +238,9 @@ describe('«Mi perfil» de un rider (US-10.03)', () => {
 
     renderRoute('/perfil');
 
-    expect(await screen.findByText('pau.rider', { selector: '.profile-name' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'pau.rider' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Objetos publicados' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cerrar sesión' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Publicar un objeto' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Mis objetos/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Mis solicitudes/ })).not.toBeInTheDocument();
