@@ -358,7 +358,7 @@
     <p class="wf-flecha">Un admin la rechaza (US-11.03) y el rider vuelve a iniciar sesión</p>
 
     <section class="wf-pantalla" data-captura="6-rechazada">
-      <h2><span class="wf-paso">6</span>Rider rechazado, con el motivo <code>/</code></h2>
+      <h2><span class="wf-paso">6</span>Rider rechazado: el inicio enseña su solicitud <code>/</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/">
           <nav class="wf-nav">
@@ -373,8 +373,8 @@
               <h3 class="wf-h1">Tu solicitud para ser rider</h3>
               <div class="wf-chips"><span class="wf-chip">Solicitud rechazada</span></div>
               <p class="wf-texto">Hola, pau.rider. Un admin ha rechazado tu solicitud para ser rider.</p>
-              <p class="wf-aviso">Motivo: la zona indicada está fuera de la ciudad. <span class="wf-marca">1</span></p>
-              <p class="wf-texto"><strong>Qué puedes hacer:</strong> revisa el motivo. Si cambian tus datos, más adelante puedes volver a solicitarlo con otra cuenta desde «Hazte rider», en Crear cuenta. <span class="wf-marca">2</span></p>
+              <p class="wf-error">Motivo: la zona indicada está fuera de la ciudad. <span class="wf-marca">1</span></p>
+              <p class="wf-texto"><strong>Qué puedes hacer:</strong> revisa el motivo. Si cambian tus datos, más adelante puedes volver a solicitarlo con otra cuenta desde «Hazte rider». <span class="wf-marca">2</span></p>
               <span class="wf-boton wf-secundario">Cerrar sesión</span>
             </div>
           </div>
@@ -382,9 +382,10 @@
       </div>
       <ol class="wf-notas">
         <li>
-          El motivo es opcional: sin motivo no sale esta línea. Hoy el login y <code>/api/usuarios/me</code> solo devuelven
-          <code>riderStatus: "rejected"</code>. Se ha pedido a Max (T34) que añada <code>rejectionReason</code>; el
-          frontend ya lo enseña en cuanto llegue.
+          El motivo es opcional: lo escribe el admin al rechazar y llega con US-11.03 (#305), que añade
+          <code>rejectionReason</code> a la API. Hasta que esté en <code>develop</code>, el login y
+          <code>/api/usuarios/me</code> solo devuelven <code>riderStatus: "rejected"</code> y esta línea no sale. Sin
+          motivo tampoco sale. La web ya lo enseña en cuanto llega.
         </li>
         <li>No hay forma de volver a pedirlo desde aquí: queda fuera de esta historia.</li>
       </ol>
@@ -443,7 +444,7 @@
         </li>
         <li>Con una sesión normal no se ve «Hazte rider».</li>
         <li>Un rider solo ve el estado de su solicitud y «Trabajos», con «Mi perfil».</li>
-        <li>Pendiente de Max (T34): que el login y <code>/api/usuarios/me</code> devuelvan <code>rejectionReason</code>.</li>
+        <li>El motivo del rechazo (<code>rejectionReason</code>) llega con US-11.03 (#305): la web ya lo enseña cuando la API lo envía.</li>
         <li>
           Cambio de Kai al revisar (18/11/2026): «Hazte rider» sale solo en Crear cuenta, debajo de «¿Ya tienes cuenta?»,
           y no en la cabecera ni en la barra inferior del móvil.
