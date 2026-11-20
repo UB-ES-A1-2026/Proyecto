@@ -226,3 +226,91 @@ describe('pantalla «Mis objetos» (US-02.02, #109)', () => {
     expect(rows[1]).not.toHaveTextContent('Rentit ha retirado');
   });
 });
+
+// Lista y detalle en pantallas anchas (decisión de Kai, 20/11). Generado con asistencia de IA (Claude).
+describe('«Mis objetos» con lista y detalle (pantallas anchas)', () => {
+  function wideScreen(matches = true) {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn().mockImplementation((query: string) => ({
+        matches,
+        media: query,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+      })),
+    );
+  }
+
+  const WITH_WITHDRAWN = [
+    ...ITEMS,
+    {
+      id: 'o3',
+      title: 'Escalera plegable',
+      dailyPrice: '4',
+      neighborhood: 'Sarrià',
+      status: 'withdrawn',
+    },
+  ];
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('elige el primero y enseña su detalle con las acciones; al pulsar otro, cambia', async () => {
+    wideScreen();
+    localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
+    mockFetch(() => Response.json(WITH_WITHDRAWN));
+    const user = userEvent.setup();
+
+    renderRoute('/mis-objetos');
+
+    const taladro = await screen.findByRole('button', { name: 'Taladro percutor' });
+    expect(taladro).toHaveAttribute('aria-pressed', 'true');
+    // El título sigue siendo un encabezado de la lista, con el botón dentro.
+    expect(screen.getAllByRole('heading', { level: 2, name: 'Taladro percutor' })).toHaveLength(2);
+    const detail = screen.getByRole('region', { name: 'Objeto elegido' });
+    expect(detail).toHaveTextContent('Gràcia');
+    expect(
+      within(detail).getByRole('button', { name: 'Pausar Taladro percutor' }),
+    ).toBeInTheDocument();
+    expect(within(detail).getByRole('link', { name: 'Ver el anuncio' })).toHaveAttribute(
+      'href',
+      '/objetos/o1',
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Tienda de campaña' }));
+    expect(
+      within(detail).getByRole('button', { name: 'Reanudar Tienda de campaña' }),
+    ).toBeInTheDocument();
+
+    // Un objeto retirado no tiene acciones ni enlace al anuncio.
+    await user.click(screen.getByRole('button', { name: 'Escalera plegable' }));
+    expect(within(detail).queryByRole('button')).toBeNull();
+    expect(within(detail).queryByRole('link', { name: 'Ver el anuncio' })).toBeNull();
+  });
+
+  it('con un filtro, elige el primero de los que se ven', async () => {
+    wideScreen();
+    localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
+    mockFetch(() => Response.json(WITH_WITHDRAWN));
+    const user = userEvent.setup();
+
+    renderRoute('/mis-objetos');
+
+    await user.click(await screen.findByRole('button', { name: /^Pausados/ }));
+
+    const detail = screen.getByRole('region', { name: 'Objeto elegido' });
+    expect(within(detail).getByRole('heading', { name: 'Tienda de campaña' })).toBeInTheDocument();
+  });
+
+  it('en pantallas estrechas sigue con las acciones en cada fila', async () => {
+    wideScreen(false);
+    localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
+    mockFetch(() => Response.json(ITEMS));
+
+    renderRoute('/mis-objetos');
+
+    expect(
+      await screen.findByRole('button', { name: 'Pausar Taladro percutor' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Objeto elegido' })).toBeNull();
+  });
+});

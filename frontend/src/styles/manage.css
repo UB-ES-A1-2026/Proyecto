@@ -212,6 +212,83 @@
   transform: scale(0.98);
 }
 
+/* Lista y detalle en pantallas anchas (decisión de Kai, 20/11) */
+.item-master-detail {
+  display: grid;
+  grid-template-columns: minmax(20rem, 2fr) minmax(0, 3fr);
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+/* Filas compactas: foto pequeña, título, estado y precio; las acciones van en el detalle. */
+.item-list-compact {
+  gap: var(--space-sm);
+}
+
+.item-list-compact .item-row {
+  position: relative;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.item-list-compact .item-row:hover {
+  border-color: var(--color-border-soft);
+}
+
+.item-list-compact .item-row.is-selected {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+/* El botón ocupa toda la fila, con la letra del título. */
+.item-select {
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.item-select::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  border-radius: inherit;
+}
+
+.item-select:focus-visible {
+  outline: none;
+}
+
+.item-list-compact .item-row:has(.item-select:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.my-item-detail {
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-md));
+  display: grid;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+}
+
+.my-item-detail-photo {
+  aspect-ratio: 16 / 7;
+  margin-bottom: var(--space-sm);
+}
+
+.my-item-detail .item-actions {
+  justify-content: flex-start;
+  margin-top: var(--space-sm);
+}
+
+.my-item-detail-link {
+  justify-self: start;
+}
+
 @media (max-width: 900px) {
   .item-row,
   .item-skeleton {
