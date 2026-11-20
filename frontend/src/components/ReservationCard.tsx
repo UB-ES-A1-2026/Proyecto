@@ -1,5 +1,5 @@
 // Generado con asistencia de IA – revisado por Danyal, 01/11/2026
-import { useId, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import type { Reservation, ReservationStatus } from '../services/reservationService';
 import { Icon, type IconName } from './Icon';
@@ -101,12 +101,21 @@ export function ReservationCard({
   reservation,
   role,
   children,
+  justCancelled = false,
 }: {
   reservation: Reservation;
   role: 'sent' | 'received';
   children?: ReactNode;
+  // Se acaba de cancelar desde esta tarjeta: el botón que abrió la ventana ya no está, así que el
+  // foco va al texto de la cancelación (US-04.05, #309).
+  justCancelled?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const cancellationRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    if (justCancelled) cancellationRef.current?.focus();
+  }, [justCancelled]);
   const detailId = useId();
   const status =
     statusLabels[reservation.status as ReservationStatus] ?? String(reservation.status);
@@ -191,10 +200,52 @@ export function ReservationCard({
                 </span>
               </p>
             )}
+            {reservation.status === 'cancelled' && reservation.cancellation && (
+              <p
+                ref={cancellationRef}
+                role="status"
+                tabIndex={-1}
+                className="reservation-cancellation"
+              >
+                <Icon name="do_not_disturb_on" size="1.125rem" />
+                <span>{cancellationText(reservation, role)}</span>
+              </p>
+            )}
             {children}
           </div>
         </div>
       </div>
     </article>
   );
+}
+
+// Quién canceló, cuándo, la compensación por las molestias y lo devuelto (US-04.05, #309), según
+// quién lo mira.
+function cancellationText(reservation: Reservation, role: 'sent' | 'received'): string {
+  const cancellation = reservation.cancellation;
+  if (!cancellation) return '';
+  const date = longDateFormatter.format(new Date(cancellation.at));
+  const byRenter = cancellation.by.id === reservation.renter.id;
+  const byMe = (role === 'sent') === byRenter;
+  const compensation = Number(cancellation.penaltyAmount);
+  const refund = Number(cancellation.refundAmount);
+  const compensationText = `${priceFormatter.format(compensation)} (${cancellation.penaltyPercent} %)`;
+  const who = byMe
+    ? `La cancelaste tú el ${date}.`
+    : `La canceló ${cancellation.by.username} el ${date}.`;
+
+  // Gratis: solo quién y cuándo (y lo devuelto, si había pago).
+  if (compensation === 0) {
+    const refundText =
+      refund > 0 && role === 'sent' ? ` Te hemos devuelto ${priceFormatter.format(refund)}.` : '';
+    return `${who}${refundText}`;
+  }
+  if (byRenter) {
+    return role === 'sent'
+      ? `${who} Compensación a ${reservation.owner.username} por las molestias: ${compensationText}. Te hemos devuelto ${priceFormatter.format(refund)}.`
+      : `${who} Recibes ${compensationText} como compensación por las molestias.`;
+  }
+  return role === 'sent'
+    ? `${who} Te hemos devuelto todo lo que pagaste (${priceFormatter.format(refund)}) y recibes ${compensationText} como compensación por las molestias.`
+    : `${who} Compensación a ${reservation.renter.username} por las molestias: ${compensationText}. A ${reservation.renter.username} se le ha devuelto todo (${priceFormatter.format(refund)}).`;
 }
