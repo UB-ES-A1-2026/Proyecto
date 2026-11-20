@@ -9,11 +9,12 @@ import { AppError } from '../errors/appError.js';
 import {
   findReservationForTracking,
   markDelivered,
+  markReturned,
   moveDelivery,
   recordFailedCodeAttempt,
-  markReturned,
+  renewDeliveryCode,
 } from '../repositories/deliveryTrackingRepository.js';
-import { MAX_CODE_ATTEMPTS } from './deliveryCode.js';
+import { generateDeliveryCode, MAX_CODE_ATTEMPTS } from './deliveryCode.js';
 import { publish } from './realtimeService.js';
 
 export const NOT_FOUND_MESSAGE = 'No hemos encontrado esta entrega.';
@@ -32,6 +33,9 @@ export const RIDER_DELIVERY_MESSAGE =
   'Con rider, la entrega la marca el rider con tu código.';
 export const NOT_IN_PROGRESS_MESSAGE =
   'Solo puedes marcar «He devuelto el objeto» con el alquiler en curso.';
+export const NO_CODE_MESSAGE = 'Solo hay código de entrega con rider.';
+export const ALREADY_DELIVERED_MESSAGE =
+  'La entrega ya está hecha: el código ya no hace falta.';
 
 // «El código no es correcto. Te quedan 3 intentos.»
 export function wrongCodeMessage(attemptsLeft: number): string {
@@ -291,5 +295,36 @@ export async function confirmReturned(
   }
 
   notifyChange(loaded, 'finished', now);
+  return getDeliveryTracking(userId, reservationId);
+}
+
+// POST /api/entregas/:id/codigo: el arrendatario genera un código nuevo, por ejemplo cuando se ha
+// bloqueado tras 5 intentos. El anterior deja de valer y el rider vuelve a tener 5 intentos.
+export async function renewCode(
+  userId: string,
+  reservationId: string,
+  now = new Date(),
+): Promise<DeliveryTracking> {
+  const loaded = await loadTracking(userId, reservationId);
+  const { reservation, delivery, mode, viewer } = loaded;
+
+  if (viewer !== 'renter') {
+    throw new AppError(403, NOT_RENTER_MESSAGE);
+  }
+  if (mode !== 'rider') {
+    throw new AppError(409, NO_CODE_MESSAGE);
+  }
+  if (reservation.status !== 'paid') {
+    throw new AppError(409, NOT_PAID_MESSAGE);
+  }
+  if (
+    delivery.status === 'delivered' ||
+    !(await renewDeliveryCode(reservationId, generateDeliveryCode()))
+  ) {
+    throw new AppError(409, ALREADY_DELIVERED_MESSAGE);
+  }
+
+  // El estado no cambia, pero el rider tiene que saber que puede volver a intentarlo.
+  notifyChange(loaded, delivery.status, now);
   return getDeliveryTracking(userId, reservationId);
 }
