@@ -104,12 +104,22 @@ function ReservationFact({ icon, children }: { icon: IconName; children: ReactNo
 
 // Desglose del importe (decisión de Marc, 12/11, US-05.01): alquiler, entrega si la hay, y total.
 // totalPrice es solo el alquiler; la tarifa del rider llega en delivery.fee.
+function deliveryFee(reservation: Reservation): number {
+  return reservation.delivery?.fee ? Number(reservation.delivery.fee) : 0;
+}
+
+// Lo que se bloquea al solicitar y se cobra al aceptar: alquiler + tarifa del rider (US-07.01 con
+// US-05.01, bug #372). Es el «Total» del desglose.
+function chargedTotal(reservation: Reservation): number {
+  return Number(reservation.totalPrice) + deliveryFee(reservation);
+}
+
 function formatAmounts(reservation: Reservation): string {
   const rental = Number(reservation.totalPrice);
-  const fee = reservation.delivery?.fee ? Number(reservation.delivery.fee) : 0;
+  const fee = deliveryFee(reservation);
   const parts = [`Alquiler: ${priceFormatter.format(rental)}`];
   if (fee > 0) parts.push(`Entrega: ${priceFormatter.format(fee)}`);
-  parts.push(`Total: ${priceFormatter.format(rental + fee)}`);
+  parts.push(`Total: ${priceFormatter.format(chargedTotal(reservation))}`);
   return parts.join(' · ');
 }
 
@@ -255,8 +265,8 @@ export function ReservationCard({
                 <Icon name="lock" size="1.125rem" />
                 <span>
                   {role === 'sent'
-                    ? `Hemos bloqueado ${priceFormatter.format(Number(reservation.totalPrice))} en tu tarjeta. Se cobran si ${reservation.owner.username} acepta; si no, se liberan.`
-                    : `Si la aceptas, se cobran ${priceFormatter.format(Number(reservation.totalPrice))} al momento; si la rechazas, se liberan.`}
+                    ? `Hemos bloqueado ${priceFormatter.format(chargedTotal(reservation))} en tu tarjeta. Se cobran si ${reservation.owner.username} acepta; si no, se liberan.`
+                    : `Si la aceptas, se cobran ${priceFormatter.format(chargedTotal(reservation))} al momento; si la rechazas, se liberan.`}
                   {role === 'sent'
                     ? ` Tiene hasta el ${formatDeadline(reservation.expiresAt)} para responder.`
                     : ` Responde antes del ${formatDeadline(reservation.expiresAt)}: si no, caduca.`}
