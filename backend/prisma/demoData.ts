@@ -241,6 +241,9 @@ export interface DemoReservation {
   startInDays: number;
   days: number;
   status: 'pending' | 'accepted' | 'rejected' | 'paid';
+  // El rider aceptado de la demo ya ha aceptado el trabajo (US-05.02, #288). Se asigna al final del
+  // seed, después de crear los riders (assignDemoRider).
+  riderAssigned?: true;
 }
 
 export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
@@ -318,8 +321,8 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
     days: 2,
     status: 'paid',
   },
-  // Pagada con rider (US-05.02, #288). El rider de la demo (dani, US-10.03) se le asigna cuando esa
-  // historia esté en develop.
+  // Pagada con rider y el rider de la demo ya asignado (US-05.02, #288): el rider avanza los pasos
+  // y el arrendatario le enseña el código.
   {
     item: { owner: 2, title: 'Hidrolimpiadora Kärcher' },
     renter: 1,
@@ -332,6 +335,7 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
     startInDays: 2,
     days: 2,
     status: 'paid',
+    riderAssigned: true,
   },
 ];
 
