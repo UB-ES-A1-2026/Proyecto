@@ -6,6 +6,7 @@ import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useMatch } from 'react-router';
 import { Icon, type IconName } from '../components/Icon';
 import { useAuth } from '../context/useAuth';
+import { useWideLayout } from '../hooks/useWideLayout';
 import { ApiError } from '../services/apiClient';
 import {
   acceptJob,
@@ -107,6 +108,7 @@ export function RiderJobsPage() {
   const { session, clearSession } = useAuth();
   const token = session?.token;
   const showingMine = useMatch(MINE_PATH) !== null;
+  const wide = useWideLayout();
 
   const [available, setAvailable] = useState<AvailableJob[] | null>(null);
   const [mine, setMine] = useState<MyJob[] | null>(null);
@@ -195,7 +197,7 @@ export function RiderJobsPage() {
   const loaded = available !== null && mine !== null;
 
   return (
-    <section className="rider-jobs">
+    <section className={wide ? 'rider-jobs rider-jobs-wide' : 'rider-jobs'}>
       <div className="page-header">
         <div>
           <h1 className="page-title">Trabajos</h1>
@@ -324,6 +326,145 @@ function DayHeading({ day }: { day: string }) {
   return <h2 className="jobs-day">{formatDay(day)}</h2>;
 }
 
+// Lista y detalle en pantallas anchas (decisión de Kai, 20/11): los trabajos en filas a la izquierda,
+// agrupados por día, y el elegido entero a la derecha. Generado con asistencia de IA (Claude).
+function JobsMasterDetail<T extends AvailableJob>({
+  jobs,
+  renderDetail,
+}: {
+  jobs: T[];
+  renderDetail: (job: T) => ReactNode;
+}) {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = jobs.find((job) => job.id === selectedId) ?? jobs[0];
+
+  return (
+    <div className="jobs-master-detail">
+      <div className="jobs-day-list">
+        {groupByDay(jobs).map((group) => (
+          <Fragment key={group.day}>
+            <DayHeading day={group.day} />
+            <ul
+              className="jobs-list jobs-list-compact"
+              aria-label={`Trabajos de ${formatDay(group.day)}`}
+            >
+              {group.jobs.map((job) => {
+                const isSelected = job.id === selected.id;
+                return (
+                  <li
+                    key={job.id}
+                    className={`job-card job-row${isSelected ? ' is-selected' : ''}`}
+                  >
+                    <div className="job-main">
+                      <h3 className="job-title">
+                        {/* Toda la fila elige el trabajo: el botón se estira sobre la tarjeta. */}
+                        <button
+                          type="button"
+                          className="job-select"
+                          aria-pressed={isSelected}
+                          onClick={() => setSelectedId(job.id)}
+                        >
+                          {job.item.title}
+                        </button>
+                      </h3>
+                      <span className="job-slot">
+                        <Icon name="schedule" />
+                        {formatSlot(job.slot)}
+                      </span>
+                    </div>
+                    <JobFee fee={job.fee} />
+                  </li>
+                );
+              })}
+            </ul>
+          </Fragment>
+        ))}
+      </div>
+      <section key={selected.id} className="job-card job-detail" aria-label="Trabajo elegido">
+        {renderDetail(selected)}
+      </section>
+    </div>
+  );
+}
+
+// Lo de dentro de la tarjeta de un trabajo disponible: en la lista de siempre y en el detalle.
+function AvailableJobContent({
+  job,
+  busy,
+  onAccept,
+  showDay = false,
+}: {
+  job: AvailableJob;
+  busy: boolean;
+  onAccept: (job: AvailableJob) => Promise<void>;
+  showDay?: boolean;
+}) {
+  return (
+    <>
+      <div className="job-main">
+        {showDay && <p className="job-detail-day">{formatDay(job.startDate)}</p>}
+        <h3 className="job-title">{job.item.title}</h3>
+        <JobRoute pickup={job.pickupNeighborhood} delivery={job.deliveryNeighborhood} />
+        <span className="job-slot">
+          <Icon name="schedule" />
+          {formatSlot(job.slot)}
+        </span>
+      </div>
+      <div className="job-side">
+        <JobFee fee={job.fee} />
+        {/* El nombre lleva el objeto: hay un «Aceptar» por tarjeta. */}
+        <button
+          type="button"
+          className="button-primary job-accept"
+          aria-label={busy ? `Aceptando ${job.item.title}…` : `Aceptar ${job.item.title}`}
+          disabled={busy}
+          onClick={() => void onAccept(job)}
+        >
+          {busy ? 'Aceptando…' : 'Aceptar'}
+        </button>
+      </div>
+    </>
+  );
+}
+
+// Lo de dentro de la tarjeta de un trabajo aceptado, ya con las direcciones.
+function MyJobContent({ job, showDay = false }: { job: MyJob; showDay?: boolean }) {
+  return (
+    <>
+      <div className="job-main">
+        {showDay && <p className="job-detail-day">{formatDay(job.startDate)}</p>}
+        <div className="job-header">
+          <h3 className="job-title">{job.item.title}</h3>
+          <span className="badge badge-success">{STATUS_LABELS[job.status] ?? job.status}</span>
+        </div>
+        <JobRoute
+          pickup={
+            <>
+              {job.pickupAddress} <span className="job-stop-area">({job.pickupNeighborhood})</span>
+            </>
+          }
+          delivery={
+            <>
+              {job.deliveryAddress}{' '}
+              <span className="job-stop-area">({job.deliveryNeighborhood})</span>
+            </>
+          }
+        />
+        <span className="job-slot">
+          <Icon name="schedule" />
+          {formatSlot(job.slot)}
+        </span>
+      </div>
+      <div className="job-side">
+        <JobFee fee={job.fee} />
+        <Link to={`/entregas/${job.id}`} className="button-secondary job-tracking">
+          Ver seguimiento
+        </Link>
+      </div>
+    </>
+  );
+}
+
 function AvailableJobsList({
   jobs,
   accepting,
@@ -333,8 +474,20 @@ function AvailableJobsList({
   accepting: ReadonlySet<string>;
   onAccept: (job: AvailableJob) => Promise<void>;
 }) {
+  const wide = useWideLayout();
   if (jobs.length === 0) {
     return <EmptyJobs icon="pedal_bike">No hay trabajos disponibles ahora mismo.</EmptyJobs>;
+  }
+
+  if (wide) {
+    return (
+      <JobsMasterDetail
+        jobs={jobs}
+        renderDetail={(job) => (
+          <AvailableJobContent job={job} busy={accepting.has(job.id)} onAccept={onAccept} showDay />
+        )}
+      />
+    );
   }
 
   return (
@@ -343,36 +496,11 @@ function AvailableJobsList({
         <Fragment key={group.day}>
           <DayHeading day={group.day} />
           <ul className="jobs-list" aria-label={`Trabajos de ${formatDay(group.day)}`}>
-            {group.jobs.map((job) => {
-              const busy = accepting.has(job.id);
-              return (
-                <li key={job.id} className="job-card">
-                  <div className="job-main">
-                    <h3 className="job-title">{job.item.title}</h3>
-                    <JobRoute pickup={job.pickupNeighborhood} delivery={job.deliveryNeighborhood} />
-                    <span className="job-slot">
-                      <Icon name="schedule" />
-                      {formatSlot(job.slot)}
-                    </span>
-                  </div>
-                  <div className="job-side">
-                    <JobFee fee={job.fee} />
-                    {/* El nombre lleva el objeto: hay un «Aceptar» por tarjeta. */}
-                    <button
-                      type="button"
-                      className="button-primary job-accept"
-                      aria-label={
-                        busy ? `Aceptando ${job.item.title}…` : `Aceptar ${job.item.title}`
-                      }
-                      disabled={busy}
-                      onClick={() => void onAccept(job)}
-                    >
-                      {busy ? 'Aceptando…' : 'Aceptar'}
-                    </button>
-                  </div>
-                </li>
-              );
-            })}
+            {group.jobs.map((job) => (
+              <li key={job.id} className="job-card">
+                <AvailableJobContent job={job} busy={accepting.has(job.id)} onAccept={onAccept} />
+              </li>
+            ))}
           </ul>
         </Fragment>
       ))}
@@ -381,8 +509,15 @@ function AvailableJobsList({
 }
 
 function MyJobsList({ jobs }: { jobs: MyJob[] }) {
+  const wide = useWideLayout();
   if (jobs.length === 0) {
     return <EmptyJobs icon="pedal_bike">Todavía no has aceptado ningún trabajo.</EmptyJobs>;
+  }
+
+  if (wide) {
+    return (
+      <JobsMasterDetail jobs={jobs} renderDetail={(job) => <MyJobContent job={job} showDay />} />
+    );
   }
 
   return (
@@ -393,38 +528,7 @@ function MyJobsList({ jobs }: { jobs: MyJob[] }) {
           <ul className="jobs-list">
             {group.jobs.map((job) => (
               <li key={job.id} className="job-card">
-                <div className="job-main">
-                  <div className="job-header">
-                    <h3 className="job-title">{job.item.title}</h3>
-                    <span className="badge badge-success">
-                      {STATUS_LABELS[job.status] ?? job.status}
-                    </span>
-                  </div>
-                  <JobRoute
-                    pickup={
-                      <>
-                        {job.pickupAddress}{' '}
-                        <span className="job-stop-area">({job.pickupNeighborhood})</span>
-                      </>
-                    }
-                    delivery={
-                      <>
-                        {job.deliveryAddress}{' '}
-                        <span className="job-stop-area">({job.deliveryNeighborhood})</span>
-                      </>
-                    }
-                  />
-                  <span className="job-slot">
-                    <Icon name="schedule" />
-                    {formatSlot(job.slot)}
-                  </span>
-                </div>
-                <div className="job-side">
-                  <JobFee fee={job.fee} />
-                  <Link to={`/entregas/${job.id}`} className="button-secondary job-tracking">
-                    Ver seguimiento
-                  </Link>
-                </div>
+                <MyJobContent job={job} />
               </li>
             ))}
           </ul>
