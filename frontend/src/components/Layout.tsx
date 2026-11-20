@@ -26,7 +26,8 @@ export function Layout() {
             <img src="/favicon.svg" alt="" width={28} height={28} />
             Rentit
           </Link>
-          {/* En escritorio, enlaces de texto. En el móvil, barra inferior con iconos, como una app. */}
+          {/* En escritorio, enlaces de texto; el perfil es un icono a la derecha del todo, después de la
+              ayuda (decisión de Kai, 20/11). En el móvil, barra inferior con iconos, como una app. */}
           <nav aria-label="Principal" className="app-nav">
             {approvedRider ? (
               <NavLink to={RIDER_JOBS_PATH} className="nav-link">
@@ -41,9 +42,9 @@ export function Layout() {
             )}
             {rider ? (
               // Un rider solo ve el estado de su solicitud o «Trabajos», y su perfil (US-10.03).
-              <NavLink to="/perfil" className="nav-link">
+              <NavLink to="/perfil" className="nav-link nav-profile" title="Mi perfil">
                 <Icon name="person" />
-                Mi perfil
+                <span className="nav-label">Mi perfil</span>
               </NavLink>
             ) : session ? (
               <>
@@ -57,19 +58,20 @@ export function Layout() {
                 </NavLink>
                 <NavLink
                   to={`/usuarios/${encodeURIComponent(session.user.id)}`}
-                  className="nav-link"
+                  className="nav-link nav-profile"
+                  title="Mi perfil"
                 >
                   <Icon name="person" />
-                  Mi perfil
+                  <span className="nav-label">Mi perfil</span>
                 </NavLink>
               </>
             ) : (
               <>
-                <NavLink to="/login" state={loginState} className="nav-link">
+                <NavLink to="/login" state={loginState} className="nav-link nav-account">
                   <Icon name="login" />
                   Iniciar sesión
                 </NavLink>
-                <NavLink to="/registro" className="nav-link">
+                <NavLink to="/registro" className="nav-link nav-account">
                   <Icon name="person_add" />
                   Crear cuenta
                 </NavLink>
