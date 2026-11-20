@@ -149,7 +149,7 @@ const SECTIONS: HelpSection[] = [
     id: 'valorar',
     title: 'Valorar un alquiler',
     steps: [
-      'En «Mis solicitudes», abre en «Enviadas» un alquiler «Finalizado» y pulsa «Valorar».',
+      'En «Mis solicitudes», abre en «Enviadas» un alquiler en estado «Finalizada» y pulsa «Valorar».',
       'Elige de 1 a 5 estrellas. Si quieres, escribe un comentario de hasta 1000 caracteres.',
       'Pulsa «Publicar». Volverás a «Mis solicitudes» y en ese alquiler verás tu valoración.',
     ],
