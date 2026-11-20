@@ -119,6 +119,30 @@ describe('Seguimiento de la entrega (US-05.02, #67)', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('si el código se bloquea tras 5 intentos, lo dice en el campo y no recarga', async () => {
+    const user = userEvent.setup();
+    const fetchMock = mockApi({
+      get: json(tracking({ role: 'rider', deliveryCode: null })),
+      // El backend de T13 (#288) responde 409 con field "code" cuando el código está bloqueado.
+      patch: () =>
+        Response.json(
+          { error: 'El código se ha bloqueado tras 5 intentos fallidos.', field: 'code' },
+          { status: 409 },
+        ),
+    });
+
+    renderRoute('/entregas/r1');
+    await user.type(await screen.findByLabelText('Código de entrega'), '111111');
+    await user.click(screen.getByRole('button', { name: 'Marcar como Entregada' }));
+
+    expect(
+      await screen.findByText('El código se ha bloqueado tras 5 intentos fallidos.'),
+    ).toBeVisible();
+    expect(screen.getByLabelText('Código de entrega')).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.queryByText(/Este paso ya no está disponible/)).not.toBeInTheDocument();
+    expect(calls(fetchMock, 'GET')).toHaveLength(1);
+  });
+
   it('para marcar «Entregada» el rider tiene que escribir el código correcto', async () => {
     const user = userEvent.setup();
     const riderTracking = tracking({ role: 'rider', deliveryCode: null });
@@ -130,7 +154,7 @@ describe('Seguimiento de la entrega (US-05.02, #67)', () => {
         return attempts === 1
           ? Response.json(
               {
-                error: 'El código de entrega no es correcto. Pídeselo al arrendatario.',
+                error: 'El código no es correcto. Te quedan 4 intentos.',
                 field: 'code',
               },
               { status: 400 },
@@ -159,7 +183,7 @@ describe('Seguimiento de la entrega (US-05.02, #67)', () => {
     await user.type(input, '111 111');
     await user.click(button);
     expect(
-      await screen.findByText('El código de entrega no es correcto. Pídeselo al arrendatario.'),
+      await screen.findByText('El código no es correcto. Te quedan 4 intentos.'),
     ).toBeVisible();
     expect(screen.getByText(/En camino/).closest('li')).toHaveAttribute('aria-current', 'step');
 
