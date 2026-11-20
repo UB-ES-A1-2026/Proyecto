@@ -672,3 +672,79 @@ describe('aviso en tiempo real al cambiar el estado', () => {
     ]);
   });
 });
+
+function renewCode(id: string, token?: string) {
+  const call = request(app).post(`/api/entregas/${id}/codigo`);
+  return token ? call.set('Authorization', `Bearer ${token}`) : call;
+}
+
+describe('POST /api/entregas/:id/codigo (código nuevo)', () => {
+  it('after locking the code, the renter gets a new one and the rider can deliver with it', async () => {
+    const { reservation, renterToken, riderToken } = await setUp();
+    await onTheWay(reservation.id, riderToken);
+    for (let i = 0; i < 5; i += 1) {
+      await deliver(reservation.id, '111111', riderToken);
+    }
+
+    const renewed = await renewCode(reservation.id, renterToken);
+
+    expect(renewed.status).toBe(200);
+    const newCode = renewed.body.deliveryCode as string;
+    expect(newCode).toMatch(/^[0-9]{6}$/);
+    const delivery = await prisma.delivery.findUniqueOrThrow({
+      where: { reservationId: reservation.id },
+    });
+    expect(delivery.codeAttempts).toBe(0);
+    expect(delivery.deliveryCode).toBe(newCode);
+
+    const delivered = await deliver(reservation.id, newCode, riderToken);
+    expect(delivered.status).toBe(200);
+    expect(delivered.body.status).toBe('delivered');
+  });
+
+  it('notifies the rider that the code has changed, without sending it', async () => {
+    const { reservation, renterToken } = await setUp();
+    vi.mocked(publish).mockClear();
+
+    const renewed = await renewCode(reservation.id, renterToken);
+
+    expect(vi.mocked(publish)).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(vi.mocked(publish).mock.calls)).not.toContain(
+      renewed.body.deliveryCode,
+    );
+  });
+
+  it('returns 403 when the rider or the owner try to change it', async () => {
+    const { reservation, riderToken, ownerToken } = await setUp();
+
+    expect((await renewCode(reservation.id, riderToken)).status).toBe(403);
+    expect((await renewCode(reservation.id, ownerToken)).status).toBe(403);
+  });
+
+  it('returns 409 without rider: there is no code', async () => {
+    const { reservation, renterToken } = await setUp('home');
+
+    const response = await renewCode(reservation.id, renterToken);
+
+    expect(response.status).toBe(409);
+    expect(response.body).toEqual({
+      error: 'Solo hay código de entrega con rider.',
+    });
+  });
+
+  it('returns 409 once the object has been delivered', async () => {
+    const { reservation, renterToken, riderToken } = await setUp();
+    await onTheWay(reservation.id, riderToken);
+    await deliver(reservation.id, CODE, riderToken);
+
+    const response = await renewCode(reservation.id, renterToken);
+
+    expect(response.status).toBe(409);
+  });
+
+  it('returns 401 without a session', async () => {
+    const { reservation } = await setUp();
+
+    expect((await renewCode(reservation.id)).status).toBe(401);
+  });
+});

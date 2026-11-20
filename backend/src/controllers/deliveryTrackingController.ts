@@ -79,3 +79,16 @@ export const confirmReturned: RequestHandler<{ id: string }> = async (
 
   response.status(200).json(tracking);
 };
+
+// POST /api/entregas/:id/codigo
+export const renewCode: RequestHandler<{ id: string }> = async (
+  request,
+  response,
+) => {
+  const tracking = await deliveryTrackingService.renewCode(
+    request.auth!.userId,
+    request.params.id,
+  );
+
+  response.status(200).json(tracking);
+};
