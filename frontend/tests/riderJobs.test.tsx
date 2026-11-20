@@ -393,3 +393,77 @@ describe('Mis trabajos', () => {
     ).toBeInTheDocument();
   });
 });
+
+// Lista y detalle en pantallas anchas (decisión de Kai, 20/11). Generado con asistencia de IA (Claude).
+describe('Trabajos con lista y detalle (pantallas anchas)', () => {
+  function wideScreen() {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn().mockImplementation((query: string) => ({
+        matches: true,
+        media: query,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+      })),
+    );
+  }
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('elige el primero, lo enseña entero a la derecha y se acepta desde ahí', async () => {
+    wideScreen();
+    logIn();
+    mockApi({
+      'GET /trabajos': [
+        Response.json({ jobs: [TIENDA, TALADRO] }),
+        Response.json({ jobs: [TALADRO] }),
+      ],
+      'GET /trabajos/mios': [Response.json({ jobs: [] }), Response.json({ jobs: [TIENDA_MIA] })],
+      'POST /trabajos/j1/aceptar': Response.json({ job: TIENDA_MIA }),
+    });
+    const user = userEvent.setup();
+    renderRoute('/trabajos');
+
+    const tienda = await screen.findByRole('button', { name: TIENDA.item.title });
+    expect(tienda).toHaveAttribute('aria-pressed', 'true');
+    const detail = screen.getByRole('region', { name: 'Trabajo elegido' });
+    expect(detail).toHaveTextContent('Recogida Gràcia Entrega Les Corts');
+    expect(detail).toHaveTextContent('Hoy');
+
+    await user.click(screen.getByRole('button', { name: TALADRO.item.title }));
+    expect(screen.getByRole('region', { name: 'Trabajo elegido' })).toHaveTextContent(
+      'Recogida Gràcia Entrega Eixample',
+    );
+
+    await user.click(screen.getByRole('button', { name: TIENDA.item.title }));
+    await user.click(
+      within(screen.getByRole('region', { name: 'Trabajo elegido' })).getByRole('button', {
+        name: `Aceptar ${TIENDA.item.title}`,
+      }),
+    );
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Has aceptado «Tienda');
+    // Sale de la lista y se elige el siguiente.
+    expect(screen.getByRole('button', { name: TALADRO.item.title })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
+  it('en «Mis trabajos» el detalle lleva las direcciones y «Ver seguimiento»', async () => {
+    wideScreen();
+    logIn();
+    mockApi({
+      'GET /trabajos': Response.json({ jobs: [] }),
+      'GET /trabajos/mios': Response.json({ jobs: [TALADRO_MIO] }),
+    });
+    renderRoute('/trabajos/mios');
+
+    const detail = await screen.findByRole('region', { name: 'Trabajo elegido' });
+    expect(detail).toHaveTextContent('Recogida Carrer de Verdi, 12, 2.º 1.ª (Gràcia)');
+    expect(within(detail).getByRole('link', { name: 'Ver seguimiento' })).toHaveAttribute(
+      'href',
+      '/entregas/j2',
+    );
+  });
+});
