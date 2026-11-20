@@ -374,7 +374,10 @@ function cancellationText(reservation: Reservation, role: 'sent' | 'received'): 
       ? `${who} Compensación a ${reservation.owner.username} por las molestias: ${compensationText}. Te hemos devuelto ${priceFormatter.format(refund)}.`
       : `${who} Recibes ${compensationText} como compensación por las molestias.`;
   }
+  // Si cancela el propietario, la compensación solo queda registrada a su cargo: en este sprint no
+  // se cobra ni se paga (#64). Por eso ninguna de las dos tarjetas dice «recibes» (20/11).
+  const registered = `La compensación por las molestias, ${compensationText}, queda registrada a cargo de`;
   return role === 'sent'
-    ? `${who} Te hemos devuelto todo lo que pagaste (${priceFormatter.format(refund)}) y recibes ${compensationText} como compensación por las molestias.`
-    : `${who} Compensación a ${reservation.renter.username} por las molestias: ${compensationText}. A ${reservation.renter.username} se le ha devuelto todo (${priceFormatter.format(refund)}).`;
+    ? `${who} Te hemos devuelto todo lo que pagaste (${priceFormatter.format(refund)}). ${registered} ${reservation.owner.username}; de momento no se cobra.`
+    : `${who} A ${reservation.renter.username} se le ha devuelto todo (${priceFormatter.format(refund)}). La compensación por las molestias, ${compensationText}, queda registrada a tu cargo; de momento no se cobra.`;
 }
