@@ -46,10 +46,10 @@ const SECTIONS: HelpSection[] = [
     title: 'Aceptar trabajos de entrega',
     steps: [
       'Con tu cuenta de rider aceptada, pulsa «Trabajos» en el menú.',
-      'En «Disponibles» verás las entregas agrupadas por día, cada una con el objeto, el barrio de recogida y el de entrega, la franja y la tarifa. Selecciona las que quieras hacer.',
-      'Pulsa «Aceptar trabajos». Irás a «Mis trabajos», con la dirección completa de la recogida y de la entrega y «Ver seguimiento».',
+      'En «Disponibles» verás las entregas agrupadas por día, cada una con el objeto, el barrio de recogida y el de entrega, la franja y la tarifa.',
+      'Pulsa «Aceptar» en la que quieras hacer. Pasa a «Mis trabajos», con la dirección completa de la recogida y de la entrega y «Ver seguimiento», y puedes seguir aceptando otras.',
     ],
-    note: 'Hasta que aceptas un trabajo solo ves los barrios. Si otro rider ha aceptado antes alguno de los que seleccionaste, verás «Ya asignado a otro rider» y el resto se te asigna igualmente.',
+    note: 'Hasta que aceptas un trabajo solo ves los barrios. Si otro rider lo ha aceptado antes que tú, verás «Ya asignado a otro rider» y desaparece de la lista.',
   },
   {
     id: 'iniciar-sesion',
