@@ -26,12 +26,6 @@ export type MyJob = AvailableJob & {
   status: JobStatus;
 };
 
-export type AcceptJobsResult = {
-  assigned: MyJob[];
-  // Los que otro rider aceptó antes (criterio 4 de #78).
-  alreadyTaken: { id: string; item: { id: string; title: string } }[];
-};
-
 export const ASAP_SLOT = 'asap';
 
 export function getAvailableJobs(token: string): Promise<{ jobs: AvailableJob[] }> {
@@ -42,10 +36,10 @@ export function getMyJobs(token: string): Promise<{ jobs: MyJob[] }> {
   return apiRequest<{ jobs: MyJob[] }>('/trabajos/mios', { token });
 }
 
-export function acceptJobs(token: string, ids: string[]): Promise<AcceptJobsResult> {
-  return apiRequest<AcceptJobsResult>('/trabajos/aceptar', {
+// Acepta un solo trabajo (decisión de Kai, 20/11). 409 si otro rider lo aceptó antes (criterio 4).
+export function acceptJob(token: string, id: string): Promise<{ job: MyJob }> {
+  return apiRequest<{ job: MyJob }>(`/trabajos/${encodeURIComponent(id)}/aceptar`, {
     method: 'POST',
-    body: { ids },
     token,
   });
 }
