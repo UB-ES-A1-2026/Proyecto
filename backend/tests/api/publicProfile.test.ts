@@ -5,6 +5,7 @@ import { prisma } from '../../src/repositories/prisma.js';
 import { resetDb } from '../helpers/db.js';
 import { createTestItem } from '../helpers/items.js';
 import { createTestUser, TEST_PASSWORD } from '../helpers/users.js';
+import { createTestReservation } from '../helpers/reservations.js';
 
 // Perfil público de un usuario (US-01.4, #300). El bucket se sustituye por uno que solo
 // firma URLs: lo que se prueba son las reglas del backend, no el proveedor de S3.
@@ -177,6 +178,27 @@ describe('GET /api/usuarios/:id', () => {
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual(NOT_FOUND);
+  });
+
+  it('enseña la media de las valoraciones que ha recibido (US-08.02, #298)', async () => {
+    const { ana, bruno } = await twoUsers();
+    const item = await createTestItem(ana.id);
+    const reservation = await createTestReservation(item.id, bruno.id, {
+      status: 'finished',
+    });
+    await prisma.rating.create({
+      data: {
+        reservationId: reservation.id,
+        authorId: bruno.id,
+        ratedUserId: ana.id,
+        type: 'rental',
+        score: 4,
+      },
+    });
+
+    const response = await request(app).get(`/api/usuarios/${ana.id}`);
+
+    expect(response.body.rating).toEqual({ average: 4, count: 1 });
   });
 
   it('responde 404 con un usuario bloqueado', async () => {
