@@ -369,6 +369,7 @@ Al llegar a `entregada`, la reserva pasa de `pagada` a `en_curso` en la misma tr
 | Cada paso cambia solo si la entrega sigue en el estado anterior (`updateMany` con el estado de partida) | No se puede saltar ni volver atrás un estado, ni con un doble clic ni con dos peticiones a la vez. |
 | `codigo_entrega`: 6 cifras con `node:crypto`, al crear una entrega con rider | No se puede adivinar. Solo lo ve el arrendatario, y deja de salir al entregarse (es de un solo uso). |
 | `intentos_codigo`: como mucho 5 | Con 6 cifras hay un millón de códigos: sin límite, se podrían probar todos. Al quinto fallo, el código queda bloqueado. |
+| El arrendatario puede generar un código nuevo antes de la entrega | Si el código se bloquea, la entrega no se queda «En camino» para siempre: el código nuevo sustituye al anterior y vuelve a dar 5 intentos. |
 | `CHECK` en la BD | El código son 6 cifras; los intentos, de 0 a 5; `entregada` siempre tiene `entregada_en` (y al revés); y `devuelta_en` solo con la entrega `entregada`. |
 | `rider_id` con `ON DELETE RESTRICT` | Las entregas son historial, como las reservas. |
 
@@ -385,13 +386,14 @@ En Prisma, los campos nuevos son `status` (enum `DeliveryStatus`: `pending`, `as
 - `POST /api/entregas/:id/estado`, el rider: `{ "status": "picked_up" | "on_the_way" | "delivered", "code"?: "123456" }`. El estado tiene que ser exactamente el siguiente; `delivered` necesita el código.
 - `POST /api/entregas/:id/recibida`, el arrendatario: «Ya tengo el objeto» (domicilio o punto de recogida).
 - `POST /api/entregas/:id/devuelta`, el arrendatario: «He devuelto el objeto».
+- `POST /api/entregas/:id/codigo`, el arrendatario: código nuevo, con rider y antes de entregarse. El anterior deja de valer y los intentos vuelven a 0.
 
-Las cuatro devuelven el seguimiento actualizado. Errores:
+Las cinco devuelven el seguimiento actualizado. Errores:
 - **400**: estado desconocido (`field: "status"`); código que no son 6 cifras (`field: "code"`, no cuenta como intento); código incorrecto (`field: "code"`, cuenta y dice cuántos intentos quedan).
 - **401**: sin sesión.
 - **403**: no es de la reserva ni su rider, o la acción no le toca (por ejemplo, el arrendatario no avanza los pasos del rider).
 - **404**: la reserva no existe o no tiene entrega (las anteriores a US-05.01).
-- **409**: no es el paso siguiente, la reserva no está pagada, «He devuelto» sin estar en curso, «Ya tengo el objeto» con rider, o el código bloqueado.
+- **409**: no es el paso siguiente, la reserva no está pagada, «He devuelto» sin estar en curso, «Ya tengo el objeto» con rider, el código bloqueado, o un código nuevo sin rider o con la entrega ya hecha.
 
 **Tiempo real:** después de guardar cada cambio, el service avisa con el canal de T14 (`publish`, ver `docs/arquitectura.md`) a las dos personas de la reserva y a su rider, si lo hay. El evento es `entrega.estado` con `{ reservationId, status, at }`: `status` es el nuevo estado de la entrega o `finished` al devolver el objeto. Nunca lleva el código: el frontend, al recibirlo, vuelve a pedir el `GET`. Si el cambio se rechaza, no se avisa a nadie.
 
