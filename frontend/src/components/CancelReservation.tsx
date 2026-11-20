@@ -70,11 +70,21 @@ function PreviewText({
       {preview.penaltyPercent > 0 && (
         <p className="cancel-summary">
           <Icon name="warning" size="1.125rem" />
-          <span>
-            {daysText(preview.daysUntilStart)}: compensarás a {other} con el{' '}
-            <strong>{preview.penaltyPercent} %</strong> del alquiler (
-            <strong>{formatAmount(preview.penaltyAmount)}</strong>) por las molestias.
-          </span>
+          {role === 'sent' ? (
+            <span>
+              {daysText(preview.daysUntilStart)}: compensarás a {other} con el{' '}
+              <strong>{preview.penaltyPercent} %</strong> del alquiler (
+              <strong>{formatAmount(preview.penaltyAmount)}</strong>) por las molestias.
+            </span>
+          ) : (
+            // Si cancela el propietario, la compensación solo queda registrada (#64, 20/11).
+            <span>
+              {daysText(preview.daysUntilStart)}: la compensación a {other} por las molestias, el{' '}
+              <strong>{preview.penaltyPercent} %</strong> del alquiler (
+              <strong>{formatAmount(preview.penaltyAmount)}</strong>), quedará registrada a tu
+              cargo; de momento no se cobra.
+            </span>
+          )}
         </p>
       )}
       <p className="cancel-refund">{refund}</p>
