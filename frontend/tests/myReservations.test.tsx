@@ -443,3 +443,44 @@ describe('entrega en Mis solicitudes (US-05.01, #282)', () => {
     expect(screen.queryByText(/Entrega por rider|Recoger en casa|Punto de recogida/)).toBeNull();
   });
 });
+
+describe('«Ver entrega» en Mis solicitudes (US-05.02, #67)', () => {
+  it('aparece en las reservas pagadas, en curso y finalizadas, enviadas o recibidas', async () => {
+    const user = userEvent.setup();
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    mockReservations({
+      sent: [
+        reservation({ id: 'paid', status: 'paid' }),
+        reservation({ id: 'pending', item: { id: 'i2', title: 'Escalera plegable' } }),
+      ],
+      received: [
+        reservation({
+          id: 'finished',
+          item: { id: 'i3', title: 'Tienda de campaña' },
+          status: 'finished',
+        }),
+        reservation({
+          id: 'accepted',
+          item: { id: 'i4', title: 'Proyector' },
+          status: 'accepted',
+        }),
+      ],
+    });
+
+    renderRoute('/mis-solicitudes');
+
+    for (const title of [
+      'Taladro percutor Bosch',
+      'Escalera plegable',
+      'Tienda de campaña',
+      'Proyector',
+    ]) {
+      await user.click(await screen.findByRole('button', { name: new RegExp(title) }));
+    }
+    const links = screen.getAllByRole('link', { name: 'Ver entrega' });
+    expect(links.map((link) => link.getAttribute('href'))).toEqual([
+      '/entregas/paid',
+      '/entregas/finished',
+    ]);
+  });
+});
