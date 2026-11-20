@@ -397,7 +397,7 @@ Las cinco devuelven el seguimiento actualizado. Errores:
 
 **Tiempo real:** después de guardar cada cambio, el service avisa con el canal de T14 (`publish`, ver `docs/arquitectura.md`) a las dos personas de la reserva y a su rider, si lo hay. El evento es `entrega.estado` con `{ reservationId, status, at }`: `status` es el nuevo estado de la entrega o `finished` al devolver el objeto. Nunca lleva el código: el frontend, al recibirlo, vuelve a pedir el `GET`. Si el cambio se rechaza, no se avisa a nadie.
 
-**Pendiente:** preparar en el seed una entrega con rider asignado cuando exista la asignación de trabajos (US-10.01).
+**Datos de demo:** tres reservas pagadas, una de cada modo, con la entrega pendiente: la «Bicicleta de montaña talla M» (punto de recogida), el «Cortacésped eléctrico» (domicilio) y la «Hidrolimpiadora Kärcher» (rider). La de rider ya tiene asignado el rider aceptado de la demo (dani en el seed de desarrollo y pau en el de producción), con `assignDemoRider`, como si hubiera aceptado el trabajo (US-10.01). Repetir el seed deja el seguimiento otra vez al principio.
 
 ## Tabla `valoracion` (Sprint 2 · #295)
 
