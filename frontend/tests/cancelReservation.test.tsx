@@ -220,9 +220,12 @@ describe('Ventana de cancelar (criterios 2, 3 y 4)', () => {
 
     const dialog = await screen.findByRole('dialog', { name: '¿Cancelar la reserva?' });
     expect(dialog).toHaveTextContent('solicitada por bruno');
-    expect(await within(dialog).findByText(/Faltan 2 días para el inicio/)).toHaveTextContent(
-      /compensarás a bruno con el 100 % del alquiler \(20,00\s€\) por las molestias\./,
+    // Cancela el propietario: la compensación solo queda registrada (#64, 20/11).
+    const summary = await within(dialog).findByText(/Faltan 2 días para el inicio/);
+    expect(summary).toHaveTextContent(
+      /la compensación a bruno por las molestias, el 100 % del alquiler \(20,00\s€\), quedará registrada a tu cargo; de momento no se cobra\./,
     );
+    expect(summary).not.toHaveTextContent(/compensarás/);
     expect(dialog).toHaveTextContent(
       /A bruno se le devuelve todo lo que pagó \(20,00\s€\) y recupera su fianza\./,
     );
@@ -490,7 +493,7 @@ describe('Reserva cancelada vista por cada persona (criterio 6)', () => {
     );
   });
 
-  it('si canceló el propietario, el arrendatario recupera todo y recibe la compensación', () => {
+  it('si canceló el propietario, el arrendatario recupera todo y la compensación solo queda registrada', () => {
     const byAna = {
       by: { id: 'u1', username: 'ana' },
       at: '2026-11-16T10:00:00.000Z',
@@ -499,8 +502,24 @@ describe('Reserva cancelada vista por cada persona (criterio 6)', () => {
       refundAmount: '20.00',
     };
     expect(renderCard(cancelled(byAna), 'sent')).toHaveTextContent(
-      /La canceló ana el 16 de noviembre de 2026\. Te hemos devuelto todo lo que pagaste \(20,00\s€\) y recibes 20,00\s€ \(100 %\) como compensación por las molestias\./,
+      /La canceló ana el 16 de noviembre de 2026\. Te hemos devuelto todo lo que pagaste \(20,00\s€\)\. La compensación por las molestias, 20,00\s€ \(100 %\), queda registrada a cargo de ana; de momento no se cobra\./,
     );
+  });
+
+  it('si canceló el propietario, él ve que la compensación queda registrada a su cargo', () => {
+    const byAna = {
+      by: { id: 'u1', username: 'ana' },
+      at: '2026-11-16T10:00:00.000Z',
+      penaltyPercent: 100,
+      penaltyAmount: '20.00',
+      refundAmount: '20.00',
+    };
+    // Sin «Compensación a bruno»: no se cobra (#64, 20/11).
+    const ownerCard = renderCard(cancelled(byAna), 'received');
+    expect(ownerCard).toHaveTextContent(
+      /La cancelaste tú el 16 de noviembre de 2026\. A bruno se le ha devuelto todo \(20,00\s€\)\. La compensación por las molestias, 20,00\s€ \(100 %\), queda registrada a tu cargo; de momento no se cobra\./,
+    );
+    expect(ownerCard).not.toHaveTextContent(/Compensación a bruno/);
   });
 
   it('si fue gratis, solo dice quién y cuándo', () => {
