@@ -183,12 +183,14 @@ export function DeliveryTrackingPage() {
         clearSession();
         return;
       }
-      if (requestError instanceof ApiError && requestError.status === 409) {
+      // Los errores del código van en su campo, también el bloqueo tras 5 intentos (409 con
+      // field "code"): si no, el rider vería «Este paso ya no está disponible».
+      if (requestError instanceof ApiError && requestError.field === 'code') {
+        setCodeError(requestError.message);
+      } else if (requestError instanceof ApiError && requestError.status === 409) {
         // Alguien ya ha cambiado el estado (otra pestaña, doble clic): se enseña el actual.
         setNotice(OUTDATED_MESSAGE);
         load();
-      } else if (requestError instanceof ApiError && requestError.field === 'code') {
-        setCodeError(requestError.message);
       } else if (requestError instanceof ApiError) {
         setActionError(requestError.message);
       } else {
