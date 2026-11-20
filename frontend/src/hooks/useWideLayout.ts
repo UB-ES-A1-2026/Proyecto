@@ -3,7 +3,8 @@
 // elemento elegido a la derecha. En el móvil y en pantallas estrechas, la lista de siempre.
 import { useSyncExternalStore } from 'react';
 
-export const WIDE_LAYOUT_QUERY = '(min-width: 1000px)';
+// Desde 1360 px (portátiles grandes en adelante): por debajo, la vista de siempre (20/11).
+export const WIDE_LAYOUT_QUERY = '(min-width: 1360px)';
 
 function subscribe(onChange: () => void): () => void {
   if (typeof window.matchMedia !== 'function') return () => undefined;
