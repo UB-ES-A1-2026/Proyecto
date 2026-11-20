@@ -56,7 +56,7 @@ Demo prevista el **25/11**. Todo tiene que estar en `develop` el **20/11**, para
 
 | Orden | Historia | Issue | Tareas (issue · persona) |
 |---|---|---|---|
-| 1 | US-12.01 Métricas de tests | #274 | T1 #272 Marc (PR #302 en revisión) |
+| 1 | US-12.01 Métricas de tests | #274 | T1 #272 Marc |
 | 1 | US-12.02 Ramas y commits con su historia | #275 | T2 #277 Marc |
 | 1 | US-12.03 Preproducción (`staging`) | #276 | T3 #278 Max · T4 #279 Max · T5 #280 Danyal |
 | 1 | US-05.01 Modo y hora de entrega | #66 | T6 #281 Alex · T7 #282 Marc · T27 #307 Marc · T8 #283 Danyal |
@@ -84,7 +84,7 @@ El orden sigue las dependencias: la ola 2 necesita las tablas de entrega y pago 
   - Revisión del admin: US-11.03 (T37).
   - Cancelación y penalización: US-04.05 (T28).
   - `valoracion`: US-08.01 (T20).
-- Frontend: primero el wireframe (ver arriba). Los de las historias nuevas no existen, y los de pago, entrega, seguimiento, rider y cancelar hay que rehacerlos con lo decidido.
+- Frontend: primero el wireframe (ver arriba). Si al programar cambia una pantalla o un texto, se actualiza su wireframe en el mismo PR.
 - **Cada historia añade sus datos de demo** al seed en su tarea de backend: cuenta de admin, rider aprobado, alquiler finalizado, varias solicitudes pendientes en las mismas fechas… Sin ellos no se puede enseñar en la demo.
 - Una historia no entra en `develop` sin sus e2e.
 - Stripe: solo claves de prueba (`sk_test_…`, `pk_test_…`), en variables de entorno, nunca en el código. En `.env.example`, un valor de ejemplo.
@@ -99,15 +99,14 @@ El orden sigue las dependencias: la ola 2 necesita las tablas de entrega y pago 
    - De 3 a 7 días: 35 %.
    - 8 días o más: nada.
 
-   Al solicitar con menos de 3 días de margen se avisa.
+   Al solicitar con menos de 3 días de margen se avisa. Si cancela el propietario, en este sprint la compensación solo queda registrada a su cargo; no se cobra (#64).
 6. **Seguimiento:** solo una máquina de estados, sin mapa. El alquiler llega a «Finalizada» cuando el arrendatario marca «He devuelto el objeto», y entonces se puede valorar.
-7. **Trabajos del rider:** todos los riders ven todos los trabajos (objeto, inicio, destino, fecha y lo que cobran) y aceptan varios a la vez; si otro se adelanta en uno, ese avisa «Ya asignado a otro rider».
+7. **Trabajos del rider:** todos los riders ven todos los trabajos (objeto, inicio, destino, fecha y lo que cobran) y aceptan cada uno por separado (cambio del 20/11, #78). Si otro se adelanta, avisa «Ya asignado a otro rider» y el trabajo desaparece de la lista.
 8. **Sin rider a 24 h del inicio:** es del Sprint 3 (US-05.04, #306). No se hace ahora.
+9. **Fianza:** en alquileres de hasta 6 días se bloquea el día antes de empezar y se libera al terminar. En los de más de 6 días, se cobra el día antes y se devuelve al terminar, porque un bloqueo con tarjeta caduca a los ~7 días (#72).
 
 **Pendiente de decidir** (si te afecta, pregunta antes de programarlo):
 - Si los e2e de alguna historia los hace quien hace su frontend: Danyal tiene 10 tareas.
-- Si la penalización cuando cancela el propietario solo se registra o se cobra.
-- Cómo se retiene la fianza en Stripe cuando el alquiler empieza dentro de más de 7 días.
 
 ## Restricciones permanentes
 - **No añadas dependencias nuevas** a ningún `package.json` sin que la tarea lo diga explícitamente.
