@@ -14,6 +14,7 @@ const HELP_PATH = '/ayuda';
 const DELIVERED_FLOWS = [
   'Crear una cuenta',
   'Hacerte rider',
+  'Aceptar trabajos de entrega',
   'Iniciar sesión',
   'Ver tu perfil',
   'Cerrar sesión',

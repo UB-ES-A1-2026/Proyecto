@@ -61,7 +61,8 @@ export const routes: RouteObject[] = [
           { path: 'perfil', element: <ProfilePage /> },
           {
             element: <ApprovedRiderRoute />,
-            children: [{ path: 'trabajos', element: <RiderJobsPage /> }],
+            // «Disponibles» (/trabajos) y «Mis trabajos» (/trabajos/mios) son la misma página (US-10.01).
+            children: [{ path: 'trabajos/mios?', element: <RiderJobsPage /> }],
           },
         ],
       },

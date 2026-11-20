@@ -1,7 +1,7 @@
 // Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 13/11/2026
 // Lo que ve una cuenta de rider (US-10.03, T35 #315): solo el estado de su solicitud y «Trabajos».
 import { screen, waitFor, within } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderRoute } from './renderRoute';
 
 type RiderStatus = 'pending' | 'approved' | 'rejected';
@@ -174,6 +174,11 @@ describe('rider rechazado (US-10.03)', () => {
 });
 
 describe('rider aceptado (US-10.03)', () => {
+  // «Trabajos» pide la lista (US-10.01): aquí solo importa la navegación.
+  beforeEach(() => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() => new Promise<Response>(() => {}));
+  });
+
   it('el inicio lo lleva a «Trabajos»', () => {
     logInAs(riderSession('approved'));
 
@@ -181,7 +186,6 @@ describe('rider aceptado (US-10.03)', () => {
 
     expect(router.state.location.pathname).toBe('/trabajos');
     expect(screen.getByRole('heading', { level: 1, name: 'Trabajos' })).toBeInTheDocument();
-    expect(screen.getByText('Rider activo')).toBeInTheDocument();
   });
 
   it('su cabecera tiene «Trabajos» y «Mi perfil», sin buscar, alquilar ni publicar', () => {
