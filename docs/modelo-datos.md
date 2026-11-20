@@ -445,7 +445,7 @@ En Prisma, el modelo es `Rating` y el enum `RatingType` (`rental`, `user`).
   - `myRating`: la que ha escrito el usuario. Con `status: "finished"` y `myRating: null`, el frontend enseña «Valorar».
   - `receivedRating`: la que le ha puesto la otra parte.
 
-**Media de un usuario:** `getUserRating(userId)` de `ratingService` devuelve `{ average, count }` con todas las valoraciones que ha **recibido**, como propietario y como arrendatario. `average` va redondeada a un decimal, y es `null` si no tiene ninguna. La calcula la BD con `AVG` y `COUNT` sobre el índice de `valorado_id`. Es el campo `rating` del perfil público (US-01.4): al juntar las historias en `develop`, el `getRating` de `profileService` llamará a esta función.
+**Media de un usuario:** `getUserRating(userId)` de `ratingService` devuelve `{ average, count }` con todas las valoraciones que ha **recibido**, como propietario y como arrendatario. `average` va redondeada a un decimal, y es `null` si no tiene ninguna. La calcula la BD con `AVG` y `COUNT` sobre el índice de `valorado_id`. Es el campo `rating` del perfil público (US-01.4): `profileService` la llama al montar el perfil.
 
 ## Tabla `retirada_objeto` y `reserva.motivo_cancelacion` (Sprint 2 · #317)
 
