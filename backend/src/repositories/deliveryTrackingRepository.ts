@@ -136,3 +136,16 @@ export async function markReturned(
     throw error;
   }
 }
+
+// Código nuevo (US-05.02, #288): sustituye al anterior y vuelve a dar los 5 intentos. Solo si la
+// entrega aún no se ha hecho. Devuelve false si ya estaba entregada.
+export async function renewDeliveryCode(
+  reservationId: string,
+  code: string,
+): Promise<boolean> {
+  const { count } = await prisma.delivery.updateMany({
+    where: { reservationId, status: { not: 'delivered' } },
+    data: { deliveryCode: code, codeAttempts: 0 },
+  });
+  return count === 1;
+}
