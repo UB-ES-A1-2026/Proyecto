@@ -103,6 +103,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 test.describe('US-04.07 Ver la demanda de cada fecha en el calendario', () => {
+  // Los días cambian de fondo con una transición (calendar.css): sin animaciones, el color que se lee
+  // es el definitivo y no uno a medio cambiar (bug #383).
+  test.use({ reducedMotion: 'reduce' });
+
   // Criterio 1
   test('colorea los días y anuncia su demanda accesible', async ({ page }) => {
     await login(page, ANA);
