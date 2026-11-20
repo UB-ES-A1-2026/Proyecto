@@ -9,6 +9,7 @@ import {
   isStorageConfigured,
 } from '../repositories/photoStorage.js';
 import { listFirstPhotoUrls } from './photoService.js';
+import { getUserRating } from './ratingService.js';
 
 const USER_NOT_FOUND = 'No hemos encontrado este usuario.';
 
@@ -34,12 +35,6 @@ export interface PublicProfile {
     photo: string | null;
   }[];
   isOwnProfile: boolean;
-}
-
-// Valoración media del usuario. De momento no hay valoraciones: T23 (#298, US-08.02)
-// sustituirá esta función por la media y el recuento reales.
-function getRating(_userId: string): { average: number | null; count: number } {
-  return { average: null, count: 0 };
 }
 
 async function photoUrl(key: string | null): Promise<string | null> {
@@ -68,7 +63,8 @@ export async function getPublicProfile(
     bio: user.bio,
     photo: await photoUrl(user.photoUrl),
     memberSince: user.createdAt.toISOString(),
-    rating: getRating(user.id),
+    // Media de las valoraciones que ha recibido (US-08.02, #298).
+    rating: await getUserRating(user.id),
     items: user.items.map((item) => ({
       id: item.id,
       title: item.title,
