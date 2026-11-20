@@ -79,7 +79,10 @@ function logIn(session: unknown = RIDER) {
   localStorage.setItem('rentit.session', JSON.stringify(session));
 }
 
-const checkbox = (title: string) => screen.getByRole('checkbox', { name: title });
+// La tarjeta de un trabajo, por el título del objeto.
+const card = (title: string) =>
+  screen.getByRole('heading', { level: 3, name: title }).closest('li') as HTMLElement;
+const acceptButton = (title: string) => screen.getByRole('button', { name: `Aceptar ${title}` });
 
 beforeEach(() => {
   // Solo se finge la fecha: «hoy» es el 16 de noviembre de 2026.
@@ -101,23 +104,22 @@ describe('Trabajos disponibles (criterios 1 y 2)', () => {
     });
     renderRoute('/trabajos');
 
-    const tienda = (await screen.findByRole('checkbox', { name: TIENDA.item.title })).closest(
-      'label',
-    ) as HTMLElement;
+    await screen.findByRole('heading', { level: 3, name: TIENDA.item.title });
+    const tienda = card(TIENDA.item.title);
     expect(tienda).toHaveTextContent('Recogida Gràcia Entrega Les Corts');
     expect(tienda).toHaveTextContent('Lo antes posible');
     expect(tienda).toHaveTextContent(/Tarifa 3,00\s€/);
-    // El lector oye también el día, que en pantalla está en el encabezado del grupo.
-    expect(checkbox(PROYECTOR.item.title)).toHaveAccessibleDescription(
-      /^Recogida Poblenou Entrega Sarrià Mañana, De 17:00 a 19:00 Tarifa 7,00\s€$/,
-    );
+    expect(
+      within(tienda).getByRole('button', { name: `Aceptar ${TIENDA.item.title}` }),
+    ).toHaveTextContent('Aceptar');
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
       'Hoy',
       'Mañana',
       'Sábado, 21 de noviembre',
     ]);
-    expect(checkbox(TALADRO.item.title).closest('label')).toHaveTextContent('De 09:00 a 11:00');
+    expect(card(TALADRO.item.title)).toHaveTextContent('De 09:00 a 11:00');
     expect(screen.queryByText(/Carrer/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Disponibles (3)' })).toHaveAttribute(
       'aria-current',
       'page',
@@ -133,7 +135,7 @@ describe('Trabajos disponibles (criterios 1 y 2)', () => {
     });
     renderRoute('/trabajos');
 
-    await screen.findByRole('checkbox', { name: TIENDA.item.title });
+    await screen.findByRole('heading', { level: 3, name: TIENDA.item.title });
     for (const [, init] of fetchMock.mock.calls) {
       expect(new Headers(init?.headers).get('Authorization')).toBe('Bearer token-de-dani');
     }
@@ -148,7 +150,7 @@ describe('Trabajos disponibles (criterios 1 y 2)', () => {
     renderRoute('/trabajos');
 
     expect(await screen.findByText('No hay trabajos disponibles ahora mismo.')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Aceptar trabajos' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Aceptar/ })).not.toBeInTheDocument();
   });
 
   it('si falla la carga lo dice y «Reintentar» la vuelve a pedir', async () => {
@@ -168,7 +170,9 @@ describe('Trabajos disponibles (criterios 1 y 2)', () => {
     );
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
 
-    expect(await screen.findByRole('checkbox', { name: TIENDA.item.title })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 3, name: TIENDA.item.title }),
+    ).toBeInTheDocument();
   });
 
   it('si la API lo rechaza (403), enseña su motivo', async () => {
@@ -199,58 +203,44 @@ describe('Trabajos disponibles (criterios 1 y 2)', () => {
   });
 });
 
-describe('Marcar y aceptar varios (criterio 3)', () => {
-  it('sin seleccionar ninguno no deja aceptar; al seleccionar dice cuántos y el total', async () => {
-    logIn();
-    mockApi({
-      'GET /trabajos': Response.json({ jobs: [TIENDA, TALADRO] }),
-      'GET /trabajos/mios': Response.json({ jobs: [] }),
-    });
-    const user = userEvent.setup();
-    renderRoute('/trabajos');
-
-    const accept = await screen.findByRole('button', { name: 'Aceptar trabajos' });
-    expect(accept).toBeDisabled();
-    const summary = screen.getByText('Selecciona los trabajos que quieras hacer.');
-
-    await user.click(checkbox(TIENDA.item.title));
-    expect(summary).toHaveTextContent(/^1 seleccionado Total 3,00\s€$/);
-
-    // Toda la tarjeta selecciona.
-    await user.click(screen.getByText('Taladro percutor Bosch'));
-    expect(checkbox(TALADRO.item.title)).toBeChecked();
-    expect(summary).toHaveTextContent(/^2 seleccionados Total 8,00\s€$/);
-    expect(accept).toBeEnabled();
-  });
-
-  it('acepta los marcados a la vez y va a «Mis trabajos» con la dirección completa', async () => {
+describe('Aceptar cada trabajo por separado (criterio 3)', () => {
+  it('acepta solo ese trabajo, lo pasa a «Mis trabajos» y se queda en la lista para aceptar más', async () => {
     logIn();
     const fetchMock = mockApi({
       'GET /trabajos': [
         Response.json({ jobs: [TIENDA, TALADRO, PROYECTOR] }),
-        Response.json({ jobs: [PROYECTOR] }),
+        Response.json({ jobs: [TIENDA, PROYECTOR] }),
       ],
-      'GET /trabajos/mios': [
-        Response.json({ jobs: [] }),
-        Response.json({ jobs: [TIENDA_MIA, TALADRO_MIO] }),
-      ],
-      'POST /trabajos/aceptar': Response.json({
-        assigned: [TIENDA_MIA, TALADRO_MIO],
-        alreadyTaken: [],
-      }),
+      'GET /trabajos/mios': [Response.json({ jobs: [] }), Response.json({ jobs: [TALADRO_MIO] })],
+      'POST /trabajos/j2/aceptar': Response.json({ job: TALADRO_MIO }),
     });
     const user = userEvent.setup();
     const { router } = renderRoute('/trabajos');
 
-    await user.click(await screen.findByRole('checkbox', { name: TIENDA.item.title }));
-    await user.click(checkbox(TALADRO.item.title));
-    await user.click(screen.getByRole('button', { name: 'Aceptar trabajos' }));
+    await screen.findByRole('heading', { level: 3, name: TALADRO.item.title });
+    await user.click(acceptButton(TALADRO.item.title));
 
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'Has aceptado «Taladro percutor Bosch». Lo tienes en Mis trabajos, con las direcciones.',
+    );
+    expect(router.state.location.pathname).toBe('/trabajos');
+    expect(
+      screen.queryByRole('heading', { level: 3, name: TALADRO.item.title }),
+    ).not.toBeInTheDocument();
+    expect(acceptButton(TIENDA.item.title)).toBeEnabled();
+    expect(screen.getByRole('link', { name: 'Disponibles (2)' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Mis trabajos (1)' })).toBeInTheDocument();
+
+    const posts = fetchMock.mock.calls.filter(([, init]) => init?.method === 'POST');
+    expect(posts).toHaveLength(1);
+    expect(String(posts[0][0])).toMatch(/\/trabajos\/j2\/aceptar$/);
+    expect(new Headers(posts[0][1]?.headers).get('Authorization')).toBe('Bearer token-de-dani');
+
+    // El enlace del aviso lleva a «Mis trabajos», con la dirección completa.
+    await user.click(screen.getByRole('link', { name: 'Mis trabajos' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/trabajos/mios'));
-    expect(await screen.findByRole('status')).toHaveTextContent('Te hemos asignado 2 trabajos.');
-    const taladro = (await screen.findByRole('heading', { name: TALADRO.item.title })).closest(
-      'li',
-    ) as HTMLElement;
+    await screen.findByRole('heading', { level: 3, name: TALADRO.item.title });
+    const taladro = card(TALADRO.item.title);
     expect(taladro).toHaveTextContent('Recogida Carrer de Verdi, 12, 2.º 1.ª (Gràcia)');
     expect(taladro).toHaveTextContent('Entrega Carrer de Mallorca, 120, 3.º (Eixample)');
     expect(taladro).toHaveTextContent(/Tarifa 5,00\s€/);
@@ -259,104 +249,115 @@ describe('Marcar y aceptar varios (criterio 3)', () => {
       'href',
       '/entregas/j2',
     );
-    expect(screen.getByRole('link', { name: 'Disponibles (1)' })).toBeInTheDocument();
-
-    const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
-    expect(JSON.parse(String(post?.[1]?.body))).toEqual({ ids: ['j1', 'j2'] });
-    expect(new Headers(post?.[1]?.headers).get('Authorization')).toBe('Bearer token-de-dani');
   });
 
-  it('mientras acepta, el botón dice «Aceptando…» y no se puede volver a pulsar', async () => {
+  it('se pueden aceptar varios seguidos y el aviso es del último', async () => {
     logIn();
     mockApi({
-      'GET /trabajos': Response.json({ jobs: [TIENDA] }),
+      'GET /trabajos': Response.json({ jobs: [TIENDA, TALADRO] }),
       'GET /trabajos/mios': Response.json({ jobs: [] }),
-      'POST /trabajos/aceptar': () => new Promise<Response>(() => undefined),
+      'POST /trabajos/j1/aceptar': Response.json({ job: TIENDA_MIA }),
+      'POST /trabajos/j2/aceptar': Response.json({ job: TALADRO_MIO }),
     });
     const user = userEvent.setup();
     renderRoute('/trabajos');
 
-    await user.click(await screen.findByRole('checkbox', { name: TIENDA.item.title }));
-    await user.click(screen.getByRole('button', { name: 'Aceptar trabajos' }));
+    await user.click(await screen.findByRole('button', { name: `Aceptar ${TIENDA.item.title}` }));
+    expect(await screen.findByRole('status')).toHaveTextContent('Has aceptado «Tienda');
+    await user.click(acceptButton(TALADRO.item.title));
 
-    expect(screen.getByRole('button', { name: 'Aceptando…' })).toBeDisabled();
-    expect(checkbox(TIENDA.item.title)).toBeDisabled();
+    expect(await screen.findByRole('status')).toHaveTextContent('Has aceptado «Taladro');
+    expect(await screen.findByText('No hay trabajos disponibles ahora mismo.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Mis trabajos (2)' })).toBeInTheDocument();
   });
 
-  it('si falla, lo dice y deja reintentar sin perder lo marcado', async () => {
+  it('mientras acepta, ese botón dice «Aceptando…» y los demás siguen activos', async () => {
     logIn();
     mockApi({
-      'GET /trabajos': Response.json({ jobs: [TIENDA] }),
+      'GET /trabajos': Response.json({ jobs: [TIENDA, TALADRO] }),
       'GET /trabajos/mios': Response.json({ jobs: [] }),
-      'POST /trabajos/aceptar': Response.json({ error: 'Error interno.' }, { status: 500 }),
+      'POST /trabajos/j1/aceptar': () => new Promise<Response>(() => undefined),
     });
     const user = userEvent.setup();
     renderRoute('/trabajos');
 
-    await user.click(await screen.findByRole('checkbox', { name: TIENDA.item.title }));
-    await user.click(screen.getByRole('button', { name: 'Aceptar trabajos' }));
+    await user.click(await screen.findByRole('button', { name: `Aceptar ${TIENDA.item.title}` }));
+
+    const busy = screen.getByRole('button', { name: `Aceptando ${TIENDA.item.title}…` });
+    expect(busy).toBeDisabled();
+    expect(busy).toHaveTextContent('Aceptando…');
+    expect(acceptButton(TALADRO.item.title)).toBeEnabled();
+  });
+
+  it('si falla, lo dice y el trabajo sigue en la lista para reintentar', async () => {
+    logIn();
+    mockApi({
+      'GET /trabajos': Response.json({ jobs: [TIENDA] }),
+      'GET /trabajos/mios': Response.json({ jobs: [] }),
+      'POST /trabajos/j1/aceptar': Response.json({ error: 'Error interno.' }, { status: 500 }),
+    });
+    const user = userEvent.setup();
+    renderRoute('/trabajos');
+
+    await user.click(await screen.findByRole('button', { name: `Aceptar ${TIENDA.item.title}` }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'No se han podido aceptar los trabajos. Inténtalo de nuevo.',
+      'No se ha podido aceptar el trabajo. Inténtalo de nuevo.',
     );
-    expect(checkbox(TIENDA.item.title)).toBeChecked();
-    expect(screen.getByRole('button', { name: 'Aceptar trabajos' })).toBeEnabled();
+    expect(acceptButton(TIENDA.item.title)).toBeEnabled();
   });
-});
 
-describe('Ya asignado a otro rider (criterio 4)', () => {
-  it('avisa del que ya era de otro rider y asigna el resto', async () => {
+  it('con la sesión caducada (401) al aceptar vuelve al login', async () => {
     logIn();
     mockApi({
-      'GET /trabajos': [Response.json({ jobs: [TIENDA, TALADRO] }), Response.json({ jobs: [] })],
-      'GET /trabajos/mios': [Response.json({ jobs: [] }), Response.json({ jobs: [TALADRO_MIO] })],
-      'POST /trabajos/aceptar': Response.json({
-        assigned: [TALADRO_MIO],
-        alreadyTaken: [{ id: 'j1', item: TIENDA.item }],
-      }),
+      'GET /trabajos': Response.json({ jobs: [TIENDA] }),
+      'GET /trabajos/mios': Response.json({ jobs: [] }),
+      'POST /trabajos/j1/aceptar': Response.json({ error: 'Sesión caducada.' }, { status: 401 }),
     });
     const user = userEvent.setup();
     const { router } = renderRoute('/trabajos');
 
-    await user.click(await screen.findByRole('checkbox', { name: TIENDA.item.title }));
-    await user.click(checkbox(TALADRO.item.title));
-    await user.click(screen.getByRole('button', { name: 'Aceptar trabajos' }));
+    await user.click(await screen.findByRole('button', { name: `Aceptar ${TIENDA.item.title}` }));
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/trabajos/mios'));
-    expect(await screen.findByRole('status')).toHaveTextContent('Te hemos asignado 1 trabajo.');
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      'Tienda de campaña para 4 personas: Ya asignado a otro rider.',
-    );
+    await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
   });
+});
 
-  it('si no se asigna ninguno, se queda en «Disponibles» con el aviso y sin ese trabajo', async () => {
+describe('Ya asignado a otro rider (criterio 4)', () => {
+  it('avisa, quita el trabajo de la lista y la vuelve a pedir', async () => {
     logIn();
-    mockApi({
+    const fetchMock = mockApi({
       'GET /trabajos': [
         Response.json({ jobs: [TIENDA, TALADRO] }),
         Response.json({ jobs: [TALADRO] }),
       ],
       'GET /trabajos/mios': Response.json({ jobs: [] }),
-      'POST /trabajos/aceptar': Response.json({
-        assigned: [],
-        alreadyTaken: [{ id: 'j1', item: TIENDA.item }],
-      }),
+      'POST /trabajos/j1/aceptar': Response.json(
+        { error: 'Ya asignado a otro rider.' },
+        { status: 409 },
+      ),
     });
     const user = userEvent.setup();
     const { router } = renderRoute('/trabajos');
 
-    await user.click(await screen.findByRole('checkbox', { name: TIENDA.item.title }));
-    await user.click(screen.getByRole('button', { name: 'Aceptar trabajos' }));
+    await user.click(await screen.findByRole('button', { name: `Aceptar ${TIENDA.item.title}` }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Tienda de campaña para 4 personas: Ya asignado a otro rider.',
     );
     expect(router.state.location.pathname).toBe('/trabajos');
-    expect(screen.queryByRole('status', { name: /asignado/ })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { level: 3, name: TIENDA.item.title }),
+    ).not.toBeInTheDocument();
+    expect(acceptButton(TALADRO.item.title)).toBeEnabled();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
     await waitFor(() =>
-      expect(screen.queryByRole('checkbox', { name: TIENDA.item.title })).not.toBeInTheDocument(),
+      expect(
+        fetchMock.mock.calls.filter(
+          ([url, init]) => (init?.method ?? 'GET') === 'GET' && String(url).endsWith('/trabajos'),
+        ),
+      ).toHaveLength(2),
     );
-    expect(checkbox(TALADRO.item.title)).not.toBeChecked();
   });
 });
 
@@ -376,7 +377,7 @@ describe('Mis trabajos', () => {
     );
   });
 
-  it('la pestaña «Disponibles» vuelve a la lista para marcar', async () => {
+  it('la pestaña «Disponibles» vuelve a la lista para aceptar', async () => {
     logIn();
     mockApi({
       'GET /trabajos': Response.json({ jobs: [TIENDA] }),
@@ -387,6 +388,8 @@ describe('Mis trabajos', () => {
 
     await user.click(await screen.findByRole('link', { name: 'Disponibles (1)' }));
 
-    expect(await screen.findByRole('checkbox', { name: TIENDA.item.title })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: `Aceptar ${TIENDA.item.title}` }),
+    ).toBeInTheDocument();
   });
 });
