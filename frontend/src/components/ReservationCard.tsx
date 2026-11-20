@@ -174,16 +174,52 @@ function DeliveryFacts({
   );
 }
 
+// Objeto, fechas y estado: la cabecera de la tarjeta, la fila de la lista y el título del detalle.
+function ReservationSummary({
+  reservation,
+  status,
+  badge,
+}: {
+  reservation: Reservation;
+  status: string;
+  badge: string;
+}) {
+  return (
+    <>
+      <span className="reservation-card-summary">
+        <span className="reservation-card-title">{reservation.item.title}</span>{' '}
+        <span className="manage-visually-hidden">·</span>{' '}
+        <span className="reservation-card-dates">
+          {formatShortDateRange(reservation.startDate, reservation.endDate)}
+        </span>
+      </span>{' '}
+      <span className="manage-visually-hidden">·</span>{' '}
+      <span key={reservation.status} className={`badge ${badge} reservation-card-status`}>
+        {status}
+      </span>
+    </>
+  );
+}
+
 export function ReservationCard({
   reservation,
   role,
   children,
+  view = 'toggle',
+  selected = false,
+  onSelect,
 }: {
   reservation: Reservation;
   role: 'sent' | 'received';
   children?: ReactNode;
+  // Lista y detalle (decisión de Kai, 20/11): «toggle» despliega el detalle en la tarjeta, como
+  // siempre; «row» es una fila de la lista que elige la reserva; «detail» la enseña entera.
+  view?: 'toggle' | 'row' | 'detail';
+  selected?: boolean;
+  onSelect?: () => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expandedState, setExpanded] = useState(false);
+  const expanded = view === 'detail' || (view === 'toggle' && expandedState);
   const detailId = useId();
   const status =
     statusLabels[reservation.status as ReservationStatus] ?? String(reservation.status);
@@ -192,91 +228,88 @@ export function ReservationCard({
   const requesterLabel = role === 'sent' ? 'Propietario' : 'Solicitada por';
 
   return (
-    <article className="reservation-card card">
-      {/* El botón se lee «<objeto> · <fechas> · <estado>»: los puntos solo son para el lector. */}
-      <button
-        type="button"
-        className="reservation-card-toggle"
-        aria-expanded={expanded}
-        aria-controls={detailId}
-        onClick={() => setExpanded((isExpanded) => !isExpanded)}
-      >
-        <span className="reservation-card-summary">
-          <span className="reservation-card-title">{reservation.item.title}</span>{' '}
-          <span className="manage-visually-hidden">·</span>{' '}
-          <span className="reservation-card-dates">
-            {formatShortDateRange(reservation.startDate, reservation.endDate)}
-          </span>
-        </span>{' '}
-        <span className="manage-visually-hidden">·</span>{' '}
-        <span
-          key={reservation.status}
-          className={`badge ${statusStyle.badge} reservation-card-status`}
+    <article className={`reservation-card card${selected ? ' is-selected' : ''}`}>
+      {view === 'detail' ? (
+        <div className="reservation-card-toggle reservation-card-heading">
+          <ReservationSummary reservation={reservation} status={status} badge={statusStyle.badge} />
+        </div>
+      ) : (
+        // El botón se lee «<objeto> · <fechas> · <estado>»: los puntos solo son para el lector.
+        <button
+          type="button"
+          className="reservation-card-toggle"
+          aria-expanded={view === 'toggle' ? expanded : undefined}
+          aria-controls={view === 'toggle' ? detailId : undefined}
+          aria-pressed={view === 'row' ? selected : undefined}
+          onClick={() => (view === 'row' ? onSelect?.() : setExpanded((isExpanded) => !isExpanded))}
         >
-          {status}
-        </span>
-        <span className="reservation-card-chevron">
-          <Icon name="keyboard_arrow_down" />
-        </span>
-      </button>
-      <div id={detailId} className="reservation-card-detail" hidden={!expanded}>
-        <div className="reservation-card-clip">
-          <div className="reservation-card-body">
-            <div className="reservation-facts">
-              <ReservationFact icon="inventory_2">
-                Objeto: <Link to={`/objetos/${reservation.item.id}`}>{reservation.item.title}</Link>
-              </ReservationFact>
-              <ReservationFact icon="event">
-                {reservation.startDate === reservation.endDate
-                  ? `Fecha: ${formatLongDate(reservation.startDate)}`
-                  : `Fechas: Del ${formatLongDate(reservation.startDate)} al ${formatLongDate(reservation.endDate)}`}
-              </ReservationFact>
-              <ReservationFact icon="payments">{formatAmounts(reservation)}</ReservationFact>
-              <ReservationFact icon={statusStyle.icon}>Estado: {status}</ReservationFact>
-              <ReservationFact icon="person">
-                {requesterLabel}: {requester}
-              </ReservationFact>
-              {reservation.delivery && (
-                <DeliveryFacts
-                  delivery={reservation.delivery}
-                  status={reservation.status}
-                  role={role}
-                />
-              )}
-              <ReservationFact icon="schedule">
-                Enviada el {longDateFormatter.format(new Date(reservation.createdAt))}
-              </ReservationFact>
-            </div>
-            {/* Pago al solicitar (US-07.01, #286): mientras espera respuesta, el importe está
+          <ReservationSummary reservation={reservation} status={status} badge={statusStyle.badge} />
+          <span className="reservation-card-chevron">
+            <Icon name="keyboard_arrow_down" />
+          </span>
+        </button>
+      )}
+      {view !== 'row' && (
+        <div id={detailId} className="reservation-card-detail" hidden={!expanded}>
+          <div className="reservation-card-clip">
+            <div className="reservation-card-body">
+              <div className="reservation-facts">
+                <ReservationFact icon="inventory_2">
+                  Objeto:{' '}
+                  <Link to={`/objetos/${reservation.item.id}`}>{reservation.item.title}</Link>
+                </ReservationFact>
+                <ReservationFact icon="event">
+                  {reservation.startDate === reservation.endDate
+                    ? `Fecha: ${formatLongDate(reservation.startDate)}`
+                    : `Fechas: Del ${formatLongDate(reservation.startDate)} al ${formatLongDate(reservation.endDate)}`}
+                </ReservationFact>
+                <ReservationFact icon="payments">{formatAmounts(reservation)}</ReservationFact>
+                <ReservationFact icon={statusStyle.icon}>Estado: {status}</ReservationFact>
+                <ReservationFact icon="person">
+                  {requesterLabel}: {requester}
+                </ReservationFact>
+                {reservation.delivery && (
+                  <DeliveryFacts
+                    delivery={reservation.delivery}
+                    status={reservation.status}
+                    role={role}
+                  />
+                )}
+                <ReservationFact icon="schedule">
+                  Enviada el {longDateFormatter.format(new Date(reservation.createdAt))}
+                </ReservationFact>
+              </div>
+              {/* Pago al solicitar (US-07.01, #286): mientras espera respuesta, el importe está
                 bloqueado en la tarjeta de quien la pidió y se cobra si el propietario acepta. Solo
                 con plazo (expiresAt): las pendientes del flujo anterior no tienen nada bloqueado. */}
-            {reservation.status === 'pending' && reservation.expiresAt && (
-              <p className="reservation-payment-note">
-                <Icon name="lock" size="1.125rem" />
-                <span>
-                  {role === 'sent'
-                    ? `Hemos bloqueado ${priceFormatter.format(Number(reservation.totalPrice))} en tu tarjeta. Se cobran si ${reservation.owner.username} acepta; si no, se liberan.`
-                    : `Si la aceptas, se cobran ${priceFormatter.format(Number(reservation.totalPrice))} al momento; si la rechazas, se liberan.`}
-                  {role === 'sent'
-                    ? ` Tiene hasta el ${formatDeadline(reservation.expiresAt)} para responder.`
-                    : ` Responde antes del ${formatDeadline(reservation.expiresAt)}: si no, caduca.`}
-                </span>
-              </p>
-            )}
-            {reservation.status === 'expired' && (
-              <p className="reservation-payment-note">
-                <Icon name="schedule" size="1.125rem" />
-                <span>
-                  {role === 'sent'
-                    ? `${reservation.owner.username} no respondió a tiempo. Hemos liberado el importe bloqueado.`
-                    : 'No respondiste a tiempo y la solicitud ha caducado.'}
-                </span>
-              </p>
-            )}
-            {children}
+              {reservation.status === 'pending' && reservation.expiresAt && (
+                <p className="reservation-payment-note">
+                  <Icon name="lock" size="1.125rem" />
+                  <span>
+                    {role === 'sent'
+                      ? `Hemos bloqueado ${priceFormatter.format(Number(reservation.totalPrice))} en tu tarjeta. Se cobran si ${reservation.owner.username} acepta; si no, se liberan.`
+                      : `Si la aceptas, se cobran ${priceFormatter.format(Number(reservation.totalPrice))} al momento; si la rechazas, se liberan.`}
+                    {role === 'sent'
+                      ? ` Tiene hasta el ${formatDeadline(reservation.expiresAt)} para responder.`
+                      : ` Responde antes del ${formatDeadline(reservation.expiresAt)}: si no, caduca.`}
+                  </span>
+                </p>
+              )}
+              {reservation.status === 'expired' && (
+                <p className="reservation-payment-note">
+                  <Icon name="schedule" size="1.125rem" />
+                  <span>
+                    {role === 'sent'
+                      ? `${reservation.owner.username} no respondió a tiempo. Hemos liberado el importe bloqueado.`
+                      : 'No respondiste a tiempo y la solicitud ha caducado.'}
+                  </span>
+                </p>
+              )}
+              {children}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </article>
   );
 }
