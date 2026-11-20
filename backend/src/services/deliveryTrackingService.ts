@@ -14,6 +14,7 @@ import {
   markReturned,
 } from '../repositories/deliveryTrackingRepository.js';
 import { MAX_CODE_ATTEMPTS } from './deliveryCode.js';
+import { publish } from './realtimeService.js';
 
 export const NOT_FOUND_MESSAGE = 'No hemos encontrado esta entrega.';
 export const NOT_PARTICIPANT_MESSAGE =
@@ -172,6 +173,24 @@ const NEXT_RIDER_STEP: Partial<Record<DeliveryStatus, DeliveryStatus>> = {
   on_the_way: 'delivered',
 };
 
+// Avisa en tiempo real a las personas de la reserva y a su rider (US-05.02, #67: «sin recargar»).
+// Va después de guardar el cambio y nunca lleva el código: el cliente vuelve a pedir el GET.
+function notifyChange(
+  loaded: Awaited<ReturnType<typeof loadTracking>>,
+  status: DeliveryStatus | 'finished',
+  at: Date,
+): void {
+  const { reservation, delivery } = loaded;
+  const userIds = [reservation.renterId, reservation.item.ownerId];
+  if (delivery.riderId) userIds.push(delivery.riderId);
+
+  publish(userIds, 'entrega.estado', {
+    reservationId: reservation.id,
+    status,
+    at: at.toISOString(),
+  });
+}
+
 // POST /api/entregas/:id/estado: el rider pasa la entrega al estado que indica, que tiene que ser
 // el siguiente. Para «delivered» introduce el código que le enseña el arrendatario.
 export async function advanceDelivery(
@@ -217,7 +236,7 @@ export async function advanceDelivery(
   if (!changed) {
     throw new AppError(409, NOT_NEXT_STEP_MESSAGE);
   }
-
+  notifyChange(loaded, status, now);
   return getDeliveryTracking(userId, reservationId);
 }
 
@@ -228,10 +247,8 @@ export async function confirmReceived(
   reservationId: string,
   now = new Date(),
 ): Promise<DeliveryTracking> {
-  const { reservation, delivery, mode, viewer } = await loadTracking(
-    userId,
-    reservationId,
-  );
+  const loaded = await loadTracking(userId, reservationId);
+  const { reservation, delivery, mode, viewer } = loaded;
 
   if (viewer !== 'renter') {
     throw new AppError(403, NOT_RENTER_MESSAGE);
@@ -249,6 +266,7 @@ export async function confirmReceived(
     throw new AppError(409, NOT_NEXT_STEP_MESSAGE);
   }
 
+  notifyChange(loaded, 'delivered', now);
   return getDeliveryTracking(userId, reservationId);
 }
 
@@ -259,7 +277,8 @@ export async function confirmReturned(
   reservationId: string,
   now = new Date(),
 ): Promise<DeliveryTracking> {
-  const { reservation, viewer } = await loadTracking(userId, reservationId);
+  const loaded = await loadTracking(userId, reservationId);
+  const { reservation, viewer } = loaded;
 
   if (viewer !== 'renter') {
     throw new AppError(403, NOT_RENTER_MESSAGE);
@@ -271,5 +290,6 @@ export async function confirmReturned(
     throw new AppError(409, NOT_IN_PROGRESS_MESSAGE);
   }
 
+  notifyChange(loaded, 'finished', now);
   return getDeliveryTracking(userId, reservationId);
 }
