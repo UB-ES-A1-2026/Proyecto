@@ -19,11 +19,13 @@ function mockApi({
   get,
   patch,
   post,
+  renew,
   stream = () => sseResponse().response,
 }: {
   get: Reply;
   patch?: Reply;
   post?: Reply;
+  renew?: Reply;
   stream?: Reply;
 }) {
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
@@ -33,6 +35,7 @@ function mockApi({
     // (las dos cambian la entrega) y «/devuelta».
     if (init?.method === 'POST' && /\/(estado|recibida)$/.test(url) && patch) return patch();
     if (init?.method === 'POST' && url.endsWith('/devuelta') && post) return post();
+    if (init?.method === 'POST' && url.endsWith('/codigo') && renew) return renew();
     return get();
   });
 }
@@ -86,7 +89,44 @@ describe('Seguimiento de la entrega (US-05.02, #67)', () => {
       '/mis-solicitudes',
     );
     expect(await screen.findByText('● Actualizado al momento')).toBeVisible();
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    // Su único botón es pedir otro código si el rider lo bloquea; los pasos los marca el rider.
+    expect(screen.getAllByRole('button').map((button) => button.textContent)).toEqual([
+      'Generar un código nuevo',
+    ]);
+  });
+
+  it('si el código se bloquea, el arrendatario genera uno nuevo y deja de ver el anterior', async () => {
+    const user = userEvent.setup();
+    const fetchMock = mockApi({
+      get: json(tracking()),
+      renew: json(tracking({ deliveryCode: '905117' })),
+    });
+
+    renderRoute('/entregas/r1');
+    expect(await screen.findByText('482 193')).toBeVisible();
+    expect(screen.getByText('¿El rider te dice que el código se ha bloqueado?')).toBeVisible();
+    await user.click(screen.getByRole('button', { name: 'Generar un código nuevo' }));
+
+    expect(await screen.findByText('905 117')).toBeVisible();
+    expect(screen.queryByText('482 193')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Hemos generado un código nuevo. El anterior ya no vale.',
+    );
+    const renewCalls = fetchMock.mock.calls.filter(([url]) => String(url).endsWith('/codigo'));
+    expect(renewCalls).toHaveLength(1);
+    expect(String(renewCalls[0][0])).toBe('http://localhost:3000/api/entregas/r1/codigo');
+    expect(renewCalls[0][1]?.method).toBe('POST');
+  });
+
+  it('sin rider no se ofrece generar un código nuevo', async () => {
+    mockApi({ get: json(pickupTracking()) });
+
+    renderRoute('/entregas/r1');
+
+    expect(await screen.findByRole('button', { name: 'Ya tengo el objeto' })).toBeVisible();
+    expect(
+      screen.queryByRole('button', { name: 'Generar un código nuevo' }),
+    ).not.toBeInTheDocument();
   });
 
   it('el propietario ve los mismos estados, pero sin código ni botones', async () => {

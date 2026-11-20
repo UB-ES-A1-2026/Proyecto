@@ -4,6 +4,7 @@ import {
   advanceDelivery,
   confirmItemReceived,
   getDeliveryTracking,
+  requestNewDeliveryCode,
   returnItem,
   toDeliveryTracking,
 } from '../src/services/deliveryTrackingService';
@@ -69,6 +70,18 @@ describe('deliveryTrackingService (US-05.02, API de T13 #288)', () => {
     expect(url).toBe('http://localhost:3000/api/entregas/r%201/devuelta');
     expect(init?.method).toBe('POST');
     expect(init?.body).toBeUndefined();
+  });
+
+  it('el código nuevo es un POST a «codigo» sin cuerpo y devuelve el seguimiento', async () => {
+    const fetchMock = mockFetch();
+
+    const view = await requestNewDeliveryCode('token-de-prueba', 'r 1');
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe('http://localhost:3000/api/entregas/r%201/codigo');
+    expect(init?.method).toBe('POST');
+    expect(init?.body).toBeUndefined();
+    expect(view.deliveryCode).toBe('482193');
   });
 });
 

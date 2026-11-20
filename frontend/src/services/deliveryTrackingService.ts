@@ -136,6 +136,15 @@ export function confirmItemReceived(
   return trackingRequest(`${trackingPath(reservationId)}/recibida`, { method: 'POST', token });
 }
 
+// Con rider y antes de «Entregada», el arrendatario genera un código nuevo (por ejemplo, si se ha
+// bloqueado tras 5 intentos): el anterior deja de valer y el rider vuelve a tener 5 intentos.
+export function requestNewDeliveryCode(
+  token: string,
+  reservationId: string,
+): Promise<DeliveryTracking> {
+  return trackingRequest(`${trackingPath(reservationId)}/codigo`, { method: 'POST', token });
+}
+
 // «He devuelto el objeto»: el alquiler pasa de «En curso» a «Finalizada».
 export function returnItem(token: string, reservationId: string): Promise<DeliveryTracking> {
   return trackingRequest(`${trackingPath(reservationId)}/devuelta`, { method: 'POST', token });
