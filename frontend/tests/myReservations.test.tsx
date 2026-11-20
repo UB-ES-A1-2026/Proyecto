@@ -486,3 +486,74 @@ describe('«Ver entrega» en Mis solicitudes (US-05.02, #67)', () => {
     ]);
   });
 });
+
+// Lista y detalle en pantallas anchas (decisión de Kai, 20/11). Generado con asistencia de IA (Claude).
+describe('Mis solicitudes con lista y detalle (pantallas anchas)', () => {
+  function wideScreen(matches = true) {
+    const listeners = new Set<() => void>();
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn().mockImplementation((query: string) => ({
+        matches,
+        media: query,
+        addEventListener: (_: string, listener: () => void) => listeners.add(listener),
+        removeEventListener: (_: string, listener: () => void) => listeners.delete(listener),
+      })),
+    );
+  }
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('elige la primera y enseña su detalle a la derecha; al pulsar otra, cambia', async () => {
+    wideScreen();
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    mockReservations({
+      sent: [reservation({ id: 'sent', item: { id: 'i1', title: 'Bicicleta de paseo' } })],
+      received: [reservation({ id: 'received' })],
+    });
+    const user = userEvent.setup();
+
+    renderRoute('/mis-solicitudes');
+
+    const bici = await screen.findByRole('button', { name: /Bicicleta de paseo/ });
+    expect(bici).toHaveAttribute('aria-pressed', 'true');
+    const detail = screen.getByRole('region', { name: 'Solicitud elegida' });
+    expect(within(detail).getByText('Propietario: ana')).toBeInTheDocument();
+    expect(within(detail).queryByRole('button', { name: /Bicicleta de paseo/ })).toBeNull();
+
+    const taladro = screen.getByRole('button', { name: /Taladro percutor Bosch/ });
+    await user.click(taladro);
+
+    expect(taladro).toHaveAttribute('aria-pressed', 'true');
+    expect(bici).toHaveAttribute('aria-pressed', 'false');
+    expect(within(detail).getByText('Solicitada por: bruno')).toBeInTheDocument();
+    // Una recibida pendiente se acepta o rechaza desde el detalle.
+    expect(within(detail).getByRole('button', { name: 'Aceptar' })).toBeInTheDocument();
+  });
+
+  it('sin solicitudes enseña los dos mensajes y ningún detalle', async () => {
+    wideScreen();
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    mockReservations({ sent: [], received: [] });
+
+    renderRoute('/mis-solicitudes');
+
+    expect(await screen.findByText('No tienes solicitudes abiertas')).toBeInTheDocument();
+    expect(screen.getByText('Todavía no has recibido solicitudes.')).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Solicitud elegida' })).toBeNull();
+  });
+
+  it('en pantallas estrechas sigue con el detalle desplegable', async () => {
+    wideScreen(false);
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    mockReservations({ sent: [], received: [reservation()] });
+
+    renderRoute('/mis-solicitudes');
+
+    expect(await screen.findByRole('button', { name: /Taladro percutor Bosch/ })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+    expect(screen.queryByRole('region', { name: 'Solicitud elegida' })).toBeNull();
+  });
+});
