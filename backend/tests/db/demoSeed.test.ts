@@ -17,6 +17,7 @@ import {
   upsertDemoReservations,
   upsertDemoRiders,
   upsertUsers,
+  assignDemoRider,
 } from '../../prisma/demoSeed.js';
 import { prisma } from '../../src/repositories/prisma.js';
 import { quoteRiderFee } from '../../src/services/deliveryFee.js';
@@ -302,6 +303,37 @@ describe('solicitudes de la demo', () => {
     for (const delivery of riderDeliveries) {
       expect(delivery.deliveryCode).toMatch(/^[0-9]{6}$/);
     }
+  });
+
+  it('asigna el rider aceptado a la reserva pagada con rider, también al repetir el seed', async () => {
+    const userIds = await seedWithReservations();
+    await upsertDemoRiders(prisma, DEMO_PASSWORD, 4);
+
+    expect(
+      await assignDemoRider(prisma, userIds, 'dani@rentit.test', TODAY),
+    ).toBe(1);
+    const assigned = await prisma.delivery.findFirstOrThrow({
+      where: { riderId: { not: null } },
+      include: { rider: true, reservation: { include: { item: true } } },
+    });
+    expect(assigned.reservation.item.title).toBe('Hidrolimpiadora Kärcher');
+    expect(assigned.rider?.username).toBe('dani');
+    expect(assigned).toMatchObject({ status: 'assigned', assignedAt: TODAY });
+
+    // Repetir el seed reinicia la entrega y la vuelve a asignar: sigue habiendo una sola.
+    await upsertDemoReservations(prisma, userIds, TODAY);
+    await assignDemoRider(prisma, userIds, 'dani@rentit.test', TODAY);
+    expect(
+      await prisma.delivery.count({ where: { riderId: { not: null } } }),
+    ).toBe(1);
+  });
+
+  it('falla con un mensaje claro si el rider de la demo no existe', async () => {
+    const userIds = await seedWithReservations();
+
+    await expect(
+      assignDemoRider(prisma, userIds, 'nadie@rentit.test', TODAY),
+    ).rejects.toThrow('crea antes los riders');
   });
 
   it('falla con un mensaje claro si no se han creado antes los objetos', async () => {

@@ -13,6 +13,7 @@ import {
   upsertDemoReservations,
   upsertDemoRiders,
   upsertUsers,
+  assignDemoRider,
 } from './demoSeed.js';
 
 const prisma = new PrismaClient();
@@ -43,6 +44,9 @@ async function main(): Promise<void> {
     rounds,
     PRODUCTION_DEMO_RIDERS,
   );
+  // pau, el rider aceptado de la demo, ya ha aceptado el trabajo de la «Hidrolimpiadora Kärcher»
+  // (US-05.02, #288).
+  await assignDemoRider(prisma, ownerIds, 'pau@demo.rentit.test');
 
   // Nunca se escribe la contraseña en el log.
   console.info(
