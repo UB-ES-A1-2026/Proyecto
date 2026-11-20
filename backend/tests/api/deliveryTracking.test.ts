@@ -1,12 +1,22 @@
 import type { DeliveryMode } from '@prisma/client';
 import request from 'supertest';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { app } from '../../src/app.js';
 import { prisma } from '../../src/repositories/prisma.js';
 import { resetDb } from '../helpers/db.js';
 import { createTestItem } from '../helpers/items.js';
 import { createTestReservation } from '../helpers/reservations.js';
 import { createTestUser, TEST_PASSWORD } from '../helpers/users.js';
+import { publish } from '../../src/services/realtimeService.js';
+
+// El canal en tiempo real de verdad, pero espiado: así se comprueba a quién avisa y con qué.
+vi.mock('../../src/services/realtimeService.js', async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import('../../src/services/realtimeService.js')
+    >();
+  return { ...actual, publish: vi.fn(actual.publish) };
+});
 
 // Seguimiento de la entrega (US-05.02, #288): un test por cada caso del contrato.
 // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 18/11/2026
@@ -605,5 +615,60 @@ describe('POST /api/entregas/:id/devuelta («He devuelto el objeto»)', () => {
     const { reservation } = await inProgress();
 
     expect((await returned(reservation.id)).status).toBe(401);
+  });
+});
+
+describe('aviso en tiempo real al cambiar el estado', () => {
+  beforeEach(() => {
+    vi.mocked(publish).mockClear();
+  });
+
+  it('tells the renter, the owner and the rider, without the code', async () => {
+    const { reservation, rider, renterToken, riderToken } = await setUp();
+    const { renterId } = reservation;
+    void renterToken;
+
+    await advance(reservation.id, { status: 'picked_up' }, riderToken);
+
+    const owner = await prisma.item.findUniqueOrThrow({
+      where: { id: reservation.itemId },
+    });
+    expect(vi.mocked(publish)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(publish)).toHaveBeenCalledWith(
+      [renterId, owner.ownerId, rider.id],
+      'entrega.estado',
+      {
+        reservationId: reservation.id,
+        status: 'picked_up',
+        at: expect.any(String),
+      },
+    );
+    expect(JSON.stringify(vi.mocked(publish).mock.calls)).not.toContain(CODE);
+  });
+
+  it('does not notify anything when the change is rejected', async () => {
+    const { reservation, riderToken } = await setUp();
+
+    await advance(reservation.id, { status: 'on_the_way' }, riderToken);
+
+    expect(vi.mocked(publish)).not.toHaveBeenCalled();
+  });
+
+  it('notifies «Ya tengo el objeto» and «He devuelto el objeto» without rider', async () => {
+    const { reservation, renterToken } = await setUp('home');
+
+    await received(reservation.id, renterToken);
+    await returned(reservation.id, renterToken);
+
+    const statuses = vi
+      .mocked(publish)
+      .mock.calls.map(([userIds, , data]) => [
+        userIds.length,
+        (data as { status: string }).status,
+      ]);
+    expect(statuses).toEqual([
+      [2, 'delivered'],
+      [2, 'finished'],
+    ]);
   });
 });
