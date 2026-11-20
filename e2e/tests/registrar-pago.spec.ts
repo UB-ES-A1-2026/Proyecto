@@ -103,9 +103,12 @@ async function openCheckout(
   days: number,
 ) {
   const itemId = await getItemId(request);
-  await page.goto(
-    `/objetos/${itemId}/solicitar?inicio=${startDate}&fin=${dateAfter(startDate, days)}`,
-  );
+  // Se entra desde la ficha: la entrega (US-05.01) se elige en el panel y viaja a la página en el
+  // estado del historial, no en la dirección (#350).
+  await page.goto(`/objetos/${itemId}?inicio=${startDate}&fin=${dateAfter(startDate, days)}`);
+  await page.getByRole('button', { name: 'Solicitar alquiler' }).click();
+  await page.getByRole('radio', { name: 'Recoger en casa del propietario' }).check();
+  await page.getByRole('button', { name: 'Continuar' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Confirmar y pagar' })).toBeVisible();
 }
 

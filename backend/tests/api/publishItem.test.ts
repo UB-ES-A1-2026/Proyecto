@@ -27,6 +27,7 @@ async function validBody() {
     dailyPrice: 7.5,
     deposit: '40',
     neighborhood: 'Sants',
+    address: '  Carrer de Sants, 12, 3º 2ª  ',
     homeDelivery: true,
     pickupPointDelivery: true,
   };
@@ -55,6 +56,7 @@ describe('POST /api/objetos (US-02.01, #14)', () => {
       dailyPrice: '7.50',
       deposit: '40.00',
       neighborhood: 'Sants',
+      address: 'Carrer de Sants, 12, 3º 2ª',
       status: 'published',
       category: { id: body.categoryId, name: 'Deporte' },
       photos: [],
@@ -90,7 +92,7 @@ describe('POST /api/objetos (US-02.01, #14)', () => {
     expect(response.body.owner.id).toBe(ana.id);
   });
 
-  it('defaults to 0 deposit, no delivery modes and published status', async () => {
+  it('defaults to 0 deposit and published status', async () => {
     await createTestUser();
     const token = await loginAs();
     const { title, description, categoryId, neighborhood } = await validBody();
@@ -101,6 +103,7 @@ describe('POST /api/objetos (US-02.01, #14)', () => {
       categoryId,
       neighborhood,
       dailyPrice: '5',
+      pickupPointDelivery: true,
     });
 
     expect(response.status).toBe(201);
@@ -108,7 +111,8 @@ describe('POST /api/objetos (US-02.01, #14)', () => {
       deposit: '0.00',
       homeDelivery: false,
       riderDelivery: false,
-      pickupPointDelivery: false,
+      pickupPointDelivery: true,
+      address: null,
       status: 'published',
     });
   });
@@ -139,6 +143,10 @@ describe('POST /api/objetos (US-02.01, #14)', () => {
     ['dailyPrice', 123456789, 'precio'],
     ['deposit', -1, 'fianza'],
     ['neighborhood', '', 'barrio'],
+    ['neighborhood', 'Vila de Gràcia', 'barrio'],
+    ['neighborhood', 'Madrid', 'barrio'],
+    ['address', 'x'.repeat(201), 'dirección'],
+    ['address', 42, 'dirección'],
     ['homeDelivery', 'sí', 'entrega a domicilio'],
     ['status', 'withdrawn', 'disponibilidad'],
   ])('returns 400 when %s is %j (criterio 5)', async (field, value, label) => {
@@ -154,6 +162,127 @@ describe('POST /api/objetos (US-02.01, #14)', () => {
     expect(response.body).toEqual({
       error: `El campo "${label}" no es correcto, revísalo.`,
       field,
+    });
+    expect(await prisma.item.count()).toBe(0);
+  });
+
+  it('stores the address in the item', async () => {
+    await createTestUser();
+    const token = await loginAs();
+
+    const response = await publish(token, await validBody());
+
+    expect(response.status).toBe(201);
+    const stored = await prisma.item.findUniqueOrThrow({
+      where: { id: response.body.id },
+    });
+    expect(stored.address).toBe('Carrer de Sants, 12, 3º 2ª');
+  });
+
+  it('does not need an address when only the pickup point is offered', async () => {
+    await createTestUser();
+    const token = await loginAs();
+
+    const response = await publish(token, {
+      ...(await validBody()),
+      address: undefined,
+      homeDelivery: false,
+      pickupPointDelivery: true,
+    });
+
+    expect(response.status).toBe(201);
+    expect(response.body.address).toBeNull();
+  });
+
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+  it.each(['', '   '])(
+    'treats the blank address %j as no address when only the pickup point is offered',
+    async (address) => {
+      await createTestUser();
+      const token = await loginAs();
+
+      const response = await publish(token, {
+        ...(await validBody()),
+        address,
+        homeDelivery: false,
+        pickupPointDelivery: true,
+      });
+
+      expect(response.status).toBe(201);
+      expect(response.body.address).toBeNull();
+      const stored = await prisma.item.findUniqueOrThrow({
+        where: { id: response.body.id },
+      });
+      expect(stored.address).toBeNull();
+    },
+  );
+
+  it.each([
+    ['homeDelivery', ''],
+    ['homeDelivery', '   '],
+    ['riderDelivery', ''],
+    ['riderDelivery', '   '],
+  ])(
+    'returns 400 for the address when %s is on and the address is %j',
+    async (flag, address) => {
+      await createTestUser();
+      const token = await loginAs();
+
+      const response = await publish(token, {
+        ...(await validBody()),
+        address,
+        homeDelivery: false,
+        pickupPointDelivery: false,
+        [flag]: true,
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        error: 'El campo "dirección" no es correcto, revísalo.',
+        field: 'address',
+      });
+      expect(await prisma.item.count()).toBe(0);
+    },
+  );
+
+  it.each(['homeDelivery', 'riderDelivery'])(
+    'returns 400 for the address when %s is on and there is no address',
+    async (flag) => {
+      await createTestUser();
+      const token = await loginAs();
+
+      const response = await publish(token, {
+        ...(await validBody()),
+        address: undefined,
+        homeDelivery: false,
+        pickupPointDelivery: false,
+        [flag]: true,
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        error: 'El campo "dirección" no es correcto, revísalo.',
+        field: 'address',
+      });
+      expect(await prisma.item.count()).toBe(0);
+    },
+  );
+
+  it('returns 400 when no delivery mode is chosen', async () => {
+    await createTestUser();
+    const token = await loginAs();
+
+    const response = await publish(token, {
+      ...(await validBody()),
+      homeDelivery: false,
+      riderDelivery: false,
+      pickupPointDelivery: false,
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      error: 'Elige al menos un modo de entrega.',
+      field: 'deliveryModes',
     });
     expect(await prisma.item.count()).toBe(0);
   });

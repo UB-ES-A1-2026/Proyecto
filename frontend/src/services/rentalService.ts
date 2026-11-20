@@ -1,5 +1,6 @@
 // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 04/11/2026
 import { ApiError, apiRequest } from './apiClient';
+import type { DeliveryRequest } from './deliveryService';
 import type { Reservation } from './reservationService';
 
 export type { Reservation, ReservationStatus } from './reservationService';
@@ -45,7 +46,8 @@ export type PaymentCredential = string | { paymentIntentId: string };
 // verificación (se lanza PaymentVerificationRequired) o los 409 de #120.
 export async function requestRental(
   token: string,
-  input: RentalRequestInput,
+  // Con US-05.01 (#282) la solicitud lleva también el modo de entrega y sus datos.
+  input: RentalRequestInput & DeliveryRequest,
   payment: PaymentCredential,
 ): Promise<Reservation> {
   const credential = typeof payment === 'string' ? { confirmationTokenId: payment } : payment;

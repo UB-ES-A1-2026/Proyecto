@@ -46,7 +46,10 @@ async function setUp(dailyPrice = 5.5) {
     username: 'bruno',
     email: 'bruno@rentit.test',
   });
-  const item = await createTestItem(owner.id, { dailyPrice });
+  const item = await createTestItem(owner.id, {
+    dailyPrice,
+    homeDelivery: true,
+  });
   const token = await loginAs('bruno@rentit.test');
 
   return { owner, renter, item, token };
@@ -54,11 +57,12 @@ async function setUp(dailyPrice = 5.5) {
 
 // Envía la solicitud con un token de pago que la pasarela simulada acepta (US-07.01, #72), salvo
 // que el test indique otro o lo quite (confirmationTokenId: undefined).
+// US-05.01 (#281): el modo de entrega es obligatorio; por defecto, recogida en casa del propietario.
 function postReservation(token: string, body: object) {
   return request(app)
     .post('/api/reservas')
     .set('Authorization', `Bearer ${token}`)
-    .send({ confirmationTokenId: 'ctoken_ok', ...body });
+    .send({ confirmationTokenId: 'ctoken_ok', deliveryMode: 'home', ...body });
 }
 
 beforeEach(async () => {
@@ -284,6 +288,15 @@ describe('POST /api/reservas', () => {
       expiresAt: expect.any(String),
       renter: { id: renter.id, username: 'bruno' },
       owner: { id: owner.id, username: 'ana' },
+      delivery: {
+        mode: 'home',
+        slot: null,
+        pickupPoint: null,
+        fee: null,
+        deliveryNeighborhood: null,
+        deliveryAddress: null,
+        ownerAddress: null,
+      },
       createdAt: expect.any(String),
     });
 
@@ -716,6 +729,7 @@ describe('POST /api/reservas: bloqueo del pago', () => {
   it('leaves the deposit status empty when the deposit is under 0.50 €', async () => {
     const { owner, token } = await setUp();
     const item = await createTestItem(owner.id, {
+      homeDelivery: true,
       title: 'Carro',
       deposit: 0.4,
     });
