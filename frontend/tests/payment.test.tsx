@@ -392,6 +392,32 @@ describe('Ficha y «Mis solicitudes» con el pago al solicitar', () => {
     );
   });
 
+  // Bug #372: con rider se bloquea alquiler + tarifa, y eso es lo que tiene que decir la tarjeta.
+  it('con entrega por rider, el importe bloqueado incluye la tarifa del rider', () => {
+    const delivery = {
+      mode: 'rider' as const,
+      slot: null,
+      pickupPoint: null,
+      fee: '5.00',
+      deliveryNeighborhood: 'Sants',
+      deliveryAddress: null,
+      ownerAddress: null,
+    };
+    render(
+      <MemoryRouter>
+        <ReservationCard reservation={reservation({ delivery })} role="sent" />
+        <ReservationCard
+          reservation={reservation({ id: 'r2', item: { id: 'i2', title: 'Escalera' }, delivery })}
+          role="received"
+        />
+      </MemoryRouter>,
+    );
+
+    const [sent, received] = screen.getAllByRole('article');
+    expect(sent).toHaveTextContent(/Hemos bloqueado 23,00\s€ en tu tarjeta\./);
+    expect(received).toHaveTextContent(/Si la aceptas, se cobran 23,00\s€ al momento;/);
+  });
+
   it('una pendiente del flujo anterior, sin plazo, no dice que haya nada bloqueado', () => {
     render(
       <MemoryRouter>
