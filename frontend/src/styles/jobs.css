@@ -8,6 +8,11 @@
   max-width: var(--reading-max-width);
 }
 
+/* Con lista y detalle, la página usa el ancho del contenido (decisión de Kai, 20/11). */
+.rider-jobs-wide {
+  max-width: none;
+}
+
 /* Pestañas «Disponibles» y «Mis trabajos» */
 .jobs-tabs {
   display: flex;
@@ -250,4 +255,72 @@
   display: grid;
   gap: var(--space-md);
   justify-items: start;
+}
+
+/* Lista y detalle en pantallas anchas (decisión de Kai, 20/11) */
+.jobs-master-detail {
+  display: grid;
+  grid-template-columns: minmax(20rem, 2fr) minmax(0, 3fr);
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+/* Filas compactas: título, franja y tarifa. */
+.job-row {
+  position: relative;
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+}
+
+.job-row .job-main {
+  gap: var(--space-xs);
+}
+
+.job-row:hover {
+  border-color: var(--color-border);
+}
+
+.job-row.is-selected {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+/* El botón ocupa toda la fila, con la letra del título. */
+.job-select {
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.job-select::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  border-radius: inherit;
+}
+
+.job-select:focus-visible {
+  outline: none;
+}
+
+.job-row:has(.job-select:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.job-detail {
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-md));
+  padding: var(--space-lg);
+}
+
+.job-detail-day {
+  margin: 0;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
 }
