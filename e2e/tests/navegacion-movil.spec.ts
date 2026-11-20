@@ -88,6 +88,10 @@ test('en escritorio, el menú está en la cabecera y «Inicio» no se muestra', 
 
   const nav = mainNav(page);
   await expect(nav.getByRole('link', { name: 'Inicio' })).toBeHidden();
-  const box = await nav.boundingBox();
-  expect(box?.y).toBeLessThan(64);
+  // En escritorio el <nav> no tiene caja propia (display: contents, cabecera de 1500 px del
+  // 20/11): se mide un enlace del menú y el icono de «Mi perfil», que van en la cabecera.
+  for (const name of ['Mis solicitudes', 'Mi perfil']) {
+    const box = await nav.getByRole('link', { name }).boundingBox();
+    expect(box?.y).toBeLessThan(64);
+  }
 });
