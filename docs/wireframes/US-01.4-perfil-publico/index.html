@@ -380,7 +380,7 @@
                 <div class="wf-campo">
                   <label>Bio <span class="wf-marca">3</span></label>
                   <div class="wf-input">Vecina de Gràcia. Presto herramientas y material de acampada.</div>
-                  <p class="wf-ayuda">Opcional. Máximo 500 caracteres (62/500).</p>
+                  <p class="wf-ayuda">Opcional. Máximo 500 caracteres (61/500).</p>
                 </div>
               </div>
               <div class="wf-ventana-botones">
@@ -409,7 +409,7 @@
                 <div class="wf-campo">
                   <label>Bio</label>
                   <div class="wf-input">Vecina de Gràcia. Presto herramientas y material de acampada.</div>
-                  <p class="wf-ayuda">Opcional. Máximo 500 caracteres (62/500).</p>
+                  <p class="wf-ayuda">Opcional. Máximo 500 caracteres (61/500).</p>
                 </div>
               </div>
               <div class="wf-ventana-botones">
@@ -428,7 +428,9 @@
         </li>
         <li>
           «Subir una foto» (si aún no tiene) o «Cambiar foto» abren el selector de archivos; se ve una vista previa. «Quitar
-          foto» vuelve a la inicial del nombre. Solo JPG, PNG o WebP de hasta 5 MB: con otro archivo sale el error junto al campo.
+          foto» vuelve a la inicial del nombre. Solo JPG, PNG o WebP: con otro tipo de archivo sale el error junto al campo al elegirlo.
+          El tamaño no se comprueba al elegirla: al pulsar «Guardar», la foto se reduce y, si aún ocupa más de 5 MB, sale
+          «La foto no puede ocupar más de 5 MB.» junto al campo; la API también lo comprueba al subirla.
         </li>
         <li>
           Límite de 500 caracteres de <code>usuario.bio</code> (<code>docs/modelo-datos.md</code>). Vacía, se borra la bio. Si la
@@ -436,7 +438,8 @@
         </li>
         <li>
           Guarda la bio y después la foto, solo de la cuenta de la sesión (la API rechaza editar un perfil ajeno). Mientras
-          guarda dice «Guardando…». Si la sesión ha caducado, lleva a <code>/login</code>.
+          guarda dice «Guardando…». Si la sesión ha caducado, se borra la sesión y se queda en el perfil como visitante, sin
+          ir a <code>/login</code>.
         </li>
       </ol>
     </section>
