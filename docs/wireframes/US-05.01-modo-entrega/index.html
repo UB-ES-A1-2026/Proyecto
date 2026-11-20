@@ -21,7 +21,12 @@
         11/11), decisiones de #66 y contrato de la API del backend (T6, PR #321). Validado por Marc el 12/11/2026: nombre «Recoger en casa del
         propietario», campo «Barrio» al editar, dirección oculta si solo se ofrece punto de recogida y desglose en «Mis solicitudes».
       </p>
-      <p class="wf-meta">Maqueta de Figma · Marco «Ficha»: «Com el vols rebre?» está en el lateral. Aquí también va en el panel lateral de la ficha, como un paso entre las fechas y el resumen.</p>
+      <p class="wf-meta">
+        Actualizado el 20/11/2026 con asistencia de IA (Claude) con los textos de la web: con el pago al solicitar (US-07.01),
+        el resumen ya no está en el panel. «Continuar» abre la página «Confirmar y pagar», donde se ve la entrega y se envía
+        la solicitud con «Confirmar y enviar solicitud» (pantalla 8).
+      </p>
+      <p class="wf-meta">Maqueta de Figma · Marco «Ficha»: «Com el vols rebre?» está en el lateral. Aquí también va en el panel lateral de la ficha, como un paso entre las fechas y la página «Confirmar y pagar».</p>
     </header>
 
     <!-- ===================== PROPIETARIO (T27) ===================== -->
@@ -72,7 +77,7 @@
                   <div class="wf-campo">
                     <label>Dirección <span class="wf-marca">3</span></label>
                     <div class="wf-input">Carrer de Verdi, 12, 3.º 2.ª</div>
-                    <p class="wf-ayuda">Solo la ves tú. El arrendatario la verá cuando aceptes su solicitud, y el rider, cuando acepte el trabajo.</p>
+                    <p class="wf-ayuda">Solo la ves tú. Si el arrendatario elige recogerlo en tu casa, la verá cuando aceptes su solicitud; con rider, solo la ve el rider.</p>
                   </div>
                 </div>
                 <p class="wf-texto"></p>
@@ -251,7 +256,7 @@
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Panel de la ficha (US-04.01). Con esta historia, el botón ya no va directo al resumen: pasa antes por el paso «Entrega».</li>
+        <li>Panel de la ficha (US-04.01). Con las fechas libres, «Solicitar alquiler» abre el paso «Entrega» en el mismo panel.</li>
         <li>La ficha usa los mismos nombres que el paso «Entrega» (decisión 7 de #66).</li>
       </ol>
     </section>
@@ -314,9 +319,9 @@
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Un paso propio dentro del panel, sin cambiar de página: fechas → entrega → resumen. Al entrar se llama a <code>GET /api/objetos/:id/entrega?startDate=…</code> (mientras carga, «Cargando…»; si falla, el mensaje de la API y «Volver»).</li>
+        <li>Un paso propio dentro del panel, sin cambiar de página: fechas → entrega; «Continuar» abre la página «Confirmar y pagar» (US-07.01). Al entrar se llama a <code>GET /api/objetos/:id/entrega?startDate=…</code> (mientras carga, «Cargando…»; si falla, el mensaje de la API y «Volver»).</li>
         <li>Criterio 2: solo se ofrecen los modos que llegan a <code>true</code> en <code>modes</code> (<code>home</code>, <code>rider</code>, <code>pickupPoint</code>). Aquí se ven los tres; un objeto con uno o dos modos solo muestra esos.</li>
-        <li>«Volver» regresa a las fechas y las conserva, como en el resumen de US-04.01.</li>
+        <li>«Volver» regresa a las fechas y las conserva.</li>
       </ol>
     </section>
 
@@ -419,7 +424,7 @@
             <div class="wf-campo"><label>Dirección de entrega</label><div class="wf-input">Carrer de Sants, 140, 1.º 1.ª</div></div>
             <div class="wf-campo"><label>Barrio de entrega</label><div class="wf-input">Sants <span>▾</span></div></div>
             <div class="wf-tarjeta">
-              <p class="wf-texto">Alquiler (3 días): 18,00 €</p>
+              <p class="wf-texto">Importe del alquiler (3 días): 18,00 €</p>
               <p class="wf-texto">Entrega por rider: 5,00 €</p>
               <p class="wf-texto"><strong>Total: 23,00 €</strong></p>
             </div>
@@ -436,7 +441,7 @@
         <li>Criterio 3: «Lo antes posible» (<code>slot: "asap"</code>) o una franja de 2 h del día de inicio, de <code>slots</code>. Si el inicio es hoy, la API no devuelve las franjas que ya han empezado.</li>
         <li>Decisión 4 de #66: sin la dirección y el barrio, el rider no sabe adónde ir ni se puede calcular la tarifa. Hasta 200 caracteres (<code>deliveryAddress</code>). El propietario no la ve nunca.</li>
         <li>Desplegable de <code>GET /api/barrios</code> (<code>deliveryNeighborhood</code>). Al elegirlo se pide la tarifa.</li>
-        <li>Criterio 3: <code>GET /api/objetos/:id/entrega/tarifa?barrio=Sants</code> → <code>fee</code>. Tramos: hasta 2 km, 3,00 €; de 2 a 5 km, 5,00 €; más de 5 km, 7,00 €. Hasta elegir barrio, la línea dice «Elige el barrio para ver el coste». El total suma alquiler y entrega; la API guarda la tarifa en la entrega, no en <code>totalPrice</code>.</li>
+        <li>Criterio 3: <code>GET /api/objetos/:id/entrega/tarifa?barrio=Sants</code> → <code>fee</code>. Tramos: hasta 2 km, 3,00 €; de 2 a 5 km, 5,00 €; más de 5 km, 7,00 €. Hasta elegir barrio, la línea dice «Elige el barrio para ver el coste.». El total suma alquiler y entrega; la API guarda la tarifa en la entrega, no en <code>totalPrice</code>.</li>
       </ol>
     </section>
 
@@ -521,6 +526,7 @@
                   <p class="wf-ayuda">Y 3 más, de más cerca a más lejos</p>
                 </div>
                 <div class="wf-tarjeta">
+                  <p class="wf-texto">Importe del alquiler (3 días): 18,00 €</p>
                   <p class="wf-texto"><strong>Total: 18,00 €</strong></p>
                 </div>
                 <p class="wf-texto"></p>
@@ -568,6 +574,7 @@
                   Lo recoges en Gràcia. La dirección se mostrará cuando acepten la solicitud. <span class="wf-marca">1</span>
                 </p>
                 <div class="wf-tarjeta">
+                  <p class="wf-texto">Importe del alquiler (3 días): 18,00 €</p>
                   <p class="wf-texto"><strong>Total: 18,00 €</strong></p>
                 </div>
                 <p class="wf-texto"></p>
@@ -585,12 +592,12 @@
       </ol>
     </section>
 
-    <p class="wf-flecha">Con el modo (y, con rider, la hora) elegido: clic en «Continuar»</p>
+    <p class="wf-flecha">Con el modo (y, con rider, la hora) elegido: clic en «Continuar». Se abre una página nueva</p>
 
     <section class="wf-pantalla" data-captura="8-resumen">
-      <h2><span class="wf-paso">8</span>Resumen antes de enviar <code>/objetos/:id</code></h2>
+      <h2><span class="wf-paso">8</span>Página «Confirmar y pagar» (US-07.01) <code>/objetos/:id/solicitar</code></h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…/solicitar?inicio=2026-11-18&amp;fin=2026-11-20">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces">
@@ -599,38 +606,38 @@
               <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
+            <p class="wf-ayuda"><span class="wf-enlace">← Volver a Taladro percutor Bosch</span></p>
+            <h3 class="wf-h1">Confirmar y pagar</h3>
             <div class="wf-columnas">
-              <div class="wf-caja">Fotos, descripción, formas de entrega y propietario (US-03.03)</div>
               <div class="wf-tarjeta">
-                <p class="wf-texto"><strong>6,00 €</strong> / día <span class="wf-chip">Disponible</span></p>
-                <h3 class="wf-h1">Revisa tu solicitud</h3>
-                <p class="wf-texto"><strong>Taladro percutor Bosch</strong> · 6,00 € / día</p>
-                <p class="wf-texto">Desde: miércoles, 18 de noviembre de 2026</p>
-                <p class="wf-texto">Hasta: viernes, 20 de noviembre de 2026</p>
-                <p class="wf-texto">Entrega: por rider · Lo antes posible <span class="wf-marca">1</span></p>
-                <p class="wf-texto">A: Carrer de Sants, 140, 1.º 1.ª (Sants)</p>
-                <div class="wf-tarjeta">
-                  <p class="wf-texto">Importe del alquiler (3 días): 18,00 €</p>
-                  <p class="wf-texto">Entrega por rider: 5,00 €</p>
-                  <p class="wf-texto"><strong>Total: 23,00 €</strong></p>
-                </div>
+                <p class="wf-texto"><strong>Pago</strong></p>
+                <p class="wf-aviso">🔒 Bloquearemos 23,00 € en tu tarjeta. <strong>Solo se cobran si ana acepta</strong>; si la rechaza o no responde en 48 horas, se liberan. La fianza (40,00 €) se bloquea el día antes de empezar y se libera al terminar, sin cobrarla.</p>
+                <div class="wf-caja">Formulario de Stripe y tarjetas de prueba (US-07.01)</div>
                 <p class="wf-texto"></p>
-                <div class="wf-fila">
-                  <span class="wf-boton wf-secundario">Volver</span>
-                  <span class="wf-boton">Confirmar</span><span class="wf-marca">2</span>
-                </div>
+                <span class="wf-boton wf-ancho">Confirmar y enviar solicitud</span><span class="wf-marca">2</span>
+                <p class="wf-ayuda">Al confirmar, la solicitud le llega a ana y se bloquean 23,00 €.</p>
+              </div>
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>Tu solicitud</strong></p>
+                <div class="wf-imagen"></div>
+                <p class="wf-texto"><strong>Taladro percutor Bosch</strong><br />6,00 € / día · de ana</p>
+                <p class="wf-ayuda">Desde: miércoles, 18 de noviembre de 2026<br />Hasta: viernes, 20 de noviembre de 2026 · <span class="wf-enlace">Cambiar</span></p>
+                <p class="wf-ayuda">Entrega: Entrega por rider · Lo antes posible <span class="wf-marca">1</span><br />A: Carrer de Sants, 140, 1.º 1.ª (Sants)</p>
+                <p class="wf-texto">Importe del alquiler (3 días): 18,00&nbsp;€<br />Entrega por rider: 5,00&nbsp;€</p>
+                <h3 class="wf-h1">Total: 23,00 €</h3>
+                <p class="wf-ayuda">Fianza (se retiene, no se cobra): 40,00 €<br />Total con fianza: 63,00 €</p>
               </div>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>El resumen de US-04.01 añade el modo y la hora. Con punto de recogida, el punto elegido; con recogida en casa, «La dirección se mostrará cuando acepten la solicitud».</li>
-        <li><code>POST /api/reservas</code> con las fechas, <code>deliveryMode</code> (<code>home</code>, <code>rider</code> o <code>pickup_point</code>) y, según el modo, <code>slot</code>, <code>deliveryAddress</code> y <code>deliveryNeighborhood</code>, o <code>pickupPointId</code>. Errores: los de US-04.01, los de las pantallas 3, 5 y 6, y «Este objeto no ofrece ese modo de entrega.» si el propietario lo ha cambiado mientras tanto (se muestra arriba del panel y se vuelve al paso «Entrega»).</li>
+        <li>«Tu solicitud» de US-07.01 enseña la entrega elegida en el panel. Con rider, el modo, la hora y «A: dirección (barrio)», y su tarifa se suma al «Total»; con punto de recogida, «Punto de recogida: nombre» y su dirección; con recogida en casa, «Recoger en casa del propietario» y «La dirección se mostrará cuando acepten la solicitud.».</li>
+        <li><code>POST /api/reservas</code> con las fechas, el token del pago, <code>deliveryMode</code> (<code>home</code>, <code>rider</code> o <code>pickup_point</code>) y, según el modo, <code>slot</code>, <code>deliveryAddress</code> y <code>deliveryNeighborhood</code>, o <code>pickupPointId</code>. Errores: los de US-04.01 y US-07.01, los de las pantallas 3, 5 y 6, y «Este objeto no ofrece ese modo de entrega.» si el propietario lo ha cambiado mientras tanto: sale encima del botón con el enlace «Cambiar la entrega», que vuelve a la ficha.</li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Clic en «Confirmar» → la solicitud se crea como «Pendiente»</p>
+    <p class="wf-flecha">Clic en «Confirmar y enviar solicitud» con una tarjeta válida → la solicitud se crea como «Pendiente»</p>
 
     <section class="wf-pantalla" data-captura="9-destino-mis-solicitudes">
       <h2><span class="wf-paso">9</span>Destino: Mis solicitudes <code>/mis-solicitudes</code></h2>
@@ -646,6 +653,7 @@
           <div class="wf-contenido">
             <h3 class="wf-h1">Mis solicitudes</h3>
             <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <p class="wf-aviso">✓ Solicitud enviada. Hemos bloqueado el importe hasta que ana responda. <span class="wf-marca">5</span></p>
             <div class="wf-columnas wf-iguales">
               <div>
                 <h4>Enviadas <span class="wf-chip">2</span></h4>
@@ -658,10 +666,11 @@
                     <p class="wf-texto">Entrega por rider · Lo antes posible · 5,00 € <span class="wf-marca">1</span></p>
                     <p class="wf-texto">A: Carrer de Sants, 140, 1.º 1.ª (Sants)</p>
                   </div>
+                  <p class="wf-aviso">🔒 Hemos bloqueado 23,00 € en tu tarjeta. Se cobran si ana acepta; si no, se liberan. Tiene hasta el 18 de noviembre a las 10:35 para responder.</p>
                 </div>
                 <p class="wf-texto"></p>
                 <div class="wf-tarjeta">
-                  <div class="wf-fila"><strong>Bicicleta de paseo</strong><span class="wf-chip">Aceptada</span><span>▴</span></div>
+                  <div class="wf-fila"><strong>Bicicleta de paseo</strong><span class="wf-chip">Pagada</span><span>▴</span></div>
                   <p class="wf-ayuda">25–26 nov. 2026</p>
                   <div class="wf-rejilla">
                     <p class="wf-texto">Alquiler: 16,00 € · <strong>Total: 16,00 €</strong></p>
@@ -678,7 +687,7 @@
                   <div class="wf-rejilla">
                     <p class="wf-texto">Alquiler: 24,00 € · <strong>Total: 24,00 €</strong></p>
                     <p class="wf-texto">Solicitada por: bruno</p>
-                    <p class="wf-texto">Punto de recogida: Biblioteca Jaume Fuster <span class="wf-marca">3</span></p>
+                    <p class="wf-texto">Punto de recogida: Biblioteca Jaume Fuster · Plaça de Lesseps, 20-22 <span class="wf-marca">3</span></p>
                   </div>
                 </div>
               </div>
@@ -690,7 +699,8 @@
         <li>Criterio 6: el modo y la hora quedan en la solicitud (<code>delivery</code>: <code>mode</code>, <code>slot</code>, <code>fee</code>…). La dirección de entrega (<code>deliveryAddress</code>) solo la ve el arrendatario. </li>
         <li>Criterio 4: <code>ownerAddress</code> solo llega con recogida en casa y la solicitud aceptada, pagada, en curso o finalizada. Si está pendiente, «La dirección se mostrará cuando acepten la solicitud».</li>
         <li>Criterio 6: el propietario ve el modo y la hora en «Recibidas», nunca la dirección de entrega. El rider, en la lista de trabajos (US-10.01). Las solicitudes anteriores a esta historia (<code>delivery: null</code>) no muestran la línea.</li>
-        <li>Desglose (decisión de Marc, 12/11): alquiler (<code>totalPrice</code>), entrega (<code>delivery.fee</code>, solo si la hay) y total = alquiler + entrega, sumado en el frontend. Sin tarifa de entrega, solo alquiler y total. Lo mismo en «Enviadas» y «Recibidas».</li>
+        <li>Desglose (decisión de Marc, 12/11): alquiler (<code>totalPrice</code>), entrega (<code>delivery.fee</code>, solo si la hay) y total = alquiler + entrega, sumado en el frontend. Sin tarifa de entrega, solo alquiler y total. Lo mismo en «Enviadas» y «Recibidas». Ese total es lo que se bloquea y se cobra (US-07.01).</li>
+        <li>Aviso de US-07.01 al llegar desde «Confirmar y pagar»; desaparece al recargar. Al aceptar, se cobra lo bloqueado y la solicitud pasa a «Pagada».</li>
       </ol>
     </section>
   </body>
