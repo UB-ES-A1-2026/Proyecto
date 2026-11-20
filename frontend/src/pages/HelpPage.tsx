@@ -119,7 +119,7 @@ const SECTIONS: HelpSection[] = [
       'En «Confirmar y pagar», revisa «Tu solicitud» (fechas, entrega e importe), escribe los datos de la tarjeta y pulsa «Confirmar y enviar solicitud».',
       'Irás a «Mis solicitudes», donde verás tu solicitud como «Pendiente» hasta que responda el propietario.',
     ],
-    note: 'El importe se bloquea en tu tarjeta, pero solo se cobra si el propietario acepta; si la rechaza o no responde en 48 horas, se libera. La fianza se bloquea el día antes de empezar. Es un pago de prueba: usa la tarjeta 4242 4242 4242 4242 (se acepta) o 4000 0000 0000 0002 (se rechaza). Con «Volver» puedes cambiar la entrega o las fechas antes de pagar. No puedes alquilar un objeto que has publicado tú.',
+    note: 'El importe se bloquea en tu tarjeta, pero solo se cobra si el propietario acepta; si la rechaza o no responde en 48 horas, se libera. La fianza se bloquea el día antes de empezar y se libera al terminar; si el alquiler dura más de 6 días, se cobra el día antes y se devuelve al terminar. Es un pago de prueba: usa la tarjeta 4242 4242 4242 4242 (se acepta) o 4000 0000 0000 0002 (se rechaza). Con «Volver» puedes cambiar la entrega o las fechas antes de pagar. No puedes alquilar un objeto que has publicado tú.',
   },
   {
     id: 'mis-solicitudes',
