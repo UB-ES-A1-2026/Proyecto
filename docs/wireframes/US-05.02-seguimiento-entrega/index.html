@@ -19,8 +19,8 @@
       </p>
       <p class="wf-meta">
         API de T13 (#288, Francesc): <code>GET /api/entregas/:id</code> (el id es el de la reserva),
-        <code>POST /api/entregas/:id/estado</code> (rider), <code>/recibida</code> y <code>/devuelta</code>
-        (arrendatario). Estados de la entrega: <code>pending | assigned | picked_up | on_the_way | delivered</code>; de la
+        <code>POST /api/entregas/:id/estado</code> (rider), <code>/recibida</code>, <code>/devuelta</code> y
+        <code>/codigo</code> (arrendatario, código nuevo si se bloquea). Estados de la entrega: <code>pending | assigned | picked_up | on_the_way | delivered</code>; de la
         reserva: <code>paid | in_progress | finished</code>.
       </p>
     </header>
@@ -163,6 +163,8 @@
               Tu código de entrega: <strong>482 193</strong>. Enséñaselo al rider cuando te dé el objeto.
               <span class="wf-marca">3</span>
             </p>
+            <p class="wf-ayuda">¿El rider te dice que el código se ha bloqueado?</p>
+            <span class="wf-boton wf-secundario">Generar un código nuevo</span><span class="wf-marca">5</span>
             <p class="wf-ayuda">● Actualizado al momento <span class="wf-marca">4</span></p>
           </div>
         </div>
@@ -180,6 +182,8 @@
             </div>
             <p class="wf-texto"></p>
             <p class="wf-aviso">Tu código de entrega: <strong>482 193</strong>. Enséñaselo al rider cuando te dé el objeto.</p>
+            <p class="wf-ayuda">¿El rider te dice que el código se ha bloqueado?</p>
+            <span class="wf-boton wf-secundario wf-ancho">Generar un código nuevo</span>
             <p class="wf-ayuda">● Actualizado al momento</p>
           </div>
           <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
@@ -204,7 +208,13 @@
         <li>
           Criterio 2: los cambios llegan solos por el canal en tiempo real (SSE, #324), sin recargar, con el evento
           <code>entrega.estado</code>, que no lleva el código. Al recibirlo, la pantalla vuelve a pedir el seguimiento.
-          T13 tiene que publicar ese evento al guardar cada cambio. Ver la pantalla 11 para cuando se pierde la conexión.
+          T13 publica ese evento al guardar cada cambio. Ver la pantalla 11 para cuando se pierde la conexión.
+        </li>
+        <li>
+          Si el rider falla 5 veces, el código se bloquea (pantalla 5). El arrendatario pulsa «Generar un código nuevo»
+          (<code>POST /api/entregas/:id/codigo</code>): sale el código nuevo en su lugar, el anterior deja de valer y el
+          rider vuelve a tener 5 intentos. Encima de la lista aparece «Hemos generado un código nuevo. El anterior ya no
+          vale.». Mientras se envía, el botón dice «Generando…». El botón solo sale con rider y antes de «Entregada».
         </li>
       </ol>
     </section>
@@ -291,8 +301,8 @@
           arrendatario.». Si no tiene 6 cifras: «Escribe las 6 cifras del código de entrega.» (no llama a la API). Si
           no coincide, la API responde 400 con <code>field: "code"</code> y «El código no es correcto. Te quedan N
           intentos.», y la entrega sigue «En camino». A los 5 intentos fallidos el código se bloquea: «El código se ha
-          bloqueado tras 5 intentos fallidos.» en el mismo campo (409 con <code>field: "code"</code>). Qué pasa
-          después del bloqueo está pendiente de decidir por el equipo.
+          bloqueado tras 5 intentos fallidos.» en el mismo campo (409 con <code>field: "code"</code>). Entonces el
+          arrendatario genera un código nuevo (pantalla 3, nota 5) y el rider vuelve a tener 5 intentos con ese código.
         </li>
         <li>
           Con el código correcto, la entrega pasa a «Entregada» y el alquiler, a «En curso», en la misma transacción. El
