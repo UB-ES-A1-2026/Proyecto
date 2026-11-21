@@ -139,26 +139,29 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
   // Criterio 1: el calendario no deja elegir días pasados
   test('los días pasados del calendario están desactivados', async ({ page }) => {
     await startRequest(page, ITEM, 'cortacésped');
-    const today = new Date();
     const panel = page.getByRole('complementary', {
       name: 'Alquiler de este objeto',
     });
-    const todayName = today.toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-
-    await expect(panel.getByRole('button', { name: todayName, exact: true })).toBeEnabled();
-    if (today.getDate() > 1) {
-      const yesterday = new Date(today);
-      yesterday.setDate(today.getDate() - 1);
-      const yesterdayName = yesterday.toLocaleDateString('es-ES', {
+    // Hoy y ayer con la fecha de España, como el calendario (todayIso): el runner del CI va en UTC
+    // y entre las 00:00 y la 01:00 (02:00 en verano) todavía sería ayer (#399).
+    const now = new Date();
+    const dayName = (date: Date) =>
+      date.toLocaleDateString('es-ES', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
+        timeZone: 'Europe/Madrid',
       });
-      await expect(panel.getByRole('button', { name: yesterdayName, exact: true })).toBeDisabled();
+    const dayOfMonth = Number(
+      now.toLocaleDateString('es-ES', { day: 'numeric', timeZone: 'Europe/Madrid' }),
+    );
+
+    await expect(panel.getByRole('button', { name: dayName(now), exact: true })).toBeEnabled();
+    if (dayOfMonth > 1) {
+      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      await expect(
+        panel.getByRole('button', { name: dayName(yesterday), exact: true }),
+      ).toBeDisabled();
     }
   });
 
