@@ -356,7 +356,7 @@ Se crean en la migración `crea_punto_recogida_y_entrega`, en la tarea de backen
 
 | Decisión | Por qué |
 |---|---|
-| **`objeto.direccion`** (opcional, ≤ 200) | La dirección exacta del propietario. La API exige que exista si el objeto ofrece recogida en su domicilio o rider, pero la BD la deja opcional porque los objetos antiguos no la tienen. **Nunca sale en la API pública**: solo la ve su propietario y, con recogida en domicilio, el arrendatario cuando la solicitud está aceptada, pagada, en curso o finalizada. El rider la verá al aceptar el trabajo (US-10.01). |
+| **`objeto.direccion`** (opcional, ≤ 200) | La dirección exacta del propietario. La API exige que exista si el objeto ofrece recogida en su domicilio o rider, pero la BD la deja opcional porque los objetos antiguos no la tienen. **Nunca sale en la API pública**: solo la ve su propietario y, con recogida en domicilio, el arrendatario cuando la solicitud está aceptada, pagada, en curso o finalizada. El rider la ve al aceptar el trabajo (US-10.01). |
 | **`objeto.barrio` se elige de una lista fija** de barrios de Barcelona (`GET /api/barrios`) | Con el centro aproximado de cada barrio se calcula la distancia sin geocodificar nada (ADR 0005). La lista vive en el backend (`services/neighborhoods.ts`), no en la BD; los objetos antiguos con el barrio escrito a mano siguen funcionando (con la tarifa más alta). |
 | Los **puntos de recogida** los inserta la migración | Son lugares públicos (bibliotecas, mercados y centros cívicos), datos de referencia como las categorías: existen también en producción y `resetDb()` no los vacía. Llevan coordenadas exactas, porque son públicos. Para cambiarlos: una migración nueva. |
 | `entrega` es **0..1 por reserva** (`reserva_id` único) | Cada solicitud nueva crea su entrega en la misma transacción que la reserva. Las reservas anteriores a US-05.01 no tienen entrega ni `modo_entrega`. |
@@ -470,6 +470,24 @@ Además, `reserva` gana la columna `motivo_cancelacion` (enum `motivo_cancelacio
 | El propietario no ve qué admin fue | La API de «Mis objetos» devuelve solo `motivo`, `detalles` y `retirado_en`, nunca el `admin_id`. |
 
 En Prisma, los modelos son `ItemModeration` y los enums `WithdrawalReason` (`scam`, `prohibited`, `misleading`, `other`) y `CancellationReason` (`item_withdrawn`).
+
+## Trabajos del rider (Sprint 2 · US-10.01 · #292)
+
+No añade tablas ni columnas: usa `entrega.rider_id`, `estado` y `asignada_en` de US-05.02. Un **trabajo** es una reserva `pagada` con `modo_entrega = rider`, su entrega `pendiente` y sin `rider_id`, y `fecha_inicio` de hoy en adelante (hoy en España). Solo los riders con la solicitud `aceptada` ven y aceptan trabajos, y nunca los suyos (su objeto o su reserva).
+
+**API** (con sesión; `:id` es el de la reserva, como en `/entregas/:id`):
+- `GET /api/trabajos`: `{ jobs: [{ id, item: { id, title }, startDate, slot, fee, pickupNeighborhood, deliveryNeighborhood }] }`, sin direcciones. Por `startDate`; el mismo día, `"asap"` primero y luego por franja.
+- `POST /api/trabajos/:id/aceptar`, sin cuerpo: `{ job }` como en «mios», con `status: "assigned"`. Guarda `rider_id`, pasa la entrega a `asignada` y guarda `asignada_en`. Avisa con `entrega.estado` (como US-05.02) al arrendatario, al propietario y al rider. Aceptar otra vez uno propio devuelve `200` sin cambiar nada.
+- `GET /api/trabajos/mios`: los del rider, con `pickupAddress` (`objeto.direccion`), `deliveryAddress` y `status` de la entrega. Por `startDate`. Sin las reservas canceladas.
+
+Errores: **401** sin sesión; **403** «Solo los riders aceptados pueden ver los trabajos.» a cualquier otra cuenta; **404** si la reserva no existe, el id no es válido o no es un trabajo de rider (no va con rider, nunca se pagó o es del propio rider); **409** «Ya asignado a otro rider.» si otro rider se ha adelantado o ya no está disponible (cancelada o ya empezada).
+
+| Decisión | Por qué |
+|---|---|
+| Aceptar es un solo `UPDATE` condicional (`rider_id IS NULL`, entrega `pendiente`, reserva pagada, con rider y sin empezar) que bloquea la reserva con `FOR SHARE` | Si dos riders aceptan a la vez, PostgreSQL vuelve a comprobar la condición al desbloquear la fila: solo uno cambia algo y el otro recibe el `409`. Una cancelación a la vez espera al `UPDATE`. |
+| Sin direcciones hasta aceptar | Lo dice la historia (#78): hasta entonces, solo los barrios. |
+
+**Datos de demo:** dos trabajos disponibles (`DEMO_RIDER_JOBS`) sobre objetos que no usa ningún otro e2e: la «Máquina de coser Singer» (Sants → Gràcia, «Lo antes posible», mañana) y la «Barbacoa de carbón portátil» (Les Corts → Poblenou, 17:00-19:00, pasado mañana), de ana en local (marta en producción), solicitadas por vecino5 y vecino6. Hay un segundo rider aceptado para el caso de dos riders con el mismo trabajo: oscar en local (con dani) y ona en producción (con pau). Repetir el seed los deja otra vez sin rider.
 
 ## Qué tablas entran en cada sprint
 

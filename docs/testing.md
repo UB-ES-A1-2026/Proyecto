@@ -407,6 +407,10 @@ Datos del seed: `admin@rentit.test` es el admin; carla tiene la solicitud pendie
 | CP-ADM-07 | 6. Retirar un objeto con motivo | Objeto nuevo de ana (creado por la API) | 1. «Objetos» › buscarlo › «Retirar» 2. «Anuncio falso o engañoso» y detalles › «Retirar anuncio» 3. ana abre «Mis objetos» | ««<objeto>» se ha retirado de Rentit.» y ya no sale en la lista; ana ve «Rentit ha retirado este anuncio. Motivo: Anuncio falso o engañoso. <detalles>» | `admin-riders.spec.ts` · criterio 6 |
 | CP-ADM-08 | Sin pendientes | La lista simulada vacía (carla siempre está pendiente en el seed) | 1. «Solicitudes» | «Pendientes · 0» y «No hay solicitudes pendientes.» | `admin-riders.spec.ts` · sin pendientes |
 
+### US-10.01 Rider acepta entregas disponibles (#78) · S2-T19 (#294)
+
+Datos del seed para los e2e: dos trabajos disponibles de ana, solicitados por vecino5 y vecino6, pagados, con rider y sin rider asignado: la «Máquina de coser Singer» (Sants → Gràcia, «Lo antes posible», mañana) y la «Barbacoa de carbón portátil» (Les Corts → Poblenou, 17:00-19:00, pasado mañana). Riders aceptados: `dani@rentit.test` y `oscar@rentit.test` (para «dos riders aceptan el mismo»); `carla@rentit.test` sigue pendiente. La «Hidrolimpiadora Kärcher» ya es de dani y sale en su «Mis trabajos». Aceptar cambia la BD: antes de repetir los casos hay que volver a ejecutar `npm run db:seed`. Los casos CP los añade T19; los de la API están en `backend/tests/api/riderJobs.test.ts`.
+
 ## 5. Métricas de tests
 
 Petición del profesor en la demo del Sprint 1 (#272). Las dos métricas salen solas del CI y de GitHub; solo hace falta seguir las reglas de `AGENTS.md`.
