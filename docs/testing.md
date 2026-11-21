@@ -311,7 +311,7 @@ Datos del seed (`DEMO_DEMAND_REQUESTS` en `backend/prisma/demoData.ts`): la bici
 | CP-RID-09 | 4. El rider aceptado ve «Trabajos» | Sesión de dani | 1. Iniciar sesión | Se abre `/trabajos`, la cabecera enlaza a «Trabajos» y se ve ese título | `hazte-rider.spec.ts` · criterio 4b |
 | CP-RID-10 | 5. El rider no puede solicitar ni publicar desde la web | Sesión de dani | 1. Revisar la cabecera 2. Ir a `/buscar?q=taladro`, `/objetos/nuevo` y `/mis-objetos` | No ve «Mis objetos» ni «Mis solicitudes»; cada ruta lleva a `/trabajos` | `hazte-rider.spec.ts` · criterio 5a |
 | CP-RID-11 | 5. La API bloquea solicitudes y publicaciones para riders | Seed cargado; token de carla, dani y bruno | 1. Buscar el cortacésped y una categoría 2. Crear la misma reserva válida con bruno (con la tarjeta de prueba, `ctoken_simulado`, y recogida en casa) y un objeto con un modo de entrega 3. Enviar reserva y objeto con los tokens de carla y dani | La reserva de bruno responde `201`; los POST de riders responden `403` y `{ "error": "Las cuentas de rider no pueden solicitar ni publicar objetos." }` | `hazte-rider.spec.ts` · criterio 5b |
-| CP-RID-12 | 4. Una cuenta rider rechazada no ve trabajos y ve el motivo | Rider rechazado con motivo | 1. Iniciar sesión con esa cuenta | No ve «Trabajos»; ve el motivo del rechazo | **Pendiente**: no hay rider rechazado en el seed ni API del admin; cubierto por los unitarios de `riderAccount.test.tsx` |
+| CP-RID-12 | 4. Una cuenta rider rechazada no ve trabajos y ve el motivo | eva, rechazada en el seed con motivo | 1. Iniciar sesión con esa cuenta | No ve «Trabajos»; ve «Solicitud rechazada» y «Motivo: Zona sin cobertura de reparto por ahora.» | `admin-riders.spec.ts` · eva (US-11.03, #319) |
 
 ### US-07.01 Registrar un pago (#72) · S2-T12 (#287)
 
@@ -362,6 +362,21 @@ Antes de cada ejecución, vuelve a ejecutar `npm run db:seed` en `backend/`: los
 | CP-ENT-10 | 5. Elegir punto de recogida | Sesión de bruno; Silla | 1. Elegir «Punto de recogida» 2. Continuar sin elegir punto 3. Elegir uno, continuar y pagar con `4242 4242 4242 4242` en «Confirmar y pagar» | Se muestran varios puntos; sin elección sale «Elige un punto de recogida.»; el seleccionado aparece en el resumen y en la tarjeta | `modo-entrega.spec.ts` · criterio 5 |
 | CP-ENT-11 | 6. El propietario ve la solicitud rider sin la dirección de entrega | Sesión de ana; Taladro del seed | 1. Abrir la solicitud recibida | Se ven «Entrega por rider», la hora, el coste y el barrio Poblenou; no se ve la dirección de entrega | `modo-entrega.spec.ts` · criterio 6 |
 | — | Lo ve el rider (US-10.01) | Sesión del rider | Pendiente de la historia US-10.01 | **Pendiente** | Fuera del alcance de US-05.01 |
+
+### US-11.03 Aceptar o rechazar solicitudes de rider (#305) · S2-T39 (#319)
+
+Datos del seed: `admin@rentit.test` es el admin; carla tiene la solicitud pendiente, dani es rider aceptado y eva está rechazada con el motivo «Zona sin cobertura de reparto por ahora.». carla no se toca, porque `hazte-rider.spec.ts` la necesita pendiente: los casos que aceptan o rechazan crean antes su propio rider con datos únicos (`POST /api/riders`), y CP-ADM-07 crea su propio objeto. Por eso estos e2e se pueden repetir sin volver a cargar el seed.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-ADM-01 | 1. Solo el admin | Sesiones de ana y del admin | 1. ana abre `/admin/solicitudes` 2. `GET /api/admin/riders` con el token de ana y sin token 3. Entrar como admin | ana no ve «Panel» y vuelve al inicio; la API responde `403` y `401`. El admin entra directamente en `/admin`, con «Resumen», «Objetos», «Riders activos» y «Solicitudes» | `admin-riders.spec.ts` · criterio 1 |
+| CP-ADM-02 | 2. Pendientes con el cuestionario | Rider nuevo pendiente | 1. «Solicitudes» 2. Desplegar la del rider nuevo | Filtro «Pendientes» marcado; carla (la más antigua) sale antes que el rider nuevo, con su zona, «Bici», la fecha y «Pendiente de revisión». Al desplegar: correo, teléfono, zona, vehículo, días, franjas, cuándo aceptó las condiciones, «Aceptar» y «Rechazar» | `admin-riders.spec.ts` · criterio 2 |
+| CP-ADM-03 | 3 y 5. Aceptar | Rider nuevo pendiente | 1. «Aceptar» 2. Filtro «Aceptadas» 3. «Riders activos» | «Has aceptado a <nombre>: ya puede hacer entregas.»; sale de «Pendientes» y en «Aceptadas» pone «Aceptada el … por admin». Su cuenta pasa a `riderStatus: approved` y sale en «Riders activos» con su zona, junto a dani | `admin-riders.spec.ts` · aceptar |
+| CP-ADM-04 | 3. Rechazar con motivo | Rider nuevo pendiente | 1. «Rechazar» 2. Escribir el motivo › «Rechazar solicitud» 3. Filtro «Rechazadas» 4. Entrar con esa cuenta | «Has rechazado la solicitud de <nombre>.»; en «Rechazadas», «Motivo: …» y «Rechazada el … por admin». La persona ve «Solicitud rechazada» y su motivo | `admin-riders.spec.ts` · rechazar |
+| CP-ADM-05 | 3. El motivo del seed | Sesión de eva | 1. Iniciar sesión | Ve «Solicitud rechazada» y «Motivo: Zona sin cobertura de reparto por ahora.», sin «Trabajos» (cierra CP-RID-12) | `admin-riders.spec.ts` · eva |
+| CP-ADM-06 | 4. Ya revisada | Rider nuevo pendiente, desplegado en el panel | 1. Otro admin la acepta por la API 2. Pulsar «Aceptar» en el panel 3. Volver a aceptarla o rechazarla por la API | Sale «Esta solicitud ya se ha revisado.» y desaparece de «Pendientes». La API responde `409` con ese mensaje en los dos casos | `admin-riders.spec.ts` · criterio 4 |
+| CP-ADM-07 | 6. Retirar un objeto con motivo | Objeto nuevo de ana (creado por la API) | 1. «Objetos» › buscarlo › «Retirar» 2. «Anuncio falso o engañoso» y detalles › «Retirar anuncio» 3. ana abre «Mis objetos» | ««<objeto>» se ha retirado de Rentit.» y ya no sale en la lista; ana ve «Rentit ha retirado este anuncio. Motivo: Anuncio falso o engañoso. <detalles>» | `admin-riders.spec.ts` · criterio 6 |
+| CP-ADM-08 | Sin pendientes | La lista simulada vacía (carla siempre está pendiente en el seed) | 1. «Solicitudes» | «Pendientes · 0» y «No hay solicitudes pendientes.» | `admin-riders.spec.ts` · sin pendientes |
 
 ## 5. Métricas de tests
 
