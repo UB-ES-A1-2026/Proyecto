@@ -175,7 +175,7 @@ Se edita la «Hidrolimpiadora Kärcher» de ana (8 €/día, fianza 50 €), que
 
 ### US-04.02 Consultar mis solicitudes (#61) · S1-T38 (#176)
 
-Solicitudes del seed (`DEMO_RESERVATIONS` en `backend/prisma/demoData.ts`, #210): bruno pide a ana la escalera (aceptada), y ana pide a bruno el proyector (pendiente) y el altavoz (rechazada). Las pendientes del taladro y del carro son para los e2e de aceptar y rechazar, y estos tests no las usan. Para cancelar (US-04.05, #308) hay tres más: ana tiene pagada la bici de bruno (empieza a 4 días: penalización del 35 %), bruno tiene pagada la hidrolimpiadora de ana (a 12 días: gratis), y bruno canceló la tienda de ana (a 6 días: 5,60 € para ana y 10,40 € devueltos a bruno), que sale «Cancelada» a los dos.
+Solicitudes del seed (`DEMO_RESERVATIONS` en `backend/prisma/demoData.ts`, #210): bruno pide a ana la escalera (aceptada), y ana pide a bruno el proyector (pendiente) y el altavoz (rechazada). Las pendientes del taladro y del carro son para los e2e de aceptar y rechazar, y estos tests no las usan. Para cancelar (US-04.05, #308) hay tres más: bruno tiene pagadas la tabla de paddle de ana (a 12 días: gratis) y la silla de coche de ana (a 4 días: penalización del 35 %), que no usa el seguimiento (US-05.02), y bruno canceló la tienda de ana (a 6 días: 5,60 € para ana y 10,40 € devueltos a bruno), que sale «Cancelada» a los dos.
 
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
@@ -215,7 +215,7 @@ Se pausa la «Tabla de paddle surf hinchable» de ana. Al terminar cada test se 
 
 ### US-02.03 Retirar un objeto (#52) · S1-T34 (#172)
 
-Retirar no se puede deshacer, así que solo se retira de verdad la «Máquina de palomitas» de bruno, que no usa ningún otro e2e. `npm run db:seed` la vuelve a dejar publicada. La «Silla de coche para bebé» de ana se usa para cancelar y para los permisos, y la «Escalera de aluminio» tiene en el seed (#210) una solicitud aceptada.
+Retirar no se puede deshacer, así que solo se retira de verdad la «Máquina de palomitas» de bruno, que no usa ningún otro e2e. `npm run db:seed` la vuelve a dejar publicada. La «Silla de coche para bebé» de ana se usa para cancelar la ventana y para los permisos (tiene una reserva pagada para US-04.05, que no impide nada de esto), y la «Escalera de aluminio» tiene en el seed (#210) una solicitud aceptada.
 
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
