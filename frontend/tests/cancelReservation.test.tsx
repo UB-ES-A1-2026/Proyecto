@@ -546,7 +546,13 @@ describe('Aviso al solicitar con menos de 3 días (criterio 5)', () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) =>
       String(input).includes('/demanda')
         ? Response.json({ days: [], pendingRequests: 0, bookedDays: [] })
-        : Response.json({ available: true }),
+        : String(input).includes('/entrega?')
+          ? Response.json({
+              modes: { home: true, rider: false, pickupPoint: false },
+              pickupPoints: [],
+              slots: [],
+            })
+          : Response.json({ available: true }),
     );
   });
 
@@ -567,6 +573,9 @@ describe('Aviso al solicitar con menos de 3 días (criterio 5)', () => {
     const request = screen.getByRole('button', { name: 'Solicitar alquiler' });
     await waitFor(() => expect(request).toBeEnabled());
     fireEvent.click(request);
+    // Paso «Entrega» (US-05.01): recoger en casa del propietario.
+    fireEvent.click(await screen.findByRole('radio', { name: 'Recoger en casa del propietario' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
     await screen.findByRole('heading', { name: 'Tu solicitud' });
   }
 
