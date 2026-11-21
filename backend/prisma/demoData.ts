@@ -349,15 +349,26 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
     status: 'paid',
     riderAssigned: true,
   },
-  // Cancelación (US-04.05, #308). Pagada a 12 días: se puede cancelar sin penalización (marta la
-  // cancela como propietaria o jordi como arrendatario; en local, ana y bruno); la bici, a 4 días,
-  // cuesta el 35 %. No es la «Máquina de palomitas»: la retira un e2e, y con una reserva pagada no
-  // se puede retirar.
+  // Cancelación (US-04.05, #308). Dos pagadas de jordi a marta (en local, de bruno a ana) que solo
+  // usa cancelar, para no pisarse con los e2e del seguimiento (US-05.02), que hacen avanzar la bici
+  // y la hidrolimpiadora, ni con el de retirar, que retira la «Máquina de palomitas». La tabla de
+  // paddle, a 12 días, se cancela gratis; la silla, a 4 días, cuesta el 35 %.
   {
-    item: { owner: 2, title: 'Hidrolimpiadora Kärcher' },
+    item: { owner: 2, title: 'Tabla de paddle surf hinchable' },
+    renter: 1,
+    delivery: {
+      mode: 'pickup_point',
+      pickupPoint: 'Biblioteca Ignasi Iglésias - Can Fabra',
+    },
+    startInDays: 12,
+    days: 2,
+    status: 'paid',
+  },
+  {
+    item: { owner: 2, title: 'Silla de coche para bebé' },
     renter: 1,
     delivery: { mode: 'home' },
-    startInDays: 12,
+    startInDays: 4,
     days: 2,
     status: 'paid',
   },
