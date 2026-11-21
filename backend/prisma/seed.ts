@@ -15,6 +15,7 @@ import {
   demandNeighbours,
   upsertDemoDemand,
   assignDemoRider,
+  upsertDemoRiderJobs,
 } from './demoSeed.js';
 
 const prisma = new PrismaClient();
@@ -47,16 +48,22 @@ async function main(): Promise<void> {
     rounds,
   );
   const demand = await upsertDemoDemand(prisma, [anaId, brunoId], neighbourIds);
+  // Dos trabajos de rider disponibles, de vecino5 y vecino6 a ana (US-10.01, #292).
+  const riderJobs = await upsertDemoRiderJobs(
+    prisma,
+    [anaId, brunoId, anaId],
+    neighbourIds,
+  );
 
   // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
-  // Tres cuentas de rider (US-10.03 y US-11.03): carla pendiente, dani aceptada y eva rechazada;
-  // las dos resueltas las revisó el admin de arriba.
+  // Cuatro cuentas de rider (US-10.03, US-11.03 y US-10.01): carla pendiente, dani y oscar
+  // aceptados y eva rechazada; las resueltas las revisó el admin de arriba.
   const riders = await upsertDemoRiders(prisma, DEV_PASSWORD, rounds);
   // dani ya ha aceptado el trabajo de la «Hidrolimpiadora Kärcher» (US-05.02, #288).
   await assignDemoRider(prisma, [anaId, brunoId, anaId], 'dani@rentit.test');
 
   console.info(
-    `Seed completado: ${DEV_USERS.length} usuarios de prueba, ${riders} riders, ${items} objetos y ${reservations + demand} solicitudes`,
+    `Seed completado: ${DEV_USERS.length} usuarios de prueba, ${riders} riders, ${items} objetos y ${reservations + demand + riderJobs} solicitudes`,
   );
 }
 

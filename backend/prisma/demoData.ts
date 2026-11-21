@@ -228,6 +228,39 @@ export const DEMO_ITEMS: readonly DemoItem[] = [
     pickupPointDelivery: false,
     status: 'withdrawn',
   },
+  // Trabajos del rider (US-10.01, #292): objetos que solo usan las reservas de DEMO_RIDER_JOBS,
+  // para no repetir títulos en «Mis solicitudes» de los e2e de otras historias. Ni en Sant Andreu,
+  // ni de Deporte, ni a 4 €/día o menos: los e2e de los filtros cuentan esos resultados.
+  {
+    owner: 2,
+    category: 'Hogar y jardín',
+    title: 'Máquina de coser Singer',
+    description:
+      'Máquina de coser con pedal, 23 puntadas y caja de hilos. Perfecta para arreglos y disfraces.',
+    dailyPrice: 7,
+    deposit: 40,
+    neighborhood: 'Sants',
+    address: 'Carrer de Sants, 140, 2º 1ª',
+    homeDelivery: true,
+    riderDelivery: true,
+    pickupPointDelivery: false,
+    status: 'published',
+  },
+  {
+    owner: 2,
+    category: 'Camping y viajes',
+    title: 'Barbacoa de carbón portátil',
+    description:
+      'Barbacoa plegable con parrilla de acero inoxidable y bolsa. Para el balcón, la playa o el camping.',
+    dailyPrice: 6,
+    deposit: 30,
+    neighborhood: 'Les Corts',
+    address: 'Travessera de les Corts, 250, 4º 2ª',
+    homeDelivery: true,
+    riderDelivery: true,
+    pickupPointDelivery: false,
+    status: 'published',
+  },
 ];
 
 // Solicitudes de alquiler de ejemplo (US-04.02 a US-04.04). Con ellas, «Mis solicitudes» no sale
@@ -401,5 +434,46 @@ export const DEMO_MODERATIONS: readonly DemoModeration[] = [
     item: { owner: 1, title: 'Reloj de lujo a mitad de precio' },
     reason: 'scam',
     details: 'El anuncio parece una estafa: marca de lujo a un precio irreal.',
+  },
+];
+
+// Trabajos del rider (US-10.01, #292): reservas pagadas con entrega por rider y sin rider, que ven
+// todos los riders aceptados en «Trabajos». Las hacen dos vecinos de DEMO_DEMAND_REQUESTS (índice
+// en esa lista: 4 = vecino5, 5 = vecino6) sobre objetos que no usa ningún otro e2e. Son para los
+// e2e de US-10.01 (T19, #294): aceptar uno y después otro, o que dos riders acepten el mismo.
+// Repetir el seed las vuelve a dejar sin rider y con la entrega pendiente.
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 21/11/2026
+export interface DemoRiderJob {
+  item: { owner: number; title: string };
+  neighbour: number;
+  delivery: Extract<DemoDelivery, { mode: 'rider' }>;
+  startInDays: number;
+  days: number;
+}
+
+export const DEMO_RIDER_JOBS: readonly DemoRiderJob[] = [
+  {
+    item: { owner: 2, title: 'Máquina de coser Singer' },
+    neighbour: 4,
+    delivery: {
+      mode: 'rider',
+      slot: null,
+      address: 'Carrer de Verdi, 80, 1º 2ª',
+      neighborhood: 'Gràcia',
+    },
+    startInDays: 1,
+    days: 2,
+  },
+  {
+    item: { owner: 2, title: 'Barbacoa de carbón portátil' },
+    neighbour: 5,
+    delivery: {
+      mode: 'rider',
+      slot: '17:00-19:00',
+      address: 'Carrer de Pujades, 150, 3º',
+      neighborhood: 'Poblenou',
+    },
+    startInDays: 2,
+    days: 1,
   },
 ];

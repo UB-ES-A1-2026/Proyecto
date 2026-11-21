@@ -5,6 +5,7 @@ import {
   DEMO_ITEMS,
   DEMO_MODERATIONS,
   DEMO_RESERVATIONS,
+  DEMO_RIDER_JOBS,
 } from '../../prisma/demoData.js';
 import {
   DEMO_ADMIN,
@@ -22,6 +23,7 @@ import {
   upsertDemoRiders,
   upsertUsers,
   assignDemoRider,
+  upsertDemoRiderJobs,
 } from '../../prisma/demoSeed.js';
 import { prisma } from '../../src/repositories/prisma.js';
 import { quoteRiderFee } from '../../src/services/deliveryFee.js';
@@ -570,8 +572,8 @@ describe('riders de la demo (US-10.03)', () => {
     );
   }
 
-  it('crea un rider pendiente, uno aceptado y uno rechazado con la contraseña de la demo', async () => {
-    expect(await seedRiders()).toBe(3);
+  it('crea un rider pendiente, dos aceptados y uno rechazado con la contraseña de la demo', async () => {
+    expect(await seedRiders()).toBe(4);
 
     const riders = await prisma.user.findMany({
       where: { isRider: true },
@@ -586,6 +588,7 @@ describe('riders de la demo (US-10.03)', () => {
     ).toEqual([
       ['bruna@demo.rentit.test', 'rejected'],
       ['nuria@demo.rentit.test', 'pending'],
+      ['ona@demo.rentit.test', 'approved'],
       ['pau@demo.rentit.test', 'approved'],
     ]);
     for (const rider of riders) {
@@ -599,8 +602,8 @@ describe('riders de la demo (US-10.03)', () => {
     await seedRiders();
     await seedRiders();
 
-    expect(await prisma.user.count({ where: { isRider: true } })).toBe(3);
-    expect(await prisma.riderApplication.count()).toBe(3);
+    expect(await prisma.user.count({ where: { isRider: true } })).toBe(4);
+    expect(await prisma.riderApplication.count()).toBe(4);
     expect(await prisma.user.count({ where: { role: 'admin' } })).toBe(1);
   });
 });
@@ -712,5 +715,121 @@ describe('objeto retirado por el admin en la demo (US-11.03)', () => {
     await expect(
       upsertDemoModerations(prisma, [], DEMO_ADMIN.email),
     ).rejects.toThrow('crea antes los objetos');
+  });
+});
+
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 21/11/2026
+describe('trabajos de rider de la demo (US-10.01, #292)', () => {
+  const TODAY = new Date('2026-11-21T10:00:00.000Z');
+
+  async function seedJobs() {
+    const ownerIds = await seedDemo();
+    await upsertDemoReservations(prisma, ownerIds, TODAY);
+    const neighbourIds = await upsertUsers(
+      prisma,
+      demandNeighbours('demo.rentit.test'),
+      DEMO_PASSWORD,
+      4,
+    );
+    await upsertDemoDemand(prisma, ownerIds, neighbourIds, TODAY);
+    await upsertDemoRiderJobs(prisma, ownerIds, neighbourIds, TODAY);
+    return { ownerIds, neighbourIds };
+  }
+
+  // Los de DEMO_RIDER_JOBS (la hidrolimpiadora también va con rider, pero el seed le asigna dani).
+  function availableJobs() {
+    return prisma.reservation.findMany({
+      where: {
+        item: { title: { in: DEMO_RIDER_JOBS.map(({ item }) => item.title) } },
+        status: 'paid',
+        deliveryMode: 'rider',
+        delivery: { riderId: null, status: 'pending' },
+      },
+      include: { item: true, delivery: true, payment: true },
+    });
+  }
+
+  it('deja dos trabajos disponibles: pagados, con rider, sin rider y desde mañana', async () => {
+    const { ownerIds, neighbourIds } = await seedJobs();
+
+    const jobs = await availableJobs();
+
+    expect(jobs.map(({ item }) => item.title).sort()).toEqual(
+      DEMO_RIDER_JOBS.map(({ item }) => item.title).sort(),
+    );
+    for (const job of jobs) {
+      const demo = DEMO_RIDER_JOBS.find(
+        ({ item }) => item.title === job.item.title,
+      )!;
+      expect(job.item.ownerId).toBe(ownerIds[demo.item.owner]);
+      expect(job.renterId).toBe(neighbourIds[demo.neighbour]);
+      expect(job.item.riderDelivery).toBe(true);
+      expect(job.startDate).toEqual(
+        new Date(Date.UTC(2026, 10, 21 + demo.startInDays)),
+      );
+      expect(job.delivery).toMatchObject({
+        slot: demo.delivery.slot,
+        deliveryAddress: demo.delivery.address,
+        deliveryNeighborhood: demo.delivery.neighborhood,
+        assignedAt: null,
+      });
+      expect(job.delivery?.fee?.toFixed(2)).toBe(
+        quoteRiderFee(job.item.neighborhood, demo.delivery.neighborhood).fee,
+      );
+      expect(job.delivery?.deliveryCode).toMatch(/^[0-9]{6}$/);
+      expect(job.payment?.status).toBe('paid');
+    }
+  });
+
+  it('usa objetos que no tiene ninguna otra reserva de la demo', async () => {
+    await seedJobs();
+
+    for (const { item } of DEMO_RIDER_JOBS) {
+      expect(
+        await prisma.reservation.count({
+          where: { item: { title: item.title } },
+        }),
+        item.title,
+      ).toBe(1);
+    }
+  });
+
+  it('repetir el seed vuelve a dejarlos disponibles y no duplica nada', async () => {
+    const { ownerIds, neighbourIds } = await seedJobs();
+    // Los riders resueltos los revisa el admin de la demo (US-11.03).
+    await upsertUsers(prisma, [DEMO_ADMIN], DEMO_PASSWORD, 4);
+    await upsertDemoRiders(
+      prisma,
+      DEMO_PASSWORD,
+      4,
+      PRODUCTION_DEMO_RIDERS,
+      DEMO_ADMIN.email,
+    );
+    const pau = await prisma.user.findUniqueOrThrow({
+      where: { email: 'pau@demo.rentit.test' },
+    });
+    const reservationCount = await prisma.reservation.count();
+    // pau acepta los dos trabajos al probar la demo…
+    await prisma.delivery.updateMany({
+      where: {
+        reservation: { renterId: { in: neighbourIds }, status: 'paid' },
+      },
+      data: { riderId: pau.id, status: 'assigned', assignedAt: TODAY },
+    });
+    expect(await availableJobs()).toHaveLength(0);
+
+    // …y repetir el seed los deja otra vez sin rider.
+    await upsertDemoRiderJobs(prisma, ownerIds, neighbourIds, TODAY);
+
+    expect(await availableJobs()).toHaveLength(DEMO_RIDER_JOBS.length);
+    expect(await prisma.reservation.count()).toBe(reservationCount);
+  });
+
+  it('falla con un mensaje claro si faltan los vecinos', async () => {
+    const ownerIds = await seedDemo();
+
+    await expect(upsertDemoRiderJobs(prisma, ownerIds, [])).rejects.toThrow(
+      'Faltan usuarios para el trabajo de rider',
+    );
   });
 });
