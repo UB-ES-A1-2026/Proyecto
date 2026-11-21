@@ -392,6 +392,10 @@ Datos del seed: la «Hidrolimpiadora Kärcher» de ana, alquilada por bruno, va 
 | CP-SEG-08 | 4 y 2. Punto de recogida | Bicicleta; bruno (propietario) con el seguimiento abierto; sesión de ana | 1. ana pulsa «Ya tengo el objeto» › «Sí, ya lo tengo» | bruno no tiene ese botón; pasa a «En curso» y bruno lo ve sin recargar | `seguimiento-entrega.spec.ts` · punto de recogida |
 | — | 5. «Valorar» al finalizar | US-08.01 y US-08.02 en develop | Pendiente: el botón está oculto hasta entonces | **Pendiente** | Cuando entren US-08.01 y US-08.02 |
 
+### US-10.01 Rider acepta entregas disponibles (#78) · S2-T19 (#294)
+
+Datos del seed para los e2e: dos trabajos disponibles de ana, solicitados por vecino5 y vecino6, pagados, con rider y sin rider asignado: la «Máquina de coser Singer» (Sants → Gràcia, «Lo antes posible», mañana) y la «Barbacoa de carbón portátil» (Les Corts → Poblenou, 17:00-19:00, pasado mañana). Riders aceptados: `dani@rentit.test` y `oscar@rentit.test` (para «dos riders aceptan el mismo»); `carla@rentit.test` sigue pendiente. La «Hidrolimpiadora Kärcher» ya es de dani y sale en su «Mis trabajos». Aceptar cambia la BD: antes de repetir los casos hay que volver a ejecutar `npm run db:seed`. Los casos CP los añade T19; los de la API están en `backend/tests/api/riderJobs.test.ts`.
+
 ## 5. Métricas de tests
 
 Petición del profesor en la demo del Sprint 1 (#272). Las dos métricas salen solas del CI y de GitHub; solo hace falta seguir las reglas de `AGENTS.md`.
