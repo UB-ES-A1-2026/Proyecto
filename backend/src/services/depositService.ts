@@ -6,7 +6,12 @@ import {
   findPendingDeposits,
   saveDeposit,
 } from '../repositories/depositRepository.js';
-import { authorizeDeposit, toCents } from './paymentGateway.js';
+import {
+  authorizeDeposit,
+  refund,
+  release,
+  toCents,
+} from './paymentGateway.js';
 import { countRentalDays, todayInSpain } from './reservationService.js';
 
 // Hasta estos días de alquiler la fianza se bloquea; con más, se cobra (un bloqueo caduca a ~7 días).
@@ -17,6 +22,22 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 function tomorrowInSpain(now: Date): string {
   const today = new Date(`${todayInSpain(now)}T00:00:00.000Z`);
   return new Date(today.getTime() + MS_PER_DAY).toISOString().slice(0, 10);
+}
+
+// Suelta el bloqueo o devuelve el cobro de una fianza que no se ha podido guardar. Nunca lanza: si
+// Stripe falla, un bloqueo caduca solo a los ~7 días; un cobro se queda registrado en el log.
+async function undoDeposit(
+  reference: string,
+  collected: boolean,
+): Promise<void> {
+  try {
+    await (collected ? refund(reference) : release(reference));
+  } catch (error) {
+    console.error(
+      'No se ha podido deshacer una fianza que no se ha guardado:',
+      error instanceof Error ? error.message : 'error desconocido',
+    );
+  }
 }
 
 // Retiene o cobra las fianzas pendientes de las reservas del usuario que empiezan mañana o antes.
@@ -44,11 +65,16 @@ export async function settleDueDeposits(
           toCents(payment.depositAmount),
           { capture: collect },
         );
-        await saveDeposit(
+        const saved = await saveDeposit(
           payment.id,
           reference,
           collect ? 'collected' : 'held',
         );
+        if (!saved) {
+          // Otra lectura la guardó antes o la reserva se canceló mientras tanto (#365): lo que se
+          // acaba de crear en Stripe no tendría referencia en la BD y nunca se liberaría.
+          await undoDeposit(reference, collect);
+        }
       } catch (error) {
         console.error(
           'No se ha podido retener la fianza:',
