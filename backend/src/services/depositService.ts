@@ -3,6 +3,7 @@
 // más de 6 se cobra (cobrada). Liberarla o devolverla al finalizar es de T13.
 // Generado con asistencia de IA (Claude) – revisado por Maxim Jaume, 17/11/2026
 import {
+  findDepositReference,
   findPendingDeposits,
   saveDeposit,
 } from '../repositories/depositRepository.js';
@@ -70,9 +71,11 @@ export async function settleDueDeposits(
           reference,
           collect ? 'collected' : 'held',
         );
-        if (!saved) {
-          // Otra lectura la guardó antes o la reserva se canceló mientras tanto (#365): lo que se
-          // acaba de crear en Stripe no tendría referencia en la BD y nunca se liberaría.
+        // Otra lectura la guardó antes o la reserva se canceló mientras tanto (#365): lo que se
+        // acaba de crear en Stripe no tendría referencia en la BD y nunca se liberaría. Pero con
+        // Stripe, dos lecturas a la vez reciben el mismo PaymentIntent (clave de idempotencia):
+        // si es el que ya está guardado, no se toca.
+        if (!saved && (await findDepositReference(payment.id)) !== reference) {
           await undoDeposit(reference, collect);
         }
       } catch (error) {
