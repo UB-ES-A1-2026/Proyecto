@@ -1,4 +1,5 @@
-// Datos de la demo en producción (#97): 3 cuentas, 2 riders (US-10.03) y los objetos de demoData.ts.
+// Datos de la demo en producción (#97): 3 cuentas, 3 riders (US-10.03 y US-10.01) y los objetos de
+// demoData.ts.
 // La contraseña de las cuentas sale de DEMO_PASSWORD (secreto de GitHub), nunca del repo.
 // Se lanza desde el workflow «Datos de demo» (docs/despliegue.md). Se puede ejecutar varias veces.
 // Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 31/10/2026
@@ -14,6 +15,7 @@ import {
   upsertDemoRiders,
   upsertUsers,
   assignDemoRider,
+  upsertDemoRiderJobs,
 } from './demoSeed.js';
 
 const prisma = new PrismaClient();
@@ -37,6 +39,8 @@ async function main(): Promise<void> {
     rounds,
   );
   const demand = await upsertDemoDemand(prisma, ownerIds, neighbourIds);
+  // Dos trabajos de rider disponibles, de vecino5 y vecino6 a marta (US-10.01, #292).
+  const riderJobs = await upsertDemoRiderJobs(prisma, ownerIds, neighbourIds);
 
   const riders = await upsertDemoRiders(
     prisma,
@@ -50,7 +54,7 @@ async function main(): Promise<void> {
 
   // Nunca se escribe la contraseña en el log.
   console.info(
-    `Datos de demo listos: ${DEMO_USERS.length} cuentas (${DEMO_USERS.map(({ email }) => email).join(', ')}), ${riders} riders, ${items} objetos y ${reservations + demand} solicitudes`,
+    `Datos de demo listos: ${DEMO_USERS.length} cuentas (${DEMO_USERS.map(({ email }) => email).join(', ')}), ${riders} riders, ${items} objetos y ${reservations + demand + riderJobs} solicitudes`,
   );
 }
 

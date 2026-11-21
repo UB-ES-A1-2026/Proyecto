@@ -15,10 +15,10 @@ beforeEach(async () => {
 });
 
 describe('upsertDemoRiders (seed de desarrollo, US-10.03)', () => {
-  it('creates a pending and an approved rider account with the dev password', async () => {
+  it('creates a pending and two approved rider accounts with the dev password', async () => {
     const count = await upsertDemoRiders(prisma, DEV_PASSWORD, 4);
 
-    expect(count).toBe(2);
+    expect(count).toBe(3);
     const carla = await prisma.user.findUniqueOrThrow({
       where: { email: 'carla@rentit.test' },
       include: { riderApplication: true },
@@ -43,6 +43,11 @@ describe('upsertDemoRiders (seed de desarrollo, US-10.03)', () => {
     expect(await bcrypt.compare(DEV_PASSWORD, carla.passwordHash)).toBe(true);
     expect(await isApprovedRider(carla.id)).toBe(false);
     expect(await isApprovedRider(dani.id)).toBe(true);
+    // Segundo rider aceptado, para el e2e de dos riders con el mismo trabajo (US-10.01, #292).
+    const oscar = await prisma.user.findUniqueOrThrow({
+      where: { email: 'oscar@rentit.test' },
+    });
+    expect(await isApprovedRider(oscar.id)).toBe(true);
   });
 
   it('does not duplicate anything when run twice and restores the catalog status', async () => {
@@ -57,6 +62,7 @@ describe('upsertDemoRiders (seed de desarrollo, US-10.03)', () => {
       select: { status: true },
     });
     expect(statuses.map(({ status }) => status).sort()).toEqual([
+      'approved',
       'approved',
       'pending',
     ]);
