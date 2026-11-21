@@ -10,13 +10,19 @@
       <h1>US-05.02 Seguimiento del estado de la entrega</h1>
       <p class="wf-historia">
         Como <strong>arrendatario</strong>, quiero <strong>ver el estado de la entrega (asignada, recogida, en camino,
-        entregada)</strong> para <strong>saber cuándo llegará</strong>.
+        entregada) y marcar cuándo devuelvo el objeto</strong> para <strong>saber en qué punto está el alquiler</strong>.
       </p>
       <p class="wf-meta">
-        Issue #67 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Generado con
-        asistencia de IA (Claude) – pendiente de revisar por el equipo en el Sprint Planning
+        Issue #67 · Tarea T15 (#290) · Flujo del Sprint Planning (10/11) y de la reunión del 11/11: solo una máquina de
+        estados, sin mapa (decisión 6) · Wireframe de baja fidelidad · Generado con asistencia de IA (Claude) – Validado
+        por Marc el 13/11/2026 y actualizado el 20/11/2026 con la API de T13 y la pantalla de T15
       </p>
-      <p class="wf-meta">Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo</p>
+      <p class="wf-meta">
+        API de T13 (#288, Francesc): <code>GET /api/entregas/:id</code> (el id es el de la reserva),
+        <code>POST /api/entregas/:id/estado</code> (rider), <code>/recibida</code>, <code>/devuelta</code> y
+        <code>/codigo</code> (arrendatario, código nuevo si se bloquea). Estados de la entrega: <code>pending | assigned | picked_up | on_the_way | delivered</code>; de la
+        reserva: <code>paid | in_progress | finished</code>.
+      </p>
     </header>
 
     <section class="wf-pantalla" data-captura="1-entrada">
@@ -35,29 +41,38 @@
             <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
             <div class="wf-columnas wf-iguales">
               <div>
-                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <h4>Enviadas <span class="wf-chip">2</span></h4>
                 <div class="wf-tarjeta">
-                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pagado</span><span>▴</span></div>
-                  <p class="wf-ayuda">10–12 nov. 2026</p>
-                  <p class="wf-texto"></p>
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Pagada</span><span>▴</span></div>
+                  <p class="wf-ayuda">18–20 nov. 2026</p>
                   <div class="wf-rejilla">
-                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
-                    <p class="wf-texto">Fechas: Del 10 de noviembre de 2026 al 12 de noviembre de 2026</p>
-                    <p class="wf-texto">Importe total: 21,50 €</p>
-                    <p class="wf-texto">Estado: Pagado</p>
+                    <p class="wf-texto">Alquiler: 18,00 € · Entrega: 5,00 € · <strong>Total: 23,00 €</strong></p>
                     <p class="wf-texto">Propietario: ana</p>
-                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
-                    <p class="wf-texto">Entrega por rider · Lo antes posible</p>
+                    <p class="wf-texto">Entrega por rider · Lo antes posible · 5,00 €</p>
                   </div>
-                  <p class="wf-texto"></p>
                   <span class="wf-boton">Ver entrega</span><span class="wf-marca">1</span>
+                </div>
+                <p class="wf-texto"></p>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Bicicleta de paseo</strong><span class="wf-chip">Pagada</span><span>▴</span></div>
+                  <p class="wf-ayuda">25–26 nov. 2026</p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Alquiler: 16,00 € · <strong>Total: 16,00 €</strong></p>
+                    <p class="wf-texto">Recoger en casa del propietario · Carrer del Sol, 8, 2.º 1.ª</p>
+                  </div>
+                  <span class="wf-boton">Ver entrega</span>
                 </div>
               </div>
               <div>
                 <h4>Recibidas <span class="wf-chip">1</span></h4>
                 <div class="wf-tarjeta">
-                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
-                  <p class="wf-ayuda">9 nov. 2026</p>
+                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pagada</span><span>▴</span></div>
+                  <p class="wf-ayuda">19–21 nov. 2026</p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Solicitada por: bruno</p>
+                    <p class="wf-texto">Punto de recogida: Biblioteca Jaume Fuster</p>
+                  </div>
+                  <span class="wf-boton">Ver entrega</span><span class="wf-marca">2</span>
                 </div>
               </div>
             </div>
@@ -66,16 +81,21 @@
       </div>
       <ol class="wf-notas">
         <li>
-          Solo en reservas con entrega por rider. El arrendatario la ve en «Enviadas» y el propietario, en «Recibidas». El
-          rider llega desde la entrega que ha aceptado (US-10.01).
+          «Ver entrega» aparece en las reservas «Pagada», «En curso» y «Finalizada», con cualquier modo de entrega
+          (rider, domicilio o punto de recogida). En las pendientes, rechazadas o canceladas no aparece. Lleva a
+          <code>/entregas/:id</code> con el id de la reserva.
+        </li>
+        <li>
+          El propietario la ve igual en «Recibidas». El rider no llega desde aquí: pulsa «Ver seguimiento» en «Mis
+          trabajos» (US-10.01).
         </li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Clic en «Ver entrega»</p>
+    <p class="wf-flecha">Arrendatario: clic en «Ver entrega» de una reserva con rider que aún no ha aceptado ningún rider</p>
 
-    <section class="wf-pantalla" data-captura="2-seguimiento-arrendatario">
-      <h2><span class="wf-paso">2</span>Seguimiento, visto por el arrendatario <code>/entregas/:id</code></h2>
+    <section class="wf-pantalla" data-captura="2-buscando-rider">
+      <h2><span class="wf-paso">2</span>Con rider, antes de que un rider acepte <code>/entregas/:id</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/entregas/71be…">
           <nav class="wf-nav">
@@ -86,167 +106,436 @@
               <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
-            <h3 class="wf-h1">Entrega de Taladro percutor Bosch <span class="wf-marca">1</span></h3>
+            <p class="wf-texto"><span class="wf-enlace">← Mis solicitudes</span></p>
+            <h3 class="wf-h1">Entrega de Taladro percutor Bosch</h3>
+            <p class="wf-ayuda">18–20 nov. 2026 · Entrega por rider · Lo antes posible · Alquiler: <strong>Pagada</strong></p>
             <div class="wf-tarjeta">
-              <p class="wf-texto"><strong>✔ Asignada</strong> · 10/11/2026, 10:02 <span class="wf-marca">2</span></p>
-              <p class="wf-texto"><strong>✔ Recogida</strong> · 10/11/2026, 10:30</p>
-              <p class="wf-texto"><strong>● En camino</strong> · 10/11/2026, 10:41</p>
+              <p class="wf-texto"><strong>● Buscando rider</strong> <span class="wf-marca">1</span></p>
+              <p class="wf-texto">○ Asignada</p>
+              <p class="wf-texto">○ Recogida</p>
+              <p class="wf-texto">○ En camino</p>
               <p class="wf-texto">○ Entregada</p>
             </div>
             <p class="wf-texto"></p>
             <p class="wf-aviso">
-              Tu código de entrega: <strong>4821</strong>. Enséñaselo al rider cuando te entregue el objeto.
+              Tu código de entrega: <strong>482 193</strong>. Enséñaselo al rider cuando te dé el objeto.
+              <span class="wf-marca">2</span>
+            </p>
+            <p class="wf-ayuda">● Actualizado al momento</p>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Mientras ningún rider ha aceptado el trabajo (US-10.01), la entrega está en <code>pending</code> y la lista
+          empieza por «Buscando rider», sin hora. Cuando un rider lo acepta, pasa a «Asignada» y «Buscando rider»
+          desaparece.
+        </li>
+        <li>El arrendatario ya ve su código desde el principio.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Un rider acepta el trabajo y lo va avanzando</p>
+
+    <section class="wf-pantalla" data-captura="3-seguimiento-rider">
+      <h2><span class="wf-paso">3</span>Seguimiento con rider, visto por el arrendatario <code>/entregas/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/entregas/71be…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <p class="wf-texto"><span class="wf-enlace">← Mis solicitudes</span></p>
+            <h3 class="wf-h1">Entrega de Taladro percutor Bosch <span class="wf-marca">1</span></h3>
+            <p class="wf-ayuda">18–20 nov. 2026 · Entrega por rider · Lo antes posible · Alquiler: <strong>Pagada</strong></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>✔ Asignada</strong> · 18/11/2026, 10:02 <span class="wf-marca">2</span></p>
+              <p class="wf-texto"><strong>✔ Recogida</strong> · 18/11/2026, 10:30</p>
+              <p class="wf-texto"><strong>● En camino</strong> · 18/11/2026, 10:41</p>
+              <p class="wf-texto">○ Entregada</p>
+            </div>
+            <p class="wf-texto"></p>
+            <p class="wf-aviso">
+              Tu código de entrega: <strong>482 193</strong>. Enséñaselo al rider cuando te dé el objeto.
               <span class="wf-marca">3</span>
             </p>
+            <p class="wf-ayuda">¿El rider te dice que el código se ha bloqueado?</p>
+            <span class="wf-boton wf-secundario">Generar un código nuevo</span><span class="wf-marca">5</span>
+            <p class="wf-ayuda">● Actualizado al momento <span class="wf-marca">4</span></p>
           </div>
         </div>
         <div class="wf-movil">
           <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
           <div class="wf-contenido">
+            <p class="wf-texto"><span class="wf-enlace">← Mis solicitudes</span></p>
             <h3 class="wf-h1">Entrega de Taladro percutor Bosch</h3>
+            <p class="wf-ayuda">18–20 nov. 2026 · Entrega por rider · Lo antes posible · Alquiler: <strong>Pagada</strong></p>
             <div class="wf-tarjeta">
-              <p class="wf-texto"><strong>✔ Asignada</strong><br />10/11/2026, 10:02</p>
-              <p class="wf-texto"><strong>✔ Recogida</strong><br />10/11/2026, 10:30</p>
-              <p class="wf-texto"><strong>● En camino</strong><br />10/11/2026, 10:41</p>
+              <p class="wf-texto"><strong>✔ Asignada</strong><br />18/11/2026, 10:02</p>
+              <p class="wf-texto"><strong>✔ Recogida</strong><br />18/11/2026, 10:30</p>
+              <p class="wf-texto"><strong>● En camino</strong><br />18/11/2026, 10:41</p>
               <p class="wf-texto">○ Entregada</p>
             </div>
             <p class="wf-texto"></p>
-            <p class="wf-aviso">Tu código de entrega: <strong>4821</strong>. Enséñaselo al rider cuando te entregue el objeto.</p>
+            <p class="wf-aviso">Tu código de entrega: <strong>482 193</strong>. Enséñaselo al rider cuando te dé el objeto.</p>
+            <p class="wf-ayuda">¿El rider te dice que el código se ha bloqueado?</p>
+            <span class="wf-boton wf-secundario wf-ancho">Generar un código nuevo</span>
+            <p class="wf-ayuda">● Actualizado al momento</p>
           </div>
           <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
         </div>
       </div>
       <ol class="wf-notas">
         <li>
-          Ruta propuesta, compartida con US-10.01. Solo pueden verla las personas de esa reserva: arrendatario, propietario
-          y rider. A los demás, la API se lo rechaza.
+          Solo pueden verla el arrendatario, el propietario y el rider de esa reserva. A los demás, la API responde 403 y
+          la pantalla enseña «No hemos encontrado esta entrega.» (pantalla 11). La ruta <code>/entregas/:id</code> lleva
+          el id de la reserva, el mismo que usa US-10.01.
         </li>
         <li>
-          Criterio 2: arrendatario y propietario ven cada cambio sin recargar, o en menos de 10 s (ADR 0004). No hay GPS
-          en tiempo real: solo estos cuatro estados.
+          Criterio 6: solo una lista de estados con su fecha y hora, sin mapa ni posición del rider. Con rider:
+          «Asignada», «Recogida», «En camino» y «Entregada» (<code>assigned | picked_up | on_the_way | delivered</code>
+          en la API). El estado actual se marca con ●, los hechos con ✔ y los que faltan con ○.
         </li>
-        <li>Solo lo ve el arrendatario: el propietario tiene la misma pantalla, sin este recuadro.</li>
+        <li>
+          Solo lo ve el arrendatario (<code>deliveryCode</code>; al propietario y al rider les llega <code>null</code>).
+          Código de 6 cifras y de un solo uso, partido en dos para leerlo en voz alta. Deja de verse cuando la entrega
+          está «Entregada».
+        </li>
+        <li>
+          Criterio 2: los cambios llegan solos por el canal en tiempo real (SSE, #324), sin recargar, con el evento
+          <code>entrega.estado</code>, que no lleva el código. Al recibirlo, la pantalla vuelve a pedir el seguimiento.
+          T13 publica ese evento al guardar cada cambio. Ver la pantalla 11 para cuando se pierde la conexión.
+        </li>
+        <li>
+          Si el rider falla 5 veces, el código se bloquea (pantalla 5). El arrendatario pulsa «Generar un código nuevo»
+          (<code>POST /api/entregas/:id/codigo</code>): sale el código nuevo en su lugar, el anterior deja de valer y el
+          rider vuelve a tener 5 intentos. Encima de la lista aparece «Hemos generado un código nuevo. El anterior ya no
+          vale.». Mientras se envía, el botón dice «Generando…». El botón solo sale con rider y antes de «Entregada».
+        </li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Lo que ve el rider en la misma entrega, antes de recoger el objeto</p>
+    <p class="wf-flecha">Lo que ve el rider en la misma entrega (su cuenta de rider, US-10.03)</p>
 
-    <section class="wf-pantalla" data-captura="3-rider-avanza-estado">
-      <h2><span class="wf-paso">3</span>Seguimiento, visto por el rider <code>/entregas/:id</code></h2>
+    <section class="wf-pantalla" data-captura="4-rider-avanza-estado">
+      <h2><span class="wf-paso">4</span>Rider: avanzar al estado siguiente <code>/entregas/:id</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/entregas/71be…">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces">
-              <span class="wf-enlace">Entregas</span>
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Trabajos</span>
               <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Entrega de Taladro percutor Bosch</h3>
+            <p class="wf-ayuda">
+              18–20 nov. 2026 · Entrega por rider · Lo antes posible · Arrendatario: bruno · Alquiler: <strong>Pagada</strong>
+              <span class="wf-marca">1</span>
+            </p>
             <div class="wf-tarjeta">
-              <p class="wf-texto"><strong>● Asignada</strong> · 10/11/2026, 10:02</p>
-              <p class="wf-texto">○ Recogida</p>
+              <p class="wf-texto"><strong>✔ Asignada</strong> · 18/11/2026, 10:02</p>
+              <p class="wf-texto"><strong>● Recogida</strong> · 18/11/2026, 10:30</p>
               <p class="wf-texto">○ En camino</p>
               <p class="wf-texto">○ Entregada</p>
             </div>
             <p class="wf-texto"></p>
-            <span class="wf-boton">Marcar como Recogida</span><span class="wf-marca">1</span>
+            <span class="wf-boton">Marcar como En camino</span><span class="wf-marca">2</span>
+            <p class="wf-ayuda">● Actualizado al momento</p>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
         <li>
-          Criterio 1: solo aparece el botón del estado siguiente, así que no se puede saltar ni volver atrás. La API también
-          lo rechaza. El texto del botón es una propuesta.
+          El rider ve las fechas, el modo, el nombre del arrendatario y el estado del alquiler. No tiene «← Mis
+          solicitudes»: vuelve con «Trabajos» de la cabecera. No ve el código ni la dirección de recogida.
+        </li>
+        <li>
+          Criterio 1: solo aparece el botón del estado siguiente («Marcar como Recogida», «Marcar como En camino» o
+          «Marcar como Entregada»), así que no se puede saltar ni volver atrás; la API también lo rechaza. Mientras se
+          envía, dice «Guardando…». Llama a <code>POST /api/entregas/:id/estado</code> con el estado siguiente.
         </li>
       </ol>
     </section>
 
-    <p class="wf-flecha">El rider pulsa «Marcar como Recogida» y luego «Marcar como En camino»</p>
+    <p class="wf-flecha">Con «En camino», el rider pide el código al arrendatario</p>
 
-    <section class="wf-pantalla" data-captura="4-rider-introduce-codigo">
-      <h2><span class="wf-paso">4</span>Rider: confirmar con el código <code>/entregas/:id</code></h2>
+    <section class="wf-pantalla" data-captura="5-rider-codigo">
+      <h2><span class="wf-paso">5</span>Rider: confirmar la entrega con el código <code>/entregas/:id</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/entregas/71be…">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
             <span class="wf-enlaces">
-              <span class="wf-enlace">Entregas</span>
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Trabajos</span>
               <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Entrega de Taladro percutor Bosch</h3>
+            <p class="wf-ayuda">18–20 nov. 2026 · Entrega por rider · Lo antes posible · Arrendatario: bruno · Alquiler: <strong>Pagada</strong></p>
             <div class="wf-tarjeta">
-              <p class="wf-texto"><strong>✔ Asignada</strong> · 10/11/2026, 10:02</p>
-              <p class="wf-texto"><strong>✔ Recogida</strong> · 10/11/2026, 10:30</p>
-              <p class="wf-texto"><strong>● En camino</strong> · 10/11/2026, 10:41</p>
-              <p class="wf-texto">○ Entregada</p>
-            </div>
-            <p class="wf-texto"></p>
-            <div class="wf-centrado">
-              <div class="wf-campo">
-                <label>Código de entrega <span class="wf-marca">1</span></label>
-                <div class="wf-input">4821</div>
-                <p class="wf-ayuda">Pídeselo al arrendatario.</p>
-              </div>
-              <span class="wf-boton wf-ancho">Marcar como Entregada</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ol class="wf-notas">
-        <li>Criterio 3: marcar «Entregada» exige el código correcto. El rider no lo ve: se lo enseña el arrendatario.</li>
-      </ol>
-    </section>
-
-    <p class="wf-flecha">Clic en «Marcar como Entregada» con un código que no es el correcto</p>
-
-    <section class="wf-pantalla" data-captura="5-error-codigo">
-      <h2><span class="wf-paso">5</span>Error: código incorrecto <code>/entregas/:id</code></h2>
-      <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/entregas/71be…">
-          <nav class="wf-nav">
-            <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Entregas</span>
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
-          </nav>
-          <div class="wf-contenido">
-            <h3 class="wf-h1">Entrega de Taladro percutor Bosch</h3>
-            <div class="wf-tarjeta">
-              <p class="wf-texto"><strong>✔ Asignada</strong> · 10/11/2026, 10:02</p>
-              <p class="wf-texto"><strong>✔ Recogida</strong> · 10/11/2026, 10:30</p>
-              <p class="wf-texto"><strong>● En camino</strong> · 10/11/2026, 10:41 <span class="wf-marca">1</span></p>
+              <p class="wf-texto"><strong>✔ Asignada</strong> · 18/11/2026, 10:02</p>
+              <p class="wf-texto"><strong>✔ Recogida</strong> · 18/11/2026, 10:30</p>
+              <p class="wf-texto"><strong>● En camino</strong> · 18/11/2026, 10:41</p>
               <p class="wf-texto">○ Entregada</p>
             </div>
             <p class="wf-texto"></p>
             <div class="wf-centrado">
               <div class="wf-campo">
                 <label>Código de entrega</label>
-                <div class="wf-input wf-con-error">1111</div>
-                <p class="wf-error">El código de entrega no es correcto. <span class="wf-marca">2</span></p>
+                <div class="wf-input wf-con-error">111 111</div>
+                <p class="wf-error">El código no es correcto. Te quedan 4 intentos. <span class="wf-marca">1</span></p>
               </div>
-              <span class="wf-boton wf-ancho">Marcar como Entregada</span>
+              <span class="wf-boton wf-ancho">Marcar como Entregada</span><span class="wf-marca">2</span>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>La entrega sigue «En camino»: no se marca como entregada.</li>
-        <li>El flujo pide indicar el error, pero no da el texto exacto: es una propuesta.</li>
+        <li>
+          Criterio 3: marcar «Entregada» exige el código correcto. Sin error, debajo del campo pone «Pídeselo al
+          arrendatario.». Si no tiene 6 cifras: «Escribe las 6 cifras del código de entrega.» (no llama a la API). Si
+          no coincide, la API responde 400 con <code>field: "code"</code> y «El código no es correcto. Te quedan N
+          intentos.», y la entrega sigue «En camino». A los 5 intentos fallidos el código se bloquea: «El código se ha
+          bloqueado tras 5 intentos fallidos.» en el mismo campo (409 con <code>field: "code"</code>). Entonces el
+          arrendatario genera un código nuevo (pantalla 3, nota 5) y el rider vuelve a tener 5 intentos con ese código.
+        </li>
+        <li>
+          Con el código correcto, la entrega pasa a «Entregada» y el alquiler, a «En curso», en la misma transacción. El
+          rider ya no tiene más botones.
+        </li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Clic en «Marcar como Entregada» con el código correcto</p>
+    <p class="wf-flecha">Con el código correcto: la entrega pasa a «Entregada» y el alquiler, a «En curso»</p>
 
-    <section class="wf-pantalla" data-captura="6-destino-entregada">
-      <h2><span class="wf-paso">6</span>Destino: entrega completada <code>/entregas/:id</code></h2>
+    <section class="wf-pantalla" data-captura="6-sin-rider-ya-lo-tengo">
+      <h2>
+        <span class="wf-paso">6</span>Sin rider (domicilio o punto de recogida), visto por el arrendatario
+        <code>/entregas/:id</code>
+      </h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/entregas/9c04…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <p class="wf-texto"><span class="wf-enlace">← Mis solicitudes</span></p>
+            <h3 class="wf-h1">Entrega de Bicicleta de paseo</h3>
+            <p class="wf-ayuda">25–26 nov. 2026 · Recoger en casa del propietario · Alquiler: <strong>Pagada</strong></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>● Pendiente de entrega</strong> <span class="wf-marca">1</span></p>
+              <p class="wf-texto">○ Entregada</p>
+            </div>
+            <p class="wf-texto">Recógela en: Carrer del Sol, 8, 2.º 1.ª <span class="wf-marca">2</span></p>
+            <span class="wf-boton">Ya tengo el objeto</span><span class="wf-marca">3</span>
+            <p class="wf-ayuda">● Actualizado al momento</p>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <p class="wf-texto"><span class="wf-enlace">← Mis solicitudes</span></p>
+            <h3 class="wf-h1">Entrega de Bicicleta de paseo</h3>
+            <p class="wf-ayuda">25–26 nov. 2026 · Recoger en casa del propietario · Alquiler: <strong>Pagada</strong></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>● Pendiente de entrega</strong></p>
+              <p class="wf-texto">○ Entregada</p>
+            </div>
+            <p class="wf-texto">Recógela en: Carrer del Sol, 8, 2.º 1.ª</p>
+            <span class="wf-boton wf-ancho">Ya tengo el objeto</span>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Sin rider solo hay dos estados: «Pendiente de entrega» y «Entregada» (<code>pending | delivered</code> en la
+          API). Con punto de recogida, la línea de arriba dice «Punto de recogida».
+        </li>
+        <li>
+          Dónde recogerlo (<code>pickupAddress</code>): con «Recoger en casa del propietario», la dirección del objeto;
+          con punto de recogida, «nombre, dirección» del punto. Solo lo recibe el arrendatario.
+        </li>
+        <li>
+          Criterio 4: el arrendatario pulsa «Ya tengo el objeto»; la entrega pasa a «Entregada» y el alquiler, a «En curso»
+          (<code>POST /api/entregas/:id/recibida</code>). Solo lo ve el arrendatario, y solo con la entrega pendiente.
+          Como no se puede deshacer, antes pide confirmación con la misma ventana que «He devuelto el objeto» (pantalla
+          8): «¿Ya tienes el objeto? No se puede deshacer», con «Sí, ya lo tengo» y «Cancelar».
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Ya tengo el objeto» y «Sí, ya lo tengo» (o el rider marca «Entregada» con el código)</p>
+
+    <section class="wf-pantalla" data-captura="7-en-curso-devolver">
+      <h2><span class="wf-paso">7</span>Alquiler en curso: devolver el objeto <code>/entregas/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/entregas/9c04…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <p class="wf-texto"><span class="wf-enlace">← Mis solicitudes</span></p>
+            <h3 class="wf-h1">Entrega de Bicicleta de paseo</h3>
+            <p class="wf-ayuda">25–26 nov. 2026 · Recoger en casa del propietario · Alquiler: <strong>En curso</strong></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>✔ Entregada</strong> · 25/11/2026, 09:15</p>
+              <p class="wf-texto"><strong>● En curso</strong> · 25/11/2026, 09:15 <span class="wf-marca">1</span></p>
+              <p class="wf-texto">○ Finalizada</p>
+            </div>
+            <p class="wf-ayuda">Cuando se lo hayas devuelto al propietario, márcalo aquí.</p>
+            <span class="wf-boton">He devuelto el objeto</span><span class="wf-marca">2</span>
+            <p class="wf-ayuda">● Actualizado al momento</p>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Después de la entrega, la misma lista sigue con los estados del alquiler: «En curso» (con la hora de la
+          entrega) y «Finalizada» (con la hora de la devolución, <code>returnedAt</code>). Sin rider, «Pendiente de
+          entrega» ya no se enseña. Con rider, la lista mantiene «Asignada», «Recogida» y «En camino».
+        </li>
+        <li>
+          «He devuelto el objeto» solo aparece al arrendatario y con el alquiler «En curso» (errores de #67). La devolución
+          siempre la hace el arrendatario por su cuenta: con rider no hay devolución por rider (fuera de alcance). Como no
+          se puede deshacer, antes pide confirmación (pantalla 8).
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «He devuelto el objeto»</p>
+
+    <section class="wf-pantalla" data-captura="8-confirmar-devolucion">
+      <h2><span class="wf-paso">8</span>Confirmar la devolución <code>/entregas/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/entregas/9c04…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-ventana">
+              <div class="wf-nav">
+                <h3 class="wf-h1">He devuelto el objeto <span class="wf-marca">1</span></h3>
+                <span class="wf-boton wf-secundario">×</span>
+              </div>
+              <div class="wf-ventana-cuerpo">
+                <p class="wf-texto">
+                  <span class="wf-icono-ayuda">!</span> <strong>¿Has devuelto el objeto? No se puede deshacer</strong><span class="wf-marca">2</span>
+                  <br />El alquiler de «Bicicleta de paseo» pasará a «Finalizada».
+                </p>
+              </div>
+              <div class="wf-ventana-botones">
+                <span class="wf-boton wf-ancho">Sí, lo he devuelto</span><span class="wf-marca">3</span>
+                <span class="wf-boton wf-secundario wf-ancho">Cancelar</span><span class="wf-marca">4</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <div class="wf-ventana">
+              <div class="wf-ventana-cuerpo">
+                <p class="wf-texto"><strong>¿Has devuelto el objeto? No se puede deshacer</strong></p>
+                <p class="wf-texto">El alquiler de «Bicicleta de paseo» pasará a «Finalizada».</p>
+              </div>
+              <div class="wf-ventana-botones">
+                <span class="wf-boton wf-ancho">Sí, lo he devuelto</span>
+                <span class="wf-boton wf-secundario wf-ancho">Cancelar</span>
+              </div>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Ventana sobre la vista de seguimiento. «×», la tecla Esc o un clic fuera la cierran igual que «Cancelar».</li>
+        <li>
+          Decisión de Marc (13/11): como no se puede deshacer, se pide confirmación. «Ya tengo el objeto» (pantalla 6) usa
+          la misma ventana con «¿Ya tienes el objeto? No se puede deshacer», «… pasará a «En curso».» y «Sí, ya lo tengo».
+        </li>
+        <li>
+          Llama a <code>POST /api/entregas/:id/devuelta</code>. Mientras tanto dice «Guardando…» y está desactivado. Si
+          la API lo rechaza, se cierra y se enseña el error de la pantalla 11.
+        </li>
+        <li>Cancelar cierra la ventana sin llamar a la API; el alquiler sigue «En curso».</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Sí, lo he devuelto»</p>
+
+    <section class="wf-pantalla" data-captura="9-destino-finalizada">
+      <h2><span class="wf-paso">9</span>Destino: alquiler finalizado <code>/entregas/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/entregas/9c04…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <p class="wf-texto"><span class="wf-enlace">← Mis solicitudes</span></p>
+            <h3 class="wf-h1">Entrega de Bicicleta de paseo</h3>
+            <p class="wf-ayuda">25–26 nov. 2026 · Recoger en casa del propietario · Alquiler: <strong>Finalizada</strong></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>✔ Entregada</strong> · 25/11/2026, 09:15</p>
+              <p class="wf-texto"><strong>✔ En curso</strong> · 25/11/2026, 09:15</p>
+              <p class="wf-texto"><strong>✔ Finalizada</strong> · 26/11/2026, 19:40 <span class="wf-marca">1</span></p>
+              <p class="wf-texto">✔ Alquiler finalizado. <span class="wf-marca">2</span></p>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <p class="wf-texto"><span class="wf-enlace">← Mis solicitudes</span></p>
+            <h3 class="wf-h1">Entrega de Bicicleta de paseo</h3>
+            <p class="wf-ayuda">25–26 nov. 2026 · Recoger en casa del propietario · Alquiler: <strong>Finalizada</strong></p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><strong>✔ Entregada</strong><br />25/11/2026, 09:15</p>
+              <p class="wf-texto"><strong>✔ En curso</strong><br />25/11/2026, 09:15</p>
+              <p class="wf-texto"><strong>✔ Finalizada</strong><br />26/11/2026, 19:40</p>
+              <p class="wf-texto">✔ Alquiler finalizado.</p>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Criterio 5: el alquiler queda en «Finalizada», con la fecha y la hora de cada estado. Ya no hay botones de estado,
+          ni código, ni indicador de tiempo real: ya no puede cambiar nada.
+        </li>
+        <li>
+          Esta vista no enseña «Valorar» (decisión de Marc, 13/11). Las dos personas valoran desde «Mis solicitudes»: el
+          arrendatario con «Valorar» (US-08.01) y el propietario con «Valorar a &lt;usuario&gt;» (US-08.02).
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Lo que ve el propietario en «Recibidas» → «Ver entrega» de la misma reserva</p>
+
+    <section class="wf-pantalla" data-captura="10-propietario">
+      <h2><span class="wf-paso">10</span>Visto por el propietario <code>/entregas/:id</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/entregas/71be…">
           <nav class="wf-nav">
@@ -257,18 +546,83 @@
               <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
+            <p class="wf-texto"><span class="wf-enlace">← Mis solicitudes</span></p>
             <h3 class="wf-h1">Entrega de Taladro percutor Bosch</h3>
+            <p class="wf-ayuda">18–20 nov. 2026 · Entrega por rider · Lo antes posible · Arrendatario: bruno · Alquiler: <strong>Pagada</strong></p>
             <div class="wf-tarjeta">
-              <p class="wf-texto"><strong>✔ Asignada</strong> · 10/11/2026, 10:02</p>
-              <p class="wf-texto"><strong>✔ Recogida</strong> · 10/11/2026, 10:30</p>
-              <p class="wf-texto"><strong>✔ En camino</strong> · 10/11/2026, 10:41</p>
-              <p class="wf-texto"><strong>✔ Entregada</strong> · 10/11/2026, 11:05 <span class="wf-marca">1</span></p>
+              <p class="wf-texto"><strong>✔ Asignada</strong> · 18/11/2026, 10:02</p>
+              <p class="wf-texto"><strong>✔ Recogida</strong> · 18/11/2026, 10:30</p>
+              <p class="wf-texto"><strong>● En camino</strong> · 18/11/2026, 10:41</p>
+              <p class="wf-texto">○ Entregada</p>
             </div>
+            <p class="wf-ayuda">● Actualizado al momento <span class="wf-marca">1</span></p>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Todos siguen en esta pantalla, con la fecha y la hora de cada estado. Ya no hay botón ni código.</li>
+        <li>
+          Criterio 2: el propietario ve los mismos estados y cada cambio sin recargar. No ve el código de entrega, ni los
+          botones del arrendatario, ni la dirección de recogida: la API le manda <code>deliveryCode</code> y
+          <code>pickupAddress</code> a <code>null</code> (privacidad de US-05.01).
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Errores: alguien ya cambió el estado, se pierde la conexión o la entrega no es tuya</p>
+
+    <section class="wf-pantalla" data-captura="11-errores">
+      <h2><span class="wf-paso">11</span>Errores: paso no permitido, sin conexión y entrega ajena <code>/entregas/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/entregas/9c04…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <p class="wf-texto"><span class="wf-enlace">← Mis solicitudes</span></p>
+            <h3 class="wf-h1">Entrega de Bicicleta de paseo</h3>
+            <p class="wf-ayuda">25–26 nov. 2026 · Recoger en casa del propietario · Alquiler: <strong>En curso</strong></p>
+            <div class="wf-tarjeta">
+              <p class="wf-error">Este paso ya no está disponible: el estado ha cambiado. Te enseñamos el actual. <span class="wf-marca">1</span></p>
+              <p class="wf-texto"><strong>✔ Entregada</strong> · 25/11/2026, 09:15</p>
+              <p class="wf-texto"><strong>● En curso</strong> · 25/11/2026, 09:15</p>
+              <p class="wf-texto">○ Finalizada</p>
+            </div>
+            <p class="wf-ayuda">Cuando se lo hayas devuelto al propietario, márcalo aquí.</p>
+            <span class="wf-boton">He devuelto el objeto</span>
+            <p class="wf-ayuda">○ Sin conexión en tiempo real: se actualiza cada 5 s <span class="wf-marca">2</span></p>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Entrega</h3>
+            <p class="wf-error">No hemos encontrado esta entrega. <span class="wf-marca">3</span></p>
+            <span class="wf-enlace">← Mis solicitudes</span>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Criterio 1 y errores de #67: no se puede saltar ni volver atrás un estado. Si la API rechaza el paso con 409 (por
+          ejemplo, «Ya tengo el objeto» pulsado dos veces o el estado ya cambió en otra pestaña), la pantalla enseña
+          «Este paso ya no está disponible: el estado ha cambiado. Te enseñamos el actual.» y recarga el estado. Los
+          errores del código van en su campo (pantalla 5), también el bloqueo, aunque sea un 409.
+        </li>
+        <li>
+          Cliente del canal en tiempo real (#324): si llega un <code>resync</code>, se recarga por REST; tras 3 fallos
+          seguidos, pasa a consultar cada 5 s y lo dice con «○ Sin conexión en tiempo real: se actualiza cada 5 s». Con un
+          401, va al login.
+        </li>
+        <li>
+          Si la reserva no existe (404) o no es tuya (403: no eres arrendatario, propietario ni su rider), la pantalla
+          enseña lo mismo en los dos casos: «No hemos encontrado esta entrega.». Si falla la carga por otro motivo: «No
+          hemos podido cargar la entrega. Inténtalo de nuevo más tarde.».
+        </li>
       </ol>
     </section>
   </body>

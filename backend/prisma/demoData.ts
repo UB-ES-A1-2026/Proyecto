@@ -241,6 +241,9 @@ export interface DemoReservation {
   startInDays: number;
   days: number;
   status: 'pending' | 'accepted' | 'rejected' | 'paid';
+  // El rider aceptado de la demo ya ha aceptado el trabajo (US-05.02, #288). Se asigna al final del
+  // seed, después de crear los riders (assignDemoRider).
+  riderAssigned?: true;
 }
 
 export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
@@ -297,7 +300,8 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
     days: 2,
     status: 'rejected',
   },
-  // Pagada (US-07.01, #284): ana ya la ha pagado y la fianza está retenida.
+  // Pagada (US-07.01, #284): ana ya la ha pagado y la fianza está retenida. En el seguimiento
+  // (US-05.02, #288), ana marca «Ya tengo el objeto» y después «He devuelto el objeto».
   {
     item: { owner: 1, title: 'Bicicleta de montaña talla M' },
     renter: 0,
@@ -306,6 +310,32 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
     startInDays: 4,
     days: 2,
     status: 'paid',
+  },
+  // Pagada con entrega en el domicilio del dueño (US-05.02, #288): el arrendatario marca «Ya tengo
+  // el objeto» y después «He devuelto el objeto».
+  {
+    item: { owner: 2, title: 'Cortacésped eléctrico' },
+    renter: 1,
+    delivery: { mode: 'home' },
+    startInDays: 3,
+    days: 2,
+    status: 'paid',
+  },
+  // Pagada con rider y el rider de la demo ya asignado (US-05.02, #288): el rider avanza los pasos
+  // y el arrendatario le enseña el código.
+  {
+    item: { owner: 2, title: 'Hidrolimpiadora Kärcher' },
+    renter: 1,
+    delivery: {
+      mode: 'rider',
+      slot: '09:00-11:00',
+      address: 'Carrer de Pallars, 120, 3º 1ª',
+      neighborhood: 'Poblenou',
+    },
+    startInDays: 2,
+    days: 2,
+    status: 'paid',
+    riderAssigned: true,
   },
 ];
 

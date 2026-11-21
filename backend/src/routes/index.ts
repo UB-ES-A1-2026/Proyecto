@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authRoutes } from './authRoutes.js';
 import { categoryRoutes } from './categoryRoutes.js';
+import { eventRoutes } from './eventRoutes.js';
 import { healthRoutes } from './healthRoutes.js';
 import { itemEditRoutes } from './itemEditRoutes.js';
 import { itemSearchRoutes } from './itemSearchRoutes.js';
@@ -18,6 +19,7 @@ import { riderRoutes } from './riderRoutes.js';
 import { userRoutes } from './userRoutes.js';
 import { itemDemandRoutes } from './itemDemandRoutes.js';
 import { profileRoutes } from './profileRoutes.js';
+import { deliveryTrackingRoutes } from './deliveryTrackingRoutes.js';
 
 export const apiRoutes = Router();
 
@@ -27,6 +29,7 @@ apiRoutes.use(userRoutes);
 apiRoutes.use(riderRoutes);
 // Después de userRoutes: «/usuarios/me» tiene que resolverse antes que «/usuarios/:id».
 apiRoutes.use(profileRoutes);
+apiRoutes.use(eventRoutes);
 apiRoutes.use(itemEditRoutes);
 apiRoutes.use(itemSearchRoutes);
 apiRoutes.use(itemDetailRoutes);
@@ -41,3 +44,4 @@ apiRoutes.use(categoryRoutes);
 apiRoutes.use(neighborhoodRoutes);
 apiRoutes.use(itemRoutes);
 apiRoutes.use(photoRoutes);
+apiRoutes.use(deliveryTrackingRoutes);

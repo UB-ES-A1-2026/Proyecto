@@ -23,6 +23,7 @@ const DELIVERED_FLOWS = [
   'Solicitar un alquiler',
   'Consultar tus solicitudes',
   'Aceptar o rechazar una solicitud',
+  'Seguir la entrega',
   'Publicar un objeto',
   'Editar un objeto',
   'Pausar o reanudar un objeto',

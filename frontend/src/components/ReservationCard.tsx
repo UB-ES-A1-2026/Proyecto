@@ -56,6 +56,9 @@ const statusStyles: Record<ReservationStatus, StatusStyle> = {
   finished: { badge: 'badge-neutral', icon: 'task_alt' },
 };
 
+// «Ver entrega» (US-05.02): solo con el alquiler pagado, en curso o finalizado.
+const TRACKABLE_STATUSES: ReservationStatus[] = ['paid', 'in_progress', 'finished'];
+
 const UNKNOWN_STATUS_STYLE: StatusStyle = { badge: 'badge-neutral', icon: 'info' };
 
 function parseLocalDate(date: string): Date {
@@ -282,6 +285,15 @@ export function ReservationCard({
                     : 'No respondiste a tiempo y la solicitud ha caducado.'}
                 </span>
               </p>
+            )}
+            {TRACKABLE_STATUSES.includes(reservation.status) && (
+              <Link
+                to={`/entregas/${reservation.id}`}
+                className="button-secondary reservation-track"
+              >
+                <Icon name="pin_drop" />
+                Ver entrega
+              </Link>
             )}
             {children}
           </div>
