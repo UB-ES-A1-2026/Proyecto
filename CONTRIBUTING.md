@@ -74,11 +74,11 @@ El código de la historia va tal cual (`US-04.01`, `SP-05`); el resto, en minús
 
   | Rama | Ruleset | Forma de merge permitida |
   |---|---|---|
-  | `develop` | `proteger-rama-develop` | Solo *Create a merge commit* (`feature/` y `bugfix/`) |
+  | `develop` | `proteger-rama-develop` | Solo *Create a merge commit* (`feature/`, `bugfix/` y `hotfix/`) |
   | `staging` | `proteger-rama-staging` | Solo *Create a merge commit* (`develop` y `bugfix/`) |
   | `main` | `proteger-rama-main` | Solo *Create a merge commit* (`staging` y `hotfix/`) |
 
-  Cuando exista el CI (#19), se añadirá como requisito que esté en verde.
+  En las tres, además, el PR solo se puede mergear con los checks obligatorios en verde: «Backend», «Frontend», «E2E», «gitleaks» y «Metodología».
 - `develop` es la rama por defecto del repositorio, para que los PRs se abran contra ella.
 - Las ramas `feature/` no están protegidas por GitHub (hace falta poder hacer `--force-with-lease` después del *rebase*), pero se trabajan igual: nadie hace commits directos en ellas, todo entra desde ramas `task/` por PR.
 
@@ -121,7 +121,11 @@ Formato [Conventional Commits](https://www.conventionalcommits.org/es/) con el c
 | `docs` | Documentación |
 | `test` | Tests |
 | `refactor` | Mejorar código sin cambiar comportamiento |
-| `chore` | Configuración, dependencias, CI, Docker |
+| `chore` | Configuración, dependencias, Docker |
+| `style` | Formato, sin cambiar el código |
+| `perf` | Mejorar el rendimiento |
+| `build` | Compilación y empaquetado |
+| `ci` | Workflows de GitHub Actions |
 
 ```
 feat(db): US-05.01 tablas de puntos de recogida y entregas (#281)
@@ -207,7 +211,7 @@ git switch -c task/US-02.01-14-endpoint-publicar origin/feature/US-02.01-publica
 
 # 3. Trabajar y hacer commits
 git add .
-git commit -m "feat(api): añade el endpoint para publicar un objeto (#14)"
+git commit -m "feat(api): US-02.01 endpoint para publicar un objeto (#14)"
 
 # 4. Traer lo último de la historia a tu tarea
 git fetch origin
