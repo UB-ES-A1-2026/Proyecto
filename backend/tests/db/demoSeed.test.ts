@@ -249,6 +249,30 @@ describe('solicitudes de la demo', () => {
     );
   });
 
+  it('deja un alquiler finalizado de ana sin valorar, también al repetir el seed', async () => {
+    const userIds = await seedWithReservations();
+    const finished = await prisma.reservation.findFirstOrThrow({
+      where: { status: 'finished', renterId: userIds[0] },
+      include: { item: true },
+    });
+    expect(finished.endDate.getTime()).toBeLessThan(TODAY.getTime());
+    // ana la valora al probar la demo…
+    await prisma.rating.create({
+      data: {
+        reservationId: finished.id,
+        authorId: finished.renterId,
+        ratedUserId: finished.item.ownerId,
+        type: 'rental',
+        score: 5,
+      },
+    });
+
+    // …y repetir el seed la deja otra vez sin valorar.
+    await upsertDemoReservations(prisma, userIds, TODAY);
+
+    expect(await prisma.rating.count()).toBe(0);
+  });
+
   it('falla con un mensaje claro si no se han creado antes los objetos', async () => {
     const userIds = await upsertUsers(prisma, DEMO_USERS, DEMO_PASSWORD, 4);
 

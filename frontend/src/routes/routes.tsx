@@ -15,6 +15,7 @@ import { MyReservationsPage } from '../pages/MyReservationsPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { PublicProfilePage } from '../pages/PublicProfilePage';
 import { PublishItemPage } from '../pages/PublishItemPage';
+import { RateReservationPage } from '../pages/RateReservationPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { RiderJobsPage } from '../pages/RiderJobsPage';
 import { SearchPage } from '../pages/SearchPage';
@@ -51,6 +52,7 @@ export const routes: RouteObject[] = [
             children: [
               { path: 'mis-objetos', element: <MyItemsPage /> },
               { path: 'mis-solicitudes', element: <MyReservationsPage /> },
+              { path: 'mis-solicitudes/:id/valorar', element: <RateReservationPage /> },
               { path: 'objetos/nuevo', element: <PublishItemPage /> },
               // «Confirmar y pagar» (US-07.01): el resumen y el pago, con las fechas en la dirección.
               { path: 'objetos/:id/solicitar', element: <ConfirmRentalPage /> },
