@@ -239,15 +239,41 @@ describe('settleDueDeposits', () => {
       spy.mockRestore();
     });
 
+    // Con Stripe, la clave de idempotencia devuelve el mismo PaymentIntent a las dos lecturas: el
+    // que queda guardado no se puede soltar.
+    it('si Stripe devuelve el mismo bloqueo que ya está guardado, no lo suelta', async () => {
+      const { renter, payment } = await setUp('2026-12-11', '2026-12-16');
+      authorizeDepositMock.mockImplementation(async () => {
+        await prisma.payment.update({
+          where: { id: payment.id },
+          data: { depositStatus: 'held', depositReference: 'pi_dep_mismo' },
+        });
+        return { reference: 'pi_dep_mismo' };
+      });
+
+      await settleDueDeposits(renter.id, NOW);
+
+      expect(releaseMock).not.toHaveBeenCalled();
+      expect(refundMock).not.toHaveBeenCalled();
+    });
+
     it('con el propietario y el arrendatario leyendo a la vez, solo queda un bloqueo en Stripe', async () => {
       const { renter, owner, payment } = await setUp(
         '2026-12-11',
         '2026-12-16',
       );
+      // Las dos lecturas llegan a Stripe antes de que ninguna guarde nada.
       let calls = 0;
-      authorizeDepositMock.mockImplementation(async () => ({
-        reference: `pi_dep_${++calls}`,
-      }));
+      let bothCalled: () => void = () => undefined;
+      const barrier = new Promise<void>((resolve) => {
+        bothCalled = resolve;
+      });
+      authorizeDepositMock.mockImplementation(async () => {
+        const reference = `pi_dep_${++calls}`;
+        if (calls === 2) bothCalled();
+        await barrier;
+        return { reference };
+      });
 
       await Promise.all([
         settleDueDeposits(renter.id, NOW),
@@ -257,11 +283,11 @@ describe('settleDueDeposits', () => {
       const saved = await prisma.payment.findUniqueOrThrow({
         where: { id: payment.id },
       });
-      const created = authorizeDepositMock.mock.results.length;
-      const released = releaseMock.mock.calls.map(([reference]) => reference);
+      expect(authorizeDepositMock).toHaveBeenCalledTimes(2);
       // Cada bloqueo creado está guardado o se ha soltado, nunca los dos ni ninguno.
-      expect(released).not.toContain(saved.depositReference);
-      expect(released).toHaveLength(created - 1);
+      const other =
+        saved.depositReference === 'pi_dep_1' ? 'pi_dep_2' : 'pi_dep_1';
+      expect(releaseMock.mock.calls).toEqual([[other]]);
     });
   });
 });
