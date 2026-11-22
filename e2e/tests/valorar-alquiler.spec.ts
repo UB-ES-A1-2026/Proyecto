@@ -11,6 +11,7 @@ const API_URL = process.env.API_URL ?? 'http://localhost:3000/api';
 const PASSWORD = 'Rentit2026';
 const ANA = { email: 'ana@rentit.test', password: PASSWORD };
 const BRUNO = { email: 'bruno@rentit.test', password: PASSWORD };
+const DANI = { email: 'dani@rentit.test', password: PASSWORD };
 type User = typeof ANA;
 
 type Reservation = {
@@ -143,8 +144,11 @@ test.describe('US-08.01 Valorar un alquiler', () => {
     expect((await sentReservation(request, token, 'Máquina de palomitas')).myRating).toBeFalsy();
   });
 
-  // Criterio 7
-  test('bruno no puede valorar el alquiler que recibió', async ({ page, request }) => {
+  // Criterio 7 (con US-08.02 el propietario también valora, pero nadie más)
+  test('bruno puede valorar a ana, pero alguien de fuera no puede valorar el alquiler', async ({
+    page,
+    request,
+  }) => {
     const anaToken = await apiToken(request, ANA);
     const reservation = await sentReservation(request, anaToken, 'Máquina de palomitas');
 
@@ -152,16 +156,16 @@ test.describe('US-08.01 Valorar un alquiler', () => {
     await openMyReservations(page);
     const popcorn = card(page, 'Recibidas', 'Máquina de palomitas');
     await popcorn.getByRole('button', { name: /Máquina de palomitas/ }).click();
-    await expect(popcorn.getByRole('link', { name: /Valorar/ })).toHaveCount(0);
+    await expect(popcorn.getByRole('link', { name: /Valorar a ana/ })).toBeVisible();
 
-    const brunoToken = await apiToken(request, BRUNO);
+    const daniToken = await apiToken(request, DANI);
     const response = await request.post(
       `${API_URL}/reservas/${reservation.id}/valoracion`,
-      { headers: { Authorization: `Bearer ${brunoToken}` }, data: { score: 4, comment: 'No.' } },
+      { headers: { Authorization: `Bearer ${daniToken}` }, data: { score: 4, comment: 'No.' } },
     );
     expect(response.status()).toBe(403);
     expect(await response.json()).toEqual({
-      error: 'Solo quien ha alquilado el objeto puede valorar este alquiler.',
+      error: 'Solo quien ha participado en este alquiler puede valorarlo.',
     });
   });
 
