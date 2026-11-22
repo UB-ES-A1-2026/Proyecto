@@ -167,8 +167,9 @@ export function DeliveryTrackingPage() {
     refresh: load,
     isRelevant,
     onUnauthorized: clearSession,
-    // Con el alquiler finalizado ya no puede cambiar nada.
-    enabled: tracking?.reservationStatus !== 'finished',
+    // Con el alquiler finalizado o cancelado ya no puede cambiar nada.
+    enabled:
+      tracking?.reservationStatus !== 'finished' && tracking?.reservationStatus !== 'cancelled',
   });
 
   async function runAction(action: () => Promise<DeliveryTracking>, successMessage?: string) {
@@ -248,6 +249,34 @@ export function DeliveryTrackingPage() {
     ...(isRenter ? [] : [`Arrendatario: ${current.renter.username}`]),
     `Alquiler: ${RESERVATION_STATUS_LABELS[current.reservationStatus]}`,
   ];
+
+  // Cancelada con la entrega por hacer (US-04.05, #406): ni pasos ni botones, para nadie.
+  if (current.reservationStatus === 'cancelled') {
+    return (
+      <section className="tracking" aria-labelledby="tracking-title">
+        {current.role !== 'rider' && (
+          <Link
+            to="/mis-solicitudes"
+            className="tracking-back"
+            aria-label="Volver a Mis solicitudes"
+          >
+            <Icon name="chevron_left" size="1.25rem" />
+            Mis solicitudes
+          </Link>
+        )}
+        <h1 id="tracking-title" className="page-title">
+          Entrega de {current.item.title}
+        </h1>
+        <p className="page-subtitle">{facts.join(' · ')}</p>
+        <div className="card tracking-card">
+          <p role="status" className="manage-notice">
+            <Icon name="do_not_disturb_on" />
+            Este alquiler se ha cancelado: ya no hay ninguna entrega que hacer.
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   function handleRiderSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
