@@ -18,7 +18,9 @@ import {
   DEMO_ITEMS,
   DEMO_MODERATIONS,
   DEMO_RESERVATIONS,
+  DEMO_RIDER_JOBS,
   type DemoDelivery,
+  type DemoReservation,
 } from './demoData.js';
 
 // Contraseña de las cuentas del seed de desarrollo: está en el repo, que es público.
@@ -253,111 +255,168 @@ export async function upsertDemoReservations(
       );
     }
 
-    const item = await prisma.item.findFirst({
-      where: { ownerId, title: reservation.item.title },
-      select: { id: true, dailyPrice: true, deposit: true, neighborhood: true },
-    });
-    if (!item) {
-      throw new Error(
-        `No existe «${reservation.item.title}»: crea antes los objetos (upsertDemoItems)`,
-      );
-    }
-
-    const data = {
-      itemId: item.id,
-      renterId,
-      startDate: daysFrom(today, reservation.startInDays),
-      endDate: daysFrom(today, reservation.startInDays + reservation.days - 1),
-      totalPrice: item.dailyPrice.times(reservation.days),
-      deliveryMode: reservation.delivery.mode,
-      status: reservation.status,
-      // Las pendientes tienen 48 h para responder desde que se carga el seed (#72).
-      expiresAt:
-        reservation.status === 'pending'
-          ? new Date(today.getTime() + 48 * 60 * 60 * 1000)
-          : null,
-    };
-
-    const existing = await prisma.reservation.findFirst({
-      where: { itemId: item.id, renterId },
-      select: { id: true },
-    });
-
-    const { id } = existing
-      ? await prisma.reservation.update({ where: { id: existing.id }, data })
-      : await prisma.reservation.create({ data });
-    // Repetir el seed borra las valoraciones hechas al probar: vuelve a salir «Valorar» (#295).
-    await prisma.rating.deleteMany({ where: { reservationId: id } });
-
-    const delivery = await demoDeliveryData(
+    // Quién la canceló (US-04.05, #308), solo en las canceladas.
+    const cancelledById = reservation.cancellation
+      ? userIds[reservation.cancellation.by]
+      : undefined;
+    await upsertDemoReservation(
       prisma,
-      reservation.delivery,
-      item.neighborhood,
+      ownerId,
+      renterId,
+      reservation,
+      today,
+      cancelledById,
     );
-    await prisma.delivery.upsert({
-      where: { reservationId: id },
-      update: delivery,
-      create: { reservationId: id, ...delivery },
-    });
-
-    // Pagos (US-07.01, #72): la pendiente tiene el importe bloqueado («autorizado») y la pagada,
-    // cobrado. Al repetir el seed se rehace el pago, por si se ha cambiado al probar. Las aceptadas
-    // y rechazadas son del flujo antiguo y no llevan pago. Sin referencias: pagos sin pasarela.
-    // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 14/11/2026
-    await prisma.payment.deleteMany({ where: { reservationId: id } });
-    const hasPayment =
-      reservation.status === 'pending' ||
-      reservation.status === 'paid' ||
-      reservation.status === 'cancelled';
-    if (hasPayment) {
-      await prisma.payment.create({
-        data: {
-          reservationId: id,
-          rentalAmount: data.totalPrice,
-          // Con rider, la tarifa se bloquea y se cobra con el alquiler (US-05.01).
-          deliveryAmount: delivery.fee ?? 0,
-          depositAmount: item.deposit,
-          status: PAYMENT_STATUS[reservation.status],
-          // La fianza se retiene el día antes de empezar (#72): de momento, «pendiente». Sin fianza
-          // (menos de 0,50 €) no hay estado. En la cancelada (US-04.05) ya está liberada.
-          depositStatus: item.deposit.gte(0.5)
-            ? reservation.status === 'cancelled'
-              ? 'released'
-              : 'pending'
-            : null,
-        },
-      });
-    }
-
-    // Cancelaciones (US-04.05, #308): quién canceló, con qué penalización y lo reembolsado. Se
-    // rehacen en cada ejecución, así que una reserva cancelada al probar vuelve a su estado.
-    await prisma.cancellation.deleteMany({ where: { reservationId: id } });
-    if (reservation.status === 'cancelled') {
-      const cancelledById = userIds[reservation.cancellation?.by ?? -1];
-      if (!reservation.cancellation || !cancelledById) {
-        throw new Error(
-          `Falta quién canceló la reserva de «${reservation.item.title}»`,
-        );
-      }
-      const penaltyAmount = data.totalPrice
-        .times(reservation.cancellation.penaltyPercent)
-        .dividedBy(100)
-        .toDecimalPlaces(2);
-      await prisma.cancellation.create({
-        data: {
-          reservationId: id,
-          cancelledById,
-          // Un día antes de hoy: ya está cancelada de antes de cargar el seed.
-          cancelledAt: new Date(today.getTime() - DAY_MS),
-          penaltyPercent: reservation.cancellation.penaltyPercent,
-          penaltyAmount,
-          refundAmount: data.totalPrice.minus(penaltyAmount),
-        },
-      });
-    }
   }
 
   return DEMO_RESERVATIONS.length;
+}
+
+// Una solicitud del catálogo con su entrega y su pago. Hay como mucho una por objeto y
+// arrendatario: si ya existe, vuelve a dejarla como en el catálogo.
+async function upsertDemoReservation(
+  prisma: PrismaClient,
+  ownerId: string,
+  renterId: string,
+  reservation: Pick<
+    DemoReservation,
+    'item' | 'delivery' | 'startInDays' | 'days' | 'status' | 'cancellation'
+  >,
+  today: Date,
+  cancelledById?: string,
+): Promise<void> {
+  const item = await prisma.item.findFirst({
+    where: { ownerId, title: reservation.item.title },
+    select: { id: true, dailyPrice: true, deposit: true, neighborhood: true },
+  });
+  if (!item) {
+    throw new Error(
+      `No existe «${reservation.item.title}»: crea antes los objetos (upsertDemoItems)`,
+    );
+  }
+
+  const data = {
+    itemId: item.id,
+    renterId,
+    startDate: daysFrom(today, reservation.startInDays),
+    endDate: daysFrom(today, reservation.startInDays + reservation.days - 1),
+    totalPrice: item.dailyPrice.times(reservation.days),
+    deliveryMode: reservation.delivery.mode,
+    status: reservation.status,
+    // Las pendientes tienen 48 h para responder desde que se carga el seed (#72).
+    expiresAt:
+      reservation.status === 'pending'
+        ? new Date(today.getTime() + 48 * 60 * 60 * 1000)
+        : null,
+  };
+
+  const existing = await prisma.reservation.findFirst({
+    where: { itemId: item.id, renterId },
+    select: { id: true },
+  });
+
+  const { id } = existing
+    ? await prisma.reservation.update({ where: { id: existing.id }, data })
+    : await prisma.reservation.create({ data });
+  // Repetir el seed borra las valoraciones hechas al probar: vuelve a salir «Valorar» (#295).
+  await prisma.rating.deleteMany({ where: { reservationId: id } });
+
+  const delivery = await demoDeliveryData(
+    prisma,
+    reservation.delivery,
+    item.neighborhood,
+  );
+  await prisma.delivery.upsert({
+    where: { reservationId: id },
+    update: delivery,
+    create: { reservationId: id, ...delivery },
+  });
+
+  // Pagos (US-07.01, #72): la pendiente tiene el importe bloqueado («autorizado») y la pagada,
+  // cobrado. Al repetir el seed se rehace el pago, por si se ha cambiado al probar. Las aceptadas
+  // y rechazadas son del flujo antiguo y no llevan pago. Sin referencias: pagos sin pasarela.
+  // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 14/11/2026
+  await prisma.payment.deleteMany({ where: { reservationId: id } });
+  const hasPayment =
+    reservation.status === 'pending' ||
+    reservation.status === 'paid' ||
+    reservation.status === 'cancelled';
+  if (hasPayment) {
+    await prisma.payment.create({
+      data: {
+        reservationId: id,
+        rentalAmount: data.totalPrice,
+        // Con rider, la tarifa se bloquea y se cobra con el alquiler (US-05.01).
+        deliveryAmount: delivery.fee ?? 0,
+        depositAmount: item.deposit,
+        status: PAYMENT_STATUS[reservation.status],
+        // La fianza se retiene el día antes de empezar (#72): de momento, «pendiente». Sin fianza
+        // (menos de 0,50 €) no hay estado. En la cancelada (US-04.05) ya está liberada.
+        depositStatus: item.deposit.gte(0.5)
+          ? reservation.status === 'cancelled'
+            ? 'released'
+            : 'pending'
+          : null,
+      },
+    });
+  }
+
+  // Cancelaciones (US-04.05, #308): quién canceló, con qué penalización y lo reembolsado. Se
+  // rehacen en cada ejecución, así que una reserva cancelada al probar vuelve a su estado.
+  await prisma.cancellation.deleteMany({ where: { reservationId: id } });
+  if (reservation.status === 'cancelled') {
+    if (!reservation.cancellation || !cancelledById) {
+      throw new Error(
+        `Falta quién canceló la reserva de «${reservation.item.title}»`,
+      );
+    }
+    const penaltyAmount = data.totalPrice
+      .times(reservation.cancellation.penaltyPercent)
+      .dividedBy(100)
+      .toDecimalPlaces(2);
+    await prisma.cancellation.create({
+      data: {
+        reservationId: id,
+        cancelledById,
+        // Un día antes de hoy: ya está cancelada de antes de cargar el seed.
+        cancelledAt: new Date(today.getTime() - DAY_MS),
+        penaltyPercent: reservation.cancellation.penaltyPercent,
+        penaltyAmount,
+        refundAmount: data.totalPrice.minus(penaltyAmount),
+      },
+    });
+  }
+}
+
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 21/11/2026
+// Crea o actualiza las reservas de DEMO_RIDER_JOBS (US-10.01, #292): pagadas, con rider y sin
+// rider asignado. Va después de crear los vecinos (demandNeighbours). Repetir el seed deja otra vez
+// cada trabajo disponible: sin rider, con la entrega pendiente y las fechas a partir de hoy.
+export async function upsertDemoRiderJobs(
+  prisma: PrismaClient,
+  ownerIds: readonly string[],
+  neighbourIds: readonly string[],
+  today = new Date(),
+): Promise<number> {
+  for (const job of DEMO_RIDER_JOBS) {
+    const ownerId = ownerIds[job.item.owner];
+    const renterId = neighbourIds[job.neighbour];
+    if (!ownerId || !renterId) {
+      throw new Error(
+        `Faltan usuarios para el trabajo de rider de «${job.item.title}»`,
+      );
+    }
+
+    await upsertDemoReservation(
+      prisma,
+      ownerId,
+      renterId,
+      { ...job, status: 'paid' },
+      today,
+    );
+  }
+
+  return DEMO_RIDER_JOBS.length;
 }
 
 // Vecinos que solo hacen las solicitudes de DEMO_DEMAND_REQUESTS (US-04.07): uno por solicitud,
@@ -470,6 +529,18 @@ export const DEMO_RIDERS: readonly SeedRider[] = [
     status: 'rejected',
     rejectionReason: 'Zona sin cobertura de reparto por ahora.',
   },
+  // Segundo rider aceptado (US-10.01, #292): con dani, para el e2e de dos riders que aceptan el
+  // mismo trabajo.
+  {
+    username: 'oscar',
+    email: 'oscar@rentit.test',
+    phone: '656789012',
+    zone: 'Sants',
+    vehicle: 'bike',
+    days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+    slots: ['morning', 'afternoon'],
+    status: 'approved',
+  },
 ];
 
 // Las de la demo en producción (seed-demo.ts), con el mismo dominio que DEMO_USERS: sin ellas no se
@@ -505,6 +576,17 @@ export const PRODUCTION_DEMO_RIDERS: readonly SeedRider[] = [
     slots: ['night'],
     status: 'rejected',
     rejectionReason: 'Necesitamos más disponibilidad semanal.',
+  },
+  // Segundo rider aceptado (US-10.01, #292), como oscar en local.
+  {
+    username: 'ona',
+    email: 'ona@demo.rentit.test',
+    phone: '667890123',
+    zone: 'Les Corts',
+    vehicle: 'motorbike',
+    days: ['monday', 'wednesday', 'friday', 'saturday'],
+    slots: ['afternoon', 'night'],
+    status: 'approved',
   },
 ];
 
