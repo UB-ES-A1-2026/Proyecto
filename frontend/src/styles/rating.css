@@ -160,6 +160,11 @@
   width: auto;
 }
 
+/* «Valorar» y la valoración recibida (US-08.02), o las dos valoraciones, una debajo de otra */
+.reservation-rating > * + * {
+  margin-top: var(--space-md);
+}
+
 .reservation-rating-title {
   margin: 0 0 var(--space-xs);
   font-size: var(--font-size-small);
