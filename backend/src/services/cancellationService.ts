@@ -15,6 +15,7 @@ import {
   type GatewayCall,
 } from './cancellationPolicy.js';
 import { refund, release } from './paymentGateway.js';
+import { publish } from './realtimeService.js';
 import { expireOverdueReservations } from './reservationExpiry.js';
 import { toReservationDetail, type ReservationDetail } from './reservation.js';
 
@@ -140,5 +141,23 @@ export async function cancelReservation(
     throw new AppError(409, NOT_CANCELLABLE_MESSAGE);
   }
 
-  return toReservationDetail(await findReservationDetail(id), role);
+  const detail = await findReservationDetail(id);
+  notifyCancelled(detail, now);
+  return toReservationDetail(detail, role);
+}
+
+// Aviso en tiempo real, como los cambios del seguimiento (US-05.02): las pantallas abiertas de la
+// entrega se recargan y la ven cancelada. Incluye al rider si ya había aceptado el trabajo (#406).
+function notifyCancelled(
+  reservation: Awaited<ReturnType<typeof findReservationDetail>>,
+  at: Date,
+): void {
+  const userIds = [reservation.renter.id, reservation.item.owner.id];
+  if (reservation.delivery?.riderId) userIds.push(reservation.delivery.riderId);
+
+  publish(userIds, 'entrega.estado', {
+    reservationId: reservation.id,
+    status: 'cancelled',
+    at: at.toISOString(),
+  });
 }
