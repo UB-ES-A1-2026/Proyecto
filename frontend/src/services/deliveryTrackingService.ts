@@ -11,7 +11,8 @@ export type DeliveryStatus = 'pending' | 'assigned' | 'picked_up' | 'on_the_way'
 // Después de la entrega, la lista sigue con los estados del alquiler.
 export type TrackingStep = DeliveryStatus | 'in_progress' | 'finished';
 
-export type TrackingReservationStatus = 'paid' | 'in_progress' | 'finished';
+// «cancelled»: se canceló con la entrega por hacer (US-04.05, #406).
+export type TrackingReservationStatus = 'paid' | 'in_progress' | 'finished' | 'cancelled';
 
 export type DeliveryMode = 'rider' | 'home' | 'pickup_point';
 
@@ -68,7 +69,10 @@ export function toDeliveryTracking(api: ApiDeliveryTracking): DeliveryTracking {
     at ? [{ status, at }] : [],
   );
   const deliveredAt = api.steps.find((step) => step.status === 'delivered')?.at ?? null;
-  if (api.reservationStatus !== 'paid' && deliveredAt) {
+  if (
+    (api.reservationStatus === 'in_progress' || api.reservationStatus === 'finished') &&
+    deliveredAt
+  ) {
     history.push({ status: 'in_progress', at: deliveredAt });
   }
   if (api.returnedAt) history.push({ status: 'finished', at: api.returnedAt });
