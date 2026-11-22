@@ -13,8 +13,10 @@ import {
   moveDelivery,
   recordFailedCodeAttempt,
   renewDeliveryCode,
+  type DepositToSettle,
 } from '../repositories/deliveryTrackingRepository.js';
 import { generateDeliveryCode, MAX_CODE_ATTEMPTS } from './deliveryCode.js';
+import { refund, release } from './paymentGateway.js';
 import { publish } from './realtimeService.js';
 
 export const NOT_FOUND_MESSAGE = 'No hemos encontrado esta entrega.';
@@ -31,6 +33,8 @@ export const NOT_RENTER_MESSAGE =
   'Solo el arrendatario puede marcar este paso.';
 export const RIDER_DELIVERY_MESSAGE =
   'Con rider, la entrega la marca el rider con tu código.';
+export const DEPOSIT_FAILED_MESSAGE =
+  'No se ha podido liberar la fianza. Inténtalo de nuevo.';
 export const NOT_IN_PROGRESS_MESSAGE =
   'Solo puedes marcar «He devuelto el objeto» con el alquiler en curso.';
 export const NO_CODE_MESSAGE = 'Solo hay código de entrega con rider.';
@@ -276,6 +280,23 @@ export async function confirmReceived(
 
 // POST /api/entregas/:id/devuelta: «He devuelto el objeto». La reserva pasa a «Finalizada» y las
 // dos personas ya pueden valorarla (US-08.01 y US-08.02).
+// Suelta o devuelve la fianza en Stripe al finalizar (#402). Si falla, 502 y la transacción se
+// deshace: la reserva sigue «En curso» y el arrendatario puede volver a intentarlo.
+async function settleDepositOrFail({
+  reference,
+  action,
+}: DepositToSettle): Promise<void> {
+  try {
+    await (action === 'refund' ? refund(reference) : release(reference));
+  } catch (error) {
+    console.error(
+      'La pasarela no ha podido liberar la fianza:',
+      error instanceof Error ? error.message : 'error desconocido',
+    );
+    throw new AppError(502, DEPOSIT_FAILED_MESSAGE);
+  }
+}
+
 export async function confirmReturned(
   userId: string,
   reservationId: string,
@@ -289,7 +310,7 @@ export async function confirmReturned(
   }
   if (
     reservation.status !== 'in_progress' ||
-    !(await markReturned(reservationId, now))
+    !(await markReturned(reservationId, now, settleDepositOrFail))
   ) {
     throw new AppError(409, NOT_IN_PROGRESS_MESSAGE);
   }

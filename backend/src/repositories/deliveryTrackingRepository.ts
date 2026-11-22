@@ -112,9 +112,16 @@ export async function markDelivered(
 
 // «He devuelto el objeto»: la reserva pasa de «En curso» a «Finalizada» y la entrega guarda la
 // hora de la devolución, las dos en la misma transacción. false si ya no estaba en curso.
+// La fianza que hay que soltar (retenida) o devolver (cobrada) al finalizar (#402).
+export type DepositToSettle = {
+  reference: string;
+  action: 'release' | 'refund';
+};
+
 export async function markReturned(
   reservationId: string,
   at: Date,
+  settleDeposit: (deposit: DepositToSettle) => Promise<void>,
 ): Promise<boolean> {
   try {
     return await prisma.$transaction(async (transaction) => {
@@ -128,6 +135,29 @@ export async function markReturned(
       });
       if (reservation.count !== 1 || delivery.count !== 1) {
         throw new DeliveryConflict();
+      }
+
+      // La fianza (US-07.01, #402): retenida → liberada; cobrada → devuelta; pendiente (no se
+      // llegó a retener) → liberada. Una ejecutada por daños no se toca. Stripe se llama dentro
+      // de la transacción: si falla, no se finaliza nada y se puede reintentar.
+      const payment = await transaction.payment.findUnique({
+        where: { reservationId },
+        select: { depositStatus: true, depositReference: true },
+      });
+      const status = payment?.depositStatus;
+      if (status === 'held' || status === 'collected' || status === 'pending') {
+        await transaction.payment.updateMany({
+          where: { reservationId, depositStatus: status },
+          data: {
+            depositStatus: status === 'collected' ? 'returned' : 'released',
+          },
+        });
+        if (status !== 'pending' && payment?.depositReference) {
+          await settleDeposit({
+            reference: payment.depositReference,
+            action: status === 'collected' ? 'refund' : 'release',
+          });
+        }
       }
       return true;
     });
