@@ -26,6 +26,7 @@ export const RESERVATION_STATUS_LABELS: Record<TrackingReservationStatus, string
   paid: 'Pagada',
   in_progress: 'En curso',
   finished: 'Finalizada',
+  cancelled: 'Cancelada',
 };
 
 export type StepState = 'done' | 'current' | 'todo';
@@ -36,7 +37,11 @@ const RIDER_STEPS: TrackingStep[] = ['assigned', 'picked_up', 'on_the_way', 'del
 const NO_RIDER_STEPS: TrackingStep[] = ['pending', 'delivered'];
 
 export function isDelivered(tracking: DeliveryTracking): boolean {
-  return tracking.deliveryStatus === 'delivered' || tracking.reservationStatus !== 'paid';
+  return (
+    tracking.deliveryStatus === 'delivered' ||
+    tracking.reservationStatus === 'in_progress' ||
+    tracking.reservationStatus === 'finished'
+  );
 }
 
 // Los estados en orden: los de la entrega y, cuando ya se ha entregado, los del alquiler. Los hechos
@@ -53,7 +58,9 @@ export function buildSteps(tracking: DeliveryTracking): StepView[] {
   if (delivered) steps.push('in_progress', 'finished');
 
   const current: TrackingStep =
-    tracking.reservationStatus === 'paid' ? tracking.deliveryStatus : tracking.reservationStatus;
+    tracking.reservationStatus === 'paid' || tracking.reservationStatus === 'cancelled'
+      ? tracking.deliveryStatus
+      : tracking.reservationStatus;
   const currentIndex = steps.indexOf(current);
 
   return steps.map((step, index) => {
