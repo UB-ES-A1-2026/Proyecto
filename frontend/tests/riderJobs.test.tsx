@@ -467,3 +467,41 @@ describe('Trabajos con lista y detalle (pantallas anchas)', () => {
     );
   });
 });
+
+// La API del backend (#292) puede no tener la tarifa, el barrio o las direcciones de un trabajo
+// antiguo: se enseña lo que haya, sin «null». Generado con asistencia de IA (Claude).
+describe('Trabajos con datos incompletos', () => {
+  it('sin tarifa no sale «Tarifa» y sin barrio de entrega sale «—»', async () => {
+    logIn();
+    mockApi({
+      'GET /trabajos': Response.json({
+        jobs: [{ ...TIENDA, fee: null, deliveryNeighborhood: null }],
+      }),
+      'GET /trabajos/mios': Response.json({ jobs: [] }),
+    });
+    renderRoute('/trabajos');
+
+    await screen.findByRole('heading', { level: 3, name: TIENDA.item.title });
+    const tienda = card(TIENDA.item.title);
+    expect(tienda).not.toHaveTextContent('Tarifa');
+    expect(tienda).toHaveTextContent('Recogida Gràcia Entrega —');
+    expect(tienda).not.toHaveTextContent('null');
+  });
+
+  it('en «Mis trabajos», sin dirección sale el barrio, y el estado «pending» con su texto', async () => {
+    logIn();
+    mockApi({
+      'GET /trabajos': Response.json({ jobs: [] }),
+      'GET /trabajos/mios': Response.json({
+        jobs: [{ ...TALADRO_MIO, pickupAddress: null, deliveryAddress: null, status: 'pending' }],
+      }),
+    });
+    renderRoute('/trabajos/mios');
+
+    await screen.findByRole('heading', { level: 3, name: TALADRO.item.title });
+    const taladro = card(TALADRO.item.title);
+    expect(taladro).toHaveTextContent('Recogida Gràcia Entrega Eixample');
+    expect(taladro).toHaveTextContent('Pendiente de entrega');
+    expect(taladro).not.toHaveTextContent('null');
+  });
+});
