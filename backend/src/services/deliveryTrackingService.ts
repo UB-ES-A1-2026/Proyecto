@@ -278,8 +278,6 @@ export async function confirmReceived(
   return getDeliveryTracking(userId, reservationId);
 }
 
-// POST /api/entregas/:id/devuelta: «He devuelto el objeto». La reserva pasa a «Finalizada» y las
-// dos personas ya pueden valorarla (US-08.01 y US-08.02).
 // Suelta o devuelve la fianza en Stripe al finalizar (#402). Si falla, 502 y la transacción se
 // deshace: la reserva sigue «En curso» y el arrendatario puede volver a intentarlo.
 async function settleDepositOrFail({
@@ -297,6 +295,8 @@ async function settleDepositOrFail({
   }
 }
 
+// POST /api/entregas/:id/devuelta: «He devuelto el objeto». La reserva pasa a «Finalizada» y las
+// dos personas ya pueden valorarla (US-08.01 y US-08.02).
 export async function confirmReturned(
   userId: string,
   reservationId: string,

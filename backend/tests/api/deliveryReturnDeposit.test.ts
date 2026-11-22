@@ -141,6 +141,18 @@ describe('POST /api/entregas/:id/devuelta con fianza (#402)', () => {
     expect(refund).not.toHaveBeenCalled();
   });
 
+  it('una fianza retenida de un pago de demo (sin referencia) se libera sin llamar a Stripe', async () => {
+    const { reservation, token } = await inProgress({
+      depositStatus: 'held',
+      depositReference: null,
+    });
+
+    expect((await returned(reservation.id, token)).status).toBe(200);
+
+    expect((await state(reservation.id)).deposit).toBe('released');
+    expect(release).not.toHaveBeenCalled();
+  });
+
   it('una fianza ejecutada por daños no se toca', async () => {
     const { reservation, token } = await inProgress({
       depositStatus: 'charged',
