@@ -4,7 +4,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { prisma } from '../../src/repositories/prisma.js';
 import { settleDueDeposits } from '../../src/services/depositService.js';
 import { getMyReservations } from '../../src/services/myReservationsService.js';
-import { authorizeDeposit } from '../../src/services/paymentGateway.js';
+import {
+  authorizeDeposit,
+  refund,
+  release,
+} from '../../src/services/paymentGateway.js';
 import { resetDb } from '../helpers/db.js';
 import { createTestItem } from '../helpers/items.js';
 import { createTestReservation } from '../helpers/reservations.js';
@@ -15,10 +19,17 @@ vi.mock('../../src/services/paymentGateway.js', async (importOriginal) => {
     await importOriginal<
       typeof import('../../src/services/paymentGateway.js')
     >();
-  return { ...actual, authorizeDeposit: vi.fn() };
+  return {
+    ...actual,
+    authorizeDeposit: vi.fn(),
+    release: vi.fn(),
+    refund: vi.fn(),
+  };
 });
 
 const authorizeDepositMock = vi.mocked(authorizeDeposit);
+const releaseMock = vi.mocked(release);
+const refundMock = vi.mocked(refund);
 // 10/12/2026 a mediodía en España.
 const NOW = new Date('2026-12-10T11:00:00.000Z');
 
@@ -62,6 +73,10 @@ beforeEach(async () => {
   await resetDb();
   authorizeDepositMock.mockReset();
   authorizeDepositMock.mockResolvedValue({ reference: 'pi_dep' });
+  releaseMock.mockReset();
+  releaseMock.mockResolvedValue(undefined);
+  refundMock.mockReset();
+  refundMock.mockResolvedValue(undefined);
 });
 
 describe('settleDueDeposits', () => {
@@ -168,5 +183,111 @@ describe('settleDueDeposits', () => {
 
     expect(result.sent).toHaveLength(1);
     spy.mockRestore();
+  });
+
+  // #365: si otra petición guarda la fianza (o se cancela la reserva) entre la llamada a Stripe y
+  // el guardado, lo que se acaba de crear en Stripe no puede quedarse sin referencia en la BD.
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 21/11/2026
+  describe('si la fianza ya no está pendiente al guardarla (#365)', () => {
+    // Como si otra lectura la hubiera guardado justo antes, con su propio bloqueo.
+    function savedMeanwhile(paymentId: string, status: 'held' | 'collected') {
+      authorizeDepositMock.mockImplementation(async () => {
+        await prisma.payment.update({
+          where: { id: paymentId },
+          data: { depositStatus: status, depositReference: 'pi_dep_otro' },
+        });
+        return { reference: 'pi_dep_huerfano' };
+      });
+    }
+
+    it('suelta el bloqueo que acaba de crear y deja el que ya estaba', async () => {
+      const { renter, payment } = await setUp('2026-12-11', '2026-12-16');
+      savedMeanwhile(payment.id, 'held');
+
+      await settleDueDeposits(renter.id, NOW);
+
+      expect(releaseMock).toHaveBeenCalledWith('pi_dep_huerfano');
+      expect(refundMock).not.toHaveBeenCalled();
+      const saved = await prisma.payment.findUniqueOrThrow({
+        where: { id: payment.id },
+      });
+      expect(saved.depositStatus).toBe('held');
+      expect(saved.depositReference).toBe('pi_dep_otro');
+    });
+
+    it('devuelve la fianza que acaba de cobrar en un alquiler de más de 6 días', async () => {
+      const { renter, payment } = await setUp('2026-12-11', '2026-12-17');
+      savedMeanwhile(payment.id, 'collected');
+
+      await settleDueDeposits(renter.id, NOW);
+
+      expect(refundMock).toHaveBeenCalledWith('pi_dep_huerfano');
+      expect(releaseMock).not.toHaveBeenCalled();
+    });
+
+    it('si Stripe falla al soltarlo, no lanza y solo registra el mensaje', async () => {
+      const { renter, payment } = await setUp('2026-12-11', '2026-12-16');
+      savedMeanwhile(payment.id, 'held');
+      releaseMock.mockRejectedValue(new Error('Stripe caído'));
+      const spy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
+      await expect(settleDueDeposits(renter.id, NOW)).resolves.toBeUndefined();
+
+      expect(spy).toHaveBeenCalledWith(expect.any(String), 'Stripe caído');
+      spy.mockRestore();
+    });
+
+    // Con Stripe, la clave de idempotencia devuelve el mismo PaymentIntent a las dos lecturas: el
+    // que queda guardado no se puede soltar.
+    it('si Stripe devuelve el mismo bloqueo que ya está guardado, no lo suelta', async () => {
+      const { renter, payment } = await setUp('2026-12-11', '2026-12-16');
+      authorizeDepositMock.mockImplementation(async () => {
+        await prisma.payment.update({
+          where: { id: payment.id },
+          data: { depositStatus: 'held', depositReference: 'pi_dep_mismo' },
+        });
+        return { reference: 'pi_dep_mismo' };
+      });
+
+      await settleDueDeposits(renter.id, NOW);
+
+      expect(releaseMock).not.toHaveBeenCalled();
+      expect(refundMock).not.toHaveBeenCalled();
+    });
+
+    it('con el propietario y el arrendatario leyendo a la vez, solo queda un bloqueo en Stripe', async () => {
+      const { renter, owner, payment } = await setUp(
+        '2026-12-11',
+        '2026-12-16',
+      );
+      // Las dos lecturas llegan a Stripe antes de que ninguna guarde nada.
+      let calls = 0;
+      let bothCalled: () => void = () => undefined;
+      const barrier = new Promise<void>((resolve) => {
+        bothCalled = resolve;
+      });
+      authorizeDepositMock.mockImplementation(async () => {
+        const reference = `pi_dep_${++calls}`;
+        if (calls === 2) bothCalled();
+        await barrier;
+        return { reference };
+      });
+
+      await Promise.all([
+        settleDueDeposits(renter.id, NOW),
+        settleDueDeposits(owner.id, NOW),
+      ]);
+
+      const saved = await prisma.payment.findUniqueOrThrow({
+        where: { id: payment.id },
+      });
+      expect(authorizeDepositMock).toHaveBeenCalledTimes(2);
+      // Cada bloqueo creado está guardado o se ha soltado, nunca los dos ni ninguno.
+      const other =
+        saved.depositReference === 'pi_dep_1' ? 'pi_dep_2' : 'pi_dep_1';
+      expect(releaseMock.mock.calls).toEqual([[other]]);
+    });
   });
 });

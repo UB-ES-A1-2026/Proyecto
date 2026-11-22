@@ -37,3 +37,14 @@ export async function saveDeposit(
   });
   return count === 1;
 }
+
+// La referencia de la fianza que hay guardada ahora (null si no hay ninguna o el pago no existe).
+export async function findDepositReference(
+  paymentId: string,
+): Promise<string | null> {
+  const payment = await prisma.payment.findUnique({
+    where: { id: paymentId },
+    select: { depositReference: true },
+  });
+  return payment?.depositReference ?? null;
+}
