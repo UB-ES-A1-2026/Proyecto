@@ -158,13 +158,40 @@ describe('POST /api/reservas/:id/valoracion', () => {
     },
   );
 
-  it('returns 403 when the owner tries to rate the rental', async () => {
-    const { reservation, ownerToken } = await finishedRental();
+  it('lets the owner rate the renter (US-08.02)', async () => {
+    const { owner, renter, reservation, ownerToken } = await finishedRental();
 
-    const response = await rate(reservation.id, { score: 4 }, ownerToken);
+    const response = await rate(
+      reservation.id,
+      { score: 3, comment: 'Lo devolvió algo sucio' },
+      ownerToken,
+    );
 
-    expect(response.status).toBe(403);
-    expect(await prisma.rating.count()).toBe(0);
+    expect(response.status).toBe(201);
+    expect(response.body).toMatchObject({
+      reservationId: reservation.id,
+      type: 'user',
+      score: 3,
+      comment: 'Lo devolvió algo sucio',
+    });
+    const saved = await prisma.rating.findUniqueOrThrow({
+      where: { id: response.body.id },
+    });
+    expect(saved.authorId).toBe(owner.id);
+    expect(saved.ratedUserId).toBe(renter.id);
+  });
+
+  it('lets each side rate the same rental once', async () => {
+    const { reservation, ownerToken, renterToken } = await finishedRental();
+
+    const byRenter = await rate(reservation.id, { score: 5 }, renterToken);
+    const byOwner = await rate(reservation.id, { score: 4 }, ownerToken);
+    const ownerAgain = await rate(reservation.id, { score: 2 }, ownerToken);
+
+    expect([byRenter.status, byOwner.status, ownerAgain.status]).toEqual([
+      201, 201, 409,
+    ]);
+    expect(await prisma.rating.count()).toBe(2);
   });
 
   it('returns 403 when someone outside the rental tries to rate it', async () => {
@@ -175,6 +202,9 @@ describe('POST /api/reservas/:id/valoracion', () => {
     const response = await rate(reservation.id, { score: 4 }, token);
 
     expect(response.status).toBe(403);
+    expect(response.body).toEqual({
+      error: 'Solo quien ha participado en este alquiler puede valorarlo.',
+    });
   });
 
   it.each(['pending', 'accepted', 'paid', 'in_progress'] as const)(
@@ -232,5 +262,33 @@ describe('POST /api/reservas/:id/valoracion', () => {
     });
     // El propietario aún no ha escrito la suya (eso es US-08.02).
     expect(ownerView.body.received[0].myRating).toBeNull();
+  });
+
+  it('shows each side the rating it has received in «Mis solicitudes»', async () => {
+    const { reservation, renterToken, ownerToken } = await finishedRental();
+    await rate(reservation.id, { score: 5, comment: 'Genial' }, renterToken);
+    await rate(
+      reservation.id,
+      { score: 2, comment: 'Llegó tarde' },
+      ownerToken,
+    );
+
+    const renterView = await request(app)
+      .get('/api/usuarios/me/reservas')
+      .set('Authorization', `Bearer ${renterToken}`);
+    const ownerView = await request(app)
+      .get('/api/usuarios/me/reservas')
+      .set('Authorization', `Bearer ${ownerToken}`);
+
+    const renterSide = renterView.body.sent[0];
+    const ownerSide = ownerView.body.received[0];
+    expect(renterSide.myRating).toMatchObject({ score: 5, comment: 'Genial' });
+    expect(renterSide.receivedRating).toEqual({
+      score: 2,
+      comment: 'Llegó tarde',
+      createdAt: expect.any(String),
+    });
+    expect(ownerSide.myRating).toMatchObject({ score: 2 });
+    expect(ownerSide.receivedRating).toMatchObject({ score: 5 });
   });
 });
