@@ -473,6 +473,8 @@ En Prisma, el modelo es `Cancellation` (`reservationId`, `cancelledById`, `cance
 - Los dos responden `409 { "error": "Esta reserva ya no se puede cancelar." }` si el estado no lo permite (también si el propietario cancela una pendiente) y, el POST, `502 { "error": "No se ha podido cancelar. Inténtalo de nuevo." }` si falla la pasarela: **todo se deshace** y la reserva no cambia.
 - En las reservas de «Mis solicitudes» (y en las que devuelven aceptar y rechazar) hay un campo nuevo, `cancellation`: `null` salvo en las canceladas, donde vale `{ "by": { "id", "username" }, "at", "penaltyPercent", "penaltyAmount", "refundAmount" }`.
 
+Al cancelar se avisa en tiempo real (`entrega.estado` con `status: "cancelled"`, como en el seguimiento de US-05.02) al arrendatario, al propietario y, si ya había aceptado el trabajo, al rider. El seguimiento de una reserva cancelada lo dice y no deja hacer nada más (#406).
+
 Antes de cancelar se caducan las solicitudes pendientes vencidas del usuario (#343), así que una pendiente que ya venció da `409`. Las llamadas a la pasarela se hacen dentro de la transacción, antes de confirmar: primero la fianza (soltar un bloqueo se puede repetir sin riesgo) y, lo último, el reembolso del alquiler.
 
 **Datos de demo:** `DEMO_RESERVATIONS` incluye, dos pagadas que jordi alquila a marta (bruno a ana en local) y que solo usa cancelar: la «Tabla de paddle surf hinchable» a 12 días (cancelar es gratis) y la «Silla de coche para bebé» a 4 días (penalización del 35 %), y una ya **cancelada** por bruno con su fila de `cancelacion` («Tienda de campaña»: 35 % de 16 € = 5,60 € para ana, 10,40 € devueltos a bruno). Repetir el seed rehace las cancelaciones.
