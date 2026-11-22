@@ -9,6 +9,7 @@ import {
 import {
   DEMO_ADMIN,
   DEMO_USERS,
+  DEV_ADMIN_EMAIL,
   DEV_USERS,
   DEV_PASSWORD,
   demandNeighbours,
@@ -26,6 +27,7 @@ import { prisma } from '../../src/repositories/prisma.js';
 import { quoteRiderFee } from '../../src/services/deliveryFee.js';
 import { isKnownNeighborhood } from '../../src/services/neighborhoods.js';
 import { resetDb } from '../helpers/db.js';
+import { createTestAdmin } from '../helpers/users.js';
 
 // Datos de demo (#97): las cuentas y los objetos se crean bien, no se duplican al repetir el
 // seed y la contraseña de la demo nunca puede ser la pública del seed de desarrollo.
@@ -334,6 +336,8 @@ describe('solicitudes de la demo', () => {
 
   it('asigna el rider aceptado a la reserva pagada con rider, también al repetir el seed', async () => {
     const userIds = await seedWithReservations();
+    // Las solicitudes resueltas las revisa el admin del seed (US-11.03).
+    await createTestAdmin({ email: DEV_ADMIN_EMAIL });
     await upsertDemoRiders(prisma, DEMO_PASSWORD, 4);
 
     expect(
