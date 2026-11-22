@@ -40,6 +40,17 @@ const SECTIONS: HelpSection[] = [
     ],
     note: 'Una cuenta de rider no puede buscar, alquilar ni publicar objetos: solo ve el estado de su solicitud y sus trabajos.',
   },
+  // «Trabajos» del rider (US-10.01, #293): generado con asistencia de IA (Claude)
+  {
+    id: 'trabajos',
+    title: 'Aceptar trabajos de entrega',
+    steps: [
+      'Con tu cuenta de rider aceptada, pulsa «Trabajos» en el menú.',
+      'En «Disponibles» verás las entregas agrupadas por día, cada una con el objeto, el barrio de recogida y el de entrega, la franja y la tarifa.',
+      'Pulsa «Aceptar» en la que quieras hacer. Pasa a «Mis trabajos», con la dirección completa de la recogida y de la entrega y «Ver seguimiento», y puedes seguir aceptando otras.',
+    ],
+    note: 'Hasta que aceptas un trabajo solo ves los barrios. Si otro rider lo ha aceptado antes que tú, verás «Ya asignado a otro rider» y desaparece de la lista.',
+  },
   {
     id: 'iniciar-sesion',
     title: 'Iniciar sesión',
