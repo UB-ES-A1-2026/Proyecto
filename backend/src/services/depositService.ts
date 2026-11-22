@@ -1,6 +1,7 @@
 // Fianza (US-07.01, T10 #285): sin tarea programada, se retiene o se cobra al leer las
 // reservas a partir del día antes del inicio. Hasta 6 días de alquiler se bloquea (retenida);
-// más de 6 se cobra (cobrada). Liberarla o devolverla al finalizar es de T13.
+// más de 6 se cobra (cobrada). Al finalizar («He devuelto el objeto», US-05.02) se libera o se
+// devuelve en markReturned (#402).
 // Generado con asistencia de IA (Claude) – revisado por Maxim Jaume, 17/11/2026
 import {
   findDepositReference,

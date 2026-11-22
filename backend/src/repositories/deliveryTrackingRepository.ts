@@ -110,27 +110,75 @@ export async function markDelivered(
   }
 }
 
+// La fianza que hay que soltar (retenida) o devolver (cobrada) al finalizar (#402).
+export type DepositToSettle = {
+  reference: string;
+  action: 'release' | 'refund';
+};
+
+// Stripe va dentro de la transacción (un reembolso son hasta 3 llamadas): los 5 s por defecto de
+// Prisma no bastan, como en reservationDecisionRepository.
+const TRANSACTION_TIMEOUT_MS = 20_000;
+
 // «He devuelto el objeto»: la reserva pasa de «En curso» a «Finalizada» y la entrega guarda la
 // hora de la devolución, las dos en la misma transacción. false si ya no estaba en curso.
 export async function markReturned(
   reservationId: string,
   at: Date,
+  settleDeposit: (deposit: DepositToSettle) => Promise<void>,
 ): Promise<boolean> {
   try {
-    return await prisma.$transaction(async (transaction) => {
-      const reservation = await transaction.reservation.updateMany({
-        where: { id: reservationId, status: 'in_progress' },
-        data: { status: 'finished' },
-      });
-      const delivery = await transaction.delivery.updateMany({
-        where: { reservationId, status: 'delivered', returnedAt: null },
-        data: { returnedAt: at },
-      });
-      if (reservation.count !== 1 || delivery.count !== 1) {
-        throw new DeliveryConflict();
-      }
-      return true;
-    });
+    return await prisma.$transaction(
+      async (transaction) => {
+        const reservation = await transaction.reservation.updateMany({
+          where: { id: reservationId, status: 'in_progress' },
+          data: { status: 'finished' },
+        });
+        const delivery = await transaction.delivery.updateMany({
+          where: { reservationId, status: 'delivered', returnedAt: null },
+          data: { returnedAt: at },
+        });
+        if (reservation.count !== 1 || delivery.count !== 1) {
+          throw new DeliveryConflict();
+        }
+
+        // La fianza (US-07.01, #402): retenida → liberada; cobrada → devuelta; pendiente (no se
+        // llegó a retener) → liberada. Una ejecutada por daños no se toca. Stripe se llama dentro
+        // de la transacción: si falla, no se finaliza nada y se puede reintentar. Si la retención
+        // del día antes (settleDueDeposits) la guarda justo entre la lectura y el cambio, el
+        // cambio no encuentra la fila: se vuelve a leer una vez con el estado nuevo.
+        for (let attempt = 0; attempt < 2; attempt += 1) {
+          const payment = await transaction.payment.findUnique({
+            where: { reservationId },
+            select: { depositStatus: true, depositReference: true },
+          });
+          const status = payment?.depositStatus;
+          if (
+            status !== 'held' &&
+            status !== 'collected' &&
+            status !== 'pending'
+          ) {
+            break;
+          }
+          const { count } = await transaction.payment.updateMany({
+            where: { reservationId, depositStatus: status },
+            data: {
+              depositStatus: status === 'collected' ? 'returned' : 'released',
+            },
+          });
+          if (count !== 1) continue;
+          if (status !== 'pending' && payment?.depositReference) {
+            await settleDeposit({
+              reference: payment.depositReference,
+              action: status === 'collected' ? 'refund' : 'release',
+            });
+          }
+          break;
+        }
+        return true;
+      },
+      { timeout: TRANSACTION_TIMEOUT_MS },
+    );
   } catch (error) {
     if (error instanceof DeliveryConflict) return false;
     throw error;
