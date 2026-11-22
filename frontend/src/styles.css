@@ -11,6 +11,7 @@
 @import './styles/rating.css';
 @import './styles/admin.css';
 @import './styles/cancel.css';
+@import './styles/jobs.css';
 
 @font-face {
   font-family: 'Inter';
