@@ -3,10 +3,13 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   DEMO_DEMAND_ITEM,
   DEMO_ITEMS,
+  DEMO_MODERATIONS,
   DEMO_RESERVATIONS,
 } from '../../prisma/demoData.js';
 import {
+  DEMO_ADMIN,
   DEMO_USERS,
+  DEV_ADMIN_EMAIL,
   DEV_USERS,
   DEV_PASSWORD,
   demandNeighbours,
@@ -14,6 +17,7 @@ import {
   demoPasswordError,
   upsertDemoDemand,
   upsertDemoItems,
+  upsertDemoModerations,
   upsertDemoReservations,
   upsertDemoRiders,
   upsertUsers,
@@ -23,6 +27,7 @@ import { prisma } from '../../src/repositories/prisma.js';
 import { quoteRiderFee } from '../../src/services/deliveryFee.js';
 import { isKnownNeighborhood } from '../../src/services/neighborhoods.js';
 import { resetDb } from '../helpers/db.js';
+import { createTestAdmin } from '../helpers/users.js';
 
 // Datos de demo (#97): las cuentas y los objetos se crean bien, no se duplican al repetir el
 // seed y la contraseña de la demo nunca puede ser la pública del seed de desarrollo.
@@ -331,6 +336,8 @@ describe('solicitudes de la demo', () => {
 
   it('asigna el rider aceptado a la reserva pagada con rider, también al repetir el seed', async () => {
     const userIds = await seedWithReservations();
+    // Las solicitudes resueltas las revisa el admin del seed (US-11.03).
+    await createTestAdmin({ email: DEV_ADMIN_EMAIL });
     await upsertDemoRiders(prisma, DEMO_PASSWORD, 4);
 
     expect(
@@ -553,11 +560,18 @@ describe('demanda de fechas de la demo (US-04.07, #311)', () => {
 // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
 describe('riders de la demo (US-10.03)', () => {
   async function seedRiders() {
-    return upsertDemoRiders(prisma, DEMO_PASSWORD, 4, PRODUCTION_DEMO_RIDERS);
+    await upsertUsers(prisma, [DEMO_ADMIN], DEMO_PASSWORD, 4);
+    return upsertDemoRiders(
+      prisma,
+      DEMO_PASSWORD,
+      4,
+      PRODUCTION_DEMO_RIDERS,
+      DEMO_ADMIN.email,
+    );
   }
 
-  it('crea un rider pendiente y uno aceptado con la contraseña de la demo', async () => {
-    expect(await seedRiders()).toBe(2);
+  it('crea un rider pendiente, uno aceptado y uno rechazado con la contraseña de la demo', async () => {
+    expect(await seedRiders()).toBe(3);
 
     const riders = await prisma.user.findMany({
       where: { isRider: true },
@@ -570,6 +584,7 @@ describe('riders de la demo (US-10.03)', () => {
         riderApplication?.status,
       ]),
     ).toEqual([
+      ['bruna@demo.rentit.test', 'rejected'],
       ['nuria@demo.rentit.test', 'pending'],
       ['pau@demo.rentit.test', 'approved'],
     ]);
@@ -584,7 +599,118 @@ describe('riders de la demo (US-10.03)', () => {
     await seedRiders();
     await seedRiders();
 
-    expect(await prisma.user.count({ where: { isRider: true } })).toBe(2);
-    expect(await prisma.riderApplication.count()).toBe(2);
+    expect(await prisma.user.count({ where: { isRider: true } })).toBe(3);
+    expect(await prisma.riderApplication.count()).toBe(3);
+    expect(await prisma.user.count({ where: { role: 'admin' } })).toBe(1);
+  });
+});
+
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+describe('admin de la demo (US-11.03)', () => {
+  async function seedAdminAndRiders() {
+    await upsertUsers(prisma, [DEMO_ADMIN], DEMO_PASSWORD, 4);
+    await upsertDemoRiders(
+      prisma,
+      DEMO_PASSWORD,
+      4,
+      PRODUCTION_DEMO_RIDERS,
+      DEMO_ADMIN.email,
+    );
+  }
+
+  it('existe con rol admin y la contraseña de la demo, y no es dueño de la demo de objetos', async () => {
+    await seedAdminAndRiders();
+
+    const admin = await prisma.user.findUniqueOrThrow({
+      where: { email: 'admin@demo.rentit.test' },
+    });
+    expect(admin).toMatchObject({ username: 'admin', role: 'admin' });
+    expect(await bcrypt.compare(DEMO_PASSWORD, admin.passwordHash)).toBe(true);
+    expect(DEMO_USERS.map(({ email }) => email)).not.toContain(admin.email);
+  });
+
+  it('las solicitudes resueltas las revisó el admin; la pendiente, nadie', async () => {
+    await seedAdminAndRiders();
+
+    const admin = await prisma.user.findUniqueOrThrow({
+      where: { email: DEMO_ADMIN.email },
+    });
+    const applications = await prisma.riderApplication.findMany();
+
+    for (const application of applications) {
+      if (application.status === 'pending') {
+        expect(application.reviewedById).toBeNull();
+        expect(application.reviewedAt).toBeNull();
+      } else {
+        expect(application.reviewedById).toBe(admin.id);
+        expect(application.reviewedAt).toBeInstanceOf(Date);
+      }
+    }
+    expect(
+      applications.find(({ status }) => status === 'rejected')?.rejectionReason,
+    ).toBeTruthy();
+  });
+});
+
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 13/11/2026
+describe('objeto retirado por el admin en la demo (US-11.03)', () => {
+  async function seedWithModeration() {
+    const ownerIds = await seedDemo();
+    await upsertUsers(prisma, [DEMO_ADMIN], DEMO_PASSWORD, 4);
+    await upsertDemoModerations(prisma, ownerIds, DEMO_ADMIN.email);
+    return ownerIds;
+  }
+
+  it('el objeto queda retirado, con su motivo y el admin de la demo', async () => {
+    const ownerIds = await seedWithModeration();
+
+    const admin = await prisma.user.findUniqueOrThrow({
+      where: { email: DEMO_ADMIN.email },
+    });
+    const moderations = await prisma.itemModeration.findMany({
+      include: { item: true },
+    });
+    expect(moderations).toHaveLength(DEMO_MODERATIONS.length);
+
+    for (const demo of DEMO_MODERATIONS) {
+      const moderation = moderations.find(
+        ({ item }) => item.title === demo.item.title,
+      );
+      expect(moderation?.item.ownerId).toBe(ownerIds[demo.item.owner]);
+      expect(moderation?.item.status).toBe('withdrawn');
+      expect(moderation?.adminId).toBe(admin.id);
+      expect(moderation?.reason).toBe(demo.reason);
+      expect(moderation?.details).toBe(demo.details);
+    }
+  });
+
+  it('no tiene reservas activas y se puede repetir sin duplicar', async () => {
+    const ownerIds = await seedWithModeration();
+    await prisma.itemModeration.updateMany({ data: { reason: 'other' } });
+
+    await upsertDemoModerations(prisma, ownerIds, DEMO_ADMIN.email);
+
+    expect(await prisma.itemModeration.count()).toBe(DEMO_MODERATIONS.length);
+    expect((await prisma.itemModeration.findFirstOrThrow()).reason).toBe(
+      DEMO_MODERATIONS[0]?.reason,
+    );
+    expect(
+      await prisma.reservation.count({
+        where: { item: { moderation: { isNot: null } } },
+      }),
+    ).toBe(0);
+  });
+
+  it('falla con un mensaje claro si falta el admin o el objeto', async () => {
+    const ownerIds = await seedDemo();
+    await expect(
+      upsertDemoModerations(prisma, ownerIds, DEMO_ADMIN.email),
+    ).rejects.toThrow('No existe el admin');
+
+    await resetDb();
+    await upsertUsers(prisma, [DEMO_ADMIN], DEMO_PASSWORD, 4);
+    await expect(
+      upsertDemoModerations(prisma, [], DEMO_ADMIN.email),
+    ).rejects.toThrow('crea antes los objetos');
   });
 });

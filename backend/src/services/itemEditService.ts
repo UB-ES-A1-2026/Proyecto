@@ -1,5 +1,5 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
-import type { ItemStatus } from '@prisma/client';
+import type { ItemStatus, WithdrawalReason } from '@prisma/client';
 import { AppError } from '../errors/appError.js';
 import {
   findItemOwnerAndStatus,
@@ -25,6 +25,12 @@ export interface MyItem {
   status: ItemStatus;
   // URL de la primera foto, o null si no tiene.
   photo: string | null;
+  // Por qué lo retiró un admin (US-11.03); null si no lo ha retirado un admin.
+  moderation: {
+    reason: WithdrawalReason;
+    details: string | null;
+    withdrawnAt: string;
+  } | null;
 }
 
 export interface ItemChanges {
@@ -47,10 +53,14 @@ export async function getMyItems(ownerId: string): Promise<MyItem[]> {
   const items = await findItemsByOwner(ownerId);
   const photos = await listFirstPhotoUrls(items.map((item) => item.id));
 
-  return items.map((item) => ({
+  return items.map(({ moderation, ...item }) => ({
     ...item,
     dailyPrice: item.dailyPrice.toFixed(2),
     photo: photos.get(item.id) ?? null,
+    moderation: moderation && {
+      ...moderation,
+      withdrawnAt: moderation.withdrawnAt.toISOString(),
+    },
   }));
 }
 

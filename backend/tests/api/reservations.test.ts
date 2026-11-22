@@ -286,6 +286,7 @@ describe('POST /api/reservas', () => {
       deliveryAmount: '0.00',
       status: 'pending',
       expiresAt: expect.any(String),
+      cancellationReason: null,
       renter: { id: renter.id, username: 'bruno' },
       owner: { id: owner.id, username: 'ana' },
       delivery: {
