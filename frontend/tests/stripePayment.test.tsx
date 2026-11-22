@@ -66,6 +66,7 @@ const RESERVATION: Reservation = {
   createdAt: '2026-11-01T12:30:00.000Z',
   // Valorar (US-08.01): una solicitud recién hecha aún no tiene valoración.
   myRating: null,
+  receivedRating: null,
 };
 
 const THREE_DS = {
