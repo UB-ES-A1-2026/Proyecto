@@ -254,6 +254,8 @@ export async function upsertDemoReservations(
     const { id } = existing
       ? await prisma.reservation.update({ where: { id: existing.id }, data })
       : await prisma.reservation.create({ data });
+    // Repetir el seed borra las valoraciones hechas al probar: vuelve a salir «Valorar» (#295).
+    await prisma.rating.deleteMany({ where: { reservationId: id } });
 
     const delivery = await demoDeliveryData(
       prisma,

@@ -13,10 +13,13 @@
         experiencia con otros usuarios</strong>.
       </p>
       <p class="wf-meta">
-        Issue #74 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Generado con
-        asistencia de IA (Claude) – pendiente de revisar por el equipo en el Sprint Planning
+        Issue #74 · Tarea de frontend #296 · Wireframe de baja fidelidad · Actualizado con asistencia de IA (Claude) tras
+        la maqueta web de la tarea, pendiente de revisar por el equipo
       </p>
-      <p class="wf-meta">Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo</p>
+      <p class="wf-meta">
+        Valora quien hizo la solicitud (el arrendatario). Que el propietario valore al inquilino es US-08.02 y usa el mismo
+        formulario. La pantalla usa el backend de #295 (POST /api/reservas/:id/valoracion).
+      </p>
       <p class="wf-meta">Maqueta de Figma · Marco «Ficha»: la sección «Valoracions» enseña en la ficha el resultado de esta historia; aquí solo se dibuja cómo se valora.</p>
     </header>
 
@@ -26,10 +29,7 @@
         <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Mis solicitudes</h3>
@@ -38,26 +38,25 @@
               <div>
                 <h4>Enviadas <span class="wf-chip">1</span></h4>
                 <div class="wf-tarjeta">
-                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Finalizada</span><span>▴</span></div>
-                  <p class="wf-ayuda">10–12 nov. 2026</p>
-                  <p class="wf-texto"></p>
+                  <div class="wf-fila"><strong>Escalera de aluminio de 3 peldaños</strong><span class="wf-chip">Finalizada</span><span>▴</span></div>
+                  <p class="wf-ayuda">27–28 nov. 2026</p>
                   <div class="wf-rejilla">
-                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
-                    <p class="wf-texto">Fechas: Del 10 de noviembre de 2026 al 12 de noviembre de 2026</p>
-                    <p class="wf-texto">Importe total: 18,00 €</p>
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Escalera de aluminio de 3 peldaños</span></p>
+                    <p class="wf-texto">Fechas: Del 27 al 28 de noviembre de 2026</p>
+                    <p class="wf-texto">Importe total: 6,00 €</p>
                     <p class="wf-texto">Estado: Finalizada</p>
                     <p class="wf-texto">Propietario: ana</p>
-                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
+                    <p class="wf-texto">Enviada el 13 de noviembre de 2026</p>
                   </div>
                   <p class="wf-texto"></p>
-                  <span class="wf-boton">Valorar</span><span class="wf-marca">1</span>
+                  <span class="wf-boton">☆ Valorar</span><span class="wf-marca">1</span>
                 </div>
               </div>
               <div>
                 <h4>Recibidas <span class="wf-chip">1</span></h4>
                 <div class="wf-tarjeta">
-                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
-                  <p class="wf-ayuda">9 nov. 2026</p>
+                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Aceptada</span><span>▾</span></div>
+                  <p class="wf-ayuda">18 nov. 2026</p>
                 </div>
               </div>
             </div>
@@ -66,8 +65,8 @@
       </div>
       <ol class="wf-notas">
         <li>
-          Criterio 1: solo en un alquiler «Finalizada» de «Enviadas». Criterios 7 y 8: en un alquiler que no ha hecho o ya
-          valorado no aparece «Valorar», y la API lo rechaza.
+          Criterio 1: solo en un alquiler «Finalizada» de «Enviadas», al desplegarlo. Lleva a
+          <code>/mis-solicitudes/:id/valorar</code>. En las recibidas no sale: valorar al inquilino es US-08.02.
         </li>
       </ol>
     </section>
@@ -77,34 +76,32 @@
     <section class="wf-pantalla" data-captura="2-formulario">
       <h2><span class="wf-paso">2</span>Formulario de valoración <code>/mis-solicitudes/:id/valorar</code></h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes/5ac9…/valorar">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes/2b51…/valorar">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
-            <div class="wf-centrado wf-tarjeta">
-              <h3 class="wf-h1">Valorar el alquiler <span class="wf-marca">1</span></h3>
-              <p class="wf-texto">Taladro percutor Bosch · Del 10/11/2026 al 12/11/2026</p>
-              <div class="wf-campo">
-                <label>Puntuación <span class="wf-marca">2</span></label>
+            <div class="wf-centrado">
+              <h3 class="wf-h1">Valorar el alquiler</h3>
+              <p class="wf-ayuda">Cuenta tu experiencia para ayudar a otras personas.</p>
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><span class="wf-enlace">Escalera de aluminio de 3 peldaños</span> <span class="wf-marca">1</span></p>
+                <p class="wf-ayuda">Del 27 de noviembre de 2026 al 28 de noviembre de 2026<br />Propietario: ana</p>
+                <div class="wf-campo">
+                  <label>Puntuación <span class="wf-marca">2</span></label>
+                  <p class="wf-texto">☆ ☆ ☆ ☆ ☆ &nbsp; <strong>Elige de 1 a 5</strong></p>
+                </div>
+                <div class="wf-campo">
+                  <label>Comentario (opcional) <span class="wf-marca">3</span></label>
+                  <div class="wf-input">¿Qué tal ha ido? El objeto, la entrega, el trato…<br /><br /></div>
+                  <p class="wf-ayuda">Lo verán otras personas en el perfil de ana. Hasta 1000 caracteres (0/1000).</p>
+                </div>
                 <div class="wf-fila">
-                  <span class="wf-boton wf-secundario">☆</span>
-                  <span class="wf-boton wf-secundario">☆</span>
-                  <span class="wf-boton wf-secundario">☆</span>
-                  <span class="wf-boton wf-secundario">☆</span>
-                  <span class="wf-boton wf-secundario">☆</span>
+                  <span class="wf-boton">Publicar</span><span class="wf-marca">4</span>
+                  <span class="wf-boton wf-secundario">Cancelar</span>
                 </div>
               </div>
-              <div class="wf-campo">
-                <label>Comentario <span class="wf-marca">3</span></label>
-                <div class="wf-input">Cuenta cómo ha ido tu experiencia</div>
-                <p class="wf-ayuda">Opcional.</p>
-              </div>
-              <span class="wf-boton wf-ancho">Publicar</span>
             </div>
           </div>
         </div>
@@ -112,25 +109,27 @@
           <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Valorar el alquiler</h3>
-            <p class="wf-texto">Taladro percutor Bosch · Del 10/11/2026 al 12/11/2026</p>
-            <div class="wf-campo">
-              <label>Puntuación</label>
-              <div class="wf-input">☆ ☆ ☆ ☆ ☆</div>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><span class="wf-enlace">Escalera de aluminio de 3 peldaños</span></p>
+              <p class="wf-ayuda">27 – 28 nov. 2026 · ana</p>
+              <div class="wf-campo"><label>Puntuación</label><p class="wf-texto">☆ ☆ ☆ ☆ ☆<br /><strong>Elige de 1 a 5</strong></p></div>
+              <div class="wf-campo"><label>Comentario (opcional)</label><div class="wf-input">¿Qué tal ha ido?…<br /><br /></div></div>
+              <span class="wf-boton wf-ancho">Publicar</span>
+              <p class="wf-texto"></p>
+              <span class="wf-boton wf-secundario wf-ancho">Cancelar</span>
             </div>
-            <div class="wf-campo">
-              <label>Comentario</label>
-              <div class="wf-input">Cuenta cómo ha ido tu experiencia</div>
-              <p class="wf-ayuda">Opcional.</p>
-            </div>
-            <span class="wf-boton wf-ancho">Publicar</span>
           </div>
           <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Ruta propuesta. No se define «Cancelar»: se sale con la cabecera.</li>
-        <li>Criterios 2 y 4: de 1 a 5 estrellas, obligatoria.</li>
-        <li>Criterio 3: el comentario es opcional.</li>
+        <li>El alquiler que se valora: el objeto enlaza a su ficha (<code>/objetos/:id</code>). Mientras carga se ve un relleno.</li>
+        <li>
+          Criterio 2: de 1 a 5 estrellas. Son botones de opción (se eligen con el ratón o con las flechas del teclado) y al
+          lado se lee qué significa cada una: Muy mal, Mal, Normal, Bien, Excelente. Al pasar el ratón se ve cómo quedaría.
+        </li>
+        <li>Criterio 3: comentario opcional, hasta 1000 caracteres, con contador.</li>
+        <li>«Publicar» envía la valoración. «Cancelar» vuelve a «Mis solicitudes» sin publicar.</li>
       </ol>
     </section>
 
@@ -139,41 +138,29 @@
     <section class="wf-pantalla" data-captura="3-error-sin-puntuacion">
       <h2><span class="wf-paso">3</span>Error: sin puntuación <code>/mis-solicitudes/:id/valorar</code></h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes/5ac9…/valorar">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes/2b51…/valorar">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <div class="wf-centrado wf-tarjeta">
-              <h3 class="wf-h1">Valorar el alquiler</h3>
-              <p class="wf-texto">Taladro percutor Bosch · Del 10/11/2026 al 12/11/2026</p>
               <div class="wf-campo">
                 <label>Puntuación</label>
-                <div class="wf-fila">
-                  <span class="wf-boton wf-secundario">☆</span>
-                  <span class="wf-boton wf-secundario">☆</span>
-                  <span class="wf-boton wf-secundario">☆</span>
-                  <span class="wf-boton wf-secundario">☆</span>
-                  <span class="wf-boton wf-secundario">☆</span>
-                </div>
+                <p class="wf-texto">☆ ☆ ☆ ☆ ☆ &nbsp; <strong>Elige de 1 a 5</strong></p>
                 <p class="wf-error">Elige una puntuación de 1 a 5 estrellas. <span class="wf-marca">1</span></p>
               </div>
-              <div class="wf-campo">
-                <label>Comentario</label>
-                <div class="wf-input">Cuenta cómo ha ido tu experiencia</div>
-                <p class="wf-ayuda">Opcional.</p>
-              </div>
-              <span class="wf-boton wf-ancho">Publicar</span>
+              <div class="wf-campo"><label>Comentario (opcional)</label><div class="wf-input">Muy bien<br /><br /></div></div>
+              <div class="wf-fila"><span class="wf-boton">Publicar</span><span class="wf-boton wf-secundario">Cancelar</span></div>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Criterio 5: no se publica y se indica en este campo. El texto exacto es una propuesta.</li>
+        <li>
+          Criterios 4 y 5: no se publica (no se llama a la API) y se indica en ese campo; las estrellas se marcan en rojo.
+          Al elegir una, el error desaparece.
+        </li>
       </ol>
     </section>
 
@@ -182,40 +169,33 @@
     <section class="wf-pantalla" data-captura="4-formulario-relleno">
       <h2><span class="wf-paso">4</span>Formulario relleno <code>/mis-solicitudes/:id/valorar</code></h2>
       <div class="wf-dispositivos">
-        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes/5ac9…/valorar">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes/2b51…/valorar">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <div class="wf-centrado wf-tarjeta">
-              <h3 class="wf-h1">Valorar el alquiler</h3>
-              <p class="wf-texto">Taladro percutor Bosch · Del 10/11/2026 al 12/11/2026</p>
               <div class="wf-campo">
                 <label>Puntuación</label>
-                <div class="wf-fila">
-                  <span class="wf-boton">★</span>
-                  <span class="wf-boton">★</span>
-                  <span class="wf-boton">★</span>
-                  <span class="wf-boton">★</span>
-                  <span class="wf-boton wf-secundario">☆</span>
-                </div>
+                <p class="wf-texto">★ ★ ★ ★ ☆ &nbsp; <strong>Bien</strong></p>
               </div>
               <div class="wf-campo">
-                <label>Comentario</label>
-                <div class="wf-input">El taladro funcionaba muy bien.</div>
-                <p class="wf-ayuda">Opcional.</p>
+                <label>Comentario (opcional)</label>
+                <div class="wf-input">Escalera en perfecto estado y ana muy puntual. Repetiría.<br /><br /></div>
+                <p class="wf-ayuda">Lo verán otras personas en el perfil de ana. Hasta 1000 caracteres (57/1000).</p>
               </div>
-              <span class="wf-boton wf-ancho">Publicar</span><span class="wf-marca">1</span>
+              <div class="wf-fila"><span class="wf-boton">Publicar</span><span class="wf-marca">1</span><span class="wf-boton wf-secundario">Cancelar</span></div>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Criterio 6: la valoración queda asociada al alquiler y al usuario que la ha creado.</li>
+        <li>
+          Criterio 6: la valoración queda asociada al alquiler y a quien la crea (<code>POST /reservas/:id/valoracion</code>
+          con la puntuación y el comentario). Mientras se envía dice «Publicando…» y el formulario está desactivado. Si la
+          API rechaza el comentario, el error sale en ese campo; otros errores, encima de los botones.
+        </li>
       </ol>
     </section>
 
@@ -227,46 +207,56 @@
         <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
           <nav class="wf-nav">
             <span class="wf-logo">Rentit</span>
-            <span class="wf-enlaces">
-              <span class="wf-enlace">Mis objetos</span>
-              <span class="wf-enlace">Mis solicitudes</span>
-              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Mis solicitudes</h3>
-            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <p class="wf-aviso">✓ Valoración publicada. <span class="wf-marca">1</span></p>
             <div class="wf-columnas wf-iguales">
-              <div>
-                <h4>Enviadas <span class="wf-chip">1</span></h4>
-                <div class="wf-tarjeta">
-                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Finalizada</span><span>▴</span></div>
-                  <p class="wf-ayuda">10–12 nov. 2026</p>
-                  <p class="wf-texto"></p>
-                  <div class="wf-rejilla">
-                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
-                    <p class="wf-texto">Fechas: Del 10 de noviembre de 2026 al 12 de noviembre de 2026</p>
-                    <p class="wf-texto">Importe total: 18,00 €</p>
-                    <p class="wf-texto">Estado: Finalizada</p>
-                    <p class="wf-texto">Propietario: ana</p>
-                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
-                  </div>
-                  <p class="wf-texto"></p>
-                  <p class="wf-texto">Tu valoración: ★★★★☆ · «El taladro funcionaba muy bien.» <span class="wf-marca">1</span></p>
-                </div>
+              <div class="wf-tarjeta">
+                <div class="wf-fila"><strong>Escalera de aluminio de 3 peldaños</strong><span class="wf-chip">Finalizada</span><span>▴</span></div>
+                <p class="wf-ayuda">27–28 nov. 2026 · Propietario: ana</p>
+                <p class="wf-ayuda">Tu valoración <span class="wf-marca">2</span></p>
+                <p class="wf-texto">★ ★ ★ ★ ☆</p>
+                <p class="wf-texto"><em>«Escalera en perfecto estado y ana muy puntual. Repetiría.»</em></p>
               </div>
-              <div>
-                <h4>Recibidas <span class="wf-chip">1</span></h4>
-                <div class="wf-tarjeta">
-                  <div class="wf-fila"><strong>Proyector Full HD</strong><span class="wf-chip">Pendiente</span><span>▾</span></div>
-                  <p class="wf-ayuda">9 nov. 2026</p>
-                </div>
-              </div>
+              <div></div>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
+        <li>Aviso al volver del formulario. Desaparece al recargar la página.</li>
         <li>Criterio 8: el alquiler muestra la valoración en lugar de «Valorar», así que no se puede publicar otra.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Si se abre el formulario de un alquiler ya valorado o sin finalizar</p>
+
+    <section class="wf-pantalla" data-captura="6-no-se-puede-valorar">
+      <h2><span class="wf-paso">6</span>Error: no se puede valorar <code>/mis-solicitudes/:id/valorar</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes/2b51…/valorar">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Mis objetos</span><span class="wf-enlace">Mis solicitudes</span><span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-centrado wf-tarjeta">
+              <p class="wf-aviso">✓ Ya has valorado este alquiler. <span class="wf-marca">1</span></p>
+              <p class="wf-texto">★ ★ ★ ★ ☆<br /><em>«Escalera en perfecto estado y ana muy puntual. Repetiría.»</em></p>
+              <span class="wf-boton wf-secundario">Volver a Mis solicitudes</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Criterios 7 y 8: en lugar del formulario sale el motivo. Ya valorado: «Ya has valorado este alquiler.» con la
+          valoración; sin finalizar: «Solo se puede valorar un alquiler finalizado.»; un alquiler que no ha hecho: «No
+          hemos encontrado este alquiler.». También si la API responde <code>409</code> al publicar (por ejemplo, ya lo
+          valoró en otra pestaña).
+        </li>
       </ol>
     </section>
   </body>

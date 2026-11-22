@@ -54,6 +54,7 @@ export type IconName =
   | 'search_off'
   | 'shield'
   | 'star'
+  | 'star_fill'
   | 'swap_horiz'
   | 'task_alt'
   | 'travel_explore'
