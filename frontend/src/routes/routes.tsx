@@ -6,6 +6,7 @@ import { ApprovedRiderRoute, GuestOnlyRoute, RenterOnlyRoute } from '../componen
 import { AuthProvider } from '../context/AuthContext';
 import { BecomeRiderPage } from '../pages/BecomeRiderPage';
 import { ConfirmRentalPage } from '../pages/ConfirmRentalPage';
+import { DeliveryTrackingPage } from '../pages/DeliveryTrackingPage';
 import { HelpPage } from '../pages/HelpPage';
 import { HomePage } from '../pages/HomePage';
 import { ItemDetailPage } from '../pages/ItemDetailPage';
@@ -70,6 +71,9 @@ export const routes: RouteObject[] = [
             element: <ApprovedRiderRoute />,
             children: [{ path: 'trabajos', element: <RiderJobsPage /> }],
           },
+          // Seguimiento de la entrega (US-05.02): el id es el de la reserva. Lo ven el arrendatario,
+          // el propietario y el rider de la entrega.
+          { path: 'entregas/:id', element: <DeliveryTrackingPage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },

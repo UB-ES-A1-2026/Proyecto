@@ -144,6 +144,20 @@ const SECTIONS: HelpSection[] = [
     ],
     note: 'Tienes 48 horas para responder: si no, la solicitud caduca y se libera el importe. Las fechas quedan ocupadas cuando aceptas. Si otra reserva ya ocupa esas fechas, no se podrá aceptar y verás un aviso.',
   },
+  // Seguimiento de la entrega (US-05.02, #290): generado con asistencia de IA (Claude) – revisado por
+  // Marc Sanz, 20/11/2026
+  {
+    id: 'seguir-entrega',
+    title: 'Seguir la entrega',
+    steps: [
+      'En «Mis solicitudes», abre una reserva pagada y pulsa «Ver entrega». La ven el arrendatario, el propietario y el rider.',
+      'Verás los pasos de la entrega con su fecha y hora. Con rider: «Asignada», «Recogida», «En camino» y «Entregada». Sin rider: «Pendiente de entrega» y «Entregada». Después siguen «En curso» y «Finalizada». La pantalla se actualiza sola cuando cambia algo.',
+      'Con rider, si eres quien alquila, verás «Tu código de entrega». Enséñaselo al rider cuando te dé el objeto: lo necesita para marcar «Entregada».',
+      'Sin rider, cuando tengas el objeto pulsa «Ya tengo el objeto».',
+      'Cuando lo devuelvas, pulsa «He devuelto el objeto»: el alquiler pasa a «Finalizada».',
+    ],
+    note: 'El rider marca cada paso en orden con «Marcar como…»; no se puede saltar ninguno ni volver atrás. Si el rider escribe mal el código 5 veces, se bloquea: quien alquila pulsa «Generar un código nuevo» y el anterior deja de valer.',
+  },
   // Valorar un alquiler (US-08.01, #296): generado con asistencia de IA (Claude)
   {
     id: 'valorar',

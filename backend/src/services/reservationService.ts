@@ -27,6 +27,7 @@ import {
 import { selectableModes } from './itemDelivery.js';
 import { assertNotRiderAccount } from './riderService.js';
 import { toReservationDetail, type ReservationDetail } from './reservation.js';
+import { generateDeliveryCode } from './deliveryCode.js';
 
 export const ITEM_NOT_FOUND_MESSAGE = 'No hemos encontrado este objeto.';
 export const OWN_ITEM_MESSAGE = 'No puedes alquilar tu propio objeto.';
@@ -175,6 +176,7 @@ async function resolveDelivery(
         deliveryAddress: delivery.address,
         deliveryNeighborhood: delivery.neighborhood,
         fee: quoteRiderFee(item.neighborhood, delivery.neighborhood).fee,
+        deliveryCode: generateDeliveryCode(),
       };
     }
   }
