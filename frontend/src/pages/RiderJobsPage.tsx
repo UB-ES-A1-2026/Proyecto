@@ -17,6 +17,7 @@ import {
   type JobStatus,
   type MyJob,
 } from '../services/riderJobService';
+import { STEP_LABELS } from '../utils/deliveryTracking';
 
 const AVAILABLE_PATH = '/trabajos';
 const MINE_PATH = '/trabajos/mios';
@@ -36,14 +37,8 @@ type NoticeContent =
   { kind: 'accepted' | 'taken'; title: string } | { kind: 'error'; message: string };
 type Notice = NoticeContent & { id: number };
 
-// Estados de la entrega con los nombres de la historia US-05.02 (#67). Los valores de la API se
-// fijan con la máquina de estados de T13 (#288).
-const STATUS_LABELS: Record<JobStatus, string> = {
-  assigned: 'Asignada',
-  picked_up: 'Recogida',
-  on_the_way: 'En camino',
-  delivered: 'Entregada',
-};
+// Estados de la entrega con los textos del seguimiento (US-05.02, #67).
+const STATUS_LABELS: Record<JobStatus, string> = STEP_LABELS;
 
 function parseLocalDate(date: string): Date {
   const [year, month, day] = date.slice(0, 10).split('-').map(Number);
@@ -313,7 +308,24 @@ function JobRoute({ pickup, delivery }: { pickup: ReactNode; delivery: ReactNode
   );
 }
 
-function JobFee({ fee }: { fee: string }) {
+// Dirección completa y, entre paréntesis, el barrio. Si falta alguno, lo que haya.
+function Place({ address, neighborhood }: { address: string | null; neighborhood: string | null }) {
+  if (!address) return <>{neighborhood ?? '—'}</>;
+  return (
+    <>
+      {address}
+      {neighborhood && (
+        <>
+          {' '}
+          <span className="job-stop-area">({neighborhood})</span>
+        </>
+      )}
+    </>
+  );
+}
+
+function JobFee({ fee }: { fee: string | null }) {
+  if (fee === null) return null;
   return (
     <span className="job-fee">
       <span className="job-fee-label">Tarifa</span>{' '}
@@ -404,7 +416,7 @@ function AvailableJobContent({
       <div className="job-main">
         {showDay && <p className="job-detail-day">{formatDay(job.startDate)}</p>}
         <h3 className="job-title">{job.item.title}</h3>
-        <JobRoute pickup={job.pickupNeighborhood} delivery={job.deliveryNeighborhood} />
+        <JobRoute pickup={job.pickupNeighborhood} delivery={job.deliveryNeighborhood ?? '—'} />
         <span className="job-slot">
           <Icon name="schedule" />
           {formatSlot(job.slot)}
@@ -440,13 +452,12 @@ function MyJobContent({ job, showDay = false }: { job: MyJob; showDay?: boolean 
         <JobRoute
           pickup={
             <>
-              {job.pickupAddress} <span className="job-stop-area">({job.pickupNeighborhood})</span>
+              <Place address={job.pickupAddress} neighborhood={job.pickupNeighborhood} />
             </>
           }
           delivery={
             <>
-              {job.deliveryAddress}{' '}
-              <span className="job-stop-area">({job.deliveryNeighborhood})</span>
+              <Place address={job.deliveryAddress} neighborhood={job.deliveryNeighborhood} />
             </>
           }
         />
