@@ -6,7 +6,7 @@ import {
   formatSlot,
   type ReservationDelivery,
 } from '../services/deliveryService';
-import type { Reservation, ReservationStatus } from '../services/reservationService';
+import type { Rating, Reservation, ReservationStatus } from '../services/reservationService';
 import { Icon, type IconName } from './Icon';
 import { StarsDisplay } from './StarRating';
 
@@ -185,6 +185,16 @@ function DeliveryFacts({
   );
 }
 
+function RatingSummary({ title, rating }: { title: string; rating: Rating }) {
+  return (
+    <div className="reservation-rating-summary">
+      <p className="reservation-rating-title">{title}</p>
+      <StarsDisplay score={rating.score} />
+      {rating.comment && <p className="reservation-rating-comment">«{rating.comment}»</p>}
+    </div>
+  );
+}
+
 export function ReservationCard({
   reservation,
   role,
@@ -284,27 +294,30 @@ export function ReservationCard({
                 </span>
               </p>
             )}
-            {/* US-08.01 (#296): quien la pidió valora el alquiler cuando ha terminado. Una vez
-                valorado, se ve la valoración en lugar de «Valorar». */}
-            {role === 'sent' && reservation.status === 'finished' && (
+            {/* Valorar al terminar: quien la pidió valora el alquiler (US-08.01, #296) y el
+                propietario, al inquilino (US-08.02, #299). Una vez valorado, se ve la valoración en
+                lugar de «Valorar». */}
+            {reservation.status === 'finished' && (
               <div className="reservation-rating">
                 {reservation.myRating ? (
-                  <>
-                    <p className="reservation-rating-title">Tu valoración</p>
-                    <StarsDisplay score={reservation.myRating.score} />
-                    {reservation.myRating.comment && (
-                      <p className="reservation-rating-comment">«{reservation.myRating.comment}»</p>
-                    )}
-                  </>
+                  <RatingSummary title="Tu valoración" rating={reservation.myRating} />
                 ) : (
                   <Link
                     to={`/mis-solicitudes/${encodeURIComponent(reservation.id)}/valorar`}
                     className="button-primary"
-                    aria-label={`Valorar el alquiler de ${reservation.item.title}`}
+                    aria-label={
+                      role === 'sent'
+                        ? `Valorar el alquiler de ${reservation.item.title}`
+                        : `Valorar a ${reservation.renter.username} por el alquiler de ${reservation.item.title}`
+                    }
                   >
                     <Icon name="star" />
-                    Valorar
+                    {role === 'sent' ? 'Valorar' : `Valorar a ${reservation.renter.username}`}
                   </Link>
+                )}
+                {/* US-08.02: el inquilino ve la que le ha puesto el propietario. */}
+                {role === 'sent' && reservation.receivedRating && (
+                  <RatingSummary title="Valoración recibida" rating={reservation.receivedRating} />
                 )}
               </div>
             )}

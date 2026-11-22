@@ -13,10 +13,15 @@
         <strong>compartir mi experiencia con otros usuarios</strong>.
       </p>
       <p class="wf-meta">
-        Issue #75 · Flujo propuesto: se confirma en el Sprint Planning · Wireframe de baja fidelidad · Generado con
-        asistencia de IA (Claude) – pendiente de revisar por el equipo en el Sprint Planning
+        Issue #75 · Tarea T24 #299 (frontend, Marc) · Flujo acordado en el Sprint Planning (10/11) y en la reunión del
+        equipo del 11/11 · Wireframe de baja fidelidad
       </p>
-      <p class="wf-meta">Actualizado con asistencia de IA (Claude) tras el rediseño (#258), pendiente de revisar por el equipo</p>
+      <p class="wf-meta">
+        Generado con asistencia de IA (Claude), 15/11/2026 – Validado por Marc el 15/11/2026 y actualizado el 20/11/2026
+        con la API de T23 (#298, Francesc): <code>POST /api/reservas/:id/valoracion</code> con
+        <code>{ score, comment }</code>, el mismo endpoint que US-08.01. Quién valora a quién lo decide el backend por la
+        sesión. «Mis solicitudes» trae <code>myRating</code> y <code>receivedRating</code> en cada reserva.
+      </p>
     </header>
 
     <section class="wf-pantalla" data-captura="1-entrada">
@@ -42,36 +47,69 @@
                 </div>
               </div>
               <div>
-                <h4>Recibidas <span class="wf-chip">1</span></h4>
+                <h4>Recibidas <span class="wf-chip">2</span></h4>
                 <div class="wf-tarjeta">
                   <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Finalizada</span><span>▴</span></div>
                   <p class="wf-ayuda">10–12 nov. 2026</p>
-                  <p class="wf-texto"></p>
                   <div class="wf-rejilla">
                     <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
                     <p class="wf-texto">Fechas: Del 10 de noviembre de 2026 al 12 de noviembre de 2026</p>
-                    <p class="wf-texto">Importe total: 18,00 €</p>
+                    <p class="wf-texto">Importe total: 18,00 € <span class="wf-marca">2</span></p>
                     <p class="wf-texto">Estado: Finalizada</p>
                     <p class="wf-texto">Solicitada por: bruno</p>
                     <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
                   </div>
-                  <p class="wf-texto"></p>
-                  <span class="wf-boton">Valorar</span><span class="wf-marca">1</span>
+                  <span class="wf-boton">★ Valorar a bruno</span><span class="wf-marca">1</span>
+                </div>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Escalera de aluminio</strong><span class="wf-chip">Finalizada</span><span>▴</span></div>
+                  <p class="wf-ayuda">2–3 nov. 2026</p>
+                  <p class="wf-texto"><strong>Tu valoración</strong> <span class="wf-marca">3</span></p>
+                  <p class="wf-texto">★★★★☆</p>
+                  <p class="wf-texto">«Bien, aunque llegó un poco tarde.»</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <h4>Recibidas <span class="wf-chip">2</span></h4>
+            <div class="wf-tarjeta">
+              <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Finalizada</span></div>
+              <p class="wf-ayuda">10–12 nov. 2026</p>
+              <p class="wf-texto">Solicitada por: bruno</p>
+              <span class="wf-boton wf-ancho">★ Valorar a bruno</span>
+            </div>
+            <div class="wf-tarjeta">
+              <div class="wf-fila"><strong>Escalera de aluminio</strong><span class="wf-chip">Finalizada</span></div>
+              <p class="wf-texto"><strong>Tu valoración</strong></p>
+              <p class="wf-texto">★★★★☆</p>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
       </div>
       <ol class="wf-notas">
         <li>
-          Criterio 1: solo en un alquiler «Finalizada» de «Recibidas». Criterio 7: en un alquiler ya valorado no aparece
-          «Valorar», y la API lo rechaza.
+          Criterio 1: «Valorar a bruno» solo aparece en un alquiler «Finalizada» de «Recibidas» que aún no has valorado.
+          El alquiler llega a «Finalizada» cuando el arrendatario marca «He devuelto el objeto» (US-05.02, decisión 6).
+          En «Enviadas», el arrendatario ve «Valorar» (US-08.01).
+        </li>
+        <li>
+          Cuando US-05.01 esté en esta rama, el importe sale como «Alquiler · Entrega · Total» (T7). No cambia nada de
+          esta historia. El nombre de quien la ha solicitado es texto, no un enlace.
+        </li>
+        <li>
+          Criterio 7: un alquiler que ya has valorado no muestra «Valorar a bruno», sino «Tu valoración» con las estrellas
+          y el comentario (campo <code>myRating</code> de la reserva).
         </li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Clic en «Valorar»</p>
+    <p class="wf-flecha">Clic en «Valorar a bruno»</p>
 
     <section class="wf-pantalla" data-captura="2-formulario">
       <h2><span class="wf-paso">2</span>Formulario de valoración <code>/mis-solicitudes/:id/valorar</code></h2>
@@ -85,9 +123,12 @@
               <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
+            <h3 class="wf-h1">Valorar a bruno <span class="wf-marca">1</span></h3>
+            <p class="wf-ayuda">Cuenta tu experiencia para ayudar a otras personas.</p>
             <div class="wf-centrado wf-tarjeta">
-              <h3 class="wf-h1">Valorar a bruno <span class="wf-marca">1</span></h3>
-              <p class="wf-texto">Taladro percutor Bosch · Del 10/11/2026 al 12/11/2026</p>
+              <p class="wf-texto"><span class="wf-enlace">Taladro percutor Bosch</span></p>
+              <p class="wf-texto">Del 10 de noviembre de 2026 al 12 de noviembre de 2026</p>
+              <p class="wf-texto">Solicitada por: bruno</p>
               <div class="wf-campo">
                 <label>Puntuación <span class="wf-marca">2</span></label>
                 <div class="wf-fila">
@@ -96,14 +137,18 @@
                   <span class="wf-boton wf-secundario">☆</span>
                   <span class="wf-boton wf-secundario">☆</span>
                   <span class="wf-boton wf-secundario">☆</span>
+                  <span class="wf-ayuda">Elige de 1 a 5</span>
                 </div>
               </div>
               <div class="wf-campo">
                 <label>¿Cómo ha dejado el objeto? <span class="wf-marca">3</span></label>
                 <div class="wf-input">Cuenta cómo te lo ha devuelto</div>
-                <p class="wf-ayuda">Opcional.</p>
+                <p class="wf-ayuda">
+                  Opcional. Lo verán otras personas en el perfil de bruno. Hasta 1000 caracteres (0/1000).
+                </p>
               </div>
               <span class="wf-boton wf-ancho">Publicar</span>
+              <span class="wf-boton wf-secundario wf-ancho">Volver a Mis solicitudes</span><span class="wf-marca">4</span>
             </div>
           </div>
         </div>
@@ -111,25 +156,43 @@
           <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Valorar a bruno</h3>
-            <p class="wf-texto">Taladro percutor Bosch · Del 10/11/2026 al 12/11/2026</p>
-            <div class="wf-campo">
-              <label>Puntuación</label>
-              <div class="wf-input">☆ ☆ ☆ ☆ ☆</div>
+            <p class="wf-ayuda">Cuenta tu experiencia para ayudar a otras personas.</p>
+            <div class="wf-tarjeta">
+              <p class="wf-texto"><span class="wf-enlace">Taladro percutor Bosch</span></p>
+              <p class="wf-texto">Del 10 de noviembre de 2026 al 12 de noviembre de 2026</p>
+              <p class="wf-texto">Solicitada por: bruno</p>
+              <div class="wf-campo">
+                <label>Puntuación</label>
+                <div class="wf-input">☆ ☆ ☆ ☆ ☆ Elige de 1 a 5</div>
+              </div>
+              <div class="wf-campo">
+                <label>¿Cómo ha dejado el objeto?</label>
+                <div class="wf-input">Cuenta cómo te lo ha devuelto</div>
+                <p class="wf-ayuda">Opcional. Lo verán otras personas en el perfil de bruno. Hasta 1000 caracteres (0/1000).</p>
+              </div>
+              <span class="wf-boton wf-ancho">Publicar</span>
+              <span class="wf-boton wf-secundario wf-ancho">Volver a Mis solicitudes</span>
             </div>
-            <div class="wf-campo">
-              <label>¿Cómo ha dejado el objeto?</label>
-              <div class="wf-input">Cuenta cómo te lo ha devuelto</div>
-              <p class="wf-ayuda">Opcional.</p>
-            </div>
-            <span class="wf-boton wf-ancho">Publicar</span>
           </div>
           <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Ruta propuesta, la misma que en US-08.01. No se define «Cancelar»: se sale con la cabecera.</li>
-        <li>Criterios 2 y 4: de 1 a 5 estrellas, obligatoria.</li>
-        <li>Criterio 3: los criterios solo hacen obligatoria la puntuación, así que este texto es opcional.</li>
+        <li>
+          Página propia en <code>/mis-solicitudes/:id/valorar</code>, decidido por Marc el 15/11: la misma forma que
+          US-08.01 (T21, Kai), para que las dos valoraciones funcionen igual. Debajo del título, el objeto (enlace a su
+          ficha), las fechas y quién lo solicitó.
+        </li>
+        <li>
+          Criterios 2 y 4: de 1 a 5 estrellas, obligatoria. Al lado pone «Elige de 1 a 5» y, al elegir, «Muy mal»,
+          «Mal», «Normal», «Bien» o «Excelente». Las estrellas se eligen con el teclado y tienen texto accesible («3
+          estrellas: Normal»).
+        </li>
+        <li>
+          Criterio 3 y especificación de la historia: opcional, hasta 1000 caracteres, con el contador dentro de la
+          ayuda. Lo escrito sale en el perfil de la persona valorada.
+        </li>
+        <li>«Volver a Mis solicitudes» (validado por Marc el 15/11): sale sin publicar.</li>
       </ol>
     </section>
 
@@ -147,9 +210,12 @@
               <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
+            <h3 class="wf-h1">Valorar a bruno</h3>
+            <p class="wf-ayuda">Cuenta tu experiencia para ayudar a otras personas.</p>
             <div class="wf-centrado wf-tarjeta">
-              <h3 class="wf-h1">Valorar a bruno</h3>
-              <p class="wf-texto">Taladro percutor Bosch · Del 10/11/2026 al 12/11/2026</p>
+              <p class="wf-texto"><span class="wf-enlace">Taladro percutor Bosch</span></p>
+              <p class="wf-texto">Del 10 de noviembre de 2026 al 12 de noviembre de 2026</p>
+              <p class="wf-texto">Solicitada por: bruno</p>
               <div class="wf-campo">
                 <label>Puntuación</label>
                 <div class="wf-fila">
@@ -158,21 +224,31 @@
                   <span class="wf-boton wf-secundario">☆</span>
                   <span class="wf-boton wf-secundario">☆</span>
                   <span class="wf-boton wf-secundario">☆</span>
+                  <span class="wf-ayuda">Elige de 1 a 5</span>
                 </div>
                 <p class="wf-error">Elige una puntuación de 1 a 5 estrellas. <span class="wf-marca">1</span></p>
               </div>
               <div class="wf-campo">
                 <label>¿Cómo ha dejado el objeto?</label>
-                <div class="wf-input">Cuenta cómo te lo ha devuelto</div>
-                <p class="wf-ayuda">Opcional.</p>
+                <div class="wf-input">Lo devolvió limpio y a tiempo.</div>
+                <p class="wf-ayuda">
+                  Opcional. Lo verán otras personas en el perfil de bruno. Hasta 1000 caracteres (30/1000).
+                </p>
               </div>
               <span class="wf-boton wf-ancho">Publicar</span>
+              <span class="wf-boton wf-secundario wf-ancho">Volver a Mis solicitudes</span>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Criterio 5: no se publica y se indica en este campo. El texto exacto es una propuesta.</li>
+        <li>
+          Criterio 5: no se publica, se indica en ese campo y el foco va a la primera estrella. Lo escrito no se pierde. Lo
+          comprueba la pantalla antes de llamar a la API; la API devuelve el mismo texto con 400 y
+          <code>field: "score"</code>. Un comentario de más de 1000 caracteres (la API responde 400 con
+          <code>field: "comment"</code>) sale debajo del comentario: «El comentario puede tener como máximo 1000
+          caracteres.».
+        </li>
       </ol>
     </section>
 
@@ -190,9 +266,12 @@
               <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
           </nav>
           <div class="wf-contenido">
+            <h3 class="wf-h1">Valorar a bruno</h3>
+            <p class="wf-ayuda">Cuenta tu experiencia para ayudar a otras personas.</p>
             <div class="wf-centrado wf-tarjeta">
-              <h3 class="wf-h1">Valorar a bruno</h3>
-              <p class="wf-texto">Taladro percutor Bosch · Del 10/11/2026 al 12/11/2026</p>
+              <p class="wf-texto"><span class="wf-enlace">Taladro percutor Bosch</span></p>
+              <p class="wf-texto">Del 10 de noviembre de 2026 al 12 de noviembre de 2026</p>
+              <p class="wf-texto">Solicitada por: bruno</p>
               <div class="wf-campo">
                 <label>Puntuación</label>
                 <div class="wf-fila">
@@ -201,27 +280,68 @@
                   <span class="wf-boton">★</span>
                   <span class="wf-boton">★</span>
                   <span class="wf-boton">★</span>
+                  <span class="wf-ayuda">Excelente</span>
                 </div>
               </div>
               <div class="wf-campo">
                 <label>¿Cómo ha dejado el objeto?</label>
                 <div class="wf-input">Lo devolvió limpio y a tiempo.</div>
-                <p class="wf-ayuda">Opcional.</p>
+                <p class="wf-ayuda">
+                  Opcional. Lo verán otras personas en el perfil de bruno. Hasta 1000 caracteres (30/1000).
+                </p>
               </div>
               <span class="wf-boton wf-ancho">Publicar</span><span class="wf-marca">1</span>
+              <span class="wf-boton wf-secundario wf-ancho">Volver a Mis solicitudes</span>
             </div>
           </div>
         </div>
       </div>
       <ol class="wf-notas">
-        <li>Criterio 6: la valoración queda asociada al alquiler y al usuario que la ha creado.</li>
+        <li>
+          Criterio 6: la valoración queda asociada al alquiler, a quien la ha creado y a quien la recibe (tipo
+          <code>user</code>, lo decide el backend). Mientras se envía, el botón dice «Publicando…» y no se puede pulsar
+          dos veces.
+        </li>
       </ol>
     </section>
 
-    <p class="wf-flecha">Clic en «Publicar»</p>
+    <p class="wf-flecha">Si el alquiler ya se había valorado (por ejemplo, desde otra pestaña)</p>
 
-    <section class="wf-pantalla" data-captura="5-destino-valorado">
-      <h2><span class="wf-paso">5</span>Destino: Mis solicitudes con la valoración <code>/mis-solicitudes</code></h2>
+    <section class="wf-pantalla" data-captura="5-ya-valorado">
+      <h2><span class="wf-paso">5</span>Error: alquiler ya valorado <code>/mis-solicitudes/:id/valorar</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes/5ac9…/valorar">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Valorar a bruno</h3>
+            <p class="wf-ayuda">Cuenta tu experiencia para ayudar a otras personas.</p>
+            <div class="wf-centrado wf-tarjeta">
+              <p class="wf-texto">✔ Ya has valorado este alquiler. <span class="wf-marca">1</span></p>
+              <span class="wf-boton wf-secundario wf-ancho">Volver a Mis solicitudes</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Criterio 7: en el flujo normal no se llega aquí, porque «Valorar a bruno» ya no aparece (pantalla 1). Si se
+          publica desde otra pestaña, la API responde 409 con «Ya has valorado este alquiler.». Si se entra en la ruta a
+          mano, sale el mismo texto con tu valoración debajo. Con un alquiler que no está finalizado: «Solo se puede
+          valorar un alquiler finalizado.»; si no existe o no es tuyo: «No hemos encontrado este alquiler.».
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en «Publicar» (pantalla 4)</p>
+
+    <section class="wf-pantalla" data-captura="6-destino-valorado">
+      <h2><span class="wf-paso">6</span>Destino: Mis solicitudes con la valoración <code>/mis-solicitudes</code></h2>
       <div class="wf-dispositivos">
         <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
           <nav class="wf-nav">
@@ -233,7 +353,7 @@
           </nav>
           <div class="wf-contenido">
             <h3 class="wf-h1">Mis solicitudes</h3>
-            <p class="wf-texto">Sigue las que has enviado y responde a las que has recibido.</p>
+            <p class="wf-aviso">✔ Valoración publicada. <span class="wf-marca">1</span></p>
             <div class="wf-columnas wf-iguales">
               <div>
                 <h4>Enviadas <span class="wf-chip">1</span></h4>
@@ -243,30 +363,154 @@
                 </div>
               </div>
               <div>
-                <h4>Recibidas <span class="wf-chip">1</span></h4>
+                <h4>Recibidas <span class="wf-chip">2</span></h4>
                 <div class="wf-tarjeta">
                   <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Finalizada</span><span>▴</span></div>
                   <p class="wf-ayuda">10–12 nov. 2026</p>
-                  <p class="wf-texto"></p>
                   <div class="wf-rejilla">
                     <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
                     <p class="wf-texto">Fechas: Del 10 de noviembre de 2026 al 12 de noviembre de 2026</p>
-                    <p class="wf-texto">Importe total: 18,00 €</p>
                     <p class="wf-texto">Estado: Finalizada</p>
-                    <p class="wf-texto">Solicitada por: bruno<span class="wf-marca">1</span></p>
-                    <p class="wf-texto">Enviada el 4 de noviembre de 2026</p>
+                    <p class="wf-texto">Solicitada por: bruno <span class="wf-marca">2</span></p>
                   </div>
-                  <p class="wf-texto"></p>
-                  <p class="wf-texto">Tu valoración: ★★★★★ · «Lo devolvió limpio y a tiempo.» <span class="wf-marca">2</span></p>
+                  <p class="wf-texto"><strong>Tu valoración</strong> <span class="wf-marca">3</span></p>
+                  <p class="wf-texto">★★★★★</p>
+                  <p class="wf-texto">«Lo devolvió limpio y a tiempo.»</p>
+                </div>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Escalera de aluminio</strong><span class="wf-chip">Finalizada</span><span>▾</span></div>
+                  <p class="wf-ayuda">2–3 nov. 2026</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <p class="wf-aviso">✔ Valoración publicada.</p>
+            <h4>Recibidas <span class="wf-chip">2</span></h4>
+            <div class="wf-tarjeta">
+              <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Finalizada</span></div>
+              <p class="wf-texto"><strong>Tu valoración</strong></p>
+              <p class="wf-texto">★★★★★</p>
+              <p class="wf-texto">«Lo devolvió limpio y a tiempo.»</p>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
       </div>
       <ol class="wf-notas">
-        <li>La media se actualiza en el perfil del usuario valorado (US-01.4).</li>
-        <li>Criterio 7: el alquiler muestra la valoración en lugar de «Valorar», así que no se puede publicar otra.</li>
+        <li>Mensaje de éxito «Valoración publicada.» (validado por Marc el 15/11). Se anuncia a los lectores de pantalla.</li>
+        <li>
+          El nombre es texto, no un enlace: «Mis solicitudes» no lleva al perfil público. La media se ve en el perfil de
+          bruno (pantalla 7).
+        </li>
+        <li>
+          Criterio 7: el alquiler muestra «Tu valoración» en lugar de «Valorar a bruno», así que no se puede publicar
+          otra. La clave única (alquiler, autor) lo impide también en la API.
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Otra persona abre el perfil público de bruno (US-01.4)</p>
+
+    <section class="wf-pantalla" data-captura="7-perfil-media">
+      <h2><span class="wf-paso">7</span>La media en el perfil público del inquilino <code>/usuarios/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/usuarios/b7e1…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-tarjeta">
+              <div class="wf-fila"><span class="wf-imagen">Foto</span><h3 class="wf-h1">bruno</h3></div>
+              <p class="wf-texto">Miembro desde octubre de 2026</p>
+              <p class="wf-texto">☆ Valoración media: <strong>4,5</strong> de 5 · 2 valoraciones <span class="wf-marca">1</span></p>
+              <p class="wf-texto">Me gusta el bricolaje y cuidar lo que me prestan.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          La media se actualiza en el perfil del usuario valorado, con el texto de US-01.4: «Valoración media: X de 5 · N
+          valoraciones» (sin ninguna: «Todavía sin valoraciones»). Junta las valoraciones que ha recibido como propietario
+          (US-08.01) y como inquilino (US-08.02), redondeada a un decimal. T23 ya calcula la media
+          (<code>getUserRating</code>), pero el perfil aún devuelve un valor fijo: se conecta al juntar US-08.02 con
+          US-01.4.
+        </li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Mientras tanto, el inquilino (bruno) abre «Mis solicitudes»</p>
+
+    <section class="wf-pantalla" data-captura="8-enviadas-valoracion-recibida">
+      <h2><span class="wf-paso">8</span>El inquilino ve la valoración en «Enviadas» <code>/mis-solicitudes</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/mis-solicitudes">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces">
+              <span class="wf-enlace">Mis objetos</span>
+              <span class="wf-enlace">Mis solicitudes</span>
+              <span class="wf-enlace">Mi perfil</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <div class="wf-columnas wf-iguales">
+              <div>
+                <h4>Enviadas <span class="wf-chip">1</span></h4>
+                <div class="wf-tarjeta">
+                  <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Finalizada</span><span>▴</span></div>
+                  <p class="wf-ayuda">10–12 nov. 2026</p>
+                  <div class="wf-rejilla">
+                    <p class="wf-texto">Objeto: <span class="wf-enlace">Taladro percutor Bosch</span></p>
+                    <p class="wf-texto">Fechas: Del 10 de noviembre de 2026 al 12 de noviembre de 2026</p>
+                    <p class="wf-texto">Estado: Finalizada</p>
+                    <p class="wf-texto">Propietario: ana</p>
+                  </div>
+                  <span class="wf-boton">★ Valorar</span>
+                  <p class="wf-texto"><strong>Valoración recibida</strong> <span class="wf-marca">1</span></p>
+                  <p class="wf-texto">★★★★★</p>
+                  <p class="wf-texto">«Lo devolvió limpio y a tiempo.»</p>
+                </div>
+              </div>
+              <div>
+                <h4>Recibidas <span class="wf-chip">0</span></h4>
+                <p class="wf-ayuda">Todavía no has recibido solicitudes.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <h3 class="wf-h1">Mis solicitudes</h3>
+            <h4>Enviadas <span class="wf-chip">1</span></h4>
+            <div class="wf-tarjeta">
+              <div class="wf-fila"><strong>Taladro percutor Bosch</strong><span class="wf-chip">Finalizada</span></div>
+              <p class="wf-ayuda">10–12 nov. 2026</p>
+              <span class="wf-boton wf-ancho">★ Valorar</span>
+              <p class="wf-texto"><strong>Valoración recibida</strong></p>
+              <p class="wf-texto">★★★★★</p>
+              <p class="wf-texto">«Lo devolvió limpio y a tiempo.»</p>
+            </div>
+          </div>
+          <div class="wf-barra-inferior"><span>Inicio</span><span>Mis objetos</span><span>Mis solicitudes</span><span>Mi perfil</span></div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          Decidido por Marc el 15/11: el inquilino ve en «Enviadas» la valoración que le ha puesto el propietario
+          (puntuación y comentario, campo <code>receivedRating</code>), debajo de su propio «Valorar» de US-08.01 (o de
+          «Tu valoración» si ya ha valorado). Si aún no le han valorado, no sale nada.
+        </li>
       </ol>
     </section>
   </body>
