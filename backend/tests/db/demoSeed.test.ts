@@ -281,8 +281,20 @@ describe('solicitudes de la demo', () => {
 
   it('hay una reserva pagada de cada modo, con la entrega pendiente, y repetir el seed reinicia el seguimiento', async () => {
     const userIds = await seedWithReservations();
+    // Las tres del seguimiento; las pagadas de cancelar (US-04.05) no se tocan aquí.
     const paidReservations = await prisma.reservation.findMany({
-      where: { status: 'paid' },
+      where: {
+        status: 'paid',
+        item: {
+          title: {
+            in: [
+              'Bicicleta de montaña talla M',
+              'Cortacésped eléctrico',
+              'Hidrolimpiadora Kärcher',
+            ],
+          },
+        },
+      },
       include: { delivery: true },
     });
     expect(
