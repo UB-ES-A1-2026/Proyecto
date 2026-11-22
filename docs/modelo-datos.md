@@ -529,5 +529,5 @@ Antes de cancelar se caducan las solicitudes pendientes vencidas del usuario (#3
 |---|---|---|
 | S0 | `usuario`, `sesion` | US-01.1, US-01.2, US-01.3 |
 | S1 | `categoria`, `objeto`, `foto_objeto`, `reserva` | US-02.x, US-03.x, US-04.01–04.04 |
-| S2 | `solicitud_rider` (US-10.03), `pago`, `cancelacion`, `punto_recogida`, `entrega`, `valoracion` (+ campos de perfil y rider en `usuario`) | US-07.01, US-04.05, US-05.01–05.02, US-10.01, US-10.03, US-08.x, US-01.4 |
+| S2 | `solicitud_rider` (US-10.03), `retirada_objeto` (US-11.03), `pago`, `cancelacion`, `punto_recogida`, `entrega`, `valoracion` (+ campos de perfil y rider en `usuario`) | US-07.01, US-04.05, US-05.01–05.02, US-10.01, US-10.03, US-11.03, US-08.x, US-01.4 |
 | S3 | `conversacion`, `mensaje`, `notificacion`, `incidencia`, `foto_estado` | US-06.x, US-09.x, US-11.01 |
