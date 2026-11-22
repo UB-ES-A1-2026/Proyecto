@@ -29,6 +29,7 @@ function reservation(overrides: Partial<Reservation> = {}): Reservation {
     owner: { id: 'u1', username: 'ana' },
     createdAt: '2026-11-01T12:00:00.000Z',
     myRating: null,
+    receivedRating: null,
     ...overrides,
   };
 }
@@ -138,14 +139,17 @@ describe('«Valorar» en Mis solicitudes (criterios 1 y 8)', () => {
     expect(card).toHaveTextContent('«Todo perfecto, muy amable.»');
   });
 
-  it('en las recibidas no sale: valorar al inquilino es US-08.02', () => {
+  it('en las recibidas sale «Valorar a» el inquilino (US-08.02), no «Valorar» el alquiler', () => {
     render(
       <MemoryRouter>
         <ReservationCard reservation={reservation()} role="received" />
       </MemoryRouter>,
     );
 
-    expect(screen.queryByRole('link', { name: /^Valorar/, hidden: true })).toBeNull();
+    expect(screen.queryByRole('link', { name: /^Valorar el alquiler/, hidden: true })).toBeNull();
+    expect(
+      screen.getByRole('link', { name: /^Valorar a bruno/, hidden: true }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -361,10 +365,13 @@ describe('Formulario «Valorar» (US-08.01, #296)', () => {
     expect(screen.getByRole('link', { name: 'Volver a Mis solicitudes' })).toBeInTheDocument();
   });
 
-  it('un alquiler que no ha hecho (o recibido) no se puede valorar aquí (criterio 7)', async () => {
+  it('un alquiler que no ha hecho ni recibido no se puede valorar aquí (criterio 7)', async () => {
     logIn();
     mockApi({
-      'GET /usuarios/me/reservas': Response.json({ sent: [], received: [reservation()] }),
+      'GET /usuarios/me/reservas': Response.json({
+        sent: [reservation({ id: 'otra' })],
+        received: [reservation({ id: 'otra-mas' })],
+      }),
     });
 
     renderRoute('/mis-solicitudes/r1/valorar');
@@ -388,6 +395,235 @@ describe('Formulario «Valorar» (US-08.01, #296)', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'No hemos podido cargar el alquiler. Inténtalo de nuevo más tarde.',
+    );
+  });
+});
+
+// US-08.02 Valorar un usuario, frontend (#299): el propietario valora al inquilino desde «Recibidas».
+// Criterios de la historia (#75). Contrato de #298: el mismo endpoint; el tipo lo pone el backend.
+describe('Valorar al inquilino (US-08.02, #299)', () => {
+  const OWNER_SESSION = {
+    ...SESSION,
+    user: { id: 'u1', username: 'ana', email: 'ana@rentit.test', role: 'user' },
+  };
+
+  function logInAsOwner() {
+    localStorage.setItem('rentit.session', JSON.stringify(OWNER_SESSION));
+  }
+
+  const OWNER_RATING = {
+    score: 5,
+    comment: 'Lo devolvió limpio y a tiempo.',
+    createdAt: '2026-11-07T10:00:00.000Z',
+  };
+
+  it('«Valorar a» solo sale en un alquiler recibido y finalizado (criterio 1)', () => {
+    render(
+      <MemoryRouter>
+        <ReservationCard reservation={reservation()} role="received" />
+        <ReservationCard
+          reservation={reservation({
+            id: 'r2',
+            status: 'in_progress',
+            item: { id: 'i2', title: 'Escalera' },
+          })}
+          role="received"
+        />
+      </MemoryRouter>,
+    );
+
+    const links = screen.getAllByRole('link', { name: /^Valorar/, hidden: true });
+    expect(links).toHaveLength(1);
+    expect(links[0]).toHaveTextContent('Valorar a bruno');
+    expect(links[0]).toHaveAccessibleName(
+      'Valorar a bruno por el alquiler de Taladro percutor Bosch',
+    );
+    expect(links[0]).toHaveAttribute('href', '/mis-solicitudes/r1/valorar');
+  });
+
+  it('ya valorado, el propietario ve su valoración en lugar de «Valorar a» (criterio 7)', () => {
+    render(
+      <MemoryRouter>
+        <ReservationCard reservation={reservation({ myRating: OWNER_RATING })} role="received" />
+      </MemoryRouter>,
+    );
+
+    const card = screen.getByRole('article');
+    expect(within(card).queryByRole('link', { name: /^Valorar/, hidden: true })).toBeNull();
+    expect(card).toHaveTextContent('Tu valoración');
+    expect(within(card).getByRole('img', { name: '5 de 5 estrellas', hidden: true })).toBeTruthy();
+    expect(card).toHaveTextContent('«Lo devolvió limpio y a tiempo.»');
+  });
+
+  it('el inquilino ve en «Enviadas» la valoración que ha recibido', () => {
+    render(
+      <MemoryRouter>
+        <ReservationCard
+          reservation={reservation({ myRating: RATED, receivedRating: OWNER_RATING })}
+          role="sent"
+        />
+      </MemoryRouter>,
+    );
+
+    const card = screen.getByRole('article');
+    expect(card).toHaveTextContent('Tu valoración');
+    expect(card).toHaveTextContent('Valoración recibida');
+    expect(within(card).getByRole('img', { name: '5 de 5 estrellas', hidden: true })).toBeTruthy();
+    expect(card).toHaveTextContent('«Lo devolvió limpio y a tiempo.»');
+  });
+
+  it('sin valoración recibida (o sin el campo, como ahora en el backend) no sale nada', () => {
+    render(
+      <MemoryRouter>
+        <ReservationCard reservation={reservation({ receivedRating: null })} role="sent" />
+        <ReservationCard reservation={reservation({ id: 'r2' })} role="sent" />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByText('Valoración recibida')).toBeNull();
+  });
+
+  it('el formulario dice a quién se valora y pregunta cómo ha dejado el objeto (criterios 2 y 3)', async () => {
+    logInAsOwner();
+    mockApi({
+      'GET /usuarios/me/reservas': Response.json({ sent: [], received: [reservation()] }),
+    });
+
+    renderRoute('/mis-solicitudes/r1/valorar');
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Valorar a bruno' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Solicitada por: bruno')).toBeTruthy();
+    expect(screen.getByRole('group', { name: 'Puntuación' })).toBeInTheDocument();
+    const comment = screen.getByLabelText('¿Cómo ha dejado el objeto?');
+    expect(comment).toHaveAttribute('placeholder', 'Cuenta cómo te lo ha devuelto');
+    expect(comment).toHaveAttribute('maxlength', '1000');
+    expect(comment).toHaveAccessibleDescription(
+      /^Opcional\. Lo verán otras personas en el perfil de bruno\./,
+    );
+    expect(screen.getByRole('link', { name: 'Volver a Mis solicitudes' })).toHaveAttribute(
+      'href',
+      '/mis-solicitudes',
+    );
+  });
+
+  it('sin puntuación no se publica y se indica en ese campo (criterios 4 y 5)', async () => {
+    logInAsOwner();
+    const fetchMock = mockApi({
+      'GET /usuarios/me/reservas': Response.json({ sent: [], received: [reservation()] }),
+    });
+    const user = userEvent.setup();
+    renderRoute('/mis-solicitudes/r1/valorar');
+
+    await user.type(
+      await screen.findByLabelText('¿Cómo ha dejado el objeto?'),
+      'Lo devolvió limpio y a tiempo.',
+    );
+    await user.click(screen.getByRole('button', { name: 'Publicar' }));
+
+    expect(screen.getByRole('group', { name: 'Puntuación' })).toHaveAccessibleDescription(
+      'Elige una puntuación de 1 a 5 estrellas.',
+    );
+    expect(screen.getByRole('radio', { name: '1 estrella: Muy mal' })).toHaveFocus();
+    // Lo escrito no se pierde.
+    expect(screen.getByLabelText('¿Cómo ha dejado el objeto?')).toHaveValue(
+      'Lo devolvió limpio y a tiempo.',
+    );
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false);
+  });
+
+  it('publica sin mandar el tipo y vuelve a Mis solicitudes con su valoración (criterio 6)', async () => {
+    logInAsOwner();
+    const fetchMock = mockApi({
+      'GET /usuarios/me/reservas': [
+        Response.json({ sent: [], received: [reservation()] }),
+        Response.json({ sent: [], received: [reservation({ myRating: OWNER_RATING })] }),
+      ],
+      'POST /reservas/r1/valoracion': Response.json(
+        {
+          id: 'v2',
+          reservationId: 'r1',
+          type: 'user',
+          score: 5,
+          comment: OWNER_RATING.comment,
+          createdAt: OWNER_RATING.createdAt,
+        },
+        { status: 201 },
+      ),
+    });
+    const user = userEvent.setup();
+    const { router } = renderRoute('/mis-solicitudes/r1/valorar');
+
+    await user.click(await screen.findByRole('radio', { name: '5 estrellas: Excelente' }));
+    await user.type(
+      screen.getByLabelText('¿Cómo ha dejado el objeto?'),
+      'Lo devolvió limpio y a tiempo.',
+    );
+    await user.click(screen.getByRole('button', { name: 'Publicar' }));
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/mis-solicitudes'));
+    expect(await screen.findByRole('status')).toHaveTextContent('Valoración publicada.');
+
+    const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
+    expect(JSON.parse(String(post?.[1]?.body))).toEqual({
+      score: 5,
+      comment: 'Lo devolvió limpio y a tiempo.',
+    });
+
+    await user.click(await screen.findByRole('button', { name: /Taladro percutor Bosch/ }));
+    expect(screen.getByText('Tu valoración')).toBeInTheDocument();
+  });
+
+  it('si ya lo había valorado (otra pestaña), lo dice y no deja publicar otra (criterio 7)', async () => {
+    logInAsOwner();
+    mockApi({
+      'GET /usuarios/me/reservas': Response.json({ sent: [], received: [reservation()] }),
+      'POST /reservas/r1/valoracion': Response.json(
+        { error: 'Ya has valorado este alquiler.' },
+        { status: 409 },
+      ),
+    });
+    const user = userEvent.setup();
+    renderRoute('/mis-solicitudes/r1/valorar');
+
+    await user.click(await screen.findByRole('radio', { name: '4 estrellas: Bien' }));
+    await user.click(screen.getByRole('button', { name: 'Publicar' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Ya has valorado este alquiler.');
+    expect(screen.queryByRole('button', { name: 'Publicar' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Volver a Mis solicitudes' })).toBeInTheDocument();
+  });
+
+  it('un alquiler recibido que ya ha valorado no muestra el formulario (criterio 7)', async () => {
+    logInAsOwner();
+    mockApi({
+      'GET /usuarios/me/reservas': Response.json({
+        sent: [],
+        received: [reservation({ myRating: OWNER_RATING })],
+      }),
+    });
+
+    renderRoute('/mis-solicitudes/r1/valorar');
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Ya has valorado este alquiler.');
+    expect(screen.getByRole('heading', { level: 1, name: 'Valorar a bruno' })).toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Puntuación' })).not.toBeInTheDocument();
+  });
+
+  it('un alquiler recibido sin finalizar no se puede valorar', async () => {
+    logInAsOwner();
+    mockApi({
+      'GET /usuarios/me/reservas': Response.json({
+        sent: [],
+        received: [reservation({ status: 'in_progress' })],
+      }),
+    });
+
+    renderRoute('/mis-solicitudes/r1/valorar');
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Solo se puede valorar un alquiler finalizado.',
     );
   });
 });

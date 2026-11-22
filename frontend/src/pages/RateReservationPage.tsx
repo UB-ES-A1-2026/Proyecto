@@ -18,6 +18,10 @@ const ALREADY_RATED = 'Ya has valorado este alquiler.';
 const NO_SCORE = 'Elige una puntuación de 1 a 5 estrellas.';
 const LOAD_ERROR = 'No hemos podido cargar el alquiler. Inténtalo de nuevo más tarde.';
 
+// Quién valora: el arrendatario valora el alquiler (US-08.01) y el propietario, al inquilino
+// (US-08.02, #299). Se sabe por la lista en la que está la reserva en «Mis solicitudes».
+type Rater = 'renter' | 'owner';
+
 // Lo que impide valorar: se muestra en lugar del formulario, con el camino de vuelta.
 type Blocked = { icon: IconName; message: string; reservation?: Reservation };
 
@@ -41,7 +45,7 @@ function blockedFor(reservation: Reservation): Blocked | null {
   return null;
 }
 
-function RentalSummary({ reservation }: { reservation: Reservation }) {
+function RentalSummary({ reservation, rater }: { reservation: Reservation; rater: Rater }) {
   return (
     <div className="rate-summary">
       <p className="rate-summary-item">
@@ -53,7 +57,9 @@ function RentalSummary({ reservation }: { reservation: Reservation }) {
       </p>
       <p className="rate-summary-fact">
         <Icon name="person" size="1.125rem" />
-        Propietario: {reservation.owner.username}
+        {rater === 'owner'
+          ? `Solicitada por: ${reservation.renter.username}`
+          : `Propietario: ${reservation.owner.username}`}
       </p>
     </div>
   );
@@ -78,8 +84,9 @@ function BlockedState({ icon, message, reservation }: Blocked) {
   );
 }
 
-// Valorar un alquiler finalizado (US-08.01, #296): el arrendatario llega desde «Mis solicitudes»,
-// elige de 1 a 5 estrellas, escribe un comentario si quiere y publica.
+// Valorar un alquiler finalizado desde «Mis solicitudes»: se eligen de 1 a 5 estrellas, se escribe
+// un comentario si se quiere y se publica. Desde «Enviadas», el arrendatario valora el alquiler
+// (US-08.01, #296); desde «Recibidas», el propietario valora al inquilino (US-08.02, #299).
 export function RateReservationPage() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
@@ -88,6 +95,9 @@ export function RateReservationPage() {
   const commentId = useId();
 
   const [reservation, setReservation] = useState<Reservation | null>(null);
+  // Quién valora y a quién, en cuanto se encuentra la reserva (también si no se puede valorar).
+  const [target, setTarget] = useState<{ rater: Rater; renter: string } | null>(null);
+  const rater = target?.rater ?? null;
   const [blocked, setBlocked] = useState<Blocked | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [score, setScore] = useState<number | null>(null);
@@ -103,14 +113,15 @@ export function RateReservationPage() {
     let ignore = false;
 
     getMyReservations(token)
-      .then(({ sent }) => {
+      .then(({ sent, received }) => {
         if (ignore) return;
-        // US-08.01: valora quien hizo la solicitud. Las recibidas son de US-08.02.
-        const found = sent.find((candidate) => candidate.id === id);
+        const sentReservation = sent.find((candidate) => candidate.id === id);
+        const found = sentReservation ?? received.find((candidate) => candidate.id === id);
         if (!found) {
           setBlocked({ icon: 'search_off', message: NOT_FOUND });
           return;
         }
+        setTarget({ rater: sentReservation ? 'renter' : 'owner', renter: found.renter.username });
         const reason = blockedFor(found);
         if (reason) setBlocked(reason);
         else setReservation(found);
@@ -145,6 +156,7 @@ export function RateReservationPage() {
 
     setSubmitting(true);
     try {
+      // Quién valora a quién lo decide el backend por la sesión (#298): no se manda el tipo.
       await rateReservation(token, reservation.id, { score, comment: comment.trim() });
       navigate('/mis-solicitudes', { state: { notice: RATING_DONE } });
     } catch (requestError: unknown) {
@@ -197,9 +209,12 @@ export function RateReservationPage() {
   } else {
     const hintId = `${commentId}-hint`;
     const errorId = `${commentId}-error`;
+    const ratesRenter = rater === 'owner';
+    // A quién va la valoración: en su perfil la verán otras personas.
+    const ratedUser = ratesRenter ? reservation.renter.username : reservation.owner.username;
     content = (
       <div className="card rate-card">
-        <RentalSummary reservation={reservation} />
+        <RentalSummary reservation={reservation} rater={ratesRenter ? 'owner' : 'renter'} />
         <form onSubmit={(event) => void handleSubmit(event)} noValidate>
           <StarRating
             value={score}
@@ -212,7 +227,9 @@ export function RateReservationPage() {
             firstStarRef={firstStarRef}
           />
           <div className="form-field">
-            <label htmlFor={commentId}>Comentario (opcional)</label>
+            <label htmlFor={commentId}>
+              {ratesRenter ? '¿Cómo ha dejado el objeto?' : 'Comentario (opcional)'}
+            </label>
             <textarea
               id={commentId}
               name="comment"
@@ -220,7 +237,11 @@ export function RateReservationPage() {
               maxLength={COMMENT_MAX}
               value={comment}
               disabled={submitting}
-              placeholder="¿Qué tal ha ido? El objeto, la entrega, el trato…"
+              placeholder={
+                ratesRenter
+                  ? 'Cuenta cómo te lo ha devuelto'
+                  : '¿Qué tal ha ido? El objeto, la entrega, el trato…'
+              }
               onChange={(event) => {
                 setComment(event.target.value);
                 setCommentError(null);
@@ -229,8 +250,8 @@ export function RateReservationPage() {
               aria-describedby={commentError ? `${hintId} ${errorId}` : hintId}
             />
             <p id={hintId} className="field-hint">
-              Lo verán otras personas en el perfil de {reservation.owner.username}. Hasta{' '}
-              {COMMENT_MAX} caracteres ({comment.length}/{COMMENT_MAX}).
+              {ratesRenter && 'Opcional. '}Lo verán otras personas en el perfil de {ratedUser}.
+              Hasta {COMMENT_MAX} caracteres ({comment.length}/{COMMENT_MAX}).
             </p>
             {commentError && (
               <p id={errorId} className="field-error">
@@ -249,7 +270,7 @@ export function RateReservationPage() {
               {submitting ? 'Publicando…' : 'Publicar'}
             </button>
             <Link to="/mis-solicitudes" className="button-secondary">
-              Cancelar
+              {ratesRenter ? 'Volver a Mis solicitudes' : 'Cancelar'}
             </Link>
           </div>
         </form>
@@ -257,11 +278,16 @@ export function RateReservationPage() {
     );
   }
 
+  // Mientras se carga todavía no se sabe quién valora.
+  let pageTitle = 'Valorar';
+  if (target?.rater === 'renter') pageTitle = 'Valorar el alquiler';
+  else if (target?.rater === 'owner') pageTitle = `Valorar a ${target.renter}`;
+
   return (
     <section className="rate-page">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Valorar el alquiler</h1>
+          <h1 className="page-title">{pageTitle}</h1>
           <p className="page-subtitle">Cuenta tu experiencia para ayudar a otras personas.</p>
         </div>
       </div>

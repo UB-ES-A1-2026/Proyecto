@@ -1,8 +1,9 @@
 // Generado con asistencia de IA (Claude) – revisado por Danyal Anwar, 18/11/2026
 /**
  * US-08.01 Valorar un alquiler (issue #74) · tests e2e de la tarea #297
+ * US-08.02 Valorar un usuario (issue #75): el propietario valora al inquilino (#298 y #299)
  * Necesita el frontend y el backend en marcha y `npm run db:seed` ejecutado.
- * El último test publica una valoración: en local, vuelve a ejecutar `npm run db:seed`
+ * Los dos últimos tests publican una valoración: en local, vuelve a ejecutar `npm run db:seed`
  * antes de repetirlo.
  */
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test';
@@ -11,6 +12,7 @@ const API_URL = process.env.API_URL ?? 'http://localhost:3000/api';
 const PASSWORD = 'Rentit2026';
 const ANA = { email: 'ana@rentit.test', password: PASSWORD };
 const BRUNO = { email: 'bruno@rentit.test', password: PASSWORD };
+const DANI = { email: 'dani@rentit.test', password: PASSWORD };
 type User = typeof ANA;
 
 type Reservation = {
@@ -143,8 +145,11 @@ test.describe('US-08.01 Valorar un alquiler', () => {
     expect((await sentReservation(request, token, 'Máquina de palomitas')).myRating).toBeFalsy();
   });
 
-  // Criterio 7
-  test('bruno no puede valorar el alquiler que recibió', async ({ page, request }) => {
+  // Criterio 7 (con US-08.02 el propietario también valora, pero nadie más)
+  test('bruno puede valorar a ana, pero alguien de fuera no puede valorar el alquiler', async ({
+    page,
+    request,
+  }) => {
     const anaToken = await apiToken(request, ANA);
     const reservation = await sentReservation(request, anaToken, 'Máquina de palomitas');
 
@@ -152,16 +157,16 @@ test.describe('US-08.01 Valorar un alquiler', () => {
     await openMyReservations(page);
     const popcorn = card(page, 'Recibidas', 'Máquina de palomitas');
     await popcorn.getByRole('button', { name: /Máquina de palomitas/ }).click();
-    await expect(popcorn.getByRole('link', { name: /Valorar/ })).toHaveCount(0);
+    await expect(popcorn.getByRole('link', { name: /Valorar a ana/ })).toBeVisible();
 
-    const brunoToken = await apiToken(request, BRUNO);
+    const daniToken = await apiToken(request, DANI);
     const response = await request.post(
       `${API_URL}/reservas/${reservation.id}/valoracion`,
-      { headers: { Authorization: `Bearer ${brunoToken}` }, data: { score: 4, comment: 'No.' } },
+      { headers: { Authorization: `Bearer ${daniToken}` }, data: { score: 4, comment: 'No.' } },
     );
     expect(response.status()).toBe(403);
     expect(await response.json()).toEqual({
-      error: 'Solo quien ha alquilado el objeto puede valorar este alquiler.',
+      error: 'Solo quien ha participado en este alquiler puede valorarlo.',
     });
   });
 
@@ -241,6 +246,68 @@ test.describe('US-08.01 Valorar un alquiler', () => {
       const duplicate = await request.post(
         `${API_URL}/reservas/${reservation.id}/valoracion`,
         { headers: { Authorization: `Bearer ${token}` }, data: { score: 4, comment } },
+      );
+      expect(duplicate.status()).toBe(409);
+      expect(await duplicate.json()).toEqual({ error: 'Ya has valorado este alquiler.' });
+    });
+
+    // US-08.02 (#75), criterios 1 a 7: el propietario valora al inquilino de principio a fin
+    test('bruno valora a ana, ana ve «Valoración recibida» y bruno no puede repetir', async ({
+      page,
+      request,
+    }) => {
+      const anaToken = await apiToken(request, ANA);
+      const reservation = await sentReservation(request, anaToken, 'Máquina de palomitas');
+      const comment = `La devolvió limpia ${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+      await login(page, BRUNO);
+      await openMyReservations(page);
+      const popcorn = card(page, 'Recibidas', 'Máquina de palomitas');
+      await popcorn.getByRole('button', { name: /Máquina de palomitas/ }).click();
+      await popcorn
+        .getByRole('link', { name: 'Valorar a ana por el alquiler de Máquina de palomitas' })
+        .click();
+      await expect(page).toHaveURL(new RegExp(`/mis-solicitudes/${reservation.id}/valorar$`));
+      await expect(page.getByRole('heading', { level: 1, name: 'Valorar a ana' })).toBeVisible();
+
+      // Sin puntuación no se publica
+      await page.getByLabel('¿Cómo ha dejado el objeto?').fill(comment);
+      await page.getByRole('button', { name: 'Publicar' }).click();
+      await expect(page.getByText('Elige una puntuación de 1 a 5 estrellas.')).toBeVisible();
+      await expect(page).toHaveURL(new RegExp(`/mis-solicitudes/${reservation.id}/valorar$`));
+
+      await page.getByRole('group', { name: 'Puntuación' }).locator('label')
+        .filter({ hasText: '5 estrellas' })
+        .click();
+      await page.getByRole('button', { name: 'Publicar' }).click();
+
+      await expect(page).toHaveURL(/\/mis-solicitudes$/);
+      await expect(page.getByText('Valoración publicada.')).toBeVisible();
+      const ratedCard = card(page, 'Recibidas', 'Máquina de palomitas');
+      await ratedCard.getByRole('button', { name: /Máquina de palomitas/ }).click();
+      await expect(ratedCard.getByText('Tu valoración')).toBeVisible();
+      await expect(ratedCard.getByText(`«${comment}»`)).toBeVisible();
+      await expect(ratedCard.getByRole('link', { name: /Valorar a ana/ })).toHaveCount(0);
+
+      // ana la ve en «Enviadas»
+      await page.goto('/perfil');
+      await page.getByRole('button', { name: 'Cerrar sesión' }).click();
+      await login(page, ANA);
+      await openMyReservations(page);
+      const anaCard = card(page, 'Enviadas', 'Máquina de palomitas');
+      await anaCard.getByRole('button', { name: /Máquina de palomitas/ }).click();
+      const received = anaCard
+        .locator('.reservation-rating-summary')
+        .filter({ hasText: 'Valoración recibida' });
+      await expect(received).toBeVisible();
+      await expect(received.getByRole('img', { name: '5 de 5 estrellas' })).toBeVisible();
+      await expect(received.getByText(`«${comment}»`)).toBeVisible();
+
+      // Una sola valoración por alquiler
+      const brunoToken = await apiToken(request, BRUNO);
+      const duplicate = await request.post(
+        `${API_URL}/reservas/${reservation.id}/valoracion`,
+        { headers: { Authorization: `Bearer ${brunoToken}` }, data: { score: 3, comment } },
       );
       expect(duplicate.status()).toBe(409);
       expect(await duplicate.json()).toEqual({ error: 'Ya has valorado este alquiler.' });
