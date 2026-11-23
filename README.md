@@ -37,8 +37,8 @@ Aplicación web para **alquilar objetos de uso puntual** que no compensa comprar
 | Marc | BE | DevOps+BE | FE | QA+FE |
 | Max | FE | BE | DevOps+BE | FE |
 | Alex | FE | QA+FE | BE | DevOps+BE |
-| Kai | DevOps | BE | FE | BE |
-| Francesc | QA | FE | BE | FE |
+| Kai | DevOps | BE | FE | FE |
+| Francesc | QA | FE | BE | BE |
 
 ---
 
