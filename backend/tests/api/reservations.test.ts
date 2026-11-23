@@ -299,6 +299,7 @@ describe('POST /api/reservas', () => {
         ownerAddress: null,
       },
       createdAt: expect.any(String),
+      cancellation: null,
     });
 
     const saved = await prisma.reservation.findUniqueOrThrow({

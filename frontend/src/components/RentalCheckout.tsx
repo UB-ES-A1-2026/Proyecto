@@ -17,11 +17,20 @@ import {
 } from '../services/deliveryService';
 import { isStripeEnabled } from '../services/stripeService';
 import { DELIVERY_ERROR_FIELDS, type DeliverySelection } from '../utils/deliveryDraft';
-import { calculateTotalPrice, countRentalDays, formatLongDate, formatPrice } from '../utils/rental';
+import {
+  calculateTotalPrice,
+  countRentalDays,
+  daysUntil,
+  formatLongDate,
+  formatPrice,
+} from '../utils/rental';
 import { CardFields, TestCardsNote } from './CardFields';
 import { Icon } from './Icon';
 import type { RentalItem } from './RentalRequest';
 import { StripePayment, type StripeConfirmer } from './StripePayment';
+
+// Con menos de estos días de margen, cancelar una reserva pagada cuesta el 100 % (US-04.05, #309).
+const LAST_MINUTE_DAYS = 3;
 
 const EMPTY_CARD: CardDetails = { number: '', expiry: '', cvc: '' };
 
@@ -215,6 +224,16 @@ export function RentalCheckout({
             <dt>Total con fianza</dt>
             <dd>{formatPrice(totalPrice + deposit)}</dd>
           </dl>
+        )}
+        {/* US-04.05 (#309), criterio 5: con menos de 3 días, cancelar costará el alquiler entero. */}
+        {daysUntil(startDate) < LAST_MINUTE_DAYS && (
+          <p className="rental-last-minute" role="note">
+            <Icon name="warning" size="1.125rem" />
+            <span>
+              Empieza en menos de 3 días: si cancelas una vez aceptada, compensarás al propietario
+              con el alquiler completo por las molestias.
+            </span>
+          </p>
         )}
       </section>
 

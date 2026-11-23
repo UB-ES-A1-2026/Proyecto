@@ -139,6 +139,31 @@ describe('Seguimiento de la entrega (US-05.02, #67)', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
+  // US-04.05 (#406): si se cancela con el rider ya asignado, nadie puede seguir con la entrega.
+  it('una reserva cancelada dice que se ha cancelado, sin pasos ni botones', async () => {
+    mockApi({
+      get: json(
+        tracking({
+          role: 'rider',
+          reservationStatus: 'cancelled',
+          deliveryStatus: 'assigned',
+          deliveryCode: null,
+        }),
+      ),
+    });
+
+    renderRoute('/entregas/r1');
+
+    expect(
+      await screen.findByText(
+        'Este alquiler se ha cancelado: ya no hay ninguna entrega que hacer.',
+      ),
+    ).toBeVisible();
+    expect(screen.getByText(/Alquiler: Cancelada/)).toBeVisible();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.queryByText('Asignada')).not.toBeInTheDocument();
+  });
+
   it('el rider solo puede marcar el estado siguiente', async () => {
     const user = userEvent.setup();
     const fetchMock = mockApi({

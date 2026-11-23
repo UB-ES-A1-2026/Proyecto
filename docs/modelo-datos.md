@@ -21,6 +21,8 @@ erDiagram
   USUARIO ||--o{ RESERVA : "solicita (arrendatario)"
   OBJETO ||--o{ RESERVA : "es reservado en"
   RESERVA ||--o| PAGO : "se paga con"
+  RESERVA ||--o| CANCELACION : "se cancela con"
+  USUARIO ||--o{ CANCELACION : "cancela"
   RESERVA ||--o| ENTREGA : "se entrega con"
   USUARIO |o--o{ ENTREGA : "reparte (rider)"
   PUNTO_RECOGIDA |o--o{ ENTREGA : "se usa en"
@@ -134,6 +136,15 @@ erDiagram
     texto referencia_fianza UK
     fecha_hora creado_en
     fecha_hora actualizado_en
+  }
+  CANCELACION {
+    id id PK
+    id reserva_id FK,UK
+    id cancelada_por FK "arrendatario o propietario"
+    fecha_hora cancelada_en
+    entero porcentaje "0 | 35 | 100"
+    decimal penalizacion "% del precio del alquiler"
+    decimal reembolso "lo devuelto al arrendatario"
   }
   PUNTO_RECOGIDA {
     id id PK
@@ -325,9 +336,9 @@ Se crea en la migración `crea_pago` como parte de US-07.01 (#72, tarea T9), con
 |---|---|---|---|
 | Solicitar (`POST /api/reservas`) | `pendiente`, con `caduca_en` = ahora + 48 h | `autorizado` (importe bloqueado) | T9 (#284) |
 | Aceptar | `pagada` | `pagado` (se cobra) | Alex |
-| Rechazar o cancelar antes de aceptar | `rechazada` o `cancelada` | `liberado` | Alex |
+| Rechazar o cancelar antes de aceptar | `rechazada` o `cancelada` | `liberado` | Alex (#343 y #308) |
 | Pasan 48 h sin respuesta (se comprueba al consultar) | `caducada` | `liberado` | T10 (#285) |
-| Cancelar después de pagar | `cancelada` | `reembolsado` (todo o en parte) | T28 (#308) |
+| Cancelar después de pagar | `cancelada` | `reembolsado` (todo o en parte; ver `cancelacion`) | T28 (#308) |
 
 Lo que no se ve en el diagrama:
 
@@ -471,11 +482,57 @@ Además, `reserva` gana la columna `motivo_cancelacion` (enum `motivo_cancelacio
 
 En Prisma, los modelos son `ItemModeration` y los enums `WithdrawalReason` (`scam`, `prohibited`, `misleading`, `other`) y `CancellationReason` (`item_withdrawn`).
 
+## Tabla `cancelacion` (Sprint 2 · #308)
+
+Se crea en la migración `crea_cancelacion` como parte de US-04.05 (#64, tarea T28). Una fila por reserva cancelada: quién la canceló, cuándo y qué penalización y reembolso se aplicaron. Está en una **tabla aparte**, no en columnas de `reserva`, para no chocar con las historias que también modifican `reserva` (T9, T13 y T37).
+
+Quién puede cancelar qué, y lo que pasa con el dinero:
+
+| Reserva | Quién cancela | Penalización | `pago.estado` | Fianza |
+|---|---|---|---|---|
+| `pendiente` (importe bloqueado) | Solo el arrendatario (el propietario la rechaza) | Ninguna | `liberado` (se suelta el bloqueo) | No se toca |
+| `aceptada` del flujo anterior (sin pago) | Cualquiera de los dos | Ninguna | Sin pago | Sin fianza |
+| `pagada` | Cualquiera de los dos | % del precio del alquiler según los días que faltan | `reembolsado` si se devuelve algo | `retenida` → `liberada`; `cobrada` → `devuelta`; `pendiente` → `liberada` |
+| `rechazada`, `caducada`, `cancelada`, `en_curso`, `finalizada` | Nadie | | | |
+
+Los días que faltan se cuentan desde hoy hasta `fecha_inicio` con la fecha de España. **Menos de 3 días: 100 %; de 3 a 7: 35 %; 8 o más: 0 %** (sin fianza ni entrega). La recibe la otra persona:
+- Cancela el **arrendatario** de una reserva pagada: se le devuelve `importe_alquiler + importe_entrega − penalización`. La entrega se devuelve **siempre entera**.
+- Cancela el **propietario**: se le devuelve todo al arrendatario y la penalización **solo se registra** a su cargo, no se cobra (decisión de Alex en #308, que cierra el «pendiente de decidir» de AGENTS.md).
+
+| Decisión | Por qué |
+|---|---|
+| `reserva_id` es **único** | Una reserva se cancela una vez; la BD lo garantiza aunque dos personas cancelen a la vez (el backend bloquea la reserva y la segunda recibe `409`). |
+| Se guarda una fila también si cancelar es **gratis** (`porcentaje = 0`, importes a 0) | Así las dos personas ven siempre quién canceló y cuándo. |
+| `cancelada_por` es el arrendatario o el propietario | No hay otra forma de cancelar: la retirada de un objeto por el admin (US-11.03) usa su propio campo. |
+| `reembolso` es lo devuelto **al arrendatario** | Con la penalización a cargo del propietario, es todo lo pagado. Si no hay pago, vale `0.00`. |
+| `CHECK` en la BD: `porcentaje IN (0, 35, 100)`, `penalizacion >= 0` y `reembolso >= 0` | El backend también lo valida, pero así la BD nunca guarda datos imposibles. |
+| Una reserva o un usuario con cancelación **no se pueden borrar** | Es el historial de lo que se devolvió y se debe. |
+| Las **fechas quedan libres** | `cancelada` no está entre los estados que ocupan las fechas (`aceptada`, `pagada` y `en_curso`). |
+
+En Prisma, el modelo es `Cancellation` (`reservationId`, `cancelledById`, `cancelledAt`, `penaltyPercent`, `penaltyAmount`, `refundAmount`).
+
+**API** (con sesión; solo el arrendatario o el propietario; `403` si no es de la reserva, `404` si no existe):
+- `GET /api/reservas/:id/cancelacion` → lo que costaría cancelar hoy, desde la posición de quien pregunta, calculado con la misma función que al cancelar:
+  ```json
+  { "daysUntilStart": 5, "penaltyPercent": 35, "penaltyAmount": "7.00",
+    "refundAmount": "13.00", "free": false, "releasesHold": false }
+  ```
+  `free` es `true` en una pendiente o una aceptada sin pago; `releasesHold`, en una pendiente con el importe bloqueado. `refundAmount` es lo que recibe el arrendatario.
+- `POST /api/reservas/:id/cancelar` (sin cuerpo) → la reserva, con la forma de «Mis solicitudes», en `cancelled` y con `cancellation`.
+- Los dos responden `409 { "error": "Esta reserva ya no se puede cancelar." }` si el estado no lo permite (también si el propietario cancela una pendiente) y, el POST, `502 { "error": "No se ha podido cancelar. Inténtalo de nuevo." }` si falla la pasarela: **todo se deshace** y la reserva no cambia.
+- En las reservas de «Mis solicitudes» (y en las que devuelven aceptar y rechazar) hay un campo nuevo, `cancellation`: `null` salvo en las canceladas, donde vale `{ "by": { "id", "username" }, "at", "penaltyPercent", "penaltyAmount", "refundAmount" }`.
+
+Al cancelar se avisa en tiempo real (`entrega.estado` con `status: "cancelled"`, como en el seguimiento de US-05.02) al arrendatario, al propietario y, si ya había aceptado el trabajo, al rider. El seguimiento de una reserva cancelada lo dice y no deja hacer nada más (#406).
+
+Antes de cancelar se caducan las solicitudes pendientes vencidas del usuario (#343), así que una pendiente que ya venció da `409`. Las llamadas a la pasarela se hacen dentro de la transacción, antes de confirmar: primero la fianza (soltar un bloqueo se puede repetir sin riesgo) y, lo último, el reembolso del alquiler.
+
+**Datos de demo:** `DEMO_RESERVATIONS` incluye, dos pagadas que jordi alquila a marta (bruno a ana en local) y que solo usa cancelar: la «Tabla de paddle surf hinchable» a 12 días (cancelar es gratis) y la «Silla de coche para bebé» a 4 días (penalización del 35 %), y una ya **cancelada** por bruno con su fila de `cancelacion` («Tienda de campaña»: 35 % de 16 € = 5,60 € para ana, 10,40 € devueltos a bruno). Repetir el seed rehace las cancelaciones.
+
 ## Qué tablas entran en cada sprint
 
 | Sprint | Tablas nuevas | Historias |
 |---|---|---|
 | S0 | `usuario`, `sesion` | US-01.1, US-01.2, US-01.3 |
 | S1 | `categoria`, `objeto`, `foto_objeto`, `reserva` | US-02.x, US-03.x, US-04.01–04.04 |
-| S2 | `solicitud_rider` (US-10.03), `retirada_objeto` (US-11.03), `pago`, `punto_recogida`, `entrega`, `valoracion` (+ campos de perfil y rider en `usuario`) | US-07.01, US-05.01–05.02, US-10.01, US-10.03, US-08.x, US-01.4 |
-| S3 | `conversacion`, `mensaje`, `notificacion`, `incidencia`, `foto_estado` | US-06.x, US-09.x, US-11.01, US-04.05 |
+| S2 | `solicitud_rider` (US-10.03), `retirada_objeto` (US-11.03), `pago`, `cancelacion`, `punto_recogida`, `entrega`, `valoracion` (+ campos de perfil y rider en `usuario`) | US-07.01, US-04.05, US-05.01–05.02, US-10.01, US-10.03, US-11.03, US-08.x, US-01.4 |
+| S3 | `conversacion`, `mensaje`, `notificacion`, `incidencia`, `foto_estado` | US-06.x, US-09.x, US-11.01 |
