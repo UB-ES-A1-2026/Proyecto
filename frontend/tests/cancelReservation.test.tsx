@@ -474,6 +474,67 @@ describe('Ventana de cancelar (criterios 2, 3 y 4)', () => {
   });
 });
 
+// Lista y detalle desde 1360 px (US-04.02): el detalle lleva «Cancelar reserva» como la tarjeta
+// desplegable, en las enviadas y en las recibidas (S2-T50).
+describe('«Cancelar» desde el detalle en pantallas anchas', () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn().mockImplementation((query: string) => ({
+        matches: true,
+        media: query,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+      })),
+    );
+  });
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('se cancela desde el detalle: la fila pasa a «Cancelada» y el foco va al texto', async () => {
+    logIn();
+    const received = reservation({
+      id: 'r2',
+      item: { id: 'item-2', title: 'Escalera de aluminio' },
+      renter: { id: 'u3', username: 'carla' },
+      owner: { id: 'u2', username: 'bruno' },
+    });
+    mockApi({
+      'GET /usuarios/me/reservas': Response.json({ sent: [reservation()], received: [received] }),
+      'GET /reservas/r1/cancelacion': Response.json(PREVIEW_35),
+      'POST /reservas/r1/cancelar': Response.json(
+        reservation({ status: 'cancelled', cancellation: CANCELLED_BY_BRUNO }),
+      ),
+    });
+    const user = userEvent.setup();
+    renderRoute('/mis-solicitudes');
+
+    const row = await screen.findByRole('button', { name: /Taladro percutor Bosch/ });
+    const detail = screen.getByRole('region', { name: 'Solicitud elegida' });
+    await user.click(within(detail).getByRole('button', { name: 'Cancelar reserva' }));
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText(/Faltan 5 días/);
+    await user.click(within(dialog).getByRole('button', { name: 'Cancelar reserva' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(row).toHaveTextContent('Cancelada');
+    expect(detail).toHaveTextContent(
+      /La cancelaste tú el 16 de noviembre de 2026\. Compensación a ana por las molestias: 7,00\s€ \(35 %\)\./,
+    );
+    expect(within(detail).queryByRole('button', { name: 'Cancelar reserva' })).toBeNull();
+    expect(within(detail).getByRole('status')).toHaveFocus();
+
+    // Una recibida pagada también se cancela desde el detalle.
+    await user.click(screen.getByRole('button', { name: /Escalera de aluminio/ }));
+    expect(within(detail).getByRole('button', { name: 'Cancelar reserva' })).toBeInTheDocument();
+
+    // Al volver a la cancelada, el foco se queda en la fila que se ha pulsado.
+    await user.click(row);
+    expect(within(detail).getByRole('status')).not.toHaveFocus();
+    expect(row).toHaveFocus();
+  });
+});
+
 describe('Reserva cancelada vista por cada persona (criterio 6)', () => {
   function renderCard(data: Reservation, role: 'sent' | 'received') {
     render(

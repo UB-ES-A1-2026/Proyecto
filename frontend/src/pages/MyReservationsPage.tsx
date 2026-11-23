@@ -53,14 +53,24 @@ function ReservationSection({
 
 // Lista y detalle (decisión de Kai, 20/11): las dos listas a la izquierda y la solicitud elegida,
 // entera, a la derecha. Al entrar se elige la primera. Generado con asistencia de IA (Claude).
+// El detalle lleva las mismas acciones que la tarjeta desplegable (aceptar, rechazar y cancelar).
 function ReservationsMasterDetail({
   reservations,
-  renderDecision,
+  renderActions,
+  justCancelledId,
+  onSelect,
 }: {
   reservations: MyReservations;
-  renderDecision: (reservation: MyReservations['received'][number]) => ReactNode;
+  renderActions: (reservation: Reservation, role: 'sent' | 'received') => ReactNode;
+  justCancelledId: string | null;
+  // Al elegir otra, la que se acaba de cancelar deja de llevarse el foco si se vuelve a ella.
+  onSelect: () => void;
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  function select(id: string) {
+    setSelectedId(id);
+    onSelect();
+  }
   const entries = [
     ...reservations.sent.map((reservation) => ({ reservation, role: 'sent' as const })),
     ...reservations.received.map((reservation) => ({ reservation, role: 'received' as const })),
@@ -84,7 +94,7 @@ function ReservationsMasterDetail({
               role="sent"
               view="row"
               selected={reservation.id === selected?.reservation.id}
-              onSelect={() => setSelectedId(reservation.id)}
+              onSelect={() => select(reservation.id)}
             />
           ))}
         </ReservationSection>
@@ -102,7 +112,7 @@ function ReservationsMasterDetail({
               role="received"
               view="row"
               selected={reservation.id === selected?.reservation.id}
-              onSelect={() => setSelectedId(reservation.id)}
+              onSelect={() => select(reservation.id)}
             />
           ))}
         </ReservationSection>
@@ -114,8 +124,9 @@ function ReservationsMasterDetail({
             reservation={selected.reservation}
             role={selected.role}
             view="detail"
+            justCancelled={selected.reservation.id === justCancelledId}
           >
-            {selected.role === 'received' ? renderDecision(selected.reservation) : undefined}
+            {renderActions(selected.reservation, selected.role)}
           </ReservationCard>
         </section>
       )}
@@ -205,6 +216,29 @@ export function MyReservationsPage() {
       .catch(() => undefined);
   }
 
+  // Las acciones de una solicitud, iguales en la tarjeta desplegable y en el detalle de la vista
+  // ancha: aceptar y rechazar en las recibidas, y cancelar en las dos (US-04.05).
+  function renderActions(reservation: Reservation, role: 'sent' | 'received') {
+    return (
+      <>
+        {role === 'received' && (
+          <ReservationDecision
+            reservationId={reservation.id}
+            status={reservation.status}
+            onDecided={handleDecided}
+            onOutdated={refreshReservations}
+          />
+        )}
+        <CancelReservation
+          reservation={reservation}
+          role={role}
+          onCancelled={handleCancelled}
+          onOutdated={refreshReservations}
+        />
+      </>
+    );
+  }
+
   return (
     <section className="my-reservations">
       <div className="page-header">
@@ -229,14 +263,9 @@ export function MyReservationsPage() {
       ) : reservations && wide ? (
         <ReservationsMasterDetail
           reservations={reservations}
-          renderDecision={(reservation) => (
-            <ReservationDecision
-              reservationId={reservation.id}
-              status={reservation.status}
-              onDecided={handleDecided}
-              onOutdated={refreshReservations}
-            />
-          )}
+          renderActions={renderActions}
+          justCancelledId={justCancelledId}
+          onSelect={() => setJustCancelledId(null)}
         />
       ) : reservations ? (
         <div className="reservation-sections">
@@ -254,12 +283,7 @@ export function MyReservationsPage() {
                 role="sent"
                 justCancelled={reservation.id === justCancelledId}
               >
-                <CancelReservation
-                  reservation={reservation}
-                  role="sent"
-                  onCancelled={handleCancelled}
-                  onOutdated={refreshReservations}
-                />
+                {renderActions(reservation, 'sent')}
               </ReservationCard>
             ))}
           </ReservationSection>
@@ -277,18 +301,7 @@ export function MyReservationsPage() {
                 role="received"
                 justCancelled={reservation.id === justCancelledId}
               >
-                <ReservationDecision
-                  reservationId={reservation.id}
-                  status={reservation.status}
-                  onDecided={handleDecided}
-                  onOutdated={refreshReservations}
-                />
-                <CancelReservation
-                  reservation={reservation}
-                  role="received"
-                  onCancelled={handleCancelled}
-                  onOutdated={refreshReservations}
-                />
+                {renderActions(reservation, 'received')}
               </ReservationCard>
             ))}
           </ReservationSection>
