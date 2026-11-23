@@ -301,6 +301,46 @@ describe('«Mis objetos» con lista y detalle (pantallas anchas)', () => {
     expect(within(detail).getByRole('heading', { name: 'Tienda de campaña' })).toBeInTheDocument();
   });
 
+  it('si un admin retiró el objeto, el detalle enseña el motivo (US-11.03)', async () => {
+    wideScreen();
+    localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
+    mockFetch(() =>
+      Response.json([
+        {
+          id: 'o3',
+          title: 'Consola retro',
+          dailyPrice: '8',
+          neighborhood: 'Gràcia',
+          status: 'withdrawn',
+          moderation: {
+            reason: 'scam',
+            details: 'Pide el pago por Bizum.',
+            withdrawnAt: '2026-11-12T10:00:00.000Z',
+          },
+        },
+        {
+          id: 'o4',
+          title: 'Bicicleta',
+          dailyPrice: '6',
+          neighborhood: 'Sants',
+          status: 'withdrawn',
+          moderation: null,
+        },
+      ]),
+    );
+    const user = userEvent.setup();
+
+    renderRoute('/mis-objetos');
+
+    const detail = await screen.findByRole('region', { name: 'Objeto elegido' });
+    expect(detail).toHaveTextContent(
+      'Rentit ha retirado este anuncio. Motivo: Posible estafa. Pide el pago por Bizum.',
+    );
+    // Retirado por su propietario: sin aviso de Rentit.
+    await user.click(screen.getByRole('button', { name: 'Bicicleta' }));
+    expect(detail).not.toHaveTextContent('Rentit ha retirado');
+  });
+
   it('en pantallas estrechas sigue con las acciones en cada fila', async () => {
     wideScreen(false);
     localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION));
