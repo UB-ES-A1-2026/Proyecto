@@ -34,11 +34,11 @@ Aplicación web para **alquilar objetos de uso puntual** que no compensa comprar
 | Miembro | Rol en S0 | Rol en S1 | Rol en S2 | Rol en S3 |
 |---|---|---|---|---|
 | Danyal | BE | FE | QA+FE | BE |
-| Marc | BE | DevOps+BE | FE | QA+FE |
+| Marc | BE | DevOps+BE | FE | BE |
 | Max | FE | BE | DevOps+BE | FE |
 | Alex | FE | QA+FE | BE | DevOps+BE |
-| Kai | DevOps | BE | FE | BE |
-| Francesc | QA | FE | BE | FE |
+| Kai | DevOps | BE | FE | FE |
+| Francesc | QA | FE | BE | QA |
 
 ---
 
