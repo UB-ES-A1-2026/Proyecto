@@ -240,7 +240,14 @@ test.describe('US-10.01 Rider acepta entregas disponibles', () => {
       { headers: ana },
     );
     expect(accept.status()).toBe(403);
+    // Sin sesión, los tres responden 401.
     expect((await request.get(`${API_URL}/trabajos`)).status()).toBe(401);
+    expect((await request.get(`${API_URL}/trabajos/mios`)).status()).toBe(401);
+    expect(
+      (
+        await request.post(`${API_URL}/trabajos/00000000-0000-4000-8000-000000000000/aceptar`)
+      ).status(),
+    ).toBe(401);
 
     // Con un rider aceptado, la misma petición funciona
     const asRider = await request.get(`${API_URL}/trabajos`, {
