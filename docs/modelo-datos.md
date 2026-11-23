@@ -11,18 +11,25 @@ Siguiendo el diseño emergente que pide la asignatura, en cada sprint solo se cr
 ```mermaid
 erDiagram
   USUARIO ||--o{ SESION : "inicia"
+  USUARIO ||--o| SOLICITUD_RIDER : "solicita ser rider"
+  USUARIO |o--o{ SOLICITUD_RIDER : "revisa (admin)"
   USUARIO ||--o{ OBJETO : "publica"
+  OBJETO ||--o| RETIRADA_OBJETO : "retira (admin)"
+  USUARIO ||--o{ RETIRADA_OBJETO : "retira (admin)"
   CATEGORIA ||--o{ OBJETO : "clasifica"
   OBJETO ||--o{ FOTO_OBJETO : "tiene"
   USUARIO ||--o{ RESERVA : "solicita (arrendatario)"
   OBJETO ||--o{ RESERVA : "es reservado en"
   RESERVA ||--o| PAGO : "se paga con"
-  RESERVA ||--o{ ENTREGA : "ida y vuelta"
+  RESERVA ||--o| CANCELACION : "se cancela con"
+  USUARIO ||--o{ CANCELACION : "cancela"
+  RESERVA ||--o| ENTREGA : "se entrega con"
   USUARIO |o--o{ ENTREGA : "reparte (rider)"
   PUNTO_RECOGIDA |o--o{ ENTREGA : "se usa en"
   RESERVA ||--o{ FOTO_ESTADO : "check-in / check-out"
   RESERVA ||--o{ VALORACION : "se valora en"
   USUARIO ||--o{ VALORACION : "escribe"
+  USUARIO ||--o{ VALORACION : "recibe"
   RESERVA ||--o| INCIDENCIA : "puede tener"
   OBJETO ||--o{ CONVERSACION : "se habla de"
   CONVERSACION ||--o{ MENSAJE : "contiene"
@@ -51,6 +58,21 @@ erDiagram
     fecha_hora expira_en
     fecha_hora revocada_en "null = activa"
   }
+  SOLICITUD_RIDER {
+    id id PK
+    id usuario_id FK,UK
+    texto telefono
+    texto zona
+    enum vehiculo "a_pie | bici | patinete | moto | coche"
+    enum_array dias "lunes … domingo, al menos uno"
+    enum_array franjas "manana | tarde | noche, al menos una"
+    fecha_hora condiciones_aceptadas_en
+    enum estado "pendiente | aceptada | rechazada"
+    fecha_hora creada_en
+    id revisada_por_id FK "admin que la resolvió, null si pendiente"
+    fecha_hora revisada_en "null = pendiente"
+    texto motivo_rechazo "opcional, solo si rechazada"
+  }
   CATEGORIA {
     id id PK
     texto nombre UK
@@ -63,7 +85,8 @@ erDiagram
     texto descripcion
     decimal precio_dia
     decimal fianza
-    texto barrio
+    texto barrio "de la lista fija de barrios de Barcelona"
+    texto direccion "null; obligatoria con entrega_domicilio o entrega_rider"
     decimal latitud
     decimal longitud
     booleano entrega_domicilio
@@ -87,9 +110,19 @@ erDiagram
     fecha fecha_fin
     decimal precio_total
     enum modo_entrega "domicilio | rider | punto_recogida"
-    enum estado "pendiente | aceptada | rechazada | cancelada | pagada | en_curso | finalizada"
+    enum estado "pendiente | aceptada | rechazada | cancelada | pagada | en_curso | finalizada | caducada"
+    fecha_hora caduca_en "solo en las pendientes"
+    enum motivo_cancelacion "objeto_retirado, opcional, solo si cancelada por el sistema"
     fecha_hora creada_en
     fecha_hora actualizada_en
+  }
+  RETIRADA_OBJETO {
+    id id PK
+    id objeto_id FK,UK
+    id admin_id FK
+    enum motivo "posible_estafa | prohibido | enganoso | otro"
+    texto detalles "≤ 500, obligatorio si motivo = otro"
+    fecha_hora retirado_en
   }
   PAGO {
     id id PK
@@ -97,28 +130,48 @@ erDiagram
     decimal importe_alquiler
     decimal importe_entrega
     decimal importe_fianza
-    enum estado "pendiente | pagado | rechazado | reembolsado"
-    enum estado_fianza "retenida | liberada | ejecutada"
-    texto referencia_pasarela
+    enum estado "autorizado | pagado | liberado | reembolsado"
+    enum estado_fianza "pendiente | retenida | liberada | ejecutada | cobrada | devuelta, null sin fianza"
+    texto referencia_alquiler UK
+    texto referencia_fianza UK
     fecha_hora creado_en
+    fecha_hora actualizado_en
+  }
+  CANCELACION {
+    id id PK
+    id reserva_id FK,UK
+    id cancelada_por FK "arrendatario o propietario"
+    fecha_hora cancelada_en
+    entero porcentaje "0 | 35 | 100"
+    decimal penalizacion "% del precio del alquiler"
+    decimal reembolso "lo devuelto al arrendatario"
   }
   PUNTO_RECOGIDA {
     id id PK
     texto nombre
     texto direccion
+    texto barrio
     decimal latitud
     decimal longitud
   }
   ENTREGA {
     id id PK
-    id reserva_id FK
-    enum sentido "ida | vuelta"
-    id rider_id FK "null si no es por rider"
+    id reserva_id FK,UK
     id punto_recogida_id FK "null si no es punto"
-    fecha_hora hora_programada
+    texto franja "null = lo antes posible (solo rider)"
+    texto direccion_destino "solo rider"
+    texto barrio_destino "solo rider"
+    decimal tarifa "solo rider"
     enum estado "pendiente | asignada | recogida | en_camino | entregada"
-    texto codigo_entrega
-    decimal tarifa
+    id rider_id FK "null sin rider"
+    texto codigo_entrega "6 cifras, solo rider"
+    entero intentos_codigo "0 a 5"
+    fecha_hora asignada_en
+    fecha_hora recogida_en
+    fecha_hora en_camino_en
+    fecha_hora entregada_en
+    fecha_hora devuelta_en
+    fecha_hora creada_en
   }
   FOTO_ESTADO {
     id id PK
@@ -131,12 +184,12 @@ erDiagram
   }
   VALORACION {
     id id PK
-    id reserva_id FK
+    id reserva_id FK "UK con autor_id"
     id autor_id FK
     id valorado_id FK
     enum tipo "alquiler | usuario"
-    entero puntuacion "1 a 5"
-    texto comentario
+    entero puntuacion "1 a 5 (CHECK)"
+    texto comentario "opcional, hasta 1000"
     fecha_hora creada_en
   }
   INCIDENCIA {
@@ -237,7 +290,7 @@ Se crea en la migración `crea_reserva` como parte de TR-05 (#86), para que est�
 
 | Decisión | Por qué |
 |---|---|
-| `modo_entrega` es **opcional** | Se elige en US-05.01 (Sprint 2). En el Sprint 1 la solicitud solo lleva fechas e importe. |
+| `modo_entrega` es **opcional en la BD** | Las reservas del Sprint 1 no lo tienen. Desde US-05.01 (Sprint 2) la API lo exige al solicitar y lo guarda junto con su `entrega` (ver más abajo). |
 | `fecha_inicio` y `fecha_fin` son `DATE`, **sin hora** | El alquiler va por días y así no depende de la zona horaria. Las dos fechas cuentan: del 4 al 6 son 3 días. |
 | `precio_total` se guarda en la reserva | Si el propietario cambia el precio después, la solicitud conserva el importe que vio el arrendatario. |
 | `CHECK` en la BD: `fecha_fin >= fecha_inicio` y `precio_total > 0` | El backend también lo valida, pero así la BD nunca guarda datos imposibles. |
@@ -245,11 +298,259 @@ Se crea en la migración `crea_reserva` como parte de TR-05 (#86), para que est�
 
 En Prisma, el modelo es `Reservation`, y los enums son `ReservationStatus` (`pending`, `accepted`, `rejected`, `cancelled`, `paid`, `in_progress`, `finished`) y `DeliveryMode` (`home`, `rider`, `pickup_point`).
 
+## Tabla `solicitud_rider` (Sprint 2 · #314)
+
+Se crea en la migración `crea_solicitud_rider` como parte de US-10.03 (#304, «Solicitar ser rider»). Guarda las respuestas del cuestionario de «Hazte rider». La cuenta de rider es un `usuario` con `es_rider = true` (se crea junto con la solicitud, en una sola transacción), y su solicitud empieza en `pendiente`. US-11.03 (#305) la acepta o la rechaza; los campos de esa revisión (quién, cuándo y el motivo) los añade la migración `revision_solicitud_rider` (#317).
+
+| Campo | Tipo | Obligatorio | Restricciones | Para qué |
+|---|---|---|---|---|
+| `id` | UUID | sí | PK | Identificador |
+| `usuario_id` | UUID | sí | FK → `usuario.id`, único, borrado restringido | Una sola solicitud por cuenta |
+| `telefono` | texto (≤ 20) | sí | | Teléfono español normalizado (9 dígitos, sin prefijo ni espacios) |
+| `zona` | texto (≤ 100) | sí | | Zona en la que quiere repartir |
+| `vehiculo` | enum `a_pie`, `bici`, `patinete`, `moto`, `coche` | sí | | Vehículo con el que reparte |
+| `dias` | array de enum `dia_semana` (`lunes` … `domingo`) | sí | no vacío (`CHECK`) | Días en que puede repartir |
+| `franjas` | array de enum `franja_rider` (`manana`, `tarde`, `noche`) | sí | no vacío (`CHECK`) | Franjas en que puede repartir: mañana 9–14 h, tarde 14–20 h, noche 20–23 h |
+| `condiciones_aceptadas_en` | fecha y hora | sí | | Cuándo aceptó las condiciones |
+| `estado` | enum `pendiente`, `aceptada`, `rechazada` | sí | por defecto `pendiente` | Estado de la revisión |
+| `creada_en` | fecha y hora | sí | por defecto «ahora» | Orden de revisión: de la más antigua a la más nueva |
+| `revisada_por_id` | UUID | no | FK → `usuario.id`, borrado restringido | Admin que la resolvió (`null` mientras está pendiente) |
+| `revisada_en` | fecha y hora | no | `CHECK` | Cuándo se resolvió (`null` mientras está pendiente) |
+| `motivo_rechazo` | texto (≤ 500) | no | `CHECK`: solo si `estado = rechazada` | Motivo opcional que verá la persona |
+
+| Decisión | Por qué |
+|---|---|
+| Se reutiliza `usuario.es_rider` | Vale `true` en toda cuenta de rider, sea cual sea el estado de su solicitud. Que pueda repartir lo dice `solicitud_rider.estado = aceptada`. Una cuenta con `es_rider` no puede solicitar ni publicar objetos. |
+| `dias` y `franjas` son arrays de enums de Postgres | Son listas cortas y cerradas que se leen siempre juntas con la solicitud; una tabla aparte no aporta nada. El backend rechaza repetidos. |
+| Revisión coherente (`CHECK`) | `pendiente` si y solo si `revisada_en` y `revisada_por_id` son `null`; una solicitud resuelta siempre tiene `revisada_en`. El revisor solo puede faltar en las resueltas anteriores a la migración (datos de ejemplo), a las que se les dio como fecha de revisión la de creación. |
+| Resolver es una transición única | El backend actualiza con `WHERE estado = 'pendiente'`: si dos admins resuelven a la vez, solo uno lo consigue y el otro recibe un 409. |
+| Un usuario con solicitud, o que haya revisado alguna, **no se puede borrar** | La solicitud es el historial de la revisión. |
+
+En Prisma, el modelo es `RiderApplication` y los enums son `RiderVehicle` (`on_foot`, `bike`, `scooter`, `motorbike`, `car`), `RiderApplicationStatus` (`pending`, `approved`, `rejected`), `RiderWeekday` (`monday` … `sunday`) y `RiderSlot` (`morning`, `afternoon`, `night`).
+
+## Tabla `pago` (Sprint 2 · #284)
+
+Se crea en la migración `crea_pago` como parte de US-07.01 (#72, tarea T9), con el flujo acordado en #72: **solicitar es pagar**. Al solicitar se bloquea el total en la tarjeta sin cobrarlo; al aceptar se cobra, y si la solicitud se rechaza, se cancela o caduca, se libera.
+
+| Momento | `reserva.estado` | `pago.estado` | Quién |
+|---|---|---|---|
+| Solicitar (`POST /api/reservas`) | `pendiente`, con `caduca_en` = ahora + 48 h | `autorizado` (importe bloqueado) | T9 (#284) |
+| Aceptar | `pagada` | `pagado` (se cobra) | Alex |
+| Rechazar o cancelar antes de aceptar | `rechazada` o `cancelada` | `liberado` | Alex (#343 y #308) |
+| Pasan 48 h sin respuesta (se comprueba al consultar) | `caducada` | `liberado` | T10 (#285) |
+| Cancelar después de pagar | `cancelada` | `reembolsado` (todo o en parte; ver `cancelacion`) | T28 (#308) |
+
+Lo que no se ve en el diagrama:
+
+| Decisión | Por qué |
+|---|---|
+| `reserva_id` es **único** | Una reserva tiene como mucho un pago: la BD impide **registrar** dos pagos de la misma reserva. Que no se bloquee dinero de más lo evita el backend: comprueba los conflictos antes de llamar a la pasarela y, si la reserva no se llega a guardar, suelta el bloqueo. |
+| Los importes se **copian** de la reserva y del objeto al solicitar | Si el propietario cambia la fianza después, el pago conserva lo que se bloqueó. |
+| `importe_entrega` vale 0 por defecto | Con recogida no hay coste, y hasta que la tabla `entrega` (US-05.01) esté en `develop` tampoco. El importe bloqueado es el total: alquiler + entrega. |
+| `estado_fianza` empieza en `pendiente`, o es `null` | La fianza se retiene (alquiler de hasta 6 días) o se cobra (más de 6 días) el día antes de empezar (T10). Si es menor de 0,50 €, el mínimo que Stripe puede retener, no hay fianza y el estado es `null`. Un `CHECK` lo garantiza. Al marcar «He devuelto el objeto» (US-05.02), la retenida pasa a `liberada` y la cobrada a `devuelta`, en la misma transacción que la llamada a Stripe (#402); una `ejecutada` no se toca. |
+| Dos referencias, `referencia_alquiler` y `referencia_fianza`, **únicas** | En Stripe el alquiler y la fianza son dos PaymentIntent distintos, y hacen falta los dos para liberar o reembolsar. Que sean únicas permite encontrar el pago desde un webhook. En los datos de demo valen `null`: son pagos **sin pasarela**, y la T10 no debe llamar a Stripe con ellos: al aceptar o rechazar una solicitud de demo, el pago pasa a «pagado» o «liberado» sin llamar a la pasarela (#343). |
+| `CHECK` en la BD: `importe_alquiler > 0` y los demás `>= 0` | El backend también lo valida, pero así la BD nunca guarda datos imposibles. |
+| Una reserva con pago **no se puede borrar** | El pago es el historial de lo que se bloqueó y se cobró. |
+| Las reservas `aceptada` del flujo antiguo **no se tocan** | No tienen pago; cualquiera de las dos partes puede cancelarlas. |
+
+En Prisma, el modelo es `Payment`, y los enums son `PaymentStatus` (`authorized`, `paid`, `released`, `refunded`) y `DepositStatus` (`pending`, `held`, `released`, `charged`, `collected`, `returned`). La reserva tiene el estado nuevo `expired` y el campo `expiresAt`.
+
+**Pasarela** (`backend/src/services/paymentGateway.ts`): de momento simulada; la T10 la cambia por Stripe con las mismas firmas. Los importes van siempre en céntimos enteros (`toCents`, desde el `Decimal`):
+- `authorize(amountCents, confirmationTokenId, metadata)` → `{ reference }`, o `PaymentDeclinedError` si el banco lo rechaza. En la simulada, el token `ctoken_declined` se rechaza y cualquier otro se acepta.
+- `capture(reference)`, `release(reference)` y `refund(reference, amountCents?)`.
+
+**`POST /api/reservas`** pide ahora `confirmationTokenId`, el token del formulario de pago de Stripe. Hasta la T11 (#286), el frontend envía uno simulado (`ctoken_simulado`). Errores nuevos: 400 sin token y 402 tarjeta rechazada, los dos con `field: "confirmationTokenId"`. Los 409 de siempre se comprueban antes de bloquear nada. La reserva devuelve también `deposit`, `deliveryAmount` y `expiresAt` (solo si está pendiente; si no, `null`). El antiguo `POST /api/reservas/:id/pago` ya no existe.
+
+## Tablas `punto_recogida` y `entrega`, y `objeto.direccion` (Sprint 2 · US-05.01 · #281)
+
+Se crean en la migración `crea_punto_recogida_y_entrega`, en la tarea de backend de la primera historia que las usa (US-05.01). Siguen `AGENTS.md`: tablas y columnas en español, modelos en inglés (`PickupPoint`, `Delivery`).
+
+| Decisión | Por qué |
+|---|---|
+| **`objeto.direccion`** (opcional, ≤ 200) | La dirección exacta del propietario. La API exige que exista si el objeto ofrece recogida en su domicilio o rider, pero la BD la deja opcional porque los objetos antiguos no la tienen. **Nunca sale en la API pública**: solo la ve su propietario y, con recogida en domicilio, el arrendatario cuando la solicitud está aceptada, pagada, en curso o finalizada. El rider la ve al aceptar el trabajo (US-10.01). |
+| **`objeto.barrio` se elige de una lista fija** de barrios de Barcelona (`GET /api/barrios`) | Con el centro aproximado de cada barrio se calcula la distancia sin geocodificar nada (ADR 0005). La lista vive en el backend (`services/neighborhoods.ts`), no en la BD; los objetos antiguos con el barrio escrito a mano siguen funcionando (con la tarifa más alta). |
+| Los **puntos de recogida** los inserta la migración | Son lugares públicos (bibliotecas, mercados y centros cívicos), datos de referencia como las categorías: existen también en producción y `resetDb()` no los vacía. Llevan coordenadas exactas, porque son públicos. Para cambiarlos: una migración nueva. |
+| `entrega` es **0..1 por reserva** (`reserva_id` único) | Cada solicitud nueva crea su entrega en la misma transacción que la reserva. Las reservas anteriores a US-05.01 no tienen entrega ni `modo_entrega`. |
+| `franja` vale `HH:MM-HH:MM` o `NULL` («Lo antes posible») | Solo tiene sentido con rider. Las franjas son de 2 h, de 9:00 a 21:00, del día de inicio. `CHECK` de formato en la BD. |
+| `direccion_destino`, `barrio_destino` y `tarifa` solo se rellenan con rider | El arrendatario escribe la dirección y el barrio de entrega; la **tarifa la calcula el servidor**: distancia en línea recta entre los centros de los dos barrios × 1,3, redondeada a 1 decimal (la que se muestra), hasta 2 km 3,00 €, de 2 a 5 km 5,00 € y más de 5 km 7,00 €. `CHECK (tarifa > 0)` cuando no es `NULL`. |
+| `reserva.precio_total` **sigue siendo solo el alquiler** | La tarifa vive en `entrega.tarifa`; el pago (US-07.01) suma las dos cosas. |
+| La entrega y el punto de recogida **no se pueden borrar** si hay reservas | `ON DELETE RESTRICT`: las reservas son historial. |
+
+`estado`, `rider_id`, `codigo_entrega`, `intentos_codigo` y la hora de cada paso los añade US-05.02 (#288) con la migración `seguimiento_entrega` (ver la sección siguiente). `rider_id` iba a ser de US-10.01 (#292), pero lo crea US-05.02 porque lo necesita para los permisos; US-10.01 solo lo rellena al aceptar el trabajo. `sentido` (ida y vuelta) y `hora_programada` quedan sustituidos por `franja`.
+
+## Seguimiento de la entrega (Sprint 2 · US-05.02 · #288)
+
+Columnas nuevas de `entrega`, en la migración `seguimiento_entrega`. Es solo una máquina de estados, sin mapa (#67).
+
+**Estados y quién hace cada paso:**
+
+| Modo | Pasos | Quién |
+|---|---|---|
+| Rider | `pendiente` → `asignada` | US-10.01: el rider acepta el trabajo y se guarda en `rider_id`. |
+| Rider | `asignada` → `recogida` → `en_camino` | El rider de la entrega, en orden. |
+| Rider | `en_camino` → `entregada` | El rider, con el código de 6 cifras que le enseña el arrendatario. |
+| Domicilio o punto de recogida | `pendiente` → `entregada` | El arrendatario, con «Ya tengo el objeto». |
+
+Al llegar a `entregada`, la reserva pasa de `pagada` a `en_curso` en la misma transacción. Con «He devuelto el objeto», el arrendatario la pasa de `en_curso` a `finalizada` y se guarda `devuelta_en`: a partir de ahí, las dos personas pueden valorarla (US-08.01 y US-08.02).
+
+| Decisión | Por qué |
+|---|---|
+| Una columna con la hora de cada paso, no una tabla de historial | Los estados son pocos y fijos, y no se puede volver atrás: el seguimiento sale en una sola consulta. |
+| El seguimiento empieza con la reserva `pagada` | Lo dice la historia: «despliega una reserva pagada y pulsa "Ver entrega"». |
+| Cada paso cambia solo si la entrega sigue en el estado anterior (`updateMany` con el estado de partida) | No se puede saltar ni volver atrás un estado, ni con un doble clic ni con dos peticiones a la vez. |
+| `codigo_entrega`: 6 cifras con `node:crypto`, al crear una entrega con rider | No se puede adivinar. Solo lo ve el arrendatario, y deja de salir al entregarse (es de un solo uso). |
+| `intentos_codigo`: como mucho 5 | Con 6 cifras hay un millón de códigos: sin límite, se podrían probar todos. Al quinto fallo, el código queda bloqueado. |
+| El arrendatario puede generar un código nuevo antes de la entrega | Si el código se bloquea, la entrega no se queda «En camino» para siempre: el código nuevo sustituye al anterior y vuelve a dar 5 intentos. |
+| `CHECK` en la BD | El código son 6 cifras; los intentos, de 0 a 5; `entregada` siempre tiene `entregada_en` (y al revés); y `devuelta_en` solo con la entrega `entregada`. |
+| `rider_id` con `ON DELETE RESTRICT` | Las entregas son historial, como las reservas. |
+
+En Prisma, los campos nuevos son `status` (enum `DeliveryStatus`: `pending`, `assigned`, `picked_up`, `on_the_way`, `delivered`), `riderId`, `deliveryCode`, `codeAttempts`, `assignedAt`, `pickedUpAt`, `onTheWayAt`, `deliveredAt` y `returnedAt`.
+
+**API** (`:id` es el de la reserva, como en US-10.01). Todas con sesión:
+- `GET /api/entregas/:id`: `{ reservationId, role, item, startDate, endDate, reservationStatus, mode, slot, renter, owner, pickupAddress, status, steps, returnedAt, rider, deliveryCode }`.
+  - `role`: quién lo mira (`renter`, `owner` o `rider`), para saber qué botones enseñar.
+  - `item` es `{ id, title }`; `renter`, `owner` y `rider` son `{ id, username }` (`rider`, `null` sin rider).
+  - `slot`: con rider, `"HH:MM-HH:MM"` o `"asap"`, como en US-05.01; sin rider, `null`.
+  - `pickupAddress`: solo al arrendatario y sin rider: la dirección del objeto (domicilio) o «nombre, dirección» del punto de recogida. A los demás, `null`.
+  - `steps` son los pasos del modo en orden, cada uno con su hora (`at`) o `null`.
+  - `deliveryCode` solo sale al arrendatario, con rider y antes de entregarse.
+- `POST /api/entregas/:id/estado`, el rider: `{ "status": "picked_up" | "on_the_way" | "delivered", "code"?: "123456" }`. El estado tiene que ser exactamente el siguiente; `delivered` necesita el código.
+- `POST /api/entregas/:id/recibida`, el arrendatario: «Ya tengo el objeto» (domicilio o punto de recogida).
+- `POST /api/entregas/:id/devuelta`, el arrendatario: «He devuelto el objeto».
+- `POST /api/entregas/:id/codigo`, el arrendatario: código nuevo, con rider y antes de entregarse. El anterior deja de valer y los intentos vuelven a 0.
+
+Las cinco devuelven el seguimiento actualizado. Errores:
+- **400**: estado desconocido (`field: "status"`); código que no son 6 cifras (`field: "code"`, no cuenta como intento); código incorrecto (`field: "code"`, cuenta y dice cuántos intentos quedan).
+- **401**: sin sesión.
+- **403**: no es de la reserva ni su rider, o la acción no le toca (por ejemplo, el arrendatario no avanza los pasos del rider).
+- **404**: la reserva no existe o no tiene entrega (las anteriores a US-05.01).
+- **409**: no es el paso siguiente, la reserva no está pagada, «He devuelto» sin estar en curso, «Ya tengo el objeto» con rider, el código bloqueado, o un código nuevo sin rider o con la entrega ya hecha.
+
+**Tiempo real:** después de guardar cada cambio, el service avisa con el canal de T14 (`publish`, ver `docs/arquitectura.md`) a las dos personas de la reserva y a su rider, si lo hay. El evento es `entrega.estado` con `{ reservationId, status, at }`: `status` es el nuevo estado de la entrega o `finished` al devolver el objeto. Nunca lleva el código: el frontend, al recibirlo, vuelve a pedir el `GET`. Si el cambio se rechaza, no se avisa a nadie.
+
+**Datos de demo:** tres reservas pagadas, una de cada modo, con la entrega pendiente: la «Bicicleta de montaña talla M» (punto de recogida), el «Cortacésped eléctrico» (domicilio) y la «Hidrolimpiadora Kärcher» (rider). La de rider ya tiene asignado el rider aceptado de la demo (dani en el seed de desarrollo y pau en el de producción), con `assignDemoRider`, como si hubiera aceptado el trabajo (US-10.01). Repetir el seed deja el seguimiento otra vez al principio.
+
+## Tabla `valoracion` (Sprint 2 · #295 y #298)
+
+Se crea en la migración `crea_valoracion` (US-08.01). Una sola tabla para las dos valoraciones de un alquiler: el arrendatario valora el alquiler (`tipo = alquiler`, US-08.01) y el propietario valora al arrendatario (`tipo = usuario`, US-08.02).
+
+| Decisión | Por qué |
+|---|---|
+| Clave única `(reserva_id, autor_id)` | Cada persona valora un alquiler una sola vez. Lo impide la BD, así que también funciona con un doble clic. |
+| `valorado_id` es la otra parte: el propietario cuando valora el arrendatario, y el arrendatario cuando valora el propietario | La valoración va siempre a una persona: así se puede calcular la media de lo que ha recibido cada usuario. |
+| El `tipo` lo decide el backend por la sesión, no lo envía el frontend | Nadie puede valorar con un tipo que no le toca. |
+| `CHECK` en la BD: `puntuacion` entre 1 y 5 y `autor_id <> valorado_id` | El backend también lo valida, pero así la BD nunca guarda una puntuación imposible ni una valoración a uno mismo. |
+| Solo se valora un alquiler `finalizada` | Lo comprueba el backend (409): la BD no sabe en qué estado estaba la reserva al valorarla. |
+| `Restrict` con la reserva y los usuarios | Las valoraciones son historial, como las reservas. |
+
+En Prisma, el modelo es `Rating` y el enum `RatingType` (`rental`, `user`).
+
+**API:**
+- `POST /api/reservas/:id/valoracion`, con sesión, y el cuerpo `{ "score": 1-5, "comment"?: "…" }`. Sirve para las dos partes: si quien valora es el arrendatario, se guarda con `type: "rental"`; si es el propietario, con `type: "user"`. Devuelve **201** con `{ id, reservationId, type, score, comment, createdAt }`. Errores:
+  - **400** con `field: "score"` o `field: "comment"`;
+  - **401** sin sesión;
+  - **403** si no has participado en el alquiler («Solo quien ha participado en este alquiler puede valorarlo.»);
+  - **404** si el alquiler no existe;
+  - **409** si no está finalizado o ya lo has valorado.
+- `GET /api/usuarios/me/reservas`: cada reserva lleva dos valoraciones, cada una `{ score, comment, createdAt }` o `null`:
+  - `myRating`: la que ha escrito el usuario. Con `status: "finished"` y `myRating: null`, el frontend enseña «Valorar».
+  - `receivedRating`: la que le ha puesto la otra parte.
+
+**Media de un usuario:** `getUserRating(userId)` de `ratingService` devuelve `{ average, count }` con todas las valoraciones que ha **recibido**, como propietario y como arrendatario. `average` va redondeada a un decimal, y es `null` si no tiene ninguna. La calcula la BD con `AVG` y `COUNT` sobre el índice de `valorado_id`. Es el campo `rating` del perfil público (US-01.4): `profileService` la llama al montar el perfil.
+
+## Tabla `retirada_objeto` y `reserva.motivo_cancelacion` (Sprint 2 · #317)
+
+Las crea la migración `retirada_objeto_por_admin` como parte de US-11.03 (#305): el admin retira un objeto indicando un motivo. Guarda quién lo retiró, por qué y cuándo; el propietario lo ve en «Mis objetos». Un objeto que retira su propietario (US-02.03) **no** tiene fila aquí.
+
+| Campo | Tipo | Obligatorio | Restricciones | Para qué |
+|---|---|---|---|---|
+| `id` | UUID | sí | PK | Identificador |
+| `objeto_id` | UUID | sí | FK → `objeto.id`, único, borrado restringido | Una sola retirada por objeto |
+| `admin_id` | UUID | sí | FK → `usuario.id`, borrado restringido | Admin que lo retiró |
+| `motivo` | enum `motivo_retirada`: `posible_estafa`, `prohibido`, `enganoso`, `otro` | sí | | Motivo que ve el propietario |
+| `detalles` | texto (≤ 500) | no | `CHECK`: obligatorio y no en blanco si `motivo = otro` | Explicación para el propietario |
+| `retirado_en` | fecha y hora | sí | por defecto «ahora» | Cuándo se retiró |
+
+Además, `reserva` gana la columna `motivo_cancelacion` (enum `motivo_cancelacion`, por ahora solo `objeto_retirado`; opcional, `null` en el resto de reservas) para que las dos partes sepan por qué se canceló una reserva sin que nadie la cancelase.
+
+| Decisión | Por qué |
+|---|---|
+| **Reservas activas al retirar un objeto** | Retirar es atómico (una transacción): el objeto pasa a `retirado`, se guarda la retirada y las reservas `pendiente` y `aceptada` del objeto pasan a `cancelada` con `motivo_cancelacion = objeto_retirado`. El pago de las `pendiente` pasa a `liberado` y, ya confirmada la transacción, se suelta su bloqueo en la tarjeta (si Stripe no responde, la retirada vale igual y el bloqueo caduca solo; los pagos de demo no llaman a la pasarela). Las `pagada`, `en_curso` y `finalizada` **no se tocan**: ya tienen pago, entrega o historial detrás y su cierre, y el reembolso, se resuelven con cancelación y penalización (US-04.05) y las incidencias. Esto difiere de la retirada por el propietario (US-02.03), que se bloquea si hay reservas activas: el admin retira por moderación y no puede esperar a que se resuelvan. |
+| La retirada es una transición única | El backend actualiza el objeto con `WHERE estado <> 'retirado'`: si dos admins retiran a la vez, solo uno lo consigue y el otro recibe un 409. |
+| `retirada_objeto` es historial | Un objeto o un admin con retirada **no se pueden borrar**. |
+| El propietario no ve qué admin fue | La API de «Mis objetos» devuelve solo `motivo`, `detalles` y `retirado_en`, nunca el `admin_id`. |
+
+En Prisma, los modelos son `ItemModeration` y los enums `WithdrawalReason` (`scam`, `prohibited`, `misleading`, `other`) y `CancellationReason` (`item_withdrawn`).
+
+## Tabla `cancelacion` (Sprint 2 · #308)
+
+Se crea en la migración `crea_cancelacion` como parte de US-04.05 (#64, tarea T28). Una fila por reserva cancelada: quién la canceló, cuándo y qué penalización y reembolso se aplicaron. Está en una **tabla aparte**, no en columnas de `reserva`, para no chocar con las historias que también modifican `reserva` (T9, T13 y T37).
+
+Quién puede cancelar qué, y lo que pasa con el dinero:
+
+| Reserva | Quién cancela | Penalización | `pago.estado` | Fianza |
+|---|---|---|---|---|
+| `pendiente` (importe bloqueado) | Solo el arrendatario (el propietario la rechaza) | Ninguna | `liberado` (se suelta el bloqueo) | No se toca |
+| `aceptada` del flujo anterior (sin pago) | Cualquiera de los dos | Ninguna | Sin pago | Sin fianza |
+| `pagada` | Cualquiera de los dos | % del precio del alquiler según los días que faltan | `reembolsado` si se devuelve algo | `retenida` → `liberada`; `cobrada` → `devuelta`; `pendiente` → `liberada` |
+| `rechazada`, `caducada`, `cancelada`, `en_curso`, `finalizada` | Nadie | | | |
+
+Los días que faltan se cuentan desde hoy hasta `fecha_inicio` con la fecha de España. **Menos de 3 días: 100 %; de 3 a 7: 35 %; 8 o más: 0 %** (sin fianza ni entrega). La recibe la otra persona:
+- Cancela el **arrendatario** de una reserva pagada: se le devuelve `importe_alquiler + importe_entrega − penalización`. La entrega se devuelve **siempre entera**.
+- Cancela el **propietario**: se le devuelve todo al arrendatario y la penalización **solo se registra** a su cargo, no se cobra (decisión de Alex en #308, que cierra el «pendiente de decidir» de AGENTS.md).
+
+| Decisión | Por qué |
+|---|---|
+| `reserva_id` es **único** | Una reserva se cancela una vez; la BD lo garantiza aunque dos personas cancelen a la vez (el backend bloquea la reserva y la segunda recibe `409`). |
+| Se guarda una fila también si cancelar es **gratis** (`porcentaje = 0`, importes a 0) | Así las dos personas ven siempre quién canceló y cuándo. |
+| `cancelada_por` es el arrendatario o el propietario | No hay otra forma de cancelar: la retirada de un objeto por el admin (US-11.03) usa su propio campo. |
+| `reembolso` es lo devuelto **al arrendatario** | Con la penalización a cargo del propietario, es todo lo pagado. Si no hay pago, vale `0.00`. |
+| `CHECK` en la BD: `porcentaje IN (0, 35, 100)`, `penalizacion >= 0` y `reembolso >= 0` | El backend también lo valida, pero así la BD nunca guarda datos imposibles. |
+| Una reserva o un usuario con cancelación **no se pueden borrar** | Es el historial de lo que se devolvió y se debe. |
+| Las **fechas quedan libres** | `cancelada` no está entre los estados que ocupan las fechas (`aceptada`, `pagada` y `en_curso`). |
+
+En Prisma, el modelo es `Cancellation` (`reservationId`, `cancelledById`, `cancelledAt`, `penaltyPercent`, `penaltyAmount`, `refundAmount`).
+
+**API** (con sesión; solo el arrendatario o el propietario; `403` si no es de la reserva, `404` si no existe):
+- `GET /api/reservas/:id/cancelacion` → lo que costaría cancelar hoy, desde la posición de quien pregunta, calculado con la misma función que al cancelar:
+  ```json
+  { "daysUntilStart": 5, "penaltyPercent": 35, "penaltyAmount": "7.00",
+    "refundAmount": "13.00", "free": false, "releasesHold": false }
+  ```
+  `free` es `true` en una pendiente o una aceptada sin pago; `releasesHold`, en una pendiente con el importe bloqueado. `refundAmount` es lo que recibe el arrendatario.
+- `POST /api/reservas/:id/cancelar` (sin cuerpo) → la reserva, con la forma de «Mis solicitudes», en `cancelled` y con `cancellation`.
+- Los dos responden `409 { "error": "Esta reserva ya no se puede cancelar." }` si el estado no lo permite (también si el propietario cancela una pendiente) y, el POST, `502 { "error": "No se ha podido cancelar. Inténtalo de nuevo." }` si falla la pasarela: **todo se deshace** y la reserva no cambia.
+- En las reservas de «Mis solicitudes» (y en las que devuelven aceptar y rechazar) hay un campo nuevo, `cancellation`: `null` salvo en las canceladas, donde vale `{ "by": { "id", "username" }, "at", "penaltyPercent", "penaltyAmount", "refundAmount" }`.
+
+Al cancelar se avisa en tiempo real (`entrega.estado` con `status: "cancelled"`, como en el seguimiento de US-05.02) al arrendatario, al propietario y, si ya había aceptado el trabajo, al rider. El seguimiento de una reserva cancelada lo dice y no deja hacer nada más (#406).
+
+Antes de cancelar se caducan las solicitudes pendientes vencidas del usuario (#343), así que una pendiente que ya venció da `409`. Las llamadas a la pasarela se hacen dentro de la transacción, antes de confirmar: primero la fianza (soltar un bloqueo se puede repetir sin riesgo) y, lo último, el reembolso del alquiler.
+
+**Datos de demo:** `DEMO_RESERVATIONS` incluye, dos pagadas que jordi alquila a marta (bruno a ana en local) y que solo usa cancelar: la «Tabla de paddle surf hinchable» a 12 días (cancelar es gratis) y la «Silla de coche para bebé» a 4 días (penalización del 35 %), y una ya **cancelada** por bruno con su fila de `cancelacion` («Tienda de campaña»: 35 % de 16 € = 5,60 € para ana, 10,40 € devueltos a bruno). Repetir el seed rehace las cancelaciones.
+
+## Trabajos del rider (Sprint 2 · US-10.01 · #292)
+
+No añade tablas ni columnas: usa `entrega.rider_id`, `estado` y `asignada_en` de US-05.02. Un **trabajo** es una reserva `pagada` con `modo_entrega = rider`, su entrega `pendiente` y sin `rider_id`, y `fecha_inicio` de hoy en adelante (hoy en España). Solo los riders con la solicitud `aceptada` ven y aceptan trabajos, y nunca los suyos (su objeto o su reserva).
+
+**API** (con sesión; `:id` es el de la reserva, como en `/entregas/:id`):
+- `GET /api/trabajos`: `{ jobs: [{ id, item: { id, title }, startDate, slot, fee, pickupNeighborhood, deliveryNeighborhood }] }`, sin direcciones. Por `startDate`; el mismo día, `"asap"` primero y luego por franja.
+- `POST /api/trabajos/:id/aceptar`, sin cuerpo: `{ job }` como en «mios», con `status: "assigned"`. Guarda `rider_id`, pasa la entrega a `asignada` y guarda `asignada_en`. Avisa con `entrega.estado` (como US-05.02) al arrendatario, al propietario y al rider. Aceptar otra vez uno propio devuelve `200` sin cambiar nada.
+- `GET /api/trabajos/mios`: los del rider, con `pickupAddress` (`objeto.direccion`), `deliveryAddress` y `status` de la entrega. Por `startDate`. Sin las reservas canceladas.
+
+Errores: **401** sin sesión; **403** «Solo los riders aceptados pueden ver los trabajos.» a cualquier otra cuenta; **404** si la reserva no existe, el id no es válido o no es un trabajo de rider (no va con rider, nunca se pagó o es del propio rider); **409** «Ya asignado a otro rider.» si otro rider se ha adelantado o ya no está disponible (cancelada o ya empezada).
+
+| Decisión | Por qué |
+|---|---|
+| Aceptar es un solo `UPDATE` condicional (`rider_id IS NULL`, entrega `pendiente`, reserva pagada, con rider y sin empezar) que bloquea la reserva con `FOR SHARE` | Si dos riders aceptan a la vez, PostgreSQL vuelve a comprobar la condición al desbloquear la fila: solo uno cambia algo y el otro recibe el `409`. Una cancelación a la vez espera al `UPDATE`. |
+| Sin direcciones hasta aceptar | Lo dice la historia (#78): hasta entonces, solo los barrios. |
+
+**Datos de demo:** dos trabajos disponibles (`DEMO_RIDER_JOBS`) sobre objetos que no usa ningún otro e2e: la «Máquina de coser Singer» (Sants → Gràcia, «Lo antes posible», mañana) y la «Barbacoa de carbón portátil» (Les Corts → Poblenou, 17:00-19:00, pasado mañana), de ana en local (marta en producción), solicitadas por vecino5 y vecino6. Hay un segundo rider aceptado para el caso de dos riders con el mismo trabajo: oscar en local (con dani) y ona en producción (con pau). Repetir el seed los deja otra vez sin rider.
+
 ## Qué tablas entran en cada sprint
 
 | Sprint | Tablas nuevas | Historias |
 |---|---|---|
 | S0 | `usuario`, `sesion` | US-01.1, US-01.2, US-01.3 |
 | S1 | `categoria`, `objeto`, `foto_objeto`, `reserva` | US-02.x, US-03.x, US-04.01–04.04 |
-| S2 | `pago`, `punto_recogida`, `entrega`, `valoracion` (+ campos de perfil y rider en `usuario`) | US-07.01, US-05.01–05.02, US-10.01, US-08.x, US-01.4 |
-| S3 | `conversacion`, `mensaje`, `notificacion`, `incidencia`, `foto_estado` | US-06.x, US-09.x, US-11.01, US-04.05 |
+| S2 | `solicitud_rider` (US-10.03), `retirada_objeto` (US-11.03), `pago`, `cancelacion`, `punto_recogida`, `entrega`, `valoracion` (+ campos de perfil y rider en `usuario`) | US-07.01, US-04.05, US-05.01–05.02, US-10.01, US-10.03, US-11.03, US-08.x, US-01.4 |
+| S3 | `conversacion`, `mensaje`, `notificacion`, `incidencia`, `foto_estado` | US-06.x, US-09.x, US-11.01 |

@@ -22,10 +22,12 @@ export interface DemoItem {
   dailyPrice: number;
   deposit: number;
   neighborhood: string;
+  // Dirección inventada, obligatoria con entrega en casa o por rider (US-05.01, #281).
+  address: string | null;
   homeDelivery: boolean;
   riderDelivery: boolean;
   pickupPointDelivery: boolean;
-  status: 'published' | 'paused';
+  status: 'published' | 'paused' | 'withdrawn';
 }
 
 export const DEMO_ITEMS: readonly DemoItem[] = [
@@ -38,6 +40,7 @@ export const DEMO_ITEMS: readonly DemoItem[] = [
     dailyPrice: 6,
     deposit: 40,
     neighborhood: 'Gràcia',
+    address: 'Carrer de Verdi, 45, 2º 1ª',
     homeDelivery: true,
     riderDelivery: true,
     pickupPointDelivery: false,
@@ -52,6 +55,7 @@ export const DEMO_ITEMS: readonly DemoItem[] = [
     dailyPrice: 3,
     deposit: 15,
     neighborhood: 'Gràcia',
+    address: "Carrer de l'Or, 18, 3º 2ª",
     homeDelivery: true,
     riderDelivery: false,
     pickupPointDelivery: true,
@@ -66,6 +70,7 @@ export const DEMO_ITEMS: readonly DemoItem[] = [
     dailyPrice: 8,
     deposit: 50,
     neighborhood: 'Gràcia',
+    address: "Carrer del Torrent de l'Olla, 77, 1º",
     homeDelivery: false,
     riderDelivery: true,
     pickupPointDelivery: true,
@@ -80,6 +85,7 @@ export const DEMO_ITEMS: readonly DemoItem[] = [
     dailyPrice: 12,
     deposit: 80,
     neighborhood: 'Poblenou',
+    address: 'Carrer de Pallars, 190, 4º 3ª',
     homeDelivery: true,
     riderDelivery: true,
     pickupPointDelivery: false,
@@ -94,6 +100,7 @@ export const DEMO_ITEMS: readonly DemoItem[] = [
     dailyPrice: 5,
     deposit: 30,
     neighborhood: 'Poblenou',
+    address: 'Carrer de Marià Aguiló, 25, 1º 1ª',
     homeDelivery: false,
     riderDelivery: true,
     pickupPointDelivery: true,
@@ -108,6 +115,7 @@ export const DEMO_ITEMS: readonly DemoItem[] = [
     dailyPrice: 10,
     deposit: 100,
     neighborhood: 'Poblenou',
+    address: null,
     homeDelivery: false,
     riderDelivery: false,
     pickupPointDelivery: true,
@@ -122,6 +130,7 @@ export const DEMO_ITEMS: readonly DemoItem[] = [
     dailyPrice: 7,
     deposit: 25,
     neighborhood: 'Poblenou',
+    address: 'Rambla del Poblenou, 120, 2º',
     homeDelivery: true,
     riderDelivery: true,
     pickupPointDelivery: false,
@@ -136,6 +145,7 @@ export const DEMO_ITEMS: readonly DemoItem[] = [
     dailyPrice: 9,
     deposit: 60,
     neighborhood: 'Sant Andreu',
+    address: 'Carrer de Sant Adrià, 33, bajos',
     homeDelivery: true,
     riderDelivery: false,
     pickupPointDelivery: false,
@@ -150,6 +160,7 @@ export const DEMO_ITEMS: readonly DemoItem[] = [
     dailyPrice: 8,
     deposit: 50,
     neighborhood: 'Sant Andreu',
+    address: 'Carrer de Joan Torras, 61, 1º',
     homeDelivery: true,
     riderDelivery: true,
     pickupPointDelivery: false,
@@ -164,6 +175,7 @@ export const DEMO_ITEMS: readonly DemoItem[] = [
     dailyPrice: 4,
     deposit: 40,
     neighborhood: 'Sant Andreu',
+    address: 'Passeig de Fabra i Puig, 210, 3º 1ª',
     homeDelivery: true,
     riderDelivery: true,
     pickupPointDelivery: true,
@@ -178,6 +190,7 @@ export const DEMO_ITEMS: readonly DemoItem[] = [
     dailyPrice: 15,
     deposit: 120,
     neighborhood: 'Sant Andreu',
+    address: null,
     homeDelivery: false,
     riderDelivery: false,
     pickupPointDelivery: true,
@@ -192,9 +205,60 @@ export const DEMO_ITEMS: readonly DemoItem[] = [
     dailyPrice: 2,
     deposit: 0,
     neighborhood: 'Gràcia',
+    address: null,
     homeDelivery: false,
     riderDelivery: false,
     pickupPointDelivery: true,
+    status: 'published',
+  },
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 13/11/2026
+  // Retirado por el admin (US-11.03): su motivo está en DEMO_MODERATIONS.
+  {
+    owner: 1,
+    category: 'Electrónica',
+    title: 'Reloj de lujo a mitad de precio',
+    description:
+      'Reloj de marca con certificado de autenticidad. Se entrega en mano, sin fianza.',
+    dailyPrice: 12,
+    deposit: 0,
+    neighborhood: "La Dreta de l'Eixample",
+    address: 'Carrer de Girona, 64, 1º 2ª',
+    homeDelivery: true,
+    riderDelivery: false,
+    pickupPointDelivery: false,
+    status: 'withdrawn',
+  },
+  // Trabajos del rider (US-10.01, #292): objetos que solo usan las reservas de DEMO_RIDER_JOBS,
+  // para no repetir títulos en «Mis solicitudes» de los e2e de otras historias. Ni en Sant Andreu,
+  // ni de Deporte, ni a 4 €/día o menos: los e2e de los filtros cuentan esos resultados.
+  {
+    owner: 2,
+    category: 'Hogar y jardín',
+    title: 'Máquina de coser Singer',
+    description:
+      'Máquina de coser con pedal, 23 puntadas y caja de hilos. Perfecta para arreglos y disfraces.',
+    dailyPrice: 7,
+    deposit: 40,
+    neighborhood: 'Sants',
+    address: 'Carrer de Sants, 140, 2º 1ª',
+    homeDelivery: true,
+    riderDelivery: true,
+    pickupPointDelivery: false,
+    status: 'published',
+  },
+  {
+    owner: 2,
+    category: 'Camping y viajes',
+    title: 'Barbacoa de carbón portátil',
+    description:
+      'Barbacoa plegable con parrilla de acero inoxidable y bolsa. Para el balcón, la playa o el camping.',
+    dailyPrice: 6,
+    deposit: 30,
+    neighborhood: 'Les Corts',
+    address: 'Travessera de les Corts, 250, 4º 2ª',
+    homeDelivery: true,
+    riderDelivery: true,
+    pickupPointDelivery: false,
     status: 'published',
   },
 ];
@@ -206,18 +270,45 @@ export const DEMO_ITEMS: readonly DemoItem[] = [
 // los e2e de aceptar (#177) y rechazar (#178): cada vez que se ejecuta el seed, vuelven a estar
 // pendientes.
 // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 03/11/2026
+// Entrega elegida en cada solicitud (US-05.01, #281). La tarifa del rider no se escribe aquí: la
+// calcula el seed con la misma función que la API. Los puntos de recogida (los crea la migración
+// crea_punto_recogida_y_entrega) se buscan por nombre.
+export type DemoDelivery =
+  | { mode: 'home' }
+  | {
+      mode: 'rider';
+      // null = «Lo antes posible».
+      slot: string | null;
+      address: string;
+      neighborhood: string;
+    }
+  | { mode: 'pickup_point'; pickupPoint: string };
+
 export interface DemoReservation {
   item: { owner: number; title: string };
   renter: number;
+  delivery: DemoDelivery;
   startInDays: number;
   days: number;
-  status: 'pending' | 'accepted' | 'rejected';
+  status: 'pending' | 'accepted' | 'rejected' | 'paid' | 'finished' | 'cancelled';
+  // El rider aceptado de la demo ya ha aceptado el trabajo (US-05.02, #288). Se asigna al final del
+  // seed, después de crear los riders (assignDemoRider).
+  riderAssigned?: true;
+  // Solo en las canceladas (US-04.05, #308): quién la canceló (índice de usuario) y la penalización
+  // que se aplicó. Se guarda como una cancelación hecha por la API: con el pago reembolsado.
+  cancellation?: { by: number; penaltyPercent: 0 | 35 | 100 };
 }
 
 export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
   {
     item: { owner: 0, title: 'Taladro percutor Bosch' },
     renter: 1,
+    delivery: {
+      mode: 'rider',
+      slot: '11:00-13:00',
+      address: 'Carrer de Pallars, 120, 3º 1ª',
+      neighborhood: 'Poblenou',
+    },
     startInDays: 7,
     days: 3,
     status: 'pending',
@@ -225,6 +316,7 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
   {
     item: { owner: 0, title: 'Carro de la compra plegable' },
     renter: 1,
+    delivery: { mode: 'pickup_point', pickupPoint: 'Biblioteca Jaume Fuster' },
     startInDays: 10,
     days: 2,
     status: 'pending',
@@ -232,6 +324,7 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
   {
     item: { owner: 0, title: 'Escalera de aluminio de 3 peldaños' },
     renter: 1,
+    delivery: { mode: 'home' },
     startInDays: 14,
     days: 2,
     status: 'accepted',
@@ -239,6 +332,12 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
   {
     item: { owner: 1, title: 'Proyector Full HD' },
     renter: 0,
+    delivery: {
+      mode: 'rider',
+      slot: null,
+      address: "Carrer del Torrent de l'Olla, 150, 2º",
+      neighborhood: 'Gràcia',
+    },
     startInDays: 5,
     days: 1,
     status: 'pending',
@@ -246,8 +345,172 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
   {
     item: { owner: 1, title: 'Altavoz Bluetooth JBL' },
     renter: 0,
+    delivery: {
+      mode: 'pickup_point',
+      pickupPoint: 'Biblioteca Poblenou - Manuel Arranz',
+    },
     startInDays: 3,
     days: 2,
     status: 'rejected',
+  },
+  // Pagada (US-07.01, #284): ana ya la ha pagado y la fianza está retenida. En el seguimiento
+  // (US-05.02, #288), ana marca «Ya tengo el objeto» y después «He devuelto el objeto».
+  {
+    item: { owner: 1, title: 'Bicicleta de montaña talla M' },
+    renter: 0,
+    // La bici solo se ofrece en punto de recogida (US-05.01).
+    delivery: { mode: 'pickup_point', pickupPoint: 'Biblioteca Jaume Fuster' },
+    startInDays: 4,
+    days: 2,
+    status: 'paid',
+  },
+  // Finalizada y sin valorar (US-08.01, #295): ana puede valorarla en la demo.
+  {
+    item: { owner: 1, title: 'Máquina de palomitas' },
+    renter: 0,
+    delivery: { mode: 'home' },
+    startInDays: -6,
+    days: 2,
+    status: 'finished',
+  },
+  // Pagada con entrega en el domicilio del dueño (US-05.02, #288): el arrendatario marca «Ya tengo
+  // el objeto» y después «He devuelto el objeto».
+  {
+    item: { owner: 2, title: 'Cortacésped eléctrico' },
+    renter: 1,
+    delivery: { mode: 'home' },
+    startInDays: 3,
+    days: 2,
+    status: 'paid',
+  },
+  // Pagada con rider y el rider de la demo ya asignado (US-05.02, #288): el rider avanza los pasos
+  // y el arrendatario le enseña el código.
+  {
+    item: { owner: 2, title: 'Hidrolimpiadora Kärcher' },
+    renter: 1,
+    delivery: {
+      mode: 'rider',
+      slot: '09:00-11:00',
+      address: 'Carrer de Pallars, 120, 3º 1ª',
+      neighborhood: 'Poblenou',
+    },
+    startInDays: 2,
+    days: 2,
+    status: 'paid',
+    riderAssigned: true,
+  },
+  // Cancelación (US-04.05, #308). Dos pagadas de jordi a marta (en local, de bruno a ana) que solo
+  // usa cancelar, para no pisarse con los e2e del seguimiento (US-05.02), que hacen avanzar la bici
+  // y la hidrolimpiadora, ni con el de retirar, que retira la «Máquina de palomitas». La tabla de
+  // paddle, a 12 días, se cancela gratis; la silla, a 4 días, cuesta el 35 %.
+  {
+    item: { owner: 2, title: 'Tabla de paddle surf hinchable' },
+    renter: 1,
+    delivery: {
+      mode: 'pickup_point',
+      pickupPoint: 'Biblioteca Ignasi Iglésias - Can Fabra',
+    },
+    startInDays: 12,
+    days: 2,
+    status: 'paid',
+  },
+  {
+    item: { owner: 2, title: 'Silla de coche para bebé' },
+    renter: 1,
+    delivery: { mode: 'home' },
+    startInDays: 4,
+    days: 2,
+    status: 'paid',
+  },
+  // Ya cancelada por el arrendatario (bruno) a 6 días: el 35 % de 16 € son 5,60 € para ana, y a
+  // bruno se le devuelven 10,40 €. Las dos personas la ven «Cancelada» en «Mis solicitudes».
+  {
+    item: { owner: 0, title: 'Tienda de campaña para 4 personas' },
+    renter: 1,
+    delivery: { mode: 'pickup_point', pickupPoint: 'Biblioteca Jaume Fuster' },
+    startInDays: 6,
+    days: 2,
+    status: 'cancelled',
+    cancellation: { by: 1, penaltyPercent: 35 },
+  },
+];
+
+// Demanda de fechas en el calendario (US-04.07, #311). Seis vecinos tienen solicitudes pendientes
+// de la «Bicicleta de montaña talla M» (de bruno o jordi) que se solapan, para que en la demo se
+// vean todos los niveles. No es la «Máquina de palomitas»: la retira un e2e, y las pendientes lo
+// impedirían. Contando desde hoy: el día 8 tiene 1 (poca), el 9 tiene 2 (poca), el 10
+// tiene 6 (mucha), el 11 tiene 4 (media) y el 12 tiene 2 (poca).
+// Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 12/11/2026
+export const DEMO_DEMAND_ITEM = {
+  owner: 1,
+  title: 'Bicicleta de montaña talla M',
+};
+
+export const DEMO_DEMAND_REQUESTS: readonly {
+  startInDays: number;
+  days: number;
+}[] = [
+  { startInDays: 8, days: 5 },
+  { startInDays: 9, days: 3 },
+  { startInDays: 10, days: 1 },
+  { startInDays: 10, days: 2 },
+  { startInDays: 10, days: 3 },
+  { startInDays: 10, days: 1 },
+];
+
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 13/11/2026
+// Objetos de DEMO_ITEMS retirados por el admin (US-11.03), con el motivo que ve su propietario.
+export interface DemoModeration {
+  item: { owner: number; title: string };
+  reason: 'scam' | 'prohibited' | 'misleading' | 'other';
+  details: string;
+}
+
+export const DEMO_MODERATIONS: readonly DemoModeration[] = [
+  {
+    item: { owner: 1, title: 'Reloj de lujo a mitad de precio' },
+    reason: 'scam',
+    details: 'El anuncio parece una estafa: marca de lujo a un precio irreal.',
+  },
+];
+
+// Trabajos del rider (US-10.01, #292): reservas pagadas con entrega por rider y sin rider, que ven
+// todos los riders aceptados en «Trabajos». Las hacen dos vecinos de DEMO_DEMAND_REQUESTS (índice
+// en esa lista: 4 = vecino5, 5 = vecino6) sobre objetos que no usa ningún otro e2e. Son para los
+// e2e de US-10.01 (T19, #294): aceptar uno y después otro, o que dos riders acepten el mismo.
+// Repetir el seed las vuelve a dejar sin rider y con la entrega pendiente.
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 21/11/2026
+export interface DemoRiderJob {
+  item: { owner: number; title: string };
+  neighbour: number;
+  delivery: Extract<DemoDelivery, { mode: 'rider' }>;
+  startInDays: number;
+  days: number;
+}
+
+export const DEMO_RIDER_JOBS: readonly DemoRiderJob[] = [
+  {
+    item: { owner: 2, title: 'Máquina de coser Singer' },
+    neighbour: 4,
+    delivery: {
+      mode: 'rider',
+      slot: null,
+      address: 'Carrer de Verdi, 80, 1º 2ª',
+      neighborhood: 'Gràcia',
+    },
+    startInDays: 1,
+    days: 2,
+  },
+  {
+    item: { owner: 2, title: 'Barbacoa de carbón portátil' },
+    neighbour: 5,
+    delivery: {
+      mode: 'rider',
+      slot: '17:00-19:00',
+      address: 'Carrer de Pujades, 150, 3º',
+      neighborhood: 'Poblenou',
+    },
+    startInDays: 2,
+    days: 1,
   },
 ];

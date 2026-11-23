@@ -180,6 +180,26 @@ function parseBcryptRounds(): number {
   return rounds;
 }
 
+// Clave secreta de Stripe (US-07.01, T10 #285). Opcional: sin ella se usa la pasarela simulada
+// (local, tests, CI y seed de demo). Solo se aceptan claves de prueba (sk_test_…).
+export function parseStripeSecretKey(
+  value: string | undefined,
+): string | undefined {
+  const key = value?.trim();
+
+  if (!key) {
+    return undefined;
+  }
+
+  if (!key.startsWith('sk_test_')) {
+    throw new Error(
+      'La variable STRIPE_SECRET_KEY debe ser una clave de prueba (sk_test_…)',
+    );
+  }
+
+  return key;
+}
+
 export const env = Object.freeze({
   port: parsePort(),
   databaseUrl: parseDatabaseUrl('DATABASE_URL'),
@@ -188,4 +208,6 @@ export const env = Object.freeze({
   corsPreviewPattern: parseCorsPreviewPattern(process.env.CORS_PREVIEW_PATTERN),
   bcryptRounds: parseBcryptRounds(),
   s3: parseS3Config(),
+  isProduction: process.env.NODE_ENV === 'production',
+  stripeSecretKey: parseStripeSecretKey(process.env.STRIPE_SECRET_KEY),
 });

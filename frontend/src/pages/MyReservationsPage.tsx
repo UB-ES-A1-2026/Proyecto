@@ -1,12 +1,18 @@
 // Generado con asistencia de IA – revisado por Danyal, 01/11/2026
 import { useEffect, useState, type ReactNode } from 'react';
+import { CancelReservation } from '../components/CancelReservation';
+import { useLocation, useNavigate } from 'react-router';
 import { Icon, type IconName } from '../components/Icon';
 import { ReservationCard } from '../components/ReservationCard';
 import { ReservationDecision } from '../components/ReservationDecision';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import type { DecidedReservation } from '../services/reservationDecisionService';
-import { getMyReservations, type MyReservations } from '../services/reservationService';
+import {
+  getMyReservations,
+  type MyReservations,
+  type Reservation,
+} from '../services/reservationService';
 
 type ReservationSectionProps = {
   headingId: string;
@@ -49,6 +55,23 @@ export function MyReservationsPage() {
   const token = session?.token;
   const [reservations, setReservations] = useState<MyReservations | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Aviso que deja otra pantalla al volver aquí, como «Solicitud enviada.» (US-07.01, #286).
+  const [notice] = useState<string | null>(() => {
+    const state: unknown = location.state;
+    return typeof state === 'object' && state !== null && 'notice' in state
+      ? String(state.notice)
+      : null;
+  });
+
+  // Se borra del historial para que no vuelva a salir al recargar la página.
+  useEffect(() => {
+    if (notice) void navigate('.', { replace: true, state: null });
+  }, [notice, navigate]);
+
+  // La última que se ha cancelado aquí: su tarjeta lleva el foco al texto de la cancelación.
+  const [justCancelledId, setJustCancelledId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -89,6 +112,17 @@ export function MyReservationsPage() {
     );
   }
 
+  // Al cancelar (US-04.05, #309), la tarjeta pasa a «Cancelada» con la compensación, sin volver a
+  // pedir la lista.
+  function handleCancelled(updated: Reservation) {
+    setJustCancelledId(updated.id);
+    const replace = (list: Reservation[]) =>
+      list.map((reservation) => (reservation.id === updated.id ? updated : reservation));
+    setReservations(
+      (current) => current && { sent: replace(current.sent), received: replace(current.received) },
+    );
+  }
+
   // Si falla, la tarjeta se queda como estaba: el aviso ya explica lo que ha pasado.
   function refreshReservations() {
     if (!token) return;
@@ -107,6 +141,12 @@ export function MyReservationsPage() {
           </p>
         </div>
       </div>
+      {notice && (
+        <p role="status" className="form-success manage-notice">
+          <Icon name="check_circle" />
+          {notice}
+        </p>
+      )}
       {error ? (
         <p role="alert" className="form-error manage-notice">
           <Icon name="error" />
@@ -122,7 +162,19 @@ export function MyReservationsPage() {
             emptyMessage="No tienes solicitudes abiertas"
           >
             {reservations.sent.map((reservation) => (
-              <ReservationCard key={reservation.id} reservation={reservation} role="sent" />
+              <ReservationCard
+                key={reservation.id}
+                reservation={reservation}
+                role="sent"
+                justCancelled={reservation.id === justCancelledId}
+              >
+                <CancelReservation
+                  reservation={reservation}
+                  role="sent"
+                  onCancelled={handleCancelled}
+                  onOutdated={refreshReservations}
+                />
+              </ReservationCard>
             ))}
           </ReservationSection>
           <ReservationSection
@@ -133,11 +185,22 @@ export function MyReservationsPage() {
             emptyMessage="Todavía no has recibido solicitudes."
           >
             {reservations.received.map((reservation) => (
-              <ReservationCard key={reservation.id} reservation={reservation} role="received">
+              <ReservationCard
+                key={reservation.id}
+                reservation={reservation}
+                role="received"
+                justCancelled={reservation.id === justCancelledId}
+              >
                 <ReservationDecision
                   reservationId={reservation.id}
                   status={reservation.status}
                   onDecided={handleDecided}
+                  onOutdated={refreshReservations}
+                />
+                <CancelReservation
+                  reservation={reservation}
+                  role="received"
+                  onCancelled={handleCancelled}
                   onOutdated={refreshReservations}
                 />
               </ReservationCard>

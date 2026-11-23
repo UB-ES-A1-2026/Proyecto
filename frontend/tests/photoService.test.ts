@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ApiError } from '../src/services/apiClient';
-import { MAX_PHOTO_BYTES, resizePhoto, uploadItemPhoto } from '../src/services/photoService';
+import {
+  MAX_PHOTO_BYTES,
+  resizePhoto,
+  uploadItemPhoto,
+  uploadProfilePhoto,
+} from '../src/services/photoService';
 
 // Subida de fotos (#106): orden de las tres peticiones y errores. El redimensionado con <canvas>
 // no se puede probar en jsdom, así que aquí se sustituye por una función que devuelve la foto.
@@ -87,6 +92,42 @@ describe('uploadItemPhoto', () => {
       status: 409,
       message: 'Este objeto ya tiene 5 fotos, que es el máximo.',
     });
+  });
+});
+
+describe('uploadProfilePhoto (US-01.4, #300)', () => {
+  it('hace el mismo recorrido en tres pasos contra los endpoints del perfil', async () => {
+    const profile = { id: 'u1', username: 'ana', photo: 'https://bucket.test/ana.webp' };
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(
+        Response.json(
+          { key: 'perfiles/u1/abc.webp', uploadUrl: 'https://bucket.test/subir', expiresIn: 300 },
+          { status: 201 },
+        ),
+      )
+      .mockResolvedValueOnce(new Response(null, { status: 200 }))
+      .mockResolvedValueOnce(Response.json(profile));
+
+    await expect(uploadProfilePhoto(file, 'tok', resize)).resolves.toEqual(profile);
+
+    const [request, put, confirm] = fetchMock.mock.calls;
+    expect(request[0]).toBe('http://localhost:3000/api/usuarios/me/foto/subida');
+    expect(request[1]?.body).toBe('{"contentType":"image/webp","size":1234}');
+    expect(put[0]).toBe('https://bucket.test/subir');
+    expect(confirm[0]).toBe('http://localhost:3000/api/usuarios/me/foto');
+    expect(confirm[1]?.body).toBe('{"key":"perfiles/u1/abc.webp"}');
+    expect(new Headers(confirm[1]?.headers).get('Authorization')).toBe('Bearer tok');
+  });
+
+  it('los errores de la foto llevan el campo «photo»', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch');
+    const huge = new Blob([new Uint8Array(MAX_PHOTO_BYTES + 1)], { type: 'image/jpeg' });
+
+    await expect(
+      uploadProfilePhoto(file, 'tok', () => Promise.resolve(huge)),
+    ).rejects.toMatchObject({ status: 400, field: 'photo' });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
 

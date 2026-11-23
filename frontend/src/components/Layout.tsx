@@ -1,16 +1,32 @@
 import { Link, NavLink, Outlet, ScrollRestoration, useLocation } from 'react-router';
 import { useAuth } from '../context/useAuth';
+import { RIDER_JOBS_PATH, isApprovedRider, isRiderSession } from '../utils/rider';
 import { Icon } from './Icon';
 
 // Layout base (#21): cabecera con la navegación entre login, registro, perfil y ayuda.
+// Cabecera de rider (US-10.03, T35 #315): generado con asistencia de IA (Claude) – revisado por
+// Marc Sanz, 13/11/2026. «Hazte rider» está en Crear cuenta, no en la cabecera (#355).
 export function Layout() {
   const { session } = useAuth();
+  const rider = isRiderSession(session);
+  const approvedRider = isApprovedRider(session);
   const { pathname, search, state } = useLocation();
   // Al iniciar sesión se vuelve a la página en la que estaba (US-01.2, #224). Desde el registro no
   // hay a dónde volver y, si ya está en el login, se conserva la página pendiente.
   const loginState = ['/login', '/registro'].includes(pathname)
     ? state
     : { from: `${pathname}${search}` };
+
+  // El panel de administración tiene su propia estructura, sin la cabecera ni el pie de la web.
+  // Solo /admin y sus subrutas: /administrar, por ejemplo, no es el panel.
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    return (
+      <>
+        <Outlet />
+        <ScrollRestoration />
+      </>
+    );
+  }
 
   return (
     <>
@@ -23,11 +39,24 @@ export function Layout() {
           </Link>
           {/* En escritorio, enlaces de texto. En el móvil, barra inferior con iconos, como una app. */}
           <nav aria-label="Principal" className="app-nav">
-            <NavLink to="/" end className="nav-link nav-home">
-              <Icon name="home" />
-              Inicio
-            </NavLink>
-            {session ? (
+            {approvedRider ? (
+              <NavLink to={RIDER_JOBS_PATH} className="nav-link">
+                <Icon name="pedal_bike" />
+                Trabajos
+              </NavLink>
+            ) : (
+              <NavLink to="/" end className={rider ? 'nav-link' : 'nav-link nav-home'}>
+                <Icon name="home" />
+                Inicio
+              </NavLink>
+            )}
+            {rider ? (
+              // Un rider solo ve el estado de su solicitud o «Trabajos», y su perfil (US-10.03).
+              <NavLink to="/perfil" className="nav-link">
+                <Icon name="person" />
+                Mi perfil
+              </NavLink>
+            ) : session ? (
               <>
                 <NavLink to="/mis-objetos" className="nav-link">
                   <Icon name="inventory_2" />
@@ -37,7 +66,17 @@ export function Layout() {
                   <Icon name="receipt_long" />
                   Mis solicitudes
                 </NavLink>
-                <NavLink to="/perfil" className="nav-link">
+                {/* Solo el admin tiene panel de administración (US-11.03). */}
+                {session.user.role === 'admin' && (
+                  <NavLink to="/admin" className="nav-link">
+                    <Icon name="dashboard" />
+                    Panel
+                  </NavLink>
+                )}
+                <NavLink
+                  to={`/usuarios/${encodeURIComponent(session.user.id)}`}
+                  className="nav-link"
+                >
                   <Icon name="person" />
                   Mi perfil
                 </NavLink>

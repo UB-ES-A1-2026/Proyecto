@@ -1,0 +1,14 @@
+{
+  "name": "rentit-spike-sp05-armario-qr",
+  "version": "0.0.0",
+  "private": true,
+  "description": "SP-05 (#94): simulación del armario del barrio con códigos QR de un solo uso. Sin dependencias. No es código de producción.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test"
+  }
+}

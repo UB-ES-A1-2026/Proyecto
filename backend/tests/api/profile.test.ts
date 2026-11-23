@@ -3,7 +3,11 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { app } from '../../src/app.js';
 import { prisma } from '../../src/repositories/prisma.js';
 import { resetDb } from '../helpers/db.js';
-import { createTestUser, TEST_PASSWORD } from '../helpers/users.js';
+import {
+  createTestRider,
+  createTestUser,
+  TEST_PASSWORD,
+} from '../helpers/users.js';
 
 const INVALID_SESSION = {
   error: 'Sesión no válida o caducada. Inicia sesión de nuevo.',
@@ -35,12 +39,53 @@ describe('GET /api/usuarios/me', () => {
       username: 'ana',
       email: 'ana@rentit.test',
       role: 'user',
+      isRider: false,
+      riderStatus: null,
+      rejectionReason: null,
       createdAt: user.createdAt.toISOString(),
     });
     expect(response.body).not.toHaveProperty('passwordHash');
     expect(response.body).not.toHaveProperty('status');
     expect(response.body).not.toHaveProperty('updatedAt');
     expect(response.body).not.toHaveProperty('session');
+  });
+
+  // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+  it.each(['pending', 'approved', 'rejected'] as const)(
+    'reports the rider status when the application is %s',
+    async (status) => {
+      await createTestRider(status, { email: 'ana@rentit.test' });
+      const token = await loginAs();
+
+      const response = await request(app)
+        .get('/api/usuarios/me')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        isRider: true,
+        riderStatus: status,
+        rejectionReason: null,
+      });
+    },
+  );
+
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+  it('exposes the rejection reason only for a rejected rider (US-11.03)', async () => {
+    await createTestRider('rejected', {
+      email: 'ana@rentit.test',
+      rejectionReason: 'Zona sin cobertura.',
+    });
+    const token = await loginAs();
+
+    const response = await request(app)
+      .get('/api/usuarios/me')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.body).toMatchObject({
+      riderStatus: 'rejected',
+      rejectionReason: 'Zona sin cobertura.',
+    });
   });
 
   it.each([

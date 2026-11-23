@@ -136,8 +136,78 @@ Endpoints del Sprint 0:
 | `POST /api/auth/login` | no | 200 · 400 · 401 credenciales incorrectas | #26 |
 | `GET /api/usuarios/me` | sí | 200 `{ "id", "username", "email", "role", "createdAt" }` · 401 sesión no válida o usuario inexistente | #28 |
 | `POST /api/auth/logout` | sí | 204 · 401 | #103 |
+| `GET /api/eventos/stream` | sí | 200 `text/event-stream` (canal de tiempo real, ver abajo) · 401 | #289 |
 
 > Los nombres exactos de las rutas los fija BE al implementar; si cambian, se actualiza esta tabla en el mismo PR.
+
+### Demanda de fechas de un objeto (Sprint 2 · #311, días reservados en #312)
+
+`GET /api/objetos/:id/demanda?from=AAAA-MM-DD&to=AAAA-MM-DD` (US-04.07, #303). Requiere sesión (`requireAuth`), como el calendario de la ficha donde se usa, y nunca cuenta las solicitudes del propio usuario.
+
+```json
+{
+  "days": [
+    { "date": "2026-12-04", "pendingRequests": 1 },
+    { "date": "2026-12-05", "pendingRequests": 2 }
+  ],
+  "pendingRequests": 2,
+  "bookedDays": ["2026-12-10", "2026-12-11"]
+}
+```
+
+| Campo | Qué es |
+|---|---|
+| `days` | Los días del rango con alguna solicitud **pendiente** de otras personas, ordenados por fecha. Los que no salen tienen 0 (libre). |
+| `pendingRequests` | Cuántas solicitudes distintas tocan el rango. Una del 4 al 6 cuenta en cada uno de sus días, pero solo una vez aquí. Es el número del aviso «Hay 3 solicitudes que coinciden con tus fechas». |
+| `bookedDays` | Los días del rango que ya ocupa una reserva aceptada, pagada o en curso, ordenados. El calendario los enseña como «Reservado» y no se pueden elegir (#312). |
+
+- Solo cuentan las pendientes. Las aceptadas, pagadas o en curso no son demanda: ocupan los días y salen en `bookedDays`. Las rechazadas, canceladas o finalizadas no cuentan.
+- Un día reservado no cuenta en `days` ni en `pendingRequests`: allí ya no se puede alquilar. Una solicitud que solo toca días reservados no cuenta en el total.
+- Nunca dice quién ha hecho las solicitudes ni quién tiene las reservas: las consultas solo leen las fechas.
+- Los niveles (0 libre, 1–2 poca, 3–5 media, 6+ mucha) y los colores los decide el frontend (T32, #312).
+- Errores: 400 si `from` o `to` faltan o no son fechas reales (`field`: `from` o `to`), si `to` es anterior a `from` o si el rango pasa de 366 días (`field`: `to`). 401 sin sesión o con la sesión caducada. 404 si el objeto no existe, o si está pausado o retirado y quien pregunta no es su propietario.
+
+### Canal de tiempo real (SSE)
+
+Decisión y alternativas: [ADR 0004](adr/0004-tiempo-real.md). Las escrituras siguen siendo REST; el canal **solo avisa** del servidor al navegador.
+
+```mermaid
+flowchart LR
+  Rider[Rider] -- "PATCH /api/entregas/:id/estado" --> Svc[Service de dominio]
+  Svc -- "1. guarda" --> DB[(PostgreSQL)]
+  Svc -- "2. publish(userIds, tipo, data)" --> Bus[realtimeService<br/>bus en memoria]
+  Bus -- "SSE: GET /api/eventos/stream" --> Nav[Navegador de cada destinatario]
+```
+
+- **Endpoint:** `GET /api/eventos/stream` con `Authorization: Bearer <token>` (`requireAuth`, nunca el token en la URL). Un solo stream por pestaña con todos los tipos de evento. El cliente usa `fetch` + `ReadableStream`, no `EventSource` (no admite cabeceras). Sin token válido, 401 y el cliente no reintenta.
+- **Formato** (estándar SSE): al abrir manda `retry: 1000` y después, por cada evento:
+
+  ```text
+  id: <arranque>-<secuencia>
+  event: entrega.estado
+  data: {"reservationId":"…","status":"en_camino","at":"2026-11-11T10:00:00.000Z"}
+  ```
+
+  Cada 15 s manda el comentario `: ping` (*heartbeat*, el cliente lo ignora). Tipos de evento: `entrega.estado` (S2), y en S3 `mensaje.nuevo` y `notificacion.nueva`; más el evento de control `resync`.
+- **Reconexión:** el cliente manda `Last-Event-ID`. Si es del mismo arranque y sigue entre los últimos ~500 eventos, el servidor reenvía lo perdido, en orden y solo del usuario. Si no (redespliegue, Render que despierta, id demasiado viejo o desconocido), manda `resync` y el cliente **recarga por REST**: la BD es la fuente de verdad, los eventos son avisos.
+- **Sesión:** el logout cierra los streams de esa sesión (`authService.logout` → `realtimeService.closeSession`) y cada 60 s el stream vuelve a comprobar la sesión con `findValidSession(token)` (el mismo método que `requireAuth`, con el token de la petición guardado solo en la clausura del stream, sin registrarlo) y se cierra si ya no devuelve la misma sesión. Si la BD falla en esa comprobación, el stream sigue abierto y se reintenta a los 60 s. Con `SIGTERM` o `SIGINT` el servidor cierra todos los streams y luego se apaga.
+- **Límites por stream:** como hay una sola instancia gratuita en Render, cada usuario puede tener como máximo 5 streams abiertos (`MAX_STREAMS_PER_USER`); al abrir el 6.º se cierra el más antiguo y su cliente reconecta con `Last-Event-ID`. Para los clientes lentos, si tras escribir un evento el buffer del socket supera 1 MiB (`MAX_BUFFERED_BYTES`, `writableLength`), se cierra ese stream en vez de acumular memoria; al reconectar recupera lo perdido o recibe `resync`.
+- **HEAD:** `HEAD /api/eventos/stream` (Express lo enruta al handler de GET) responde solo con las cabeceras y termina: no abre suscripción ni temporizadores.
+- **Cómo publica un service de dominio:** llama a `publish` **después** de que el repository haya guardado el cambio, indicando a quién va dirigido (los permisos se aplican aquí, en el servidor). Cada stream solo recibe los eventos de su usuario.
+
+  ```ts
+  import { publish } from './realtimeService.js';
+
+  // dentro de deliveryService, tras guardar el nuevo estado
+  publish([renterId, ownerId, riderId], 'entrega.estado', {
+    reservationId,
+    status,
+    at: updatedAt.toISOString(),
+  });
+  ```
+
+- **Regla de contenido:** un evento lleva solo lo que ese usuario ya puede ver por REST. **Nunca lleva `codigo_entrega`** (ni ningún otro secreto): el evento avisa de que algo cambió y el cliente consulta el detalle por REST si lo necesita.
+- **Límites:** el bus vive en la memoria de una sola instancia (Render gratuito). Con varias habría que cambiarlo por `LISTEN/NOTIFY` o Redis sin tocar la API de `publish`/`subscribe`. Las comprobaciones pendientes en Render (cortes por tiempo, despertar, redespliegue) están en el ADR.
 
 ## 3. Estructura de carpetas
 

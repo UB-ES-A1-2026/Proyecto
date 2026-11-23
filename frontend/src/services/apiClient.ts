@@ -1,15 +1,18 @@
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api';
+export const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api';
 
 // Formato de error de la API acordado en AGENTS.md: { error, field? }.
 export class ApiError extends Error {
   readonly status: number;
   readonly field?: string;
+  // Resto del cuerpo de la respuesta de error (p. ej. requiresAction y clientSecret del 3D Secure).
+  readonly details?: Record<string, unknown>;
 
-  constructor(status: number, message: string, field?: string) {
+  constructor(status: number, message: string, field?: string, details?: Record<string, unknown>) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.field = field;
+    this.details = details;
   }
 }
 
@@ -50,7 +53,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const data: unknown = await response.json().catch(() => undefined);
 
   if (!response.ok) {
-    if (isErrorBody(data)) throw new ApiError(response.status, data.error, data.field);
+    if (isErrorBody(data)) throw new ApiError(response.status, data.error, data.field, data);
     throw new ApiError(response.status, 'Ha ocurrido un error inesperado.');
   }
 

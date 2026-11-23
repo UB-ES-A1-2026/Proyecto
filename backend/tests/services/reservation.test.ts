@@ -32,16 +32,23 @@ describe('toReservationDetail', () => {
       include: reservationDetailInclude,
     });
 
-    expect(toReservationDetail(reservation)).toEqual({
+    expect(toReservationDetail(reservation, 'renter')).toEqual({
       id,
       item: { id: item.id, title: item.title },
       startDate: '2026-12-04',
       endDate: '2026-12-06',
       totalPrice: '15.00',
+      deposit: '30.00',
+      deliveryAmount: '0.00',
       status: 'pending',
+      expiresAt: null,
+      cancellationReason: null,
       renter: { id: renter.id, username: 'bruno' },
       owner: { id: owner.id, username: 'ana' },
+      // Reserva anterior a US-05.01: sin modo de entrega.
+      delivery: null,
       createdAt: reservation.createdAt,
+      cancellation: null,
     });
   });
 });

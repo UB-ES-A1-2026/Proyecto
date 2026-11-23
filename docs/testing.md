@@ -32,8 +32,8 @@ Los comandos completos están en el [README](../README.md#tests). Resumen:
 
 | Tests | Desde | Comando | Necesita en marcha |
 |---|---|---|---|
-| Backend | `backend/` | `npm test` | PostgreSQL |
-| Frontend | `frontend/` | `npm test` | Nada |
+| Backend | `backend/` | `npm test` (con cobertura: `npm run test:coverage`) | PostgreSQL |
+| Frontend | `frontend/` | `npm test` (con cobertura: `npm run test:coverage`) | Nada |
 | End-to-end | `e2e/` | `npx playwright test` | PostgreSQL con el seed, backend y frontend |
 | Smoke | `e2e/` | `npm run test:smoke` | PostgreSQL con el seed, backend y frontend |
 
@@ -175,7 +175,7 @@ Se edita la «Hidrolimpiadora Kärcher» de ana (8 €/día, fianza 50 €), que
 
 ### US-04.02 Consultar mis solicitudes (#61) · S1-T38 (#176)
 
-Solicitudes del seed (`DEMO_RESERVATIONS` en `backend/prisma/demoData.ts`, #210): bruno pide a ana la escalera (aceptada), y ana pide a bruno el proyector (pendiente) y el altavoz (rechazada). Las pendientes del taladro y del carro son para los e2e de aceptar y rechazar, y estos tests no las usan.
+Solicitudes del seed (`DEMO_RESERVATIONS` en `backend/prisma/demoData.ts`, #210): bruno pide a ana la escalera (aceptada), y ana pide a bruno el proyector (pendiente) y el altavoz (rechazada). Las pendientes del taladro y del carro son para los e2e de aceptar y rechazar, y estos tests no las usan. Para cancelar (US-04.05, #308) hay tres más: bruno tiene pagadas la tabla de paddle de ana (a 12 días: gratis) y la silla de coche de ana (a 4 días: penalización del 35 %), que no usa el seguimiento (US-05.02), y bruno canceló la tienda de ana (a 6 días: 5,60 € para ana y 10,40 € devueltos a bruno), que sale «Cancelada» a los dos.
 
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
@@ -215,7 +215,7 @@ Se pausa la «Tabla de paddle surf hinchable» de ana. Al terminar cada test se 
 
 ### US-02.03 Retirar un objeto (#52) · S1-T34 (#172)
 
-Retirar no se puede deshacer, así que solo se retira de verdad la «Máquina de palomitas» de bruno, que no usa ningún otro e2e. `npm run db:seed` la vuelve a dejar publicada. La «Silla de coche para bebé» de ana se usa para cancelar y para los permisos, y la «Escalera de aluminio» tiene en el seed (#210) una solicitud aceptada.
+Retirar no se puede deshacer, así que solo se retira de verdad la «Máquina de palomitas» de bruno, que no usa ningún otro e2e. `npm run db:seed` la vuelve a dejar publicada. La «Silla de coche para bebé» de ana se usa para cancelar la ventana y para los permisos (tiene una reserva pagada para US-04.05, que no impide nada de esto), y la «Escalera de aluminio» tiene en el seed (#210) una solicitud aceptada.
 
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
@@ -278,7 +278,213 @@ Objetos del seed (`backend/prisma/demoData.ts`). En Deporte están la bicicleta 
 | CP-FIL-09 | 1. En móvil, los filtros se abren con su botón | Página de resultados, a 390 px | 1. Pulsar «Filtros» 2. Precio máximo `10` 3. «Aplicar filtros» 4. «Limpiar filtros» junto a los chips | En el paso 1 se abre el panel. En el 3 se cierra y el botón dice «Filtros (1)». En el 4 se vuelve a `/buscar?q=taladro` | `filtrar-objetos.spec.ts` · en móvil |
 | CP-FIL-10 | (Móvil) Sin scroll horizontal | Página de resultados, a 390 px | 1. Ir a `/buscar?q=taladro` | La página no se desplaza en horizontal | `filtrar-objetos.spec.ts` · en móvil |
 
-## 5. Pendiente
+### US-04.07 Ver la demanda de cada fecha en el calendario (#303) · S2-T33 (#313)
+
+Datos del seed (`DEMO_DEMAND_REQUESTS` en `backend/prisma/demoData.ts`): la bicicleta de montaña de bruno tiene seis solicitudes pendientes; ana ve 1 el día +8, 6 el +10 y 4 el +11. Las de vecino1 no cuentan para sí mismo. La escalera de ana tiene los días +14 y +15 reservados por bruno.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-DEM-01 | 1. Color y etiqueta accesible por nivel | Seed cargado; sesión de ana | 1. Abrir la bicicleta 2. Revisar +8, +10, +11 y +13 | Los días tienen sus clases y aria-label según 1, 6, 4 y 0 solicitudes; los cuatro colores son distintos | `demanda-calendario.spec.ts` · criterio 1 |
+| CP-DEM-02 | 2. Leyenda | Seed cargado; sesión de ana | 1. Abrir la bicicleta | Se muestran, en orden, «Libre», «Poca demanda (1–2)», «Demanda media (3–5)», «Mucha demanda (6 o más)» y «Reservado» | `demanda-calendario.spec.ts` · criterio 2 |
+| CP-DEM-03 | 3. Detalle al señalar o elegir un día | Seed cargado; sesión de ana | 1. Señalar +10 y +8 2. Pulsar +13 | Se muestran los respectivos números; al elegir +13 aparece «Ninguna solicitud para este día» y se rellena «Fecha de inicio» | `demanda-calendario.spec.ts` · criterio 3 |
+| CP-DEM-04 | 4. Solicitudes coincidentes con las fechas | Seed cargado; sesión de ana | 1. Elegir +10 a +11 2. Elegir +8 a +8 3. Elegir +13 a +13 | Los avisos cuentan 6 (sin duplicar solicitudes) y 1; con +13 no hay aviso y «Solicitar alquiler» está activo | `demanda-calendario.spec.ts` · criterio 4 |
+| CP-DEM-05 | 5. No revelar la identidad de quienes solicitan | Seed cargado; sesión de ana | 1. Abrir la bicicleta 2. Consultar la demanda por API entre +8 y +12 | La ficha no menciona vecinos; la respuesta solo tiene `days`, `pendingRequests` y `bookedDays`, y cada día solo `date` y `pendingRequests`, sin correo ni id de usuario | `demanda-calendario.spec.ts` · criterio 5 |
+| CP-DEM-06 | Las solicitudes propias no cuentan | Seed cargado; sesión de vecino1 | 1. Abrir la bicicleta 2. Revisar +8 y +10 | +8 está libre y +10 tiene 5 solicitudes (`has-demand-2`) | `demanda-calendario.spec.ts` · propias |
+| CP-DEM-07 | Error al cargar la demanda | Sesión de ana | 1. Hacer que la API de demanda responda `500` 2. Abrir la bicicleta 3. Pulsar +13 | Se muestra el error, no hay leyenda ni colores, y el día sigue rellenando la fecha de inicio | `demanda-calendario.spec.ts` · error |
+| CP-DEM-08 | Días reservados | Seed cargado; sesión de bruno | 1. Abrir la escalera 2. Revisar +14, +15 y +13 | +14 y +15 tienen «Reservado», `is-booked` y están desactivados; +13 está activo | `demanda-calendario.spec.ts` · días reservados |
+| CP-DEM-09 | El propietario no alquila su objeto | Seed cargado; sesión de bruno | 1. Abrir su bicicleta | Se ve «Este anuncio es tuyo.», sin calendario ni leyenda | `demanda-calendario.spec.ts` · permisos |
+
+### US-10.03 Solicitar ser rider (#304) · S2-T36 (#316)
+
+**Datos comunes:** BD con el seed cargado. Usuarios: `carla@rentit.test` (rider pendiente), `dani@rentit.test` (rider aceptado), `ana@rentit.test` y `bruno@rentit.test` (cuentas normales). Contraseña: `Rentit2026`.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-RID-01 | 1. Una persona sin sesión puede abrir «Hazte rider» | Sin sesión | 1. Comprobar que «Principal» no tiene «Hazte rider» 2. Pulsar «Crear cuenta» y, debajo del formulario, «Hazte rider» | Se abre `/hazte-rider` con el título, la información de la solicitud y el botón «Enviar solicitud» | `hazte-rider.spec.ts` · criterio 1a |
+| CP-RID-02 | 1. Una cuenta normal no ve el enlace ni el formulario | Sesión de ana | 1. Comprobar la cabecera 2. Ir a `/hazte-rider` | No hay enlace «Hazte rider» y la ruta vuelve a `/` | `hazte-rider.spec.ts` · criterio 1b |
+| CP-RID-03 | 2. Se muestran todos los campos y opciones del cuestionario | Sin sesión | 1. Ir a `/hazte-rider` | Hay campos de cuenta, teléfono y zona; 5 vehículos, 7 días, 3 franjas, aceptación de condiciones y «Enviar solicitud» | `hazte-rider.spec.ts` · criterio 2a |
+| CP-RID-04 | 2. Enviar el formulario vacío valida todos los campos | Sin sesión | 1. Ir a `/hazte-rider` 2. Pulsar «Enviar solicitud» | Cada campo tiene su mensaje y `aria-invalid="true"`; el foco queda en «Nombre de usuario» y no se muestra la confirmación | `hazte-rider.spec.ts` · criterio 2b |
+| CP-RID-05 | 2. Se valida el teléfono y la contraseña | Sin sesión | 1. Completar el formulario, excepto el teléfono `12345` y la contraseña `corta` 2. Enviar | Solo teléfono y contraseña quedan inválidos y muestran sus errores | `hazte-rider.spec.ts` · criterio 2c |
+| CP-RID-06 | 2. No se puede reutilizar un correo registrado | Sin sesión; ana existe en el seed | 1. Completar el formulario con `ana@rentit.test` 2. Enviar | El correo queda inválido con «Ya existe una cuenta con este correo.» | `hazte-rider.spec.ts` · criterio 2d |
+| CP-RID-07 | 3. Una solicitud válida crea una cuenta rider pendiente | Sin sesión; nombre y correo únicos | 1. Completar y enviar el formulario 2. Pulsar «Iniciar sesión» 3. Iniciar sesión 4. Consultar el login de la API | Se muestra «Solicitud enviada», el correo se rellena en login, la home indica «Pendiente de revisión» y la API devuelve `isRider: true`, `riderStatus: "pending"` | `hazte-rider.spec.ts` · criterio 3 |
+| CP-RID-08 | 4. El rider pendiente no ve ni abre «Trabajos» | Sesión de carla | 1. Iniciar sesión 2. Ir a `/trabajos` | En la home ve «Tu solicitud para ser rider» y «Pendiente de revisión»; `/trabajos` vuelve a `/` | `hazte-rider.spec.ts` · criterio 4a |
+| CP-RID-09 | 4. El rider aceptado ve «Trabajos» | Sesión de dani | 1. Iniciar sesión | Se abre `/trabajos`, la cabecera enlaza a «Trabajos» y se ve ese título | `hazte-rider.spec.ts` · criterio 4b |
+| CP-RID-10 | 5. El rider no puede solicitar ni publicar desde la web | Sesión de dani | 1. Revisar la cabecera 2. Ir a `/buscar?q=taladro`, `/objetos/nuevo` y `/mis-objetos` | No ve «Mis objetos» ni «Mis solicitudes»; cada ruta lleva a `/trabajos` | `hazte-rider.spec.ts` · criterio 5a |
+| CP-RID-11 | 5. La API bloquea solicitudes y publicaciones para riders | Seed cargado; token de carla, dani y bruno | 1. Buscar el cortacésped y una categoría 2. Crear la misma reserva válida con bruno (con la tarjeta de prueba, `ctoken_simulado`, y recogida en casa) y un objeto con un modo de entrega 3. Enviar reserva y objeto con los tokens de carla y dani | La reserva de bruno responde `201`; los POST de riders responden `403` y `{ "error": "Las cuentas de rider no pueden solicitar ni publicar objetos." }` | `hazte-rider.spec.ts` · criterio 5b |
+| CP-RID-12 | 4. Una cuenta rider rechazada no ve trabajos y ve el motivo | eva, rechazada en el seed con motivo | 1. Iniciar sesión con esa cuenta | No ve «Trabajos»; ve «Solicitud rechazada» y «Motivo: Zona sin cobertura de reparto por ahora.» | `admin-riders.spec.ts` · eva (US-11.03, #319) |
+
+### US-07.01 Registrar un pago (#72) · S2-T12 (#287)
+
+Se usan bruno, ana y el «Cortacésped eléctrico» del seed (9 €/día, fianza de 60 €); las fechas de cada solicitud son aleatorias, a 3–4 años, para poder repetir los tests.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-PAG-01 | 2 y 3. Resumen y condiciones del pago | Sesión de bruno | 1. Elegir 3 días en la ficha y la recogida en casa, y continuar a «Confirmar y pagar» | El resumen muestra el objeto, fechas, 27,00 €, fianza retenida de 60 € y total de 87,00 €. Se explica el bloqueo, la aceptación de ana y las tarjetas de prueba | `registrar-pago.spec.ts` · criterios 2 y 3 |
+| CP-PAG-02 | 5. Tarjeta rechazada | Sesión de bruno | 1. Pagar un día con `4000 0000 0000 0002` | Sale «Tu tarjeta ha sido rechazada.», la página conserva las fechas, el botón vuelve a estar activo y no se crea una solicitud | `registrar-pago.spec.ts` · criterio 5 |
+| CP-PAG-03 | 5. Validación de tarjeta | Sesión de bruno | 1. Enviar `1234 5678 9012 3456`, `01/20` y CVC `12` | Los tres campos quedan inválidos; no se envía `POST /api/reservas` ni se crea solicitud | `registrar-pago.spec.ts` · validación |
+| CP-PAG-04 | 1 y 4. Pago aceptado y reserva pagada al aceptar | Sesión de bruno | 1. Pagar con `4242 4242 4242 4242` 2. Aceptar con el token de ana | Se muestra «Solicitud enviada. Hemos bloqueado el importe hasta que ana responda.». El número de tarjeta no llega a la API; la reserva pasa de `pending` a `paid` | `registrar-pago.spec.ts` · criterios 1 y 4 |
+| CP-PAG-05 | 8. No se puede aceptar dos veces | Sesión de bruno | 1. Pagar con `4242 4242 4242 4242` 2. Ana acepta dos veces | La primera respuesta es `200`; la segunda, `409` con `{"error":"Esta solicitud ya no está pendiente."}`. La reserva sigue `paid` | `registrar-pago.spec.ts` · criterio 8 |
+
+C6 (rechazar libera el bloqueo): cubierto por `rechazar-solicitud.spec.ts`. C7 (fianza el día antes): **Pendiente de e2e**; depende de la fecha real y lo cubren los unitarios del backend.
+
+### US-01.4 Perfil público (#48) · S2-T40 (#336)
+
+Datos del seed (`backend/prisma/demoSeed.ts`): ana tiene bio y publica el taladro; su tienda de campaña está pausada. Nadie tiene foto ni valoraciones. Los casos que editan usan una cuenta nueva, así que no cambian la BD del seed. Sin S3 (en local y en el CI) no se pueden subir fotos: en CP-PER-09 el test simula el almacenamiento. El acceso desde las valoraciones se probará cuando existan (US-08.01 y US-08.02).
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-PER-01 | 1. Se llega al perfil desde la ficha del objeto | Seed cargado | 1. Ir a `/buscar?q=taladro` y abrir el taladro 2. En «Publicado por», pulsar «ana» 3. En «Objetos publicados», pulsar el taladro | En el paso 2 se va a `/usuarios/<id>` con el nombre, la bio, «Todavía sin valoraciones», «Miembro desde …» y el taladro, sin la tienda de campaña (pausada). En el 3 se abre la ficha del taladro | `perfil-publico.spec.ts` · criterio 1 |
+| CP-PER-02 | 2. Con otra cuenta no se puede editar | Sesión de bruno | 1. Abrir el perfil de ana desde la ficha del taladro | Se ve el perfil, pero no salen «Editar perfil», «Tu perfil · así lo ven los demás», «Publicar un objeto» ni `ana@rentit.test` | `perfil-publico.spec.ts` · criterio 2 (otra cuenta) |
+| CP-PER-03 | 2. Sin sesión el perfil se ve, pero no se edita | Sin sesión iniciada | 1. Abrir el perfil de ana desde la ficha del taladro | Lo mismo que en CP-PER-02 | `perfil-publico.spec.ts` · criterio 2 (sin sesión) |
+| CP-PER-04 | 2. La API solo deja editar el propio perfil | — | 1. `PATCH /api/usuarios/me` sin token 2. `PATCH /api/usuarios/<id de ana>` con el token de bruno | 1: `401`. 2: `404` (no hay ninguna ruta para editar a otra persona). La bio de ana no cambia | `perfil-publico.spec.ts` · criterio 2 (API) |
+| CP-PER-05 | 3. «Mi perfil» lleva al perfil propio; el correo solo lo ve su dueño | Sesión de ana | 1. Pulsar «Mi perfil» 2. Ir a `/perfil` | En el paso 1 se va a `/usuarios/<id>` con «Tu perfil · así lo ven los demás», «Editar perfil» y `ana@rentit.test` («solo lo ves tú»). En el 2 se llega al mismo perfil | `perfil-publico.spec.ts` · criterio 3 |
+| CP-PER-06 | Editar la bio | Cuenta nueva con sesión | 1. «Mi perfil» › «Editar perfil» 2. Escribir una bio 3. Pulsar «Guardar» 4. Recargar la página | El contador cambia (n/500). Se cierra la ventana, sale «Perfil actualizado.» y la bio nueva, que sigue ahí al recargar | `perfil-publico.spec.ts` · editar la bio |
+| CP-PER-07 | (Validación) Bio de más de 500 caracteres | Cuenta nueva con sesión | 1. «Editar perfil» 2. Escribir 501 caracteres 3. `PATCH /api/usuarios/me` con 501 caracteres | En el paso 2 el campo se queda en 500 (500/500); si se quita ese límite y se pulsa «Guardar», sale «El campo "bio" no es correcto, revísalo.» y no se envía. En el 3, `400` con ese mensaje y `field: "bio"` | `perfil-publico.spec.ts` · bio de más de 500 |
+| CP-PER-08 | (Validación) Foto que no es JPG, PNG o WebP, o de más de 5 MB | Cuenta nueva con sesión | 1. «Editar perfil» 2. Elegir un GIF 3. `POST /api/usuarios/me/foto/subida` con un `size` de 6 MB | En el paso 2 sale «Solo se pueden subir fotos JPG, PNG o WebP.» sin llamar a la API. En el 3, `400` «La foto no puede ocupar más de 5 MB.» | `perfil-publico.spec.ts` · foto no válida |
+| CP-PER-09 | Cambiar la foto y la bio | Cuenta nueva con sesión; almacenamiento simulado (sin S3) | 1. «Editar perfil» 2. Elegir un PNG y escribir una bio 3. Pulsar «Guardar» | Se cierra la ventana, sale «Perfil actualizado.» y el perfil muestra la bio nueva y la foto en lugar de la inicial | `perfil-publico.spec.ts` · foto y bio |
+| CP-PER-10 | (Error) El usuario no existe | — | 1. Ir a `/usuarios/00000000-0000-4000-8000-000000000000` y a `/usuarios/xyz` 2. Pulsar «Volver al inicio» | En el paso 1 sale «No hemos encontrado este usuario.». En el 2 se vuelve a `/` | `perfil-publico.spec.ts` · usuario que no existe |
+
+### US-05.01 Elegir modo y hora de entrega (#66) · S2-T8 (#283)
+
+Antes de cada ejecución, vuelve a ejecutar `npm run db:seed` en `backend/`: los e2e de aceptar y rechazar solicitudes cambian la BD. Las solicitudes nuevas de esta suite usan fechas aleatorias de 3 a 4 años en el futuro y solo se crean para el «Cortacésped eléctrico» y la «Silla de coche para bebé». El «Carro de la compra plegable» solo se usa para consultar sus modos y comprobar el rechazo de la API; no se confirma ninguna solicitud para ese objeto.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-ENT-01 | 1. Publicar sin modos | Sesión de ana | 1. Rellenar el anuncio 2. No marcar ningún modo 3. Pulsar «Publicar» | Sale «Elige al menos un modo de entrega.» y no se envía ningún `POST` | `modo-entrega.spec.ts` · criterio 1 |
+| CP-ENT-02 | 1. Recogida en casa requiere dirección | Sesión de ana | 1. Rellenar el anuncio 2. Marcar solo «Recoger en casa del propietario» 3. Dejar la dirección vacía 4. Publicar | Sale `El campo "dirección" no es correcto, revísalo.` | `modo-entrega.spec.ts` · criterio 1 |
+| CP-ENT-03 | 1. Solo punto de recogida | Sesión de ana | 1. Publicar un anuncio único con solo «Punto de recogida» 2. Consultarlo en la API | No aparece el campo «Dirección», se muestra «Solo punto de recogida: no hace falta tu dirección.» y la API devuelve `homeDelivery: false`, `riderDelivery: false`, `pickupPointDelivery: true` | `modo-entrega.spec.ts` · criterio 1 |
+| CP-ENT-04 | 1. Editar requiere mantener algún modo | Sesión de ana | 1. Crear un anuncio de punto de recogida 2. Editarlo 3. Desmarcar el modo 4. Guardar | Sale «Elige al menos un modo de entrega.» | `modo-entrega.spec.ts` · criterio 1 |
+| CP-ENT-05 | 2. Solo se ofrecen los modos del objeto | Sesión de bruno; «Cortacésped eléctrico» y «Carro de la compra plegable» de ana | 1. Abrir la entrega de cada objeto, sin confirmar solicitudes | El Cortacésped ofrece solo recogida en casa; el Carro solo ofrece punto de recogida | `modo-entrega.spec.ts` · criterio 2 |
+| CP-ENT-06 | Validar que se elija un modo | Sesión de bruno; Cortacésped | 1. Elegir fechas 2. Pulsar «Continuar» sin elegir un modo | Sale «Elige un modo de entrega.» | `modo-entrega.spec.ts` · validación |
+| CP-ENT-07 | 2. La API valida el modo ofrecido | Sesión de bruno | 1. `POST /api/reservas` con `home` para el Carro 2. Repetir para el Cortacésped | El Carro responde `400` y «Este objeto no ofrece ese modo de entrega.»; el Cortacésped responde `201` | `modo-entrega.spec.ts` · criterio 2 |
+| CP-ENT-08 | 3. Rider, hora, dirección, barrio y coste | Sesión de bruno; Silla | 1. Elegir rider y continuar sin completar los campos 2. Elegir «Lo antes posible», dirección y Gràcia 3. Continuar y pagar con `4242 4242 4242 4242` en «Confirmar y pagar» | Se ven los tres errores; hay «Lo antes posible» y franjas de dos horas; la tarifa es `3`, `5` o `7 €`, el total suma alquiler y entrega y la tarjeta muestra hora, coste y desglose | `modo-entrega.spec.ts` · criterio 3 |
+| CP-ENT-09 | 4. La dirección del propietario depende del estado | Sesión de bruno | 1. Solicitar el Cortacésped con fechas únicas 2. Abrir la solicitud pendiente 3. Abrir la Escalera aceptada del seed 4. Consultar el objeto del Cortacésped por API | La pendiente solo muestra el aviso de dirección; la aceptada muestra la dirección de ana; la API del Cortacésped no expone la dirección | `modo-entrega.spec.ts` · criterio 4 |
+| CP-ENT-10 | 5. Elegir punto de recogida | Sesión de bruno; Silla | 1. Elegir «Punto de recogida» 2. Continuar sin elegir punto 3. Elegir uno, continuar y pagar con `4242 4242 4242 4242` en «Confirmar y pagar» | Se muestran varios puntos; sin elección sale «Elige un punto de recogida.»; el seleccionado aparece en el resumen y en la tarjeta | `modo-entrega.spec.ts` · criterio 5 |
+| CP-ENT-11 | 6. El propietario ve la solicitud rider sin la dirección de entrega | Sesión de ana; Taladro del seed | 1. Abrir la solicitud recibida | Se ven «Entrega por rider», la hora, el coste y el barrio Poblenou; no se ve la dirección de entrega | `modo-entrega.spec.ts` · criterio 6 |
+| — | Lo ve el rider (US-10.01) | Sesión del rider | Pendiente de la historia US-10.01 | **Pendiente** | Fuera del alcance de US-05.01 |
+
+### US-08.01 Valorar un alquiler (#74) · S2-T22 (#297)
+
+Datos del seed: ana tiene una solicitud finalizada y sin valorar de la «Máquina de palomitas», alquilada a bruno, y una solicitud pendiente del «Proyector Full HD» de bruno. El último test cambia la BD al publicar una valoración; en local, ejecuta `npm run db:seed` en `backend/` antes de repetirlo.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-VAL-01 | 1, 2 y 3. Abrir el formulario, elegir estrellas y cancelar | Sesión de ana; seed cargado | 1. Abrir la tarjeta de la «Máquina de palomitas» en «Enviadas» 2. Pulsar «Valorar» 3. Elegir 4 estrellas 4. Pulsar «Cancelar» | Se muestra «Valorar el alquiler», las 5 puntuaciones y el comentario; queda marcada «4 estrellas: Bien». Se vuelve a `/mis-solicitudes` y la solicitud sigue sin `myRating` | `valorar-alquiler.spec.ts` · criterios 1–3 |
+| CP-VAL-02 | 4 y 5. Publicar sin puntuación | Sesión de ana; valoración sin publicar | 1. Abrir la valoración de la palomitas 2. Escribir un comentario 3. Pulsar «Publicar» sin estrellas | No se publica; se muestra «Elige una puntuación de 1 a 5 estrellas.», el grupo tiene `aria-invalid="true"`, el foco queda en la primera estrella y la API sigue sin `myRating` | `valorar-alquiler.spec.ts` · criterios 4–5 |
+| CP-VAL-03 | 5. La API valida puntuación y comentario | Solicitud finalizada de ana, sin valorar | 1. Enviar `POST /api/reservas/<id>/valoracion` sin `score` 2. Enviar un comentario de 1001 caracteres | Ambas peticiones responden `400`, con `field: "score"` y `field: "comment"` respectivamente; no se crea `myRating` | `valorar-alquiler.spec.ts` · criterio 5 (API) |
+| CP-VAL-04 | 7. Solo quien pidió el alquiler puede valorar | Sesión de bruno; solicitud finalizada que pidió ana | 1. Abrir la palomitas en «Recibidas» 2. Intentar valorar por la API con el token de bruno | No aparece el enlace «Valorar»; la API responde `403` con «Solo quien ha alquilado el objeto puede valorar este alquiler.» | `valorar-alquiler.spec.ts` · criterio 7 |
+| CP-VAL-05 | Solo se puede valorar un alquiler finalizado | Sesión de ana; solicitud pendiente del proyector | 1. Abrir el proyector en «Enviadas» 2. Ir a su ruta de valoración 3. Enviar la valoración por la API | No aparece el enlace «Valorar» y se muestra «Solo se puede valorar un alquiler finalizado.»; la API responde `409` con ese mismo error | `valorar-alquiler.spec.ts` · estado no finalizado |
+| CP-VAL-06 | 6 y 8. Publicar y evitar una valoración duplicada | Sesión de ana; solicitud finalizada de la palomitas, sin valorar | 1. Elegir 4 estrellas, escribir un comentario único y publicar 2. Reabrir la ruta y enviar otro `POST` | Se muestra «Valoración publicada.» y la tarjeta muestra «Tu valoración», «4 de 5 estrellas» y el comentario entre «»; `myRating` contiene la puntuación y el comentario. Ya no hay enlace ni botón «Publicar»; el acceso directo avisa «Ya has valorado este alquiler.» y el segundo `POST` responde `409` con ese error. **Cambia la BD** | `valorar-alquiler.spec.ts` · criterios 6 y 8 |
+
+### US-05.02 Seguimiento del estado de la entrega (#67) · S2-T16 (#291)
+
+Datos del seed: la «Hidrolimpiadora Kärcher» de ana, alquilada por bruno, va con rider y dani ya asignado; el «Cortacésped eléctrico» de ana, alquilado por bruno, se recoge en el domicilio del propietario; la «Bicicleta de montaña talla M» de bruno, alquilada por ana, se recoge en un punto de recogida. CP-SEG-04 a 08 avanzan esas entregas: van en orden, sin reintentos, y antes de repetirlos hay que volver a ejecutar `npm run db:seed`. El botón «Valorar» del alquiler finalizado se probará cuando US-08.01 y US-08.02 estén en develop (decisión de Marc).
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-SEG-01 | 6. Solo una lista de estados con fecha y hora | Sesión de bruno | 1. «Mis solicitudes» › Hidrolimpiadora › «Ver entrega» | Se abre `/entregas/<id>` con «Entrega por rider · Franja 09:00–11:00», los pasos Asignada, Recogida, En camino y Entregada, la hora de «Asignada», el código de entrega y ningún mapa | `seguimiento-entrega.spec.ts` · criterio 6 |
+| CP-SEG-02 | (Error) Solo la ven las personas de la reserva y su rider | Sesión de vecino1 | 1. Abrir `/entregas/<id>` de la Hidrolimpiadora 2. `GET /api/entregas/<id>` | Sale «No hemos encontrado esta entrega.»; la API responde `403` «Solo las personas de esta reserva y su rider pueden ver la entrega.», y `404` con un id que no existe | `seguimiento-entrega.spec.ts` · otra cuenta |
+| CP-SEG-03 | 1. Solo el rider avanza, y en orden | Tokens de dani y bruno | 1. dani pide pasar de «Asignada» a «En camino» 2. bruno intenta avanzarla o marcarla como recibida 3. bruno intenta devolverla | 1: `409` «La entrega no puede pasar a ese estado: los estados van en orden.». 2: `403` y `409` «Con rider, la entrega la marca el rider con tu código.». 3: `409` «Solo puedes marcar «He devuelto el objeto» con el alquiler en curso.». La entrega sigue «Asignada» | `seguimiento-entrega.spec.ts` · API |
+| CP-SEG-04 | 1 y 2. El rider avanza y los demás lo ven sin recargar | bruno y ana con el seguimiento abierto; sesión de dani | 1. dani pulsa «Marcar como Recogida» 2. Pulsa «Marcar como En camino» | Cada paso queda como estado actual con su hora, y bruno y ana lo ven en menos de 10 s sin recargar. Solo bruno ve el código | `seguimiento-entrega.spec.ts` · con rider |
+| CP-SEG-05 | 3. Marcar «Entregada» exige el código correcto | Entrega «En camino» | 1. dani escribe `123` 2. Un código de 6 cifras incorrecto 3. El código que ve bruno | 1: «Escribe las 6 cifras del código de entrega.». 2: «El código no es correcto. Te quedan 4 intentos.» y sigue «En camino». 3: pasa a «En curso», bruno lo ve sin recargar y deja de ver el código. Repetir el código da `409` | `seguimiento-entrega.spec.ts` · código |
+| CP-SEG-06 | 5. Devolver el objeto | Hidrolimpiadora «En curso»; sesión de bruno | 1. «He devuelto el objeto» › «Sí, lo he devuelto» | Sale «Alquiler finalizado.», «Finalizada» con su hora y la tarjeta de «Mis solicitudes» en «Finalizada» | `seguimiento-entrega.spec.ts` · devolución |
+| CP-SEG-07 | 4. Sin rider: «Ya tengo el objeto» | Cortacésped (domicilio); sesión de bruno | 1. «Ya tengo el objeto» › «Cancelar» 2. Otra vez › «Sí, ya lo tengo» 3. «He devuelto el objeto» › «Sí, lo he devuelto» | «He devuelto el objeto» no sale antes de tiempo. 1: no cambia nada. 2: pasa a «En curso». 3: «Alquiler finalizado.» | `seguimiento-entrega.spec.ts` · domicilio |
+| CP-SEG-08 | 4 y 2. Punto de recogida | Bicicleta; bruno (propietario) con el seguimiento abierto; sesión de ana | 1. ana pulsa «Ya tengo el objeto» › «Sí, ya lo tengo» | bruno no tiene ese botón; pasa a «En curso» y bruno lo ve sin recargar | `seguimiento-entrega.spec.ts` · punto de recogida |
+| — | 5. «Valorar» al finalizar | US-08.01 y US-08.02 en develop | Pendiente: el botón está oculto hasta entonces | **Pendiente** | Cuando entren US-08.01 y US-08.02 |
+
+### US-11.03 Aceptar o rechazar solicitudes de rider (#305) · S2-T39 (#319)
+
+Datos del seed: `admin@rentit.test` es el admin; carla tiene la solicitud pendiente, dani es rider aceptado y eva está rechazada con el motivo «Zona sin cobertura de reparto por ahora.». carla no se toca, porque `hazte-rider.spec.ts` la necesita pendiente: los casos que aceptan o rechazan crean antes su propio rider con datos únicos (`POST /api/riders`), y CP-ADM-07 crea su propio objeto. Por eso estos e2e se pueden repetir sin volver a cargar el seed.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-ADM-01 | 1. Solo el admin | Sesiones de ana y del admin | 1. ana abre `/admin/solicitudes` 2. `GET /api/admin/riders` con el token de ana y sin token 3. Entrar como admin | ana no ve «Panel» y vuelve al inicio; la API responde `403` y `401`. El admin entra directamente en `/admin`, con «Resumen», «Objetos», «Riders activos» y «Solicitudes» | `admin-riders.spec.ts` · criterio 1 |
+| CP-ADM-02 | 2. Pendientes con el cuestionario | Rider nuevo pendiente | 1. «Solicitudes» 2. Desplegar la del rider nuevo | Filtro «Pendientes» marcado; carla (la más antigua) sale antes que el rider nuevo, con su zona, «Bici», la fecha y «Pendiente de revisión». Al desplegar: correo, teléfono, zona, vehículo, días, franjas, cuándo aceptó las condiciones, «Aceptar» y «Rechazar» | `admin-riders.spec.ts` · criterio 2 |
+| CP-ADM-03 | 3 y 5. Aceptar | Rider nuevo pendiente | 1. «Aceptar» 2. Filtro «Aceptadas» 3. «Riders activos» | «Has aceptado a <nombre>: ya puede hacer entregas.»; sale de «Pendientes» y en «Aceptadas» pone «Aceptada el … por admin». Su cuenta pasa a `riderStatus: approved` y sale en «Riders activos» con su zona, junto a dani | `admin-riders.spec.ts` · aceptar |
+| CP-ADM-04 | 3. Rechazar con motivo | Rider nuevo pendiente | 1. «Rechazar» 2. Escribir el motivo › «Rechazar solicitud» 3. Filtro «Rechazadas» 4. Entrar con esa cuenta | «Has rechazado la solicitud de <nombre>.»; en «Rechazadas», «Motivo: …» y «Rechazada el … por admin». La persona ve «Solicitud rechazada» y su motivo | `admin-riders.spec.ts` · rechazar |
+| CP-ADM-05 | 3. El motivo del seed | Sesión de eva | 1. Iniciar sesión | Ve «Solicitud rechazada» y «Motivo: Zona sin cobertura de reparto por ahora.», sin «Trabajos» (cierra CP-RID-12) | `admin-riders.spec.ts` · eva |
+| CP-ADM-06 | 4. Ya revisada | Rider nuevo pendiente, desplegado en el panel | 1. Otro admin la acepta por la API 2. Pulsar «Aceptar» en el panel 3. Volver a aceptarla o rechazarla por la API | Sale «Esta solicitud ya se ha revisado.» y desaparece de «Pendientes». La API responde `409` con ese mensaje en los dos casos | `admin-riders.spec.ts` · criterio 4 |
+| CP-ADM-07 | 6. Retirar un objeto con motivo | Objeto nuevo de ana (creado por la API) | 1. «Objetos» › buscarlo › «Retirar» 2. «Anuncio falso o engañoso» y detalles › «Retirar anuncio» 3. ana abre «Mis objetos» | ««<objeto>» se ha retirado de Rentit.» y ya no sale en la lista; ana ve «Rentit ha retirado este anuncio. Motivo: Anuncio falso o engañoso. <detalles>» | `admin-riders.spec.ts` · criterio 6 |
+| CP-ADM-08 | Sin pendientes | La lista simulada vacía (carla siempre está pendiente en el seed) | 1. «Solicitudes» | «Pendientes · 0» y «No hay solicitudes pendientes.» | `admin-riders.spec.ts` · sin pendientes |
+
+### US-04.05 Cancelar una reserva con penalización (#64) · S2-T30 (#310)
+
+Datos del seed (#308), que solo usa este e2e: la «Silla de coche para bebé» de ana, pagada por bruno, empieza dentro de 4 días (35 % de 8 €); la «Tabla de paddle surf hinchable» de ana, pagada por bruno, dentro de 12 (sin compensación, 30 €); la «Tienda de campaña para 4 personas» de ana ya está cancelada por bruno con el 35 %, y ana tiene pendiente el «Proyector Full HD» de bruno. El tramo del 100 % no está en el seed: CP-CAN-08 crea por la API una reserva pagada de la tabla de paddle para mañana. CP-CAN-05 a 08 cancelan reservas: van en orden, sin reintentos, y antes de repetirlos hay que volver a ejecutar `npm run db:seed` (si una ejecución se quedó a medias, `npx prisma migrate reset --force` en `backend/`: BD limpia, como en el CI). Repetir el seed puede dejar copias canceladas de estas reservas con las mismas fechas, así que el e2e busca cada tarjeta por su reserva.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-CAN-01 | 1. Quién puede cancelar | Sesiones de bruno y ana | 1. bruno abre la silla («Enviadas») y el proyector pendiente («Recibidas») 2. ana abre el proyector («Enviadas») › «Cancelar solicitud» › «Volver» 3. ana abre la tabla de paddle («Recibidas») | bruno tiene «Cancelar reserva» en la silla y, en la pendiente, solo «Rechazar». ana ve «¿Cancelar la solicitud?» sin compensación ni reembolso y «Volver» la deja «Pendiente»; como propietaria puede cancelar la tabla | `cancelar-reserva.spec.ts` · criterio 1 |
+| CP-CAN-02 | 2 y 3. La ventana avisa del 35 % | Sesión de bruno | 1. Silla › «Cancelar reserva» 2. «Volver» | «¿Cancelar la reserva?», «Faltan 4 días para el inicio: compensarás a ana con el 35 % del alquiler (2,80 €) por las molestias.» y «Te devolvemos 5,20 €. Recuperas la fianza entera.». Con «Volver» sigue «Pagada» | `cancelar-reserva.spec.ts` · criterios 2 y 3 |
+| CP-CAN-03 | (Error) Ya cancelada, finalizada y solo sus dos personas | Tienda cancelada del seed | 1. bruno y ana abren la tienda 2. `POST /api/reservas/<id>/cancelar` de la tienda (bruno), de las palomitas finalizadas (ana), de la silla con vecino1 y del proyector pendiente con bruno | bruno ve «La cancelaste tú el … Compensación a ana por las molestias: 5,60 € (35 %). Te hemos devuelto 10,40 €.» y ana «La canceló bruno el … Recibes 5,60 € (35 %)…», sin botón para cancelar. La API responde `409` «Esta reserva ya no se puede cancelar.» (tienda y palomitas), `403` «Solo el arrendatario o el propietario pueden cancelar esta reserva.» y `409` | `cancelar-reserva.spec.ts` · errores |
+| CP-CAN-04 | 5. Aviso al solicitar con menos de 3 días | Sesión de bruno | 1. Cortacésped › fechas de mañana › «Solicitar alquiler» › «Recoger en casa del propietario» › «Continuar» 2. Lo mismo dentro de 20 días | En «Confirmar y pagar» del paso 1 sale «Empieza en menos de 3 días: si cancelas una vez aceptada, compensarás al propietario con el alquiler completo por las molestias.»; en el 2 no sale. No se envía ninguna solicitud | `cancelar-reserva.spec.ts` · criterio 5 |
+| CP-CAN-05 | (Error) Falla la cancelación | Sesión de ana; la API simulada responde `502` | 1. Tabla de paddle («Recibidas») › «Cancelar reserva» › confirmar | Sale «No se ha podido cancelar. Inténtalo de nuevo.» y la reserva sigue «Pagada» | `cancelar-reserva.spec.ts` · errores |
+| CP-CAN-06 | 4 y 6. Cancela el arrendatario con el 35 % | Sesión de bruno | 1. Silla › «Cancelar reserva» › confirmar 2. `/entregas/<id>` de la silla 3. ana abre «Mis solicitudes» 4. Días ocupados de la silla (`GET /api/objetos/<id>/demanda`) | bruno ve «La cancelaste tú el … Compensación a ana por las molestias: 2,80 € (35 %). Te hemos devuelto 5,20 €.»; el seguimiento dice «Este alquiler se ha cancelado: ya no hay ninguna entrega que hacer.»; ana ve «La canceló bruno el … Recibes 2,80 € (35 %) como compensación por las molestias.». Esos días dejan de estar ocupados | `cancelar-reserva.spec.ts` · arrendatario |
+| CP-CAN-07 | 3 y 4. Cancela el propietario sin penalización | Sesión de ana | 1. Tabla de paddle («Recibidas») › «Cancelar reserva» › confirmar 2. bruno abre «Mis solicitudes» | La ventana no habla de compensación: «A bruno se le devuelve todo lo que pagó (30,00 €) y recupera su fianza.». ana ve «La cancelaste tú el …»; bruno, «La canceló ana el … Te hemos devuelto 30,00 €.» | `cancelar-reserva.spec.ts` · propietario sin penalización |
+| CP-CAN-08 | 3 y 4. Cancela el propietario con menos de 3 días | Reserva pagada de la tabla de paddle para mañana (creada por la API) | 1. ana › «Recibidas» › «Cancelar reserva» › confirmar 2. bruno abre «Mis solicitudes» | La ventana dice «…la compensación a bruno por las molestias, el 100 % del alquiler (15,00 €), quedará registrada a tu cargo; de momento no se cobra.» y «A bruno se le devuelve todo lo que pagó (15,00 €) y recupera su fianza.». ana ve «… A bruno se le ha devuelto todo (15,00 €). La compensación por las molestias, 15,00 € (100 %), queda registrada a tu cargo; de momento no se cobra.»; bruno, «La canceló ana el … Te hemos devuelto todo lo que pagaste (15,00 €). La compensación por las molestias, 15,00 € (100 %), queda registrada a cargo de ana; de momento no se cobra.» | `cancelar-reserva.spec.ts` · propietario con el 100 % |
+
+### US-10.01 Rider acepta entregas disponibles (#78) · S2-T19 (#294)
+
+Datos del seed para los e2e: dos trabajos disponibles de ana, solicitados por vecino5 y vecino6, pagados, con rider y sin rider asignado: la «Máquina de coser Singer» (Sants → Gràcia, «Lo antes posible», mañana) y la «Barbacoa de carbón portátil» (Les Corts → Poblenou, 17:00-19:00, pasado mañana). Riders aceptados: `dani@rentit.test` y `oscar@rentit.test` (para «dos riders aceptan el mismo»); `carla@rentit.test` sigue pendiente. La «Hidrolimpiadora Kärcher» ya es de dani y sale en su «Mis trabajos». Los casos de la API están en `backend/tests/api/riderJobs.test.ts`.
+
+Los trabajos del seed solo se leen (CP-TRA-02 y CP-TRA-06): ningún caso los acepta. Los casos que aceptan (CP-TRA-03 a 05) crean antes sus propios trabajos por la API: vecino6 solicita la Singer o vecino5 la Barbacoa (al revés que en el seed, para que repetir el seed nunca toque estas reservas), con rider, una fecha libre de dentro de 3 o 4 años y una dirección de entrega única («Carrer de la Prova e2e, <id>»), y ana la acepta, con lo que queda pagada. Por eso estos e2e se pueden repetir sin volver a cargar el seed. Los errores y las listas vacías se simulan interceptando la API (`page.route`).
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-TRA-01 | (Error) Solo los riders aceptados | Sesión de ana (no es rider) | 1. Mirar la cabecera 2. Abrir `/trabajos` 3. `GET /api/trabajos`, `GET /api/trabajos/mios` y `POST /api/trabajos/<id>/aceptar` con el token de ana y sin token | No ve «Trabajos» y `/trabajos` vuelve al inicio. La API responde `403` «Solo los riders aceptados pueden ver los trabajos.» y `401` sin token; con el token de dani, `200` | `trabajos-rider.spec.ts` · no es rider |
+| CP-TRA-02 | 1 y 2. Cada trabajo con objeto, inicio, destino, fecha y franja y tarifa | Seed cargado; sesión de dani | 1. Iniciar sesión 2. Mirar «Disponibles» | dani y oscar reciben los dos trabajos del seed. Al entrar, dani llega a `/trabajos` con «Disponibles (n)» elegida; los trabajos van agrupados por día, la Singer antes que la Barbacoa. Singer: «Recogida Sants», «Entrega Gràcia», «Lo antes posible», «Tarifa 5,00 €» y «Aceptar». Barbacoa: «Recogida Les Corts», «Entrega Poblenou», «De 17:00 a 19:00», «Tarifa 7,00 €». Ninguna dirección | `trabajos-rider.spec.ts` · criterios 1 y 2 |
+| CP-TRA-03 | 3. Aceptar un trabajo | Trabajo nuevo de la Singer (11:00-13:00, a Gràcia); oscar con la lista abierta; sesión de dani | 1. dani pulsa «Aceptar» en el trabajo 2. «Mis trabajos» 3. oscar recarga la lista | «Has aceptado «Máquina de coser Singer». Lo tienes en Mis trabajos, con las direcciones.»; el trabajo sale de la lista, «Disponibles» baja en 1 y dani sigue en `/trabajos`. En «Mis trabajos»: «Asignada», «Recogida Carrer de Sants, 140, 2º 1ª (Sants)», la dirección de entrega completa con «(Gràcia)», la franja, la tarifa y «Ver seguimiento» a `/entregas/<id>`. oscar ya no lo ve. **Cambia la BD** | `trabajos-rider.spec.ts` · aceptar uno |
+| CP-TRA-04 | 3. Cada trabajo por separado, varios seguidos | Dos trabajos nuevos el mismo día: Singer «Lo antes posible» y Barbacoa 09:00-11:00; sesión de dani | 1. «Aceptar» en la Singer 2. «Aceptar» en la Barbacoa 3. «Mis trabajos» | En ese día, la Singer va antes que la Barbacoa. Tras el primero, aviso de la Singer y sigue en la lista con «Aceptar» en la Barbacoa; tras el segundo, aviso de la Barbacoa y «Disponibles» ha bajado en 2. Los dos salen en «Mis trabajos» como «Asignada», con sus direcciones. **Cambia la BD** | `trabajos-rider.spec.ts` · varios seguidos |
+| CP-TRA-05 | 4. Dos riders aceptan el mismo | Trabajo nuevo de la Barbacoa; dani y oscar con la lista abierta | 1. oscar pulsa «Aceptar» 2. dani, sin recargar, pulsa «Aceptar» en el mismo 3. dani lo vuelve a pedir por la API | oscar ve «Has aceptado…». dani ve «Barbacoa de carbón portátil: Ya asignado a otro rider.» y el trabajo desaparece de su lista. Es de oscar y no sale en «Mis trabajos» de dani; la API responde a dani `409` «Ya asignado a otro rider.». **Cambia la BD** | `trabajos-rider.spec.ts` · dos riders |
+| CP-TRA-06 | (Error) Falla al aceptar | Trabajo de la Singer del seed; la API de aceptar simulada con un error `500` | 1. dani pulsa «Aceptar» | «No se ha podido aceptar el trabajo. Inténtalo de nuevo.» y el trabajo sigue en la lista con «Aceptar» activo | `trabajos-rider.spec.ts` · falla al aceptar |
+| CP-TRA-07 | (Error) Falla la carga | La primera carga de `GET /api/trabajos` simulada con un error `500` | 1. dani inicia sesión 2. «Reintentar» | «No se han podido cargar los trabajos.» con «Reintentar»; al pulsarlo se cargan los trabajos | `trabajos-rider.spec.ts` · falla la carga |
+| CP-TRA-08 | Sin trabajos | Las dos listas simuladas vacías (en el seed siempre hay trabajos) | 1. dani inicia sesión 2. «Mis trabajos» | «Disponibles (0)» y «No hay trabajos disponibles ahora mismo.»; en «Mis trabajos (0)», «Todavía no has aceptado ningún trabajo.» | `trabajos-rider.spec.ts` · sin trabajos |
+
+## 5. Métricas de tests
+
+Petición del profesor en la demo del Sprint 1 (#272). Las dos métricas salen solas del CI y de GitHub; solo hace falta seguir las reglas de `AGENTS.md`.
+
+### Cobertura de código
+
+Qué porcentaje del código ejecutan los tests unitarios y de API (diapositiva 8 de «QA: Review, Testing, Code Analysis»). La mide Vitest con `@vitest/coverage-v8`.
+
+- **En local:** `npm run test:coverage` en `backend/` o `frontend/`. Al final sale el resumen, y el detalle por archivo (qué líneas no se ejecutan) en `coverage/index.html`.
+- **En el CI:** los jobs Backend y Frontend ejecutan `npm run test:coverage`. El job «Cobertura» pone la tabla en el resumen de la ejecución y en un comentario del PR, que se actualiza en cada push.
+- **Mínimos** (`thresholds` en cada `vitest.config.ts`): el valor medido el 5/11/2026 menos 2 puntos. Si baja de ahí, el CI falla. Los mínimos **solo se suben** (lo hace QA al final de cada sprint), nunca se bajan.
+- **Cobertura no es calidad:** un test sin comprobaciones también cuenta como cubierto (diapositiva 19). Por eso siguen valiendo las reglas de la sección 3 («Qué comprobar»).
+- Los e2e no entran en la cobertura: comprueban los criterios de aceptación (sección 4), no líneas de código.
+
+| Fecha | Parte | Líneas | Sentencias | Funciones | Ramas |
+|---|---|---|---|---|---|
+| 5/11/2026 | backend | 92,7 % | 92,7 % | 95,8 % | 93,8 % |
+| 5/11/2026 | frontend | 95,7 % | 93,6 % | 96,2 % | 89,7 % |
+
+### Bugs encontrados por tests
+
+Cuántos bugs encuentran los tests frente a los que se encuentran a mano, en revisión o en producción.
+
+1. Un **bug** es un fallo en código ya integrado (rama de historia, `develop` o `main`). Lo que falla durante tu propia tarea, antes de integrarla, no cuenta.
+2. Todo bug se abre con la plantilla **«Bug»** (Issues → New issue → Bug), que pregunta **«¿Cómo se ha encontrado?»**.
+3. El workflow «Métricas de tests» pone la etiqueta según la respuesta, cada lunes o cuando se lanza a mano (así no hay una ejecución en Actions por cada issue):
+
+| Respuesta | Etiqueta |
+|---|---|
+| Un test automático en local (unitario, de API o e2e) | `hallado-por-test` |
+| El CI de un PR | `hallado-por-ci` |
+| Revisión de código | `hallado-en-revision` |
+| Probando a mano | `hallado-a-mano` |
+| En producción o en la demo | `hallado-en-produccion` |
+| Sin responder | `hallado-sin-indicar` |
+
+4. El arreglo va en `bugfix/US-XX.YY-<nº>-<desc>` (o `hotfix/US-XX.YY-<nº>-<desc>` si ya está en `main`), con el código de la historia afectada, con `Closes #<nº>` y **el test que reproduce el bug**. El check «Test del arreglo» falla si falta alguna de las dos cosas. Así cada bug deja un test que impide que vuelva.
+5. Además, el informe cuenta las ejecuciones del CI en PRs en las que falló un paso de tests: son fallos que el CI paró antes de integrarlos.
+
+### Informe para la demo
+
+Actions → **«Métricas de tests»** → *Run workflow* (también se ejecuta cada lunes). El resumen de la ejecución tiene la cobertura de `develop`, la tabla de bugs por sprint y origen, la lista de bugs encontrados por tests y los fallos parados por el CI. Es lo que se enseña en la demo y lo que se copia a la plantilla del sprint.
+
+En local: `node .github/scripts/bugs.mjs informe` (con `gh` autenticado).
+
+## 6. Pendiente
 
 - **Smoke test en el CI:** el workflow de GitHub Actions que arranca PostgreSQL, el backend y el frontend y ejecuta `npm run test:smoke`. Se coordina con el CI general (#19, Kai). En el CI conviene servir el frontend compilado (`npm run build` + `npm run preview`) en lugar de `npm run dev`, para evitar la espera de la primera carga de Vite.
-- **E2E del perfil:** la página «Mi perfil» tiene tests unitarios pero aún no un test e2e propio (está cubierta indirectamente por el criterio 2 del login y el 5 del logout).
+- **E2E del perfil:** «Mi perfil» es el perfil público propio (US-01.4, `/usuarios/:id`; `/perfil` redirige a él). Tiene tests unitarios, pero aún no un test e2e propio de editar la foto y la bio (el perfil está cubierto indirectamente por el criterio 2 del login y el 5 del logout).

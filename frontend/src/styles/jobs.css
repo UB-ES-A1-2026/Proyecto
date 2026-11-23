@@ -1,0 +1,326 @@
+/*
+ * «Trabajos» del rider (US-10.01, #293). Lo que destaca es el trayecto de cada entrega
+ * (recogida → entrega, como una línea de ruta) y la tarifa a la derecha; el resto, sobrio y con los
+ * tokens de :root de styles.css.
+ */
+
+.rider-jobs {
+  max-width: var(--reading-max-width);
+}
+
+/* Con lista y detalle, la página usa el ancho del contenido (decisión de Kai, 20/11). */
+.rider-jobs-wide {
+  max-width: none;
+}
+
+/* Pestañas «Disponibles» y «Mis trabajos» */
+.jobs-tabs {
+  display: flex;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  border-bottom: var(--border-width) solid var(--color-divider);
+}
+
+.jobs-tab {
+  margin-bottom: calc(-1 * var(--border-width));
+  padding: var(--space-sm) 0;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+
+.jobs-tab:hover {
+  color: var(--color-text);
+}
+
+.jobs-tab[aria-current='page'] {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  border-bottom-color: var(--color-accent);
+}
+
+/* Lista agrupada por día */
+.jobs-day-list {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.jobs-day {
+  margin: var(--space-lg) 0 0;
+  font-size: 1rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.jobs-day:first-child {
+  margin-top: 0;
+}
+
+.jobs-list {
+  display: grid;
+  gap: var(--space-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Tarjeta de un trabajo: datos a la izquierda; tarifa y botón a la derecha */
+.job-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-md);
+  align-items: start;
+  padding: var(--space-md) var(--space-lg);
+  background-color: var(--color-background);
+  border: var(--border-width) solid var(--color-border-soft);
+  border-radius: var(--radius-large);
+}
+
+.job-main {
+  display: grid;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+.job-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+}
+
+/* Trayecto: punto hueco en la recogida, lleno en la entrega y una línea que los une */
+.job-route {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.job-stop {
+  position: relative;
+  display: grid;
+  grid-template-columns: 4.75rem minmax(0, 1fr);
+  gap: var(--space-sm);
+  align-items: baseline;
+  padding-left: 1.25rem;
+}
+
+.job-stop::before {
+  position: absolute;
+  top: 0.35em;
+  left: 0;
+  width: 0.625rem;
+  height: 0.625rem;
+  content: '';
+  background-color: var(--color-background);
+  border: 2px solid var(--color-primary);
+  border-radius: 50%;
+}
+
+.job-stop + .job-stop::before {
+  background-color: var(--color-primary);
+}
+
+.job-stop:first-child::after {
+  position: absolute;
+  top: calc(0.35em + 0.625rem);
+  bottom: calc(-0.35em - var(--space-xs));
+  left: calc(0.3125rem - 1px);
+  width: 2px;
+  content: '';
+  background-color: var(--color-border);
+}
+
+.job-stop-label {
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+.job-stop-place {
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.job-stop-area {
+  font-weight: normal;
+  color: var(--color-text-muted);
+}
+
+.job-slot {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+/* Tarifa: la cifra que el rider mira primero */
+.job-fee {
+  display: grid;
+  justify-items: end;
+  line-height: 1.2;
+}
+
+.job-fee-label {
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+.job-fee-amount {
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-primary);
+}
+
+/* Tarifa y, debajo, «Aceptar» o «Ver seguimiento» */
+.job-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.job-side {
+  display: grid;
+  gap: var(--space-md);
+  justify-items: end;
+}
+
+/* Dos clases: styles.css se carga después de los @import y le ganaría el ancho del botón. */
+.job-side .job-tracking,
+.job-side .job-accept {
+  width: auto;
+}
+
+@media (max-width: 520px) {
+  /* La tarifa y el botón bajan debajo del trayecto, en una fila. */
+  .job-card {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--space-md);
+  }
+
+  .job-side {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    justify-items: start;
+  }
+
+  .job-side .job-tracking,
+  .job-side .job-accept {
+    justify-self: end;
+  }
+
+  .job-side .job-fee {
+    justify-items: start;
+  }
+}
+
+/* Resultado del último «Aceptar» */
+.jobs-result {
+  display: grid;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.jobs-result:focus {
+  outline: none;
+}
+
+.jobs-assigned,
+.jobs-taken {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: flex-start;
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius);
+}
+
+.jobs-assigned {
+  color: var(--color-success);
+  background-color: var(--color-success-background);
+}
+
+.jobs-taken {
+  background-color: var(--color-warning-soft);
+}
+
+.jobs-taken .icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: var(--color-warning);
+}
+
+.jobs-load-error {
+  display: grid;
+  gap: var(--space-md);
+  justify-items: start;
+}
+
+/* Lista y detalle en pantallas anchas (decisión de Kai, 20/11) */
+.jobs-master-detail {
+  display: grid;
+  grid-template-columns: minmax(20rem, 2fr) minmax(0, 3fr);
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+/* Filas compactas: título, franja y tarifa. */
+.job-row {
+  position: relative;
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+}
+
+.job-row .job-main {
+  gap: var(--space-xs);
+}
+
+.job-row:hover {
+  border-color: var(--color-border);
+}
+
+.job-row.is-selected {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+/* El botón ocupa toda la fila, con la letra del título. */
+.job-select {
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.job-select::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  border-radius: inherit;
+}
+
+.job-select:focus-visible {
+  outline: none;
+}
+
+.job-row:has(.job-select:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.job-detail {
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-md));
+  padding: var(--space-lg);
+}
+
+.job-detail-day {
+  margin: 0;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}

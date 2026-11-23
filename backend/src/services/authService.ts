@@ -8,6 +8,8 @@ import {
   findUserByEmail,
   findUserByUsername,
 } from '../repositories/userRepository.js';
+import { closeSession } from './realtimeService.js';
+import { toRiderFields, type RiderFields } from './riderStatus.js';
 import { createSession, revokeSession } from './sessionService.js';
 
 // Mensajes del criterio de aceptación de US-01.2: «El campo "X" no es correcto, revísalo».
@@ -16,18 +18,28 @@ export const INVALID_EMAIL_MESSAGE =
 export const INVALID_PASSWORD_MESSAGE =
   'El campo "contraseña" no es correcto, revísalo.';
 
+// Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+// El `user` incluye isRider, riderStatus y rejectionReason (US-10.03, US-11.03) para que el frontend sepa qué pantalla mostrar.
 export interface LoginResult {
   token: string;
   expiresAt: Date;
-  user: { id: string; username: string; email: string; role: string };
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    role: string;
+  } & RiderFields;
 }
 
 const REGISTER_EMAIL_TAKEN_MESSAGE =
   'Ya existe una cuenta con este correo electrónico.';
-const REGISTER_USERNAME_TAKEN_MESSAGE =
+export const REGISTER_USERNAME_TAKEN_MESSAGE =
   'Este nombre de usuario ya está en uso.';
 
-function uniqueConstraintField(error: unknown): 'email' | 'username' | null {
+// Exportada para el alta de rider (US-10.03), que desempata igual las altas simultáneas.
+export function uniqueConstraintField(
+  error: unknown,
+): 'email' | 'username' | null {
   if (
     !(error instanceof Prisma.PrismaClientKnownRequestError) ||
     error.code !== 'P2002'
@@ -40,9 +52,7 @@ function uniqueConstraintField(error: unknown): 'email' | 'username' | null {
 
   if (fields.some((field) => field === 'email')) return 'email';
   if (
-    fields.some(
-      (field) => field === 'username' || field === 'nombre_usuario',
-    )
+    fields.some((field) => field === 'username' || field === 'nombre_usuario')
   ) {
     return 'username';
   }
@@ -93,6 +103,7 @@ export async function register(input: {
       username: user.username,
       email: user.email,
       role: user.role,
+      ...toRiderFields(user),
     },
   };
 }
@@ -128,10 +139,13 @@ export async function login(
       username: user.username,
       email: user.email,
       role: user.role,
+      ...toRiderFields(user),
     },
   };
 }
 
 export async function logout(sessionId: string): Promise<void> {
   await revokeSession(sessionId);
+  // Generado con asistencia de IA (Claude) – revisado por Maxim Nicolau, 11/11/2026
+  closeSession(sessionId);
 }

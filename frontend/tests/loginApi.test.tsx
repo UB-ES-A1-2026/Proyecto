@@ -54,11 +54,11 @@ describe('login conectado con la API (US-01.2, #27)', () => {
 
   it('vuelve a la página en la que estaba el usuario', async () => {
     mockFetch(Response.json(LOGIN_RESPONSE));
-    const { router } = renderRoute({ pathname: '/login', state: { from: '/perfil' } });
+    const { router } = renderRoute({ pathname: '/login', state: { from: '/ayuda' } });
 
     await submitLogin();
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/perfil'));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/ayuda'));
   });
 
   it('marca el campo que indica la API cuando las credenciales no son correctas', async () => {
@@ -161,11 +161,11 @@ describe('«Iniciar sesión» de la cabecera vuelve a la página en la que estab
 
   it('si ya está en el login conserva la página a la que tenía que volver', async () => {
     mockApi();
-    const { router } = renderRoute({ pathname: '/login', state: { from: '/perfil' } });
+    const { router } = renderRoute({ pathname: '/login', state: { from: '/ayuda' } });
 
     await clickHeaderLogin();
     await submitLogin();
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/perfil'));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/ayuda'));
   });
 });

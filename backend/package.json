@@ -8,6 +8,7 @@
     "build": "prisma generate && tsc",
     "start": "node --env-file-if-exists=.env dist/server.js",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"*.ts\" \"*.json\"",
     "db:migrate": "prisma migrate dev",
@@ -26,7 +27,8 @@
     "@prisma/client": "^6.0.0",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
-    "express": "^5.0.0"
+    "express": "^5.0.0",
+    "stripe": "23.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
@@ -35,6 +37,7 @@
     "@types/express": "^5.0.0",
     "@types/node": "^22.0.0",
     "@types/supertest": "^6.0.2",
+    "@vitest/coverage-v8": "^2.1.9",
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.0.0",

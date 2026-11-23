@@ -206,6 +206,11 @@ export function RegisterPage() {
       <p className="auth-switch">
         ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
       </p>
+      {/* US-10.03 (#355): la cuenta de rider es aparte, así que se ofrece aquí y no en la cabecera.
+          Generado con asistencia de IA (Claude). */}
+      <p className="auth-switch">
+        ¿Quieres repartir? <Link to="/hazte-rider">Hazte rider</Link>
+      </p>
     </section>
   );
 }
