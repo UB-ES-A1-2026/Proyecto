@@ -75,5 +75,5 @@ La pregunta del spike: **¿Leaflet + OpenStreetMap o Google Maps? ¿Cómo geocod
   - La tarifa por línea recta × 1,3 se equivoca en trayectos con obstáculos (el mar, las vías, la Diagonal); en la medición, el peor caso fue +53 %. Para una tarifa orientativa basta.
   - Nominatim no siempre encuentra direcciones mal escritas. El formulario tiene que decir claramente qué falla.
 - **Pendiente:**
-  - Que el equipo decida los importes de la tarifa del rider (US-05.01).
+  - ~~Que el equipo decida los importes de la tarifa del rider (US-05.01).~~ Decidido el 11/11/2026 (#66): hasta 2 km, 3 €; de 2 a 5 km, 5 €; más de 5 km, 7 € (`backend/src/services/deliveryFee.ts`).
   - Añadir la dirección al formulario de publicar (#13, #14): el modelo no tiene columna de dirección, y está bien así si solo guardamos las coordenadas y el barrio. La dirección exacta para la entrega se pediría al aceptar la reserva.
