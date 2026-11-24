@@ -8,7 +8,11 @@ import {
 } from '../repositories/itemEditRepository.js';
 import { assertValidDeliverySettings } from './itemDelivery.js';
 import { toItemDetail, type ItemDetail } from './itemDetail.js';
-import { listFirstPhotoUrls, listItemPhotos } from './photoService.js';
+import {
+  listFirstPhotoUrls,
+  listItemPhotos,
+  userPhotoUrl,
+} from './photoService.js';
 
 export const ITEM_NOT_FOUND_MESSAGE = 'No hemos encontrado este objeto.';
 export const NOT_OWNER_MESSAGE =
@@ -110,5 +114,6 @@ export async function updateItem(
     updated,
     photos.map(({ id, url }) => ({ id, url })),
     true,
+    await userPhotoUrl(updated.owner.photoUrl),
   );
 }
