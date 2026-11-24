@@ -1,6 +1,6 @@
 # ADR 0005 · Mapas, geocodificación y distancias
 
-- **Estado:** Propuesto (pendiente de revisión del equipo)
+- **Estado:** Propuesto (pendiente de revisión del equipo). Revisado el 24/11/2026 (#427): sigue como propuesta para US-03.04 (#59), que aún no se ha hecho. Hasta ahora solo se usa la parte de distancias, y de forma más simple: en US-05.01 (#66) la tarifa del rider sale de la distancia en línea recta (Haversine × 1,3) entre los centros fijos de los barrios (`backend/src/services/neighborhoods.ts`), sin mapa ni geocodificación con Nominatim.
 - **Fecha:** 31/10/2026
 - **Responsable:** Francesc (spike SP-02, #91)
 - **Relacionado:** [ADR 0001](0001-stack.md), [`docs/modelo-datos.md`](../modelo-datos.md) (`objeto.barrio`, `objeto.latitud`, `objeto.longitud`, `punto_recogida`), prototipo en [`spikes/sp02-mapas/`](../../spikes/sp02-mapas/)

@@ -1,6 +1,6 @@
 # ADR 0004 · Actualizaciones en tiempo real (seguimiento de la entrega y chat)
 
-- **Estado:** Propuesto (25/10/2026), pendiente de revisión del equipo
+- **Estado:** Aceptado (24/11/2026). Implementado en US-05.02 (#67, PR #396): `GET /api/eventos/stream` en `eventRoutes.ts` y `eventController.ts`, `realtimeService.ts` en el backend y el cliente con `fetch` en `frontend/src/services/eventStreamService.ts`. (Propuesto el 25/10/2026.)
 - **Fecha:** 25/10/2026
 - **Responsable:** Marc (spike SP-04, #93)
 - **Relacionado:** [ADR 0001](0001-stack.md), [`docs/arquitectura.md`](../arquitectura.md), [`docs/modelo-datos.md`](../modelo-datos.md) (`entrega`, `conversacion`, `mensaje`, `notificacion`), prototipo en [`spikes/sp04-tiempo-real/`](../../spikes/sp04-tiempo-real/)
