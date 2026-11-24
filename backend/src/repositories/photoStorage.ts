@@ -69,13 +69,26 @@ export function createUploadUrl(
   );
 }
 
+// Hora en punto de ahora (UTC). Generado con asistencia de IA (Claude), pendiente de revisión.
+function startOfHour(now: Date): Date {
+  const windowMs = VIEW_URL_SECONDS * 1000;
+  return new Date(Math.floor(now.getTime() / windowMs) * windowMs);
+}
+
+// URL GET para enseñar una foto. Se firma con la hora en punto, no con la hora exacta: así la misma
+// foto tiene la misma URL durante toda la hora y el navegador la reutiliza (Supabase responde 304)
+// en lugar de volver a descargarla en cada página. Caduca 2 horas después de esa hora en punto, así
+// que siempre le queda al menos 1 hora de vida, como pide el ADR 0002 (regla 3.5).
 export function createViewUrl(key: string): Promise<string> {
   const { s3, config } = storage();
 
   return getSignedUrl(
     s3,
     new GetObjectCommand({ Bucket: config.bucket, Key: key }),
-    { expiresIn: VIEW_URL_SECONDS },
+    {
+      expiresIn: 2 * VIEW_URL_SECONDS,
+      signingDate: startOfHour(new Date()),
+    },
   );
 }
 
