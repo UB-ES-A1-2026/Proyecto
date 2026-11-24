@@ -23,6 +23,12 @@ export function todayIso(now: Date = new Date()): string {
   }).format(now);
 }
 
+// Días que faltan desde hoy (en España) hasta el inicio: 0 si empieza hoy. Lo usa el aviso de
+// cancelar con menos de 3 días (US-04.05, #309), con la misma cuenta que el backend.
+export function daysUntil(startDate: string, today: string = todayIso()): number {
+  return Math.round((toUtcTime(startDate) - toUtcTime(today)) / MS_PER_DAY);
+}
+
 // Cuenta el primer y el último día: del 4 al 6 son 3 días, igual que el backend (#120).
 export function countRentalDays(startDate: string, endDate: string): number {
   return Math.round((toUtcTime(endDate) - toUtcTime(startDate)) / MS_PER_DAY) + 1;

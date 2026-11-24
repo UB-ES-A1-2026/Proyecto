@@ -23,6 +23,8 @@ function reservation(overrides: Partial<Reservation> = {}): Reservation {
     renter: { id: 'u2', username: 'bruno' },
     owner: { id: 'u1', username: 'ana' },
     createdAt: '2026-10-31T12:00:00.000Z',
+    myRating: null,
+    receivedRating: null,
     ...overrides,
   };
 }
@@ -110,7 +112,8 @@ describe('Mis solicitudes (US-04.02, #124)', () => {
     await user.click(toggle);
 
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByText(/Importe total: 15,00\s*€/u)).toBeVisible();
+    // Sin entrega con tarifa, el desglose es alquiler y total (US-05.01).
+    expect(screen.getByText(/^Alquiler: 15,00\s*€ · Total: 15,00\s*€$/u)).toBeVisible();
     expect(
       screen.getByText('Fechas: Del 8 de noviembre de 2026 al 10 de noviembre de 2026'),
     ).toBeVisible();
@@ -312,7 +315,12 @@ describe('Aceptar y rechazar desde Mis solicitudes (US-04.03 y US-04.04, #126)',
 
   it.each([
     ['Aceptar', '/reservas/r1/aceptar', 'Has aceptado la solicitud.', /Aceptada/],
-    ['Rechazar', '/reservas/r1/rechazar', 'Has rechazado la solicitud.', /Rechazada/],
+    [
+      'Rechazar',
+      '/reservas/r1/rechazar',
+      'Has rechazado la solicitud. Se ha liberado el importe bloqueado.',
+      /Rechazada/,
+    ],
   ])('«%s» llama a la API y la tarjeta cambia de estado', async (name, path, message, state) => {
     localStorage.setItem('rentit.session', JSON.stringify(SESSION));
     const fetchMock = mockApi({ sent: [], received: [reservation({ id: 'r1' })] });
@@ -330,5 +338,222 @@ describe('Aceptar y rechazar desde Mis solicitudes (US-04.03 y US-04.04, #126)',
     expect(screen.queryByRole('button', { name })).not.toBeInTheDocument();
     const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
     expect(String(post?.[0])).toMatch(new RegExp(`${path}$`));
+  });
+});
+
+// Entrega de la solicitud en «Mis solicitudes» (US-05.01, #282): pantalla 9 del wireframe.
+describe('entrega en Mis solicitudes (US-05.01, #282)', () => {
+  const RIDER = {
+    mode: 'rider' as const,
+    slot: null,
+    pickupPoint: null,
+    fee: '5.00',
+    deliveryNeighborhood: 'Sants',
+    deliveryAddress: 'Carrer de Sants, 140',
+    ownerAddress: null,
+  };
+
+  async function openCard(item: Reservation, role: 'sent' | 'received') {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <ReservationCard reservation={item} role={role} />
+      </MemoryRouter>,
+    );
+    await user.click(screen.getByRole('button', { name: /Taladro percutor Bosch/ }));
+  }
+
+  it('con rider: desglose con la entrega, hora, tarifa y dirección para el arrendatario', async () => {
+    await openCard(reservation({ delivery: RIDER }), 'sent');
+
+    expect(
+      screen.getByText(/^Alquiler: 15,00\s*€ · Entrega: 5,00\s*€ · Total: 20,00\s*€$/u),
+    ).toBeVisible();
+    expect(screen.getByText(/^Entrega por rider · Lo antes posible · 5,00\s*€$/u)).toBeVisible();
+    expect(screen.getByText('A: Carrer de Sants, 140 (Sants)')).toBeVisible();
+  });
+
+  it('el propietario ve la hora y el barrio, nunca la dirección de entrega', async () => {
+    await openCard(
+      reservation({ delivery: { ...RIDER, slot: '09:00-11:00', deliveryAddress: null } }),
+      'received',
+    );
+
+    expect(screen.getByText(/^Entrega por rider · 09:00 – 11:00 · 5,00\s*€$/u)).toBeVisible();
+    expect(screen.getByText('Barrio de entrega: Sants')).toBeVisible();
+    expect(screen.queryByText(/Carrer de Sants/)).not.toBeInTheDocument();
+  });
+
+  it('recoger en casa: aviso mientras está pendiente y la dirección al aceptarla', async () => {
+    const home = { ...RIDER, mode: 'home' as const, fee: null, deliveryNeighborhood: null };
+
+    await openCard(reservation({ delivery: { ...home, deliveryAddress: null } }), 'sent');
+    expect(
+      screen.getByText(
+        'Recoger en casa del propietario · La dirección se mostrará cuando acepten la solicitud.',
+      ),
+    ).toBeVisible();
+  });
+
+  it('recoger en casa aceptada enseña la dirección del propietario', async () => {
+    await openCard(
+      reservation({
+        status: 'accepted',
+        delivery: {
+          ...RIDER,
+          mode: 'home',
+          fee: null,
+          deliveryNeighborhood: null,
+          deliveryAddress: null,
+          ownerAddress: 'Carrer del Sol, 8',
+        },
+      }),
+      'sent',
+    );
+
+    expect(screen.getByText('Recoger en casa del propietario · Carrer del Sol, 8')).toBeVisible();
+  });
+
+  it('punto de recogida: el punto elegido', async () => {
+    await openCard(
+      reservation({
+        delivery: {
+          ...RIDER,
+          mode: 'pickup_point',
+          fee: null,
+          deliveryNeighborhood: null,
+          deliveryAddress: null,
+          pickupPoint: {
+            id: 'p1',
+            name: 'Biblioteca Jaume Fuster',
+            address: 'Plaça de Lesseps, 20-22',
+            neighborhood: 'Gràcia',
+          },
+        },
+      }),
+      'received',
+    );
+
+    expect(
+      screen.getByText('Punto de recogida: Biblioteca Jaume Fuster · Plaça de Lesseps, 20-22'),
+    ).toBeVisible();
+  });
+
+  it('las solicitudes anteriores a la historia no muestran entrega', async () => {
+    await openCard(reservation({ delivery: null }), 'sent');
+
+    expect(screen.queryByText(/Entrega por rider|Recoger en casa|Punto de recogida/)).toBeNull();
+  });
+});
+
+describe('«Ver entrega» en Mis solicitudes (US-05.02, #67)', () => {
+  it('aparece en las reservas pagadas, en curso y finalizadas, enviadas o recibidas', async () => {
+    const user = userEvent.setup();
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    mockReservations({
+      sent: [
+        reservation({ id: 'paid', status: 'paid' }),
+        reservation({ id: 'pending', item: { id: 'i2', title: 'Escalera plegable' } }),
+      ],
+      received: [
+        reservation({
+          id: 'finished',
+          item: { id: 'i3', title: 'Tienda de campaña' },
+          status: 'finished',
+        }),
+        reservation({
+          id: 'accepted',
+          item: { id: 'i4', title: 'Proyector' },
+          status: 'accepted',
+        }),
+      ],
+    });
+
+    renderRoute('/mis-solicitudes');
+
+    for (const title of [
+      'Taladro percutor Bosch',
+      'Escalera plegable',
+      'Tienda de campaña',
+      'Proyector',
+    ]) {
+      await user.click(await screen.findByRole('button', { name: new RegExp(title) }));
+    }
+    const links = screen.getAllByRole('link', { name: 'Ver entrega' });
+    expect(links.map((link) => link.getAttribute('href'))).toEqual([
+      '/entregas/paid',
+      '/entregas/finished',
+    ]);
+  });
+});
+
+// Lista y detalle en pantallas anchas (decisión de Kai, 20/11). Generado con asistencia de IA (Claude).
+describe('Mis solicitudes con lista y detalle (pantallas anchas)', () => {
+  function wideScreen(matches = true) {
+    const listeners = new Set<() => void>();
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn().mockImplementation((query: string) => ({
+        matches,
+        media: query,
+        addEventListener: (_: string, listener: () => void) => listeners.add(listener),
+        removeEventListener: (_: string, listener: () => void) => listeners.delete(listener),
+      })),
+    );
+  }
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('elige la primera y enseña su detalle a la derecha; al pulsar otra, cambia', async () => {
+    wideScreen();
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    mockReservations({
+      sent: [reservation({ id: 'sent', item: { id: 'i1', title: 'Bicicleta de paseo' } })],
+      received: [reservation({ id: 'received' })],
+    });
+    const user = userEvent.setup();
+
+    renderRoute('/mis-solicitudes');
+
+    const bici = await screen.findByRole('button', { name: /Bicicleta de paseo/ });
+    expect(bici).toHaveAttribute('aria-pressed', 'true');
+    const detail = screen.getByRole('region', { name: 'Solicitud elegida' });
+    expect(within(detail).getByText('Propietario: ana')).toBeInTheDocument();
+    expect(within(detail).queryByRole('button', { name: /Bicicleta de paseo/ })).toBeNull();
+
+    const taladro = screen.getByRole('button', { name: /Taladro percutor Bosch/ });
+    await user.click(taladro);
+
+    expect(taladro).toHaveAttribute('aria-pressed', 'true');
+    expect(bici).toHaveAttribute('aria-pressed', 'false');
+    expect(within(detail).getByText('Solicitada por: bruno')).toBeInTheDocument();
+    // Una recibida pendiente se acepta o rechaza desde el detalle.
+    expect(within(detail).getByRole('button', { name: 'Aceptar' })).toBeInTheDocument();
+  });
+
+  it('sin solicitudes enseña los dos mensajes y ningún detalle', async () => {
+    wideScreen();
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    mockReservations({ sent: [], received: [] });
+
+    renderRoute('/mis-solicitudes');
+
+    expect(await screen.findByText('No tienes solicitudes abiertas')).toBeInTheDocument();
+    expect(screen.getByText('Todavía no has recibido solicitudes.')).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Solicitud elegida' })).toBeNull();
+  });
+
+  it('en pantallas estrechas sigue con el detalle desplegable', async () => {
+    wideScreen(false);
+    localStorage.setItem('rentit.session', JSON.stringify(SESSION));
+    mockReservations({ sent: [], received: [reservation()] });
+
+    renderRoute('/mis-solicitudes');
+
+    expect(await screen.findByRole('button', { name: /Taladro percutor Bosch/ })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+    expect(screen.queryByRole('region', { name: 'Solicitud elegida' })).toBeNull();
   });
 });

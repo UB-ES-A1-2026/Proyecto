@@ -1,6 +1,9 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
 import type { RequestHandler } from 'express';
 import { AppError } from '../errors/appError.js';
+import { PaymentActionRequiredError } from '../services/paymentGateway.js';
+import { invalidFieldMessage } from '../services/itemService.js';
+import { isKnownNeighborhood } from '../services/neighborhoods.js';
 import * as reservationService from '../services/reservationService.js';
 
 const UUID_PATTERN =
@@ -12,6 +15,8 @@ const INVALID_START_DATE_MESSAGE =
   'El campo "fecha de inicio" no es correcto, revísalo.';
 const INVALID_END_DATE_MESSAGE =
   'El campo "fecha de fin" no es correcto, revísalo.';
+const MISSING_PAYMENT_MESSAGE =
+  'El campo "método de pago" no es correcto, revísalo.';
 
 // Acepta solo fechas reales en formato AAAA-MM-DD: rechaza, por ejemplo, 2026-02-30.
 function isValidDate(value: unknown): value is string {
@@ -49,15 +54,113 @@ function readReservationInput(source: unknown): {
   return { itemId, startDate, endDate };
 }
 
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+// Modo y hora de entrega de la solicitud (US-05.01, #281). Aquí solo se comprueba la forma de los
+// campos; que el objeto ofrezca el modo, que la franja no haya empezado o que el punto exista lo
+// comprueba el service.
+const DELIVERY_ADDRESS_MAX_LENGTH = 200;
+const DELIVERY_MODES: readonly string[] = ['home', 'rider', 'pickup_point'];
+
+function readDelivery(
+  source: unknown,
+): reservationService.ReservationDeliveryInput {
+  const fields = (source ?? {}) as Record<string, unknown>;
+  const { deliveryMode } = fields;
+
+  if (
+    typeof deliveryMode !== 'string' ||
+    !DELIVERY_MODES.includes(deliveryMode)
+  ) {
+    throw new AppError(400, 'Elige un modo de entrega.', 'deliveryMode');
+  }
+
+  if (deliveryMode === 'home') {
+    return { mode: 'home' };
+  }
+
+  if (deliveryMode === 'pickup_point') {
+    const { pickupPointId } = fields;
+    if (
+      typeof pickupPointId !== 'string' ||
+      !UUID_PATTERN.test(pickupPointId)
+    ) {
+      throw new AppError(400, 'Elige un punto de recogida.', 'pickupPointId');
+    }
+    return { mode: 'pickup_point', pickupPointId };
+  }
+
+  const { slot, deliveryAddress, deliveryNeighborhood } = fields;
+
+  if (typeof slot !== 'string') {
+    throw new AppError(400, reservationService.INVALID_SLOT_MESSAGE, 'slot');
+  }
+
+  const address =
+    typeof deliveryAddress === 'string' ? deliveryAddress.trim() : '';
+  if (address.length === 0 || address.length > DELIVERY_ADDRESS_MAX_LENGTH) {
+    throw new AppError(
+      400,
+      invalidFieldMessage('dirección de entrega'),
+      'deliveryAddress',
+    );
+  }
+
+  const neighborhood =
+    typeof deliveryNeighborhood === 'string' ? deliveryNeighborhood.trim() : '';
+  if (!isKnownNeighborhood(neighborhood)) {
+    throw new AppError(
+      400,
+      invalidFieldMessage('barrio de entrega'),
+      'deliveryNeighborhood',
+    );
+  }
+
+  return { mode: 'rider', slot, address, neighborhood };
+}
+
 // POST /api/reservas (US-04.01, #120). requireAuth garantiza que request.auth existe.
 export const createReservation: RequestHandler = async (request, response) => {
-  const input = readReservationInput(request.body);
-  const reservation = await reservationService.createReservation(
-    request.auth!.userId,
-    input,
-  );
+  const input = {
+    ...readReservationInput(request.body),
+    delivery: readDelivery(request.body),
+  };
 
-  response.status(201).json(reservation);
+  // Token del formulario de pago de Stripe (US-07.01, #72): sin él no se puede bloquear el importe.
+  // Tras el 3D Secure, el navegador repite la petición con paymentIntentId en su lugar.
+  const { confirmationTokenId, paymentIntentId } = (request.body ??
+    {}) as Record<string, unknown>;
+  const hasIntent =
+    typeof paymentIntentId === 'string' && paymentIntentId.length > 0;
+  if (
+    !hasIntent &&
+    (typeof confirmationTokenId !== 'string' || !confirmationTokenId)
+  ) {
+    throw new AppError(400, MISSING_PAYMENT_MESSAGE, 'confirmationTokenId');
+  }
+
+  try {
+    const reservation = await reservationService.createReservation(
+      request.auth!.userId,
+      hasIntent
+        ? { ...input, paymentIntentId }
+        : { ...input, confirmationTokenId: confirmationTokenId as string },
+    );
+
+    response.status(201).json(reservation);
+  } catch (error) {
+    if (error instanceof PaymentActionRequiredError) {
+      // El banco pide verificar el pago: todavía no hay reserva (flujo de 3D Secure, #72).
+      response.status(402).json({
+        error: error.message,
+        field: 'confirmationTokenId',
+        requiresAction: true,
+        clientSecret: error.clientSecret,
+        paymentIntentId: error.paymentIntentId,
+      });
+      return;
+    }
+    throw error;
+  }
 };
 
 // GET /api/reservas/disponibilidad (US-04.01, #120).

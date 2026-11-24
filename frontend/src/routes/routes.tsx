@@ -1,7 +1,12 @@
-import { Navigate, type RouteObject } from 'react-router';
+import type { RouteObject } from 'react-router';
 import { Layout } from '../components/Layout';
+import { MyProfileRedirect } from '../components/MyProfileRedirect';
 import { PrivateRoute } from '../components/PrivateRoute';
+import { ApprovedRiderRoute, GuestOnlyRoute, RenterOnlyRoute } from '../components/RiderRoutes';
 import { AuthProvider } from '../context/AuthContext';
+import { BecomeRiderPage } from '../pages/BecomeRiderPage';
+import { ConfirmRentalPage } from '../pages/ConfirmRentalPage';
+import { DeliveryTrackingPage } from '../pages/DeliveryTrackingPage';
 import { HelpPage } from '../pages/HelpPage';
 import { HomePage } from '../pages/HomePage';
 import { ItemDetailPage } from '../pages/ItemDetailPage';
@@ -9,10 +14,18 @@ import { LoginPage } from '../pages/LoginPage';
 import { MyItemsPage } from '../pages/MyItemsPage';
 import { MyReservationsPage } from '../pages/MyReservationsPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
-import { ProfilePage } from '../pages/ProfilePage';
+import { PublicProfilePage } from '../pages/PublicProfilePage';
 import { PublishItemPage } from '../pages/PublishItemPage';
+import { RateReservationPage } from '../pages/RateReservationPage';
 import { RegisterPage } from '../pages/RegisterPage';
+import { RiderJobsPage } from '../pages/RiderJobsPage';
 import { SearchPage } from '../pages/SearchPage';
+import { AdminActiveRidersPage } from '../pages/AdminActiveRidersPage';
+import { AdminDashboardPage } from '../pages/AdminDashboardPage';
+import { AdminItemsPage } from '../pages/AdminItemsPage';
+import { AdminRiderApplicationsPage } from '../pages/AdminRiderApplicationsPage';
+import { AdminLayout } from '../components/AdminLayout';
+import { AdminRoute } from '../components/AdminRoute';
 
 export const routes: RouteObject[] = [
   {
@@ -24,20 +37,65 @@ export const routes: RouteObject[] = [
     ),
     children: [
       { index: true, element: <HomePage /> },
-      { path: 'buscar', element: <SearchPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'registro', element: <RegisterPage /> },
-      { path: 'objetos/:id', element: <ItemDetailPage /> },
-      // El alquiler ahora está en la ficha: los enlaces antiguos a esta pantalla siguen funcionando.
-      { path: 'objetos/:id/solicitar', element: <Navigate to=".." relative="path" replace /> },
+      // Perfil público (US-01.4): lo puede ver cualquiera.
+      { path: 'usuarios/:id', element: <PublicProfilePage /> },
       { path: 'ayuda', element: <HelpPage /> },
+      // «Hazte rider» (US-10.03): solo sin sesión, porque la cuenta de rider es aparte.
+      {
+        element: <GuestOnlyRoute />,
+        children: [{ path: 'hazte-rider', element: <BecomeRiderPage /> }],
+      },
+      // Un rider solo ve el estado de su solicitud y «Trabajos» (US-10.03): estas rutas de
+      // arrendatario lo devuelven al inicio.
+      {
+        element: <RenterOnlyRoute />,
+        children: [
+          { path: 'buscar', element: <SearchPage /> },
+          { path: 'objetos/:id', element: <ItemDetailPage /> },
+          {
+            element: <PrivateRoute />,
+            children: [
+              { path: 'mis-objetos', element: <MyItemsPage /> },
+              { path: 'mis-solicitudes', element: <MyReservationsPage /> },
+              { path: 'mis-solicitudes/:id/valorar', element: <RateReservationPage /> },
+              { path: 'objetos/nuevo', element: <PublishItemPage /> },
+              // «Confirmar y pagar» (US-07.01): el resumen y el pago, con las fechas en la dirección.
+              { path: 'objetos/:id/solicitar', element: <ConfirmRentalPage /> },
+            ],
+          },
+        ],
+      },
       {
         element: <PrivateRoute />,
         children: [
-          { path: 'perfil', element: <ProfilePage /> },
-          { path: 'mis-objetos', element: <MyItemsPage /> },
-          { path: 'mis-solicitudes', element: <MyReservationsPage /> },
-          { path: 'objetos/nuevo', element: <PublishItemPage /> },
+          // Solo hay un perfil, el público: «Mi perfil» es el tuyo, con edición. Un rider ve en él
+          // su bloque de rider (US-10.03).
+          { path: 'perfil', element: <MyProfileRedirect /> },
+          {
+            element: <ApprovedRiderRoute />,
+            // «Disponibles» (/trabajos) y «Mis trabajos» (/trabajos/mios) son la misma página (US-10.01).
+            children: [{ path: 'trabajos/mios?', element: <RiderJobsPage /> }],
+          },
+          // Seguimiento de la entrega (US-05.02): el id es el de la reserva. Lo ven el arrendatario,
+          // el propietario y el rider de la entrega.
+          { path: 'entregas/:id', element: <DeliveryTrackingPage /> },
+        ],
+      },
+      {
+        element: <AdminRoute />,
+        children: [
+          {
+            path: 'admin',
+            element: <AdminLayout />,
+            children: [
+              { index: true, element: <AdminDashboardPage /> },
+              { path: 'objetos', element: <AdminItemsPage /> },
+              { path: 'riders', element: <AdminActiveRidersPage /> },
+              { path: 'solicitudes', element: <AdminRiderApplicationsPage /> },
+            ],
+          },
         ],
       },
       { path: '*', element: <NotFoundPage /> },

@@ -21,6 +21,9 @@ const CATEGORIES = [
   { id: 'category-2', name: 'Electrónica' },
 ];
 
+// GET /api/barrios (US-05.01, #307).
+const NEIGHBORHOODS = ['Gràcia', 'Sant Antoni', 'Sants'];
+
 const VALID = {
   title: 'Taladro percutor',
   description: 'Taladro en buen estado, con brocas incluidas.',
@@ -42,6 +45,7 @@ class TestURL extends NativeURL {
 
 type MockApiOptions = {
   categoriesStatus?: number;
+  neighborhoodsStatus?: number;
   createStatus?: number;
   createBody?: unknown;
 };
@@ -52,6 +56,9 @@ function mockApi(options: MockApiOptions = {}) {
     const url = String(input);
     if (url.endsWith('/categorias')) {
       return Response.json(CATEGORIES, { status: options.categoriesStatus ?? 200 });
+    }
+    if (url.endsWith('/barrios')) {
+      return Response.json(NEIGHBORHOODS, { status: options.neighborhoodsStatus ?? 200 });
     }
     if (url.endsWith('/objetos') && init?.method === 'POST') {
       postBodies.push(JSON.parse(String(init.body)) as unknown);
@@ -72,6 +79,7 @@ function renderPublishPage() {
 async function fillValidForm(
   user: ReturnType<typeof userEvent.setup>,
   overrides: Partial<typeof VALID> = {},
+  pickupPoint = true,
 ) {
   const values = { ...VALID, ...overrides };
   if (values.title) await user.type(screen.getByLabelText('Nombre'), values.title);
@@ -83,7 +91,16 @@ async function fillValidForm(
     await user.type(screen.getByLabelText('Precio por día (€)'), values.dailyPrice);
   }
   if (values.deposit) await user.type(screen.getByLabelText('Fianza (€)'), values.deposit);
-  if (values.neighborhood) await user.type(screen.getByLabelText('Barrio'), values.neighborhood);
+  if (values.neighborhood) {
+    await screen.findByRole('option', { name: values.neighborhood });
+    await user.selectOptions(screen.getByLabelText('Barrio'), values.neighborhood);
+  }
+  // Al menos un modo de entrega (US-05.01, #307). El punto de recogida no pide dirección.
+  if (pickupPoint) await user.click(deliveryOption('Punto de recogida'));
+}
+
+function deliveryOption(name: string) {
+  return within(screen.getByRole('group', { name: 'Entrega' })).getByRole('checkbox', { name });
 }
 
 beforeEach(() => {
@@ -172,7 +189,7 @@ describe('publicar un objeto (US-02.01, #13)', () => {
         neighborhood: 'Gràcia',
         homeDelivery: false,
         riderDelivery: false,
-        pickupPointDelivery: false,
+        pickupPointDelivery: true,
         status: 'published',
       },
     ]);
@@ -324,8 +341,8 @@ describe('publicar un objeto (US-02.01, #13)', () => {
     await user.click(
       availability.getByRole('radio', { name: 'Pausado (no aparece en las búsquedas)' }),
     );
-    const delivery = within(screen.getByRole('group', { name: 'Formas de entrega' }));
-    await user.click(delivery.getByRole('checkbox', { name: 'Entrega con rider' }));
+    await user.click(deliveryOption('Entrega por rider'));
+    await user.type(screen.getByLabelText('Dirección'), 'Carrer de Verdi, 12');
     await user.click(screen.getByRole('button', { name: 'Publicar' }));
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/objetos/item-123'));
@@ -334,7 +351,8 @@ describe('publicar un objeto (US-02.01, #13)', () => {
         status: 'paused',
         homeDelivery: false,
         riderDelivery: true,
-        pickupPointDelivery: false,
+        pickupPointDelivery: true,
+        address: 'Carrer de Verdi, 12',
       }),
     ]);
   });
@@ -357,5 +375,113 @@ describe('publicar un objeto (US-02.01, #13)', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'No se han podido cargar las categorías.',
     );
+  });
+
+  describe('apartado «Entrega» (US-05.01, #307)', () => {
+    it('el barrio se elige de la lista de GET /api/barrios', async () => {
+      mockApi();
+      renderPublishPage();
+
+      const barrio = screen.getByLabelText('Barrio');
+      expect(await within(barrio).findByRole('option', { name: 'Sants' })).toHaveValue('Sants');
+      expect(within(barrio).getByRole('option', { name: 'Elige un barrio' })).toHaveValue('');
+      expect(within(barrio).getAllByRole('option')).toHaveLength(NEIGHBORHOODS.length + 1);
+    });
+
+    it('avisa cuando no se pueden cargar los barrios', async () => {
+      mockApi({ neighborhoodsStatus: 503 });
+      renderPublishPage();
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'No se han podido cargar los barrios.',
+      );
+    });
+
+    it('sin ningún modo marcado avisa, pone el foco en el apartado y no hace POST', async () => {
+      const user = userEvent.setup();
+      const { fetchMock } = mockApi();
+      renderPublishPage();
+      await fillValidForm(user, {}, false);
+
+      await user.click(screen.getByRole('button', { name: 'Publicar' }));
+
+      expect(screen.getByText('Elige al menos un modo de entrega.')).toBeInTheDocument();
+      expect(deliveryOption('Recoger en casa del propietario')).toHaveFocus();
+      expect(fetchMock.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(0);
+    });
+
+    it('la dirección solo aparece con recogida en casa o rider', async () => {
+      const user = userEvent.setup();
+      mockApi();
+      renderPublishPage();
+
+      expect(screen.queryByLabelText('Dirección')).not.toBeInTheDocument();
+      await user.click(deliveryOption('Punto de recogida'));
+      expect(screen.queryByLabelText('Dirección')).not.toBeInTheDocument();
+      expect(
+        screen.getByText('Solo punto de recogida: no hace falta tu dirección.'),
+      ).toBeInTheDocument();
+
+      await user.click(deliveryOption('Recoger en casa del propietario'));
+      expect(screen.getByLabelText('Dirección')).toBeInTheDocument();
+      expect(screen.getByText(/Solo la ves tú/)).toBeInTheDocument();
+
+      await user.click(deliveryOption('Recoger en casa del propietario'));
+      expect(screen.queryByLabelText('Dirección')).not.toBeInTheDocument();
+
+      await user.click(deliveryOption('Entrega por rider'));
+      expect(screen.getByLabelText('Dirección')).toBeInTheDocument();
+    });
+
+    it('con recogida en casa y sin dirección muestra el error y no hace POST', async () => {
+      const user = userEvent.setup();
+      const { fetchMock } = mockApi();
+      renderPublishPage();
+      await fillValidForm(user, {}, false);
+      await user.click(deliveryOption('Recoger en casa del propietario'));
+      await user.type(screen.getByLabelText('Dirección'), '   ');
+
+      await user.click(screen.getByRole('button', { name: 'Publicar' }));
+
+      expect(
+        screen.getByText('El campo "dirección" no es correcto, revísalo.'),
+      ).toBeInTheDocument();
+      expect(screen.getByLabelText('Dirección')).toHaveFocus();
+      expect(fetchMock.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(0);
+    });
+
+    it('con solo punto de recogida no envía dirección aunque se escribiera antes', async () => {
+      const user = userEvent.setup();
+      const { postBodies } = mockApi();
+      const { router } = renderPublishPage();
+      await fillValidForm(user);
+      await user.click(deliveryOption('Recoger en casa del propietario'));
+      await user.type(screen.getByLabelText('Dirección'), 'Carrer de Verdi, 12');
+      await user.click(deliveryOption('Recoger en casa del propietario'));
+
+      await user.click(screen.getByRole('button', { name: 'Publicar' }));
+
+      await waitFor(() => expect(router.state.location.pathname).toBe('/objetos/item-123'));
+      expect(postBodies[0]).not.toHaveProperty('address');
+    });
+
+    it.each([
+      ['deliveryModes', 'Elige al menos un modo de entrega.', 'Recoger en casa del propietario'],
+      ['address', 'El campo "dirección" no es correcto, revísalo.', 'Dirección'],
+    ])('muestra en su sitio el error de la API con field %s', async (field, message, target) => {
+      const user = userEvent.setup();
+      mockApi({ createStatus: 400, createBody: { error: message, field } });
+      renderPublishPage();
+      await fillValidForm(user, {}, false);
+      await user.click(deliveryOption('Recoger en casa del propietario'));
+      await user.type(screen.getByLabelText('Dirección'), 'Carrer de Verdi, 12');
+
+      await user.click(screen.getByRole('button', { name: 'Publicar' }));
+
+      expect(await screen.findByText(message)).toBeInTheDocument();
+      const focused =
+        target === 'Dirección' ? screen.getByLabelText('Dirección') : deliveryOption(target);
+      expect(focused).toHaveFocus();
+    });
   });
 });

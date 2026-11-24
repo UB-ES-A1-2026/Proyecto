@@ -4,7 +4,11 @@ import { app } from '../../src/app.js';
 import { prisma } from '../../src/repositories/prisma.js';
 import { resetDb } from '../helpers/db.js';
 import { createTestItem } from '../helpers/items.js';
-import { createTestUser, TEST_PASSWORD } from '../helpers/users.js';
+import {
+  createTestAdmin,
+  createTestUser,
+  TEST_PASSWORD,
+} from '../helpers/users.js';
 
 // GET /api/usuarios/me/objetos y PATCH /api/objetos/:id (US-02.02, #108): contrato publicado
 // en la issue, el que usa la pantalla «Mis objetos» de #109.
@@ -84,10 +88,79 @@ describe('GET /api/usuarios/me/objetos', () => {
         title: item.title,
         dailyPrice: '5.50',
         neighborhood: item.neighborhood,
+        address: null,
         status: 'published',
         photo: null,
+        moderation: null,
       },
     ]);
+  });
+
+  it('returns the address of the owner items', async () => {
+    const { ana, token } = await setUp();
+    await prisma.item.deleteMany();
+    await createTestItem(ana.id, { address: 'Carrer de Verdi, 45' });
+
+    const response = await getMyItems(token);
+
+    expect(response.body[0].address).toBe('Carrer de Verdi, 45');
+  });
+
+  // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 13/11/2026
+  it('shows the moderation of an item withdrawn by an admin (US-11.03)', async () => {
+    const { ana, token } = await setUp();
+    await prisma.item.deleteMany();
+    const item = await createTestItem(ana.id, { status: 'withdrawn' });
+    const admin = await createTestAdmin();
+    const moderation = await prisma.itemModeration.create({
+      data: {
+        itemId: item.id,
+        adminId: admin.id,
+        reason: 'misleading',
+        details: 'La foto no es del objeto.',
+      },
+    });
+
+    const response = await getMyItems(token);
+
+    expect(response.body).toHaveLength(1);
+    expect(response.body[0]).toMatchObject({ status: 'withdrawn' });
+    expect(response.body[0].moderation).toEqual({
+      reason: 'misleading',
+      details: 'La foto no es del objeto.',
+      withdrawnAt: moderation.withdrawnAt.toISOString(),
+    });
+    expect(JSON.stringify(response.body)).not.toContain(admin.id);
+  });
+
+  it('has no moderation when the owner withdrew the item or it is not withdrawn', async () => {
+    const { ana, token } = await setUp();
+    await createTestItem(ana.id, { status: 'withdrawn' });
+
+    const response = await getMyItems(token);
+
+    for (const item of response.body as Array<{ moderation: unknown }>) {
+      expect(item.moderation).toBeNull();
+    }
+  });
+
+  it('keeps the moderation after the admin withdraws through the API', async () => {
+    const { item, token } = await setUp();
+    const admin = await createTestAdmin();
+    const adminLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: admin.email, password: TEST_PASSWORD });
+    await request(app)
+      .post(`/api/admin/objetos/${item.id}/retirar`)
+      .set('Authorization', `Bearer ${adminLogin.body.token}`)
+      .send({ reason: 'scam' });
+
+    const response = await getMyItems(token);
+
+    const mine = (
+      response.body as Array<{ id: string; moderation: unknown }>
+    ).find(({ id }) => id === item.id);
+    expect(mine?.moderation).toMatchObject({ reason: 'scam', details: null });
   });
 
   it('includes the items in every status', async () => {
@@ -134,6 +207,242 @@ describe('GET /api/usuarios/me/objetos', () => {
 });
 
 describe('PATCH /api/objetos/:id', () => {
+  // US-05.01 (#281): modos de entrega y dirección.
+  describe('delivery modes and address', () => {
+    it('changes the modes and the address, and returns the address to the owner', async () => {
+      const { item, token } = await setUp();
+
+      const response = await patchItem(token, item.id, {
+        ...VALID_CHANGES,
+        homeDelivery: true,
+        riderDelivery: true,
+        pickupPointDelivery: false,
+        address: '  Carrer de Verdi, 45  ',
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        homeDelivery: true,
+        riderDelivery: true,
+        pickupPointDelivery: false,
+        address: 'Carrer de Verdi, 45',
+      });
+      const saved = await prisma.item.findUniqueOrThrow({
+        where: { id: item.id },
+      });
+      expect(saved.homeDelivery).toBe(true);
+      expect(saved.address).toBe('Carrer de Verdi, 45');
+    });
+
+    it('keeps the stored modes and address when they are not sent', async () => {
+      const { ana, token } = await setUp();
+      const item = await createTestItem(ana.id, {
+        homeDelivery: true,
+        address: 'Carrer de Verdi, 45',
+      });
+
+      const response = await patchItem(token, item.id, VALID_CHANGES);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        homeDelivery: true,
+        address: 'Carrer de Verdi, 45',
+      });
+    });
+
+    it('uses the stored address when only the modes change', async () => {
+      const { ana, token } = await setUp();
+      const item = await createTestItem(ana.id, {
+        pickupPointDelivery: true,
+        address: 'Carrer de Verdi, 45',
+      });
+
+      const response = await patchItem(token, item.id, {
+        ...VALID_CHANGES,
+        riderDelivery: true,
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.riderDelivery).toBe(true);
+    });
+
+    it('returns 400 when the result has no delivery mode', async () => {
+      const { ana, token } = await setUp();
+      const item = await createTestItem(ana.id, { pickupPointDelivery: true });
+
+      const response = await patchItem(token, item.id, {
+        ...VALID_CHANGES,
+        pickupPointDelivery: false,
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        error: 'Elige al menos un modo de entrega.',
+        field: 'deliveryModes',
+      });
+      const saved = await prisma.item.findUniqueOrThrow({
+        where: { id: item.id },
+      });
+      expect(saved.pickupPointDelivery).toBe(true);
+    });
+
+    it('returns 400 for the address when home or rider is on and there is none', async () => {
+      const { item, token } = await setUp();
+
+      const response = await patchItem(token, item.id, {
+        ...VALID_CHANGES,
+        homeDelivery: true,
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        error: 'El campo "dirección" no es correcto, revísalo.',
+        field: 'address',
+      });
+    });
+
+    // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+    it.each(['', '   '])(
+      'clears the address when it is %j and only the pickup point is offered',
+      async (address) => {
+        const { ana, token } = await setUp();
+        const item = await createTestItem(ana.id, {
+          pickupPointDelivery: true,
+          address: 'Carrer de Verdi, 45',
+        });
+
+        const response = await patchItem(token, item.id, {
+          ...VALID_CHANGES,
+          address,
+        });
+
+        expect(response.status).toBe(200);
+        expect(response.body.address).toBeNull();
+        const saved = await prisma.item.findUniqueOrThrow({
+          where: { id: item.id },
+        });
+        expect(saved.address).toBeNull();
+      },
+    );
+
+    it.each([
+      ['homeDelivery', ''],
+      ['homeDelivery', '   '],
+      ['riderDelivery', ''],
+      ['riderDelivery', '   '],
+    ])(
+      'returns 400 for the address when %s is on and the address is %j',
+      async (flag, address) => {
+        const { item, token } = await setUp();
+
+        const response = await patchItem(token, item.id, {
+          ...VALID_CHANGES,
+          pickupPointDelivery: true,
+          [flag]: true,
+          address,
+        });
+
+        expect(response.status).toBe(400);
+        expect(response.body).toEqual({
+          error: 'El campo "dirección" no es correcto, revísalo.',
+          field: 'address',
+        });
+      },
+    );
+
+    // Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+    it('lets the owner fix a legacy free-text neighborhood', async () => {
+      const { ana, token } = await setUp();
+      const item = await createTestItem(ana.id, {
+        neighborhood: 'Vila de Gràcia',
+      });
+
+      const response = await patchItem(token, item.id, {
+        ...VALID_CHANGES,
+        neighborhood: '  Sants  ',
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.neighborhood).toBe('Sants');
+      const saved = await prisma.item.findUniqueOrThrow({
+        where: { id: item.id },
+      });
+      expect(saved.neighborhood).toBe('Sants');
+    });
+
+    it('keeps the stored neighborhood when it is not sent', async () => {
+      const { ana, token } = await setUp();
+      const item = await createTestItem(ana.id, {
+        neighborhood: 'Vila de Gràcia',
+      });
+
+      const response = await patchItem(token, item.id, VALID_CHANGES);
+
+      expect(response.status).toBe(200);
+      expect(response.body.neighborhood).toBe('Vila de Gràcia');
+    });
+
+    it.each(['Madrid', 'Vila de Gràcia', '', '   ', 42])(
+      'returns 400 for the neighborhood when it is %j',
+      async (neighborhood) => {
+        const { item, token } = await setUp();
+
+        const response = await patchItem(token, item.id, {
+          ...VALID_CHANGES,
+          neighborhood,
+        });
+
+        expect(response.status).toBe(400);
+        expect(response.body).toEqual({
+          error: 'El campo "barrio" no es correcto, revísalo.',
+          field: 'neighborhood',
+        });
+        const saved = await prisma.item.findUniqueOrThrow({
+          where: { id: item.id },
+        });
+        expect(saved.neighborhood).toBe('Gràcia');
+      },
+    );
+
+    it('returns 400 when a blank address leaves a stored home delivery without address', async () => {
+      const { ana, token } = await setUp();
+      const item = await createTestItem(ana.id, {
+        homeDelivery: true,
+        address: 'Carrer de Verdi, 45',
+      });
+
+      const response = await patchItem(token, item.id, {
+        ...VALID_CHANGES,
+        address: '   ',
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.field).toBe('address');
+    });
+
+    it.each([
+      ['address', 'x'.repeat(201), 'dirección'],
+      ['homeDelivery', 'sí', 'entrega a domicilio'],
+      ['riderDelivery', 1, 'entrega con rider'],
+      ['pickupPointDelivery', 'no', 'punto de recogida'],
+    ])('returns 400 for an invalid %s (%j)', async (field, value, label) => {
+      const { item, token } = await setUp();
+
+      const response = await patchItem(token, item.id, {
+        ...VALID_CHANGES,
+        homeDelivery: true,
+        address: 'Carrer de Verdi, 45',
+        [field]: value,
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        error: `El campo "${label}" no es correcto, revísalo.`,
+        field,
+      });
+    });
+  });
+
   it('saves the changes and returns the item like the detail endpoint', async () => {
     const { ana, item, token } = await setUp();
 

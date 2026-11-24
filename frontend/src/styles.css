@@ -6,6 +6,12 @@
 @import './styles/item.css';
 @import './styles/account.css';
 @import './styles/manage.css';
+@import './styles/payment.css';
+@import './styles/public-profile.css';
+@import './styles/rating.css';
+@import './styles/admin.css';
+@import './styles/cancel.css';
+@import './styles/jobs.css';
 
 @font-face {
   font-family: 'Inter';
@@ -40,6 +46,8 @@
   --color-accent: #f2a33a;
   --color-accent-hover: #e08d1f;
   --color-accent-soft: #fdf0dc;
+  /* Demanda media en el calendario (US-04.07): entre accent-soft y accent. */
+  --color-demand-medium: #f8cf94;
   --color-on-accent: #14302c;
   --color-focus: #0f5c55;
   --color-focus-on-dark: #f2a33a;
@@ -73,7 +81,7 @@
   --radius-large: 10px;
   --bottom-bar-height: 3.75rem;
   --border-width: 1px;
-  --content-max-width: 1160px;
+  --content-max-width: 1500px;
   --reading-max-width: 720px;
   --form-max-width: 440px;
   --header-height: 4rem;
@@ -234,6 +242,60 @@ img {
   .app-nav .icon,
   .nav-home {
     display: none;
+  }
+
+  /* Los enlaces van junto al logo, y la ayuda y la cuenta, a la derecha del todo (20/11). Con
+     display: contents, los enlaces del menú se ordenan como hijos de la cabecera. */
+  .app-header-inner {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    column-gap: var(--space-xs);
+  }
+
+  .app-logo {
+    margin-right: var(--space-md);
+  }
+
+  .app-nav {
+    display: contents;
+  }
+
+  .nav-help {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .nav-account {
+    order: 3;
+  }
+
+  /* «Mi perfil», un icono redondo; el texto queda para el lector de pantalla y la barra del móvil. */
+  .app-nav .nav-profile {
+    order: 4;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    background-color: var(--color-primary-hover);
+    border-radius: 50%;
+  }
+
+  .app-nav .nav-profile .icon {
+    display: inline-block;
+    --icon-size: 1.375rem;
+  }
+
+  .app-nav .nav-profile[aria-current='page'] {
+    box-shadow: 0 0 0 2px var(--color-accent);
+  }
+
+  .nav-profile .nav-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 }
 

@@ -12,7 +12,12 @@ export function findItemsByOwner(ownerId: string) {
       title: true,
       dailyPrice: true,
       neighborhood: true,
+      address: true,
       status: true,
+      // Solo existe si lo retiró un admin (US-11.03); sin el admin, que no se muestra.
+      moderation: {
+        select: { reason: true, details: true, withdrawnAt: true },
+      },
     },
   });
 }
@@ -20,7 +25,14 @@ export function findItemsByOwner(ownerId: string) {
 export function findItemOwnerAndStatus(id: string) {
   return prisma.item.findUnique({
     where: { id },
-    select: { ownerId: true, status: true },
+    select: {
+      ownerId: true,
+      status: true,
+      homeDelivery: true,
+      riderDelivery: true,
+      pickupPointDelivery: true,
+      address: true,
+    },
   });
 }
 
@@ -31,6 +43,11 @@ export function updateItemById(
     description: string;
     dailyPrice: string;
     deposit: string;
+    homeDelivery?: boolean | undefined;
+    riderDelivery?: boolean | undefined;
+    pickupPointDelivery?: boolean | undefined;
+    address?: string | null | undefined;
+    neighborhood?: string | undefined;
   },
 ) {
   return prisma.item.update({

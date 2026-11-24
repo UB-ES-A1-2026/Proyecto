@@ -61,6 +61,11 @@ async function fillDates(page: Page, start: string, end: string) {
   await page.getByLabel('Fecha de fin').fill(end);
 }
 
+async function chooseDelivery(page: Page) {
+  await page.getByRole('radio', { name: 'Recoger en casa del propietario' }).check();
+  await page.getByRole('button', { name: 'Continuar' }).click();
+}
+
 async function sentCount(request: APIRequestContext, user: User): Promise<number> {
   const login = await request.post(`${API_URL}/auth/login`, { data: user });
   const { token } = await login.json();
@@ -120,11 +125,13 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
     await expect(page.locator('.rental-price').first()).toHaveText(/3 días × 9,00\s€ = 27,00\s€/);
     await expect(panel.getByRole('button', { name: 'Solicitar alquiler' })).toBeEnabled();
 
-    // Las fechas elegidas llegan al resumen
+    // Las fechas elegidas llegan a «Confirmar y pagar» y «Atrás» vuelve con ellas (US-07.01)
     await panel.getByRole('button', { name: 'Solicitar alquiler' }).click();
-    await expect(panel.getByText(`10 de ${monthName} de ${year}`)).toBeVisible();
-    await expect(panel.getByText(`12 de ${monthName} de ${year}`)).toBeVisible();
-    await panel.getByRole('button', { name: 'Volver' }).click();
+    await chooseDelivery(page);
+    const summary = page.getByRole('region', { name: 'Tu solicitud' });
+    await expect(summary.getByText(`10 de ${monthName} de ${year}`)).toBeVisible();
+    await expect(summary.getByText(`12 de ${monthName} de ${year}`)).toBeVisible();
+    await page.goBack();
     await expect(page.getByLabel('Fecha de inicio')).toHaveValue(`10/${monthNumber}/${year}`);
     await expect(panel.getByText(`${monthName} de ${year}`)).toBeVisible();
   });
@@ -132,26 +139,29 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
   // Criterio 1: el calendario no deja elegir días pasados
   test('los días pasados del calendario están desactivados', async ({ page }) => {
     await startRequest(page, ITEM, 'cortacésped');
-    const today = new Date();
     const panel = page.getByRole('complementary', {
       name: 'Alquiler de este objeto',
     });
-    const todayName = today.toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-
-    await expect(panel.getByRole('button', { name: todayName, exact: true })).toBeEnabled();
-    if (today.getDate() > 1) {
-      const yesterday = new Date(today);
-      yesterday.setDate(today.getDate() - 1);
-      const yesterdayName = yesterday.toLocaleDateString('es-ES', {
+    // Hoy y ayer con la fecha de España, como el calendario (todayIso): el runner del CI va en UTC
+    // y entre las 00:00 y la 01:00 (02:00 en verano) todavía sería ayer (#399).
+    const now = new Date();
+    const dayName = (date: Date) =>
+      date.toLocaleDateString('es-ES', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
+        timeZone: 'Europe/Madrid',
       });
-      await expect(panel.getByRole('button', { name: yesterdayName, exact: true })).toBeDisabled();
+    const dayOfMonth = Number(
+      now.toLocaleDateString('es-ES', { day: 'numeric', timeZone: 'Europe/Madrid' }),
+    );
+
+    await expect(panel.getByRole('button', { name: dayName(now), exact: true })).toBeEnabled();
+    if (dayOfMonth > 1) {
+      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      await expect(
+        panel.getByRole('button', { name: dayName(yesterday), exact: true }),
+      ).toBeDisabled();
     }
   });
 
@@ -200,7 +210,7 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
   });
 
   // Criterio 4
-  test('antes de enviar se ve un resumen con el objeto, las fechas, el importe y «Confirmar»', async ({
+  test('antes de enviar, «Confirmar y pagar» enseña el objeto, las fechas, el importe y el pago', async ({
     page,
     request,
   }) => {
@@ -210,35 +220,47 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
     await fillDates(page, inDaysText(start), inDaysText(start + 2));
 
     await page.getByRole('button', { name: 'Solicitar alquiler' }).click();
+    await chooseDelivery(page);
 
-    // El resumen sale en el mismo panel, sin cambiar de pantalla
-    await expect(page).toHaveURL(/\/objetos\/[0-9a-f-]{36}$/);
-    const panel = page.getByRole('complementary', {
-      name: 'Alquiler de este objeto',
-    });
-    await expect(
-      panel.getByRole('heading', { level: 2, name: 'Revisa tu solicitud' }),
-    ).toBeVisible();
+    // El resumen y el pago están en su propia página, con las fechas en la dirección (US-07.01)
+    await expect(page).toHaveURL(/\/objetos\/[0-9a-f-]{36}\/solicitar\?inicio=[\d-]+&fin=[\d-]+$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Confirmar y pagar' })).toBeVisible();
+    const panel = page.getByRole('region', { name: 'Tu solicitud' });
     await expect(panel.getByText(ITEM)).toBeVisible();
     await expect(panel.getByText('Desde')).toBeVisible();
     await expect(panel.getByText('Hasta')).toBeVisible();
     await expect(panel.getByText('Importe del alquiler (3 días)')).toBeVisible();
+    await expect(
+      panel.getByText('Importe del alquiler (3 días)').locator('xpath=following-sibling::dd[1]'),
+    ).toHaveText(/27,00\s€/);
+    // Pago al solicitar (US-07.01, #286): lo destacado es el total sin fianza; la fianza, aparte.
     await expect(panel.locator('.rental-total')).toHaveText(/27,00\s€/);
-    await expect(panel.getByRole('button', { name: 'Volver' })).toBeVisible();
-    await expect(panel.getByRole('button', { name: 'Confirmar' })).toBeVisible();
+    await expect(panel.locator('.checkout-deposit')).toContainText(/Total con fianza\s*87,00\s€/);
+    await expect(page.getByText(/Bloquearemos 27,00\s€ en tu tarjeta/)).toBeVisible();
+    await expect(page.getByLabel('Número de tarjeta')).toBeVisible();
+    await expect(page.getByRole('link', { name: new RegExp(`Volver a ${ITEM}`, 'i') })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Confirmar y enviar solicitud' })).toBeVisible();
     // Todavía no se ha creado nada
     expect(await sentCount(request, BRUNO)).toBe(before);
   });
 
   // Criterio 5
-  test('al confirmar se crea la solicitud con estado «Pendiente»', async ({ page, request }) => {
+  test('al enviar con una tarjeta de prueba se crea la solicitud «Pendiente»', async ({
+    page,
+    request,
+  }) => {
     const before = await sentCount(request, BRUNO);
     await startRequest(page, ITEM, 'cortacésped');
     const start = freeStart();
     await fillDates(page, inDaysText(start), inDaysText(start + 2));
     await page.getByRole('button', { name: 'Solicitar alquiler' }).click();
+    await chooseDelivery(page);
 
-    await page.getByRole('button', { name: 'Confirmar' }).click();
+    // Pago al solicitar (US-07.01, #286): tarjeta de prueba que acepta la pasarela simulada.
+    await page.getByLabel('Número de tarjeta').fill('4242 4242 4242 4242');
+    await page.getByLabel('Caducidad').fill('12/30');
+    await page.getByLabel('CVC').fill('123');
+    await page.getByRole('button', { name: 'Confirmar y enviar solicitud' }).click();
 
     await expect(page).toHaveURL('/mis-solicitudes');
     await expect(
@@ -269,7 +291,13 @@ test.describe('US-04.01 Solicitar un alquiler', () => {
     const start = freeStart();
     const response = await request.post(`${API_URL}/reservas`, {
       headers: { Authorization: `Bearer ${token}` },
-      data: { itemId, startDate: inDays(start), endDate: inDays(start + 1) },
+      data: {
+        itemId,
+        startDate: inDays(start),
+        endDate: inDays(start + 1),
+        deliveryMode: 'home',
+        confirmationTokenId: 'ctoken_simulado',
+      },
     });
     expect(response.status()).toBe(403);
   });

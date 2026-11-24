@@ -87,7 +87,7 @@ test.describe('US-03.03 Ver un objeto', () => {
     await expect(page.getByRole('button', { name: 'Alquilar' })).toHaveCount(0);
     await expect(page).toHaveURL(itemUrl);
 
-    // La antigua pantalla de solicitud lleva a la ficha, para no romper enlaces
+    // «Confirmar y pagar» sin fechas en la dirección vuelve a la ficha para elegirlas (US-07.01)
     await page.goto(`${itemUrl}/solicitar`);
     await expect(page).toHaveURL(itemUrl);
     await expect(page.getByLabel('Fecha de inicio')).toBeVisible();

@@ -76,10 +76,16 @@ describe.each(ACTIONS)('POST /api/reservas/:id/%s', (action, finalStatus) => {
       startDate: '2026-12-01',
       endDate: '2026-12-03',
       totalPrice: '15.00',
+      deposit: '30.00',
+      deliveryAmount: '0.00',
       status: finalStatus,
+      expiresAt: null,
+      cancellationReason: null,
       renter: { id: renter.id, username: 'bruno' },
       owner: { id: owner.id, username: 'ana' },
+      delivery: null,
       createdAt: reservation.createdAt.toISOString(),
+      cancellation: null,
     });
     expect(await statusOf(reservation.id)).toBe(finalStatus);
   });

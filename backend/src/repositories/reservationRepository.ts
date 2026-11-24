@@ -1,5 +1,5 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 03/11/2026
-import type { Prisma, ReservationStatus } from '@prisma/client';
+import type { DeliveryMode, Prisma, ReservationStatus } from '@prisma/client';
 import { reservationDetailInclude } from './detailIncludes.js';
 import { prisma } from './prisma.js';
 
@@ -7,7 +7,17 @@ import { prisma } from './prisma.js';
 export function findItemForReservation(itemId: string) {
   return prisma.item.findUnique({
     where: { id: itemId },
-    select: { ownerId: true, status: true, dailyPrice: true },
+    select: {
+      ownerId: true,
+      status: true,
+      dailyPrice: true,
+      deposit: true,
+      neighborhood: true,
+      address: true,
+      homeDelivery: true,
+      riderDelivery: true,
+      pickupPointDelivery: true,
+    },
   });
 }
 
@@ -46,6 +56,46 @@ export async function hasOverlappingReservation(
   return overlapping !== null;
 }
 
+// Comprobación previa, sin bloquear el objeto: si ya hay una solicitud igual o las fechas están
+// ocupadas, se responde antes de bloquear nada en la pasarela (#72). Al crear la reserva se vuelve
+// a comprobar dentro de la transacción, por si alguien se adelanta entre medias.
+export async function findReservationConflict(
+  data: { itemId: string; renterId: string; startDate: Date; endDate: Date },
+  occupyingStatuses: readonly ReservationStatus[],
+): Promise<'duplicate' | 'overlapping' | null> {
+  const { itemId, renterId, startDate, endDate } = data;
+
+  const duplicate = await prisma.reservation.findFirst({
+    where: { itemId, renterId, startDate, endDate, status: 'pending' },
+    select: { id: true },
+  });
+  if (duplicate) {
+    return 'duplicate';
+  }
+
+  const overlapping = await hasOverlappingReservation(
+    itemId,
+    startDate,
+    endDate,
+    occupyingStatuses,
+  );
+  return overlapping ? 'overlapping' : null;
+}
+
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 11/11/2026
+// Entrega de la solicitud (US-05.01, #281): se guarda en la misma transacción que la reserva.
+export interface ReservationDeliveryData {
+  mode: DeliveryMode;
+  pickupPointId?: string;
+  // NULL = «Lo antes posible».
+  slot?: string | null;
+  deliveryAddress?: string;
+  deliveryNeighborhood?: string;
+  fee?: string;
+  // Solo con rider (US-05.02, #288).
+  deliveryCode?: string;
+}
+
 export type InsertReservationResult =
   | {
       outcome: 'created';
@@ -65,10 +115,21 @@ export function insertReservationIfAvailable(
     startDate: Date;
     endDate: Date;
     totalPrice: Prisma.Decimal;
+    expiresAt: Date;
+    delivery: ReservationDeliveryData;
+  },
+  // El pago del bloqueo hecho en la pasarela (US-07.01, #72): se guarda junto con la reserva.
+  payment: {
+    rentalAmount: Prisma.Decimal;
+    deliveryAmount: Prisma.Decimal;
+    depositAmount: Prisma.Decimal;
+    depositStatus: 'pending' | null;
+    rentalReference: string;
   },
   occupyingStatuses: readonly ReservationStatus[],
 ): Promise<InsertReservationResult> {
-  const { itemId, renterId, startDate, endDate } = data;
+  const { itemId, renterId, startDate, endDate, delivery } = data;
+  const { mode, ...deliveryFields } = delivery;
 
   return prisma.$transaction(async (transaction) => {
     await transaction.$queryRaw`SELECT id FROM objeto WHERE id = ${itemId}::uuid FOR UPDATE`;
@@ -103,10 +164,31 @@ export function insertReservationIfAvailable(
     }
 
     const reservation = await transaction.reservation.create({
-      data,
+      data: {
+        itemId,
+        renterId,
+        startDate,
+        endDate,
+        totalPrice: data.totalPrice,
+        expiresAt: data.expiresAt,
+        deliveryMode: mode,
+        delivery: { create: deliveryFields },
+        payment: { create: payment },
+      },
       include: reservationDetailInclude,
     });
 
     return { outcome: 'created', reservation };
   });
+}
+
+// ¿Hay ya un pago con esta referencia de alquiler? Evita reutilizar un PaymentIntent en dos reservas.
+export async function isRentalReferenceUsed(
+  reference: string,
+): Promise<boolean> {
+  const payment = await prisma.payment.findUnique({
+    where: { rentalReference: reference },
+    select: { id: true },
+  });
+  return payment !== null;
 }

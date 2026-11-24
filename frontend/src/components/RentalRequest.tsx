@@ -1,14 +1,16 @@
 // Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 03/11/2026
+// Demanda de fechas en el calendario (US-04.07, #312): generado con asistencia de IA (Claude) –
+// revisado por Marc Sanz, 13/11/2026
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
-import { checkAvailability, requestRental, type Reservation } from '../services/rentalService';
-import { monthOf, selectRangeDate } from '../utils/calendar';
+import { getItemDemand } from '../services/demandService';
+import { checkAvailability } from '../services/rentalService';
+import { formatMatchingRequests, monthBounds, monthOf, selectRangeDate } from '../utils/calendar';
 import {
   calculateTotalPrice,
   countRentalDays,
   formatInputDate,
-  formatLongDate,
   formatPrice,
   maskInputDate,
   parseInputDate,
@@ -17,7 +19,13 @@ import {
   validateRentalDates,
   type RentalDateErrors,
 } from '../utils/rental';
-import { DateRangeCalendar } from './DateRangeCalendar';
+import {
+  EMPTY_DELIVERY_DRAFT,
+  type DeliveryDraft,
+  type DeliverySelection,
+} from '../utils/deliveryDraft';
+import { DateRangeCalendar, type CalendarDemand } from './DateRangeCalendar';
+import { DeliveryStep } from './DeliveryStep';
 import { Icon } from './Icon';
 
 export type RentalItem = {
@@ -25,11 +33,27 @@ export type RentalItem = {
   title: string;
   pricePerDay: number;
   photoUrl?: string;
+  // Pago al solicitar (US-07.01, #286).
+  deposit?: number;
+  ownerName?: string;
+  // Barrio del objeto: con «Recoger en casa del propietario» es lo único que se ve antes de aceptar.
+  neighborhood?: string;
 };
+
+export type RentalDates = { startDate: string; endDate: string };
+
+// Lo que pasa a «Confirmar y pagar»: las fechas y la entrega elegida en el paso «Entrega»
+// (US-05.01). El borrador sirve para volver al panel con lo que se había elegido.
+export type RentalChoice = RentalDates & { delivery: DeliverySelection; draft: DeliveryDraft };
 
 type RentalRequestProps = {
   item: RentalItem;
-  onRequested: (reservation: Reservation) => void;
+  // Las fechas con las que se vuelve de «Confirmar y pagar» (están en la dirección de la ficha).
+  initialDates?: RentalDates;
+  initialDraft?: DeliveryDraft;
+  // Con las fechas libres, «Solicitar alquiler» pasa al paso «Entrega» y, de ahí, a la página
+  // «Confirmar y pagar».
+  onContinue: (choice: RentalChoice) => void;
   onSessionExpired: () => void;
 };
 
@@ -40,24 +64,54 @@ const NOT_AVAILABLE_MESSAGE = 'El objeto no está disponible en esas fechas.';
 // ignora el de unas fechas anteriores si el usuario las cambia mientras se espera la respuesta.
 type AvailabilityResult = { datesKey: string } & ({ available: boolean } | { error: string });
 
-// Selector de fechas, resumen y confirmación de US-04.01 (#121), dentro del panel lateral de la
-// ficha del objeto (#15).
-export function RentalRequest({ item, onRequested, onSessionExpired }: RentalRequestProps) {
+// Demanda del mes visible (US-04.07) y número de solicitudes que coinciden con las fechas elegidas.
+// Llevan la clave de lo que se pidió, igual que la disponibilidad.
+type MonthDemandResult = { month: string } & ({ demand: CalendarDemand } | { failed: true });
+type RangeDemandResult = { datesKey: string; pendingRequests: number };
+
+const DEMAND_ERROR_MESSAGE = 'No se ha podido cargar la demanda de las fechas.';
+
+// Selector de fechas de US-04.01 (#121), dentro del panel lateral de la ficha del objeto (#15). El
+// resumen y el pago están en su propia página, «Confirmar y pagar» (US-07.01).
+export function RentalRequest({
+  item,
+  initialDates,
+  initialDraft,
+  onContinue,
+  onSessionExpired,
+}: RentalRequestProps) {
   // Lo que hay escrito en los campos («dd/mm/aaaa»). El calendario escribe en ellos al hacer clic.
-  const [startText, setStartText] = useState('');
-  const [endText, setEndText] = useState('');
+  const [startText, setStartText] = useState(() =>
+    initialDates ? formatInputDate(initialDates.startDate) : '',
+  );
+  const [endText, setEndText] = useState(() =>
+    initialDates ? formatInputDate(initialDates.endDate) : '',
+  );
   const [apiErrors, setApiErrors] = useState<RentalDateErrors>({});
-  const [formError, setFormError] = useState<string | null>(null);
-  const [step, setStep] = useState<'dates' | 'summary'>('dates');
-  const [submitting, setSubmitting] = useState(false);
-  const [availability, setAvailability] = useState<AvailabilityResult | null>(null);
-  const { session, clearSession } = useAuth();
-  const token = session?.token;
+  const [step, setStep] = useState<'dates' | 'delivery'>('dates');
+  const [deliveryDraft, setDeliveryDraft] = useState<DeliveryDraft>(
+    initialDraft ?? EMPTY_DELIVERY_DRAFT,
+  );
   const headingRef = useRef<HTMLHeadingElement>(null);
   const previousStep = useRef(step);
+  const [availability, setAvailability] = useState<AvailabilityResult | null>(null);
+  const [monthDemand, setMonthDemand] = useState<MonthDemandResult | null>(null);
+  const [rangeDemand, setRangeDemand] = useState<RangeDemandResult | null>(null);
+  const { session, clearSession } = useAuth();
+  const token = session?.token;
+
+  // El botón pulsado desaparece al cambiar de paso: el foco pasa al título del paso nuevo.
+  useEffect(() => {
+    if (previousStep.current === step) return;
+    previousStep.current = step;
+    headingRef.current?.focus({ preventScroll: true });
+  }, [step]);
 
   const today = todayIso();
-  const [calendarMonth, setCalendarMonth] = useState(monthOf(today));
+  const [calendarMonth, setCalendarMonth] = useState(() =>
+    monthOf(initialDates && initialDates.startDate >= today ? initialDates.startDate : today),
+  );
+
   const startDate = parseInputDate(startText);
   const endDate = parseInputDate(endText);
   const errors = {
@@ -69,6 +123,11 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
   const days = datesValid ? countRentalDays(startDate, endDate) : 0;
   const totalPrice = calculateTotalPrice(item.pricePerDay, days);
   const datesKey = datesValid ? `${startDate}|${endDate}` : null;
+  const currentMonthDemand = monthDemand?.month === calendarMonth ? monthDemand : null;
+  const calendarDemand =
+    currentMonthDemand && 'demand' in currentMonthDemand ? currentMonthDemand.demand : null;
+  const matchingRequests =
+    rangeDemand?.datesKey === datesKey ? formatMatchingRequests(rangeDemand.pendingRequests) : null;
   const currentAvailability = availability?.datesKey === datesKey ? availability : null;
   const checkingAvailability = datesKey !== null && currentAvailability === null;
   const isAvailable =
@@ -109,16 +168,54 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
     };
   }, [datesKey, token, item.id, startDate, endDate, clearSession, onSessionExpired]);
 
-  // El botón pulsado desaparece al cambiar de paso: el foco pasa al título del paso nuevo.
+  // US-04.07: la demanda del mes visible colorea el calendario. Si falla, se usa sin colores.
   useEffect(() => {
-    if (previousStep.current === step) return;
-    previousStep.current = step;
-    headingRef.current?.focus({ preventScroll: true });
-  }, [step]);
+    if (!token) return;
+    let ignore = false;
+    const { from, to } = monthBounds(calendarMonth);
+
+    getItemDemand(token, item.id, from, to)
+      .then(({ days: demandDays, bookedDays }) => {
+        if (ignore) return;
+        const counts = Object.fromEntries(
+          demandDays.map(({ date, pendingRequests }) => [date, pendingRequests]),
+        );
+        setMonthDemand({ month: calendarMonth, demand: { counts, booked: bookedDays } });
+      })
+      .catch((error: unknown) => {
+        if (ignore) return;
+        if (error instanceof ApiError && error.status === 401) {
+          clearSession();
+          onSessionExpired();
+        } else {
+          setMonthDemand({ month: calendarMonth, failed: true });
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [calendarMonth, token, item.id, clearSession, onSessionExpired]);
+
+  // US-04.07: con las dos fechas elegidas, cuántas solicitudes de otras personas coinciden.
+  // Si falla, no se avisa de nada y se puede solicitar igual.
+  useEffect(() => {
+    if (!datesKey || !token) return;
+    let ignore = false;
+
+    getItemDemand(token, item.id, startDate, endDate)
+      .then(({ pendingRequests }) => {
+        if (!ignore) setRangeDemand({ datesKey, pendingRequests });
+      })
+      .catch(() => {});
+
+    return () => {
+      ignore = true;
+    };
+  }, [datesKey, token, item.id, startDate, endDate]);
 
   function clearErrors() {
     setApiErrors({});
-    setFormError(null);
   }
 
   function changeDateText(setText: (text: string) => void, rawText: string) {
@@ -147,114 +244,36 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
   function handleDatesSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!isAvailable) return;
-    // Un error de un envío anterior (p. ej. el 409 por solape) no se arrastra al resumen nuevo.
-    setFormError(null);
-    setStep('summary');
+    setStep('delivery');
   }
 
-  async function handleConfirm() {
-    if (submitting || !session) return;
-
-    setSubmitting(true);
-    setFormError(null);
-    try {
-      const reservation = await requestRental(session.token, {
-        itemId: item.id,
-        startDate,
-        endDate,
-      });
-      onRequested(reservation);
-    } catch (error) {
-      // Los botones se reactivan siempre, también si el componente sigue montado tras un 401.
-      setSubmitting(false);
-      // Sesión caducada o revocada: se borra y se vuelve al login.
-      if (error instanceof ApiError && error.status === 401) {
-        clearSession();
-        onSessionExpired();
-        return;
-      }
-      // Errores de #120. Si el problema está en las fechas (409 por solape, con field), se vuelve
-      // a elegirlas; si no (objeto propio, no publicado, solicitud duplicada…), se queda en el
-      // resumen con el mensaje de la API.
-      if (error instanceof ApiError && error.status === 409 && error.field && datesKey) {
-        // Alguien ha ocupado las fechas después de consultarlas: ahora ya no están libres.
-        setAvailability({ datesKey, available: false });
-        setStep('dates');
-      } else if (
-        error instanceof ApiError &&
-        (error.field === 'startDate' || error.field === 'endDate')
-      ) {
-        setApiErrors({ [error.field]: error.message });
-        setStep('dates');
-      } else if (error instanceof ApiError) {
-        setFormError(error.message);
-      } else {
-        setFormError('Ha ocurrido un error inesperado.');
-      }
-    }
-  }
-
-  if (step === 'summary') {
+  // Paso «Entrega» (US-05.01, #282): modo, hora y destino. Al continuar se abre la página de pago.
+  if (step === 'delivery') {
     return (
-      <section key="summary" className="rental-request" aria-labelledby="rental-title">
-        <h2 id="rental-title" ref={headingRef} tabIndex={-1}>
-          Revisa tu solicitud
-        </h2>
-        {formError && (
-          <p role="alert" className="form-error">
-            {formError}
-          </p>
-        )}
-        <div className="rental-item">
-          {item.photoUrl && <img src={item.photoUrl} alt="" className="rental-item-photo" />}
-          <div>
-            <p className="rental-item-title">{item.title}</p>
-            <p className="field-hint">{formatPrice(item.pricePerDay)} / día</p>
-          </div>
-        </div>
-        <dl className="rental-summary">
-          <dt>Desde</dt>
-          <dd>{formatLongDate(startDate)}</dd>
-          <dt>Hasta</dt>
-          <dd>{formatLongDate(endDate)}</dd>
-          <dt>Importe del alquiler ({days === 1 ? '1 día' : `${days} días`})</dt>
-          <dd className="rental-total">{formatPrice(totalPrice)}</dd>
-        </dl>
-        <div className="rental-actions">
-          <button
-            type="button"
-            className="button-secondary"
-            disabled={submitting}
-            onClick={() => {
-              setFormError(null);
-              setStep('dates');
-            }}
-          >
-            Volver
-          </button>
-          <button
-            type="button"
-            className="button-primary"
-            disabled={submitting}
-            onClick={handleConfirm}
-          >
-            {submitting ? 'Enviando…' : 'Confirmar'}
-          </button>
-        </div>
-      </section>
+      <DeliveryStep
+        item={item}
+        startDate={startDate}
+        endDate={endDate}
+        days={days}
+        rentalPrice={totalPrice}
+        draft={deliveryDraft}
+        onDraftChange={setDeliveryDraft}
+        initialErrors={{}}
+        formError={null}
+        headingRef={headingRef}
+        onBack={() => setStep('dates')}
+        onContinue={(delivery) =>
+          onContinue({ startDate, endDate, delivery, draft: deliveryDraft })
+        }
+      />
     );
   }
 
   return (
-    <section key="dates" className="rental-request" aria-labelledby="rental-title">
+    <section className="rental-request" aria-labelledby="rental-title">
       <h2 id="rental-title" ref={headingRef} tabIndex={-1}>
         Elige las fechas
       </h2>
-      {formError && (
-        <p role="alert" className="form-error">
-          {formError}
-        </p>
-      )}
       <form onSubmit={handleDatesSubmit} noValidate>
         <div className="rental-dates">
           <div className="form-field">
@@ -305,7 +324,11 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
           month={calendarMonth}
           onMonthChange={setCalendarMonth}
           onSelectDate={handleSelectDate}
+          demand={calendarDemand}
         />
+        {currentMonthDemand && 'failed' in currentMonthDemand && (
+          <p className="field-hint rental-demand-error">{DEMAND_ERROR_MESSAGE}</p>
+        )}
         <p className="rental-price" aria-live="polite">
           {datesValid ? (
             <>
@@ -326,6 +349,12 @@ export function RentalRequest({ item, onRequested, onSessionExpired }: RentalReq
           <p className="rental-available" role="status">
             <Icon name="check_circle" size="1rem" />
             Fechas disponibles
+          </p>
+        )}
+        {isAvailable && matchingRequests && (
+          <p className="rental-demand-warning" role="status">
+            <Icon name="info" size="1rem" />
+            {matchingRequests}
           </p>
         )}
         {currentAvailability &&

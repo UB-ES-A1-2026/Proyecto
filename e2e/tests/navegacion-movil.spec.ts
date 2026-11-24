@@ -28,6 +28,7 @@ test.describe('Navegación en el móvil', () => {
     await page.goto('/');
 
     const nav = mainNav(page);
+    // «Hazte rider» está en Crear cuenta, no en la barra (US-10.03, #355).
     await expect(nav.getByRole('link')).toHaveText(['Inicio', 'Iniciar sesión', 'Crear cuenta']);
     await expect(page.getByRole('button', { name: 'Abrir menú' })).toHaveCount(0);
 
@@ -56,7 +57,7 @@ test.describe('Navegación en el móvil', () => {
     );
 
     await nav.getByRole('link', { name: 'Mi perfil' }).click();
-    await expect(page).toHaveURL('/perfil');
+    await expect(page).toHaveURL(/\/usuarios\/[\w-]+$/);
     await nav.getByRole('link', { name: 'Inicio' }).click();
     await expect(page).toHaveURL('/');
   });
@@ -65,12 +66,15 @@ test.describe('Navegación en el móvil', () => {
     await logIn(page);
     await page.goto('/perfil');
     await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toBeVisible();
+    // Se mide con el perfil ya cargado (US-01.4): si no, la página crece después de medir.
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
 
     const footer = await page.getByRole('contentinfo').boundingBox();
     const bar = await mainNav(page).boundingBox();
-    expect((footer?.y ?? 0) + (footer?.height ?? 0)).toBeLessThanOrEqual(bar?.y ?? 0);
+    // Margen de 1 px por el redondeo de los subpíxeles (p. ej. 784,03 frente a 784).
+    expect((footer?.y ?? 0) + (footer?.height ?? 0)).toBeLessThanOrEqual((bar?.y ?? 0) + 1);
 
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -84,6 +88,10 @@ test('en escritorio, el menú está en la cabecera y «Inicio» no se muestra', 
 
   const nav = mainNav(page);
   await expect(nav.getByRole('link', { name: 'Inicio' })).toBeHidden();
-  const box = await nav.boundingBox();
-  expect(box?.y).toBeLessThan(64);
+  // En escritorio el <nav> no tiene caja propia (display: contents, cabecera de 1500 px del
+  // 20/11): se mide un enlace del menú y el icono de «Mi perfil», que van en la cabecera.
+  for (const name of ['Mis solicitudes', 'Mi perfil']) {
+    const box = await nav.getByRole('link', { name }).boundingBox();
+    expect(box?.y).toBeLessThan(64);
+  }
 });

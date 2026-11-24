@@ -31,6 +31,9 @@ describe('POST /api/auth/register', () => {
         username: 'ana',
         email: 'ana@rentit.test',
         role: 'user',
+        isRider: false,
+        riderStatus: null,
+        rejectionReason: null,
       },
     });
     expect(JSON.stringify(response.body)).not.toContain('passwordHash');

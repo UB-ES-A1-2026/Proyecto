@@ -1,10 +1,16 @@
 // Generado con asistencia de IA (Claude)
+// Demanda de fechas y días reservados (US-04.07, #312): generado con asistencia de IA (Claude) –
+// revisado por Marc Sanz, 13/11/2026
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import {
   addDays,
   addMonths,
   addMonthsToDate,
+  BOOKED_LABEL,
+  DEMAND_LEVEL_LABELS,
+  demandLevel,
   endOfWeek,
+  formatDayDemand,
   formatDayLabel,
   formatMonthLabel,
   monthOf,
@@ -22,7 +28,14 @@ type DateRangeCalendarProps = {
   month: string;
   onMonthChange: (month: string) => void;
   onSelectDate: (date: string) => void;
+  // Demanda del mes visible (US-04.07). Sin ella, el calendario es el de US-04.01.
+  demand?: CalendarDemand | null;
 };
+
+// Solicitudes pendientes de otras personas por día y días ya reservados.
+export type CalendarDemand = { counts: Record<string, number>; booked: string[] };
+
+const LEGEND_LEVELS = [0, 1, 2, 3] as const;
 
 // Destino de cada tecla de navegación dentro de los días.
 const KEY_TARGETS: Record<string, (date: string) => string> = {
@@ -45,6 +58,7 @@ export function DateRangeCalendar({
   month,
   onMonthChange,
   onSelectDate,
+  demand = null,
 }: DateRangeCalendarProps) {
   const monthLabelId = useId();
   const gridRef = useRef<HTMLTableElement>(null);
@@ -52,6 +66,13 @@ export function DateRangeCalendar({
   const pendingFocus = useRef(false);
   const [focusedDate, setFocusedDate] = useState<string | null>(null);
   const [previewDate, setPreviewDate] = useState<string | null>(null);
+  // Día del que se enseña el número de solicitudes: el último que se ha señalado o tocado.
+  const [inspectedDate, setInspectedDate] = useState<string | null>(null);
+  const bookedDays = new Set(demand?.booked ?? []);
+  const inspectedCount =
+    demand && inspectedDate && monthOf(inspectedDate) === month && !bookedDays.has(inspectedDate)
+      ? (demand.counts[inspectedDate] ?? 0)
+      : null;
   // Dirección de la transición: al montar no hay, y al cambiar de mes se decide aquí mismo.
   const [transition, setTransition] = useState({ month, direction: 'none' });
   if (transition.month !== month) {
@@ -142,6 +163,14 @@ export function DateRangeCalendar({
                 const isStart = date === startDate;
                 const isEnd = date === endDate;
                 const isInsideRange = hasRange && date > startDate && date < rangeEnd;
+                const isBooked = bookedDays.has(date);
+                const pending = demand && !isBooked ? (demand.counts[date] ?? 0) : 0;
+                const level = date >= today ? demandLevel(pending) : 0;
+                const demandText = isBooked
+                  ? `, ${BOOKED_LABEL}`
+                  : level > 0
+                    ? `, ${formatDayDemand(pending)}`
+                    : '';
                 const cellClasses = [
                   'calendar-cell',
                   isInsideRange && 'is-in-range',
@@ -152,6 +181,8 @@ export function DateRangeCalendar({
                   'calendar-day',
                   (isStart || isEnd) && 'is-selected',
                   date === today && 'is-today',
+                  level > 0 && `has-demand-${level}`,
+                  isBooked && 'is-booked',
                 ];
                 return (
                   <td key={date} className={cellClasses.filter(Boolean).join(' ')}>
@@ -159,17 +190,24 @@ export function DateRangeCalendar({
                       type="button"
                       className={dayClasses.filter(Boolean).join(' ')}
                       data-date={date}
-                      aria-label={formatDayLabel(date)}
+                      aria-label={`${formatDayLabel(date)}${demandText}`}
                       aria-pressed={isStart || isEnd || (isInsideRange && date < endDate)}
                       aria-current={date === today ? 'date' : undefined}
-                      disabled={date < today}
+                      disabled={date < today || isBooked}
                       tabIndex={date === tabbableDate ? 0 : -1}
-                      onClick={() => onSelectDate(date)}
+                      onClick={() => {
+                        setInspectedDate(date);
+                        onSelectDate(date);
+                      }}
                       onKeyDown={(event) => handleDayKeyDown(event, date)}
-                      onMouseEnter={() => setPreviewDate(date)}
+                      onMouseEnter={() => {
+                        setPreviewDate(date);
+                        setInspectedDate(date);
+                      }}
                       onFocus={() => {
                         setFocusedDate(date);
                         setPreviewDate(date);
+                        setInspectedDate(date);
                       }}
                     >
                       {Number(date.slice(8))}
@@ -181,6 +219,27 @@ export function DateRangeCalendar({
           ))}
         </tbody>
       </table>
+      {demand && (
+        <>
+          <p className="calendar-day-demand" aria-live="polite">
+            {inspectedDate && inspectedCount !== null
+              ? `${formatDayLabel(inspectedDate)}: ${formatDayDemand(inspectedCount)}`
+              : ''}
+          </p>
+          <ul className="calendar-legend" aria-label="Leyenda de la demanda">
+            {LEGEND_LEVELS.map((level) => (
+              <li key={level}>
+                <span className={`calendar-swatch has-demand-${level}`} aria-hidden="true" />
+                {DEMAND_LEVEL_LABELS[level]}
+              </li>
+            ))}
+            <li>
+              <span className="calendar-swatch is-booked" aria-hidden="true" />
+              {BOOKED_LABEL}
+            </li>
+          </ul>
+        </>
+      )}
     </div>
   );
 }

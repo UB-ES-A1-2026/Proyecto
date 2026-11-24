@@ -10,6 +10,8 @@ type HelpSection = {
   note?: string;
 };
 
+// Textos de «Consultar tus solicitudes» y «Editar un objeto» corregidos (bug #425): generado con
+// asistencia de IA (Claude), pendiente de revisión.
 // Página de ayuda (TR-08, #89). Una sección por flujo ya entregado en develop;
 // se amplía en cada sprint antes de la demo (Definition of Done).
 const SECTIONS: HelpSection[] = [
@@ -25,6 +27,32 @@ const SECTIONS: HelpSection[] = [
     ],
     note: 'Si un dato no es válido, verás el error debajo del campo. Con «Mostrar» puedes ver la contraseña que has escrito.',
   },
+  // «Hazte rider» (US-10.03, T35 #315): generado con asistencia de IA (Claude) – revisado por Marc Sanz, 13/11/2026
+  {
+    id: 'hazte-rider',
+    title: 'Hacerte rider',
+    steps: [
+      <>
+        Sin iniciar sesión, ve a «Crear cuenta» y pulsa «<Link to="/hazte-rider">Hazte rider</Link>
+        », debajo del formulario. Una cuenta de rider es aparte de la de alquilar: usa otro correo.
+      </>,
+      'Rellena el cuestionario: nombre de usuario, correo, contraseña, teléfono, la zona en la que quieres repartir, tu vehículo y los días y franjas en que puedes. Lee las condiciones para riders y acéptalas.',
+      'Pulsa «Enviar solicitud». Un admin la revisará; mientras tanto, al iniciar sesión verás «Tu solicitud para ser rider» con su estado.',
+      'Cuando te acepten, al iniciar sesión irás a «Trabajos». Si la rechazan, verás el motivo si el admin lo ha escrito.',
+    ],
+    note: 'Una cuenta de rider no puede buscar, alquilar ni publicar objetos: solo ve el estado de su solicitud y sus trabajos.',
+  },
+  // «Trabajos» del rider (US-10.01, #293): generado con asistencia de IA (Claude)
+  {
+    id: 'trabajos',
+    title: 'Aceptar trabajos de entrega',
+    steps: [
+      'Con tu cuenta de rider aceptada, pulsa «Trabajos» en el menú.',
+      'En «Disponibles» verás las entregas agrupadas por día, cada una con el objeto, el barrio de recogida y el de entrega, la franja y la tarifa.',
+      'Pulsa «Aceptar» en la que quieras hacer. Pasa a «Mis trabajos», con la dirección completa de la recogida y de la entrega y «Ver seguimiento», y puedes seguir aceptando otras.',
+    ],
+    note: 'Hasta que aceptas un trabajo solo ves los barrios. Si otro rider lo ha aceptado antes que tú, verás «Ya asignado a otro rider» y desaparece de la lista.',
+  },
   {
     id: 'iniciar-sesion',
     title: 'Iniciar sesión',
@@ -39,15 +67,16 @@ const SECTIONS: HelpSection[] = [
   },
   {
     id: 'ver-perfil',
-    title: 'Ver tu perfil',
+    title: 'Ver y editar tu perfil',
     steps: [
       <>
-        Con la sesión iniciada, pulsa «<Link to="/perfil">Mi perfil</Link>» en el menú.
+        Con la sesión iniciada, pulsa «<Link to="/perfil">Mi perfil</Link>» en el menú. Es tu perfil
+        público: lo mismo que ven los demás.
       </>,
-      'Verás tu nombre de usuario, tu correo electrónico y desde cuándo eres miembro.',
-      'También verás cuántos objetos y solicitudes tienes, con un enlace a cada lista, y podrás publicar un objeto.',
+      'Verás tu foto, tu nombre de usuario, desde cuándo eres miembro, tu valoración media, tu bio y los objetos que tienes publicados. Tu correo electrónico solo lo ves tú.',
+      'Para cambiar la foto o la bio, pulsa «Editar perfil». Puedes subir una foto JPG, PNG o WebP de hasta 5 MB o quitarla, y escribir una bio de hasta 500 caracteres. Después, pulsa «Guardar».',
     ],
-    note: 'Si no has iniciado sesión, primero se te pedirá que lo hagas y después irás a tu perfil.',
+    note: 'Cualquiera puede ver tu perfil pulsando tu nombre en la ficha de uno de tus objetos. Si no has iniciado sesión, «Mi perfil» primero te pedirá que lo hagas.',
   },
   {
     id: 'cerrar-sesion',
@@ -98,10 +127,13 @@ const SECTIONS: HelpSection[] = [
     steps: [
       'Con la sesión iniciada, abre la ficha del objeto.',
       'Elige la fecha de inicio y la fecha de fin en el panel de alquiler. Rentit comprueba si el objeto está libre esos días.',
-      'Pulsa «Solicitar alquiler», revisa las fechas y el importe, y pulsa «Confirmar».',
+      'El calendario colorea cada día según cuántas solicitudes pendientes de otras personas tiene (de poca a mucha demanda, con su leyenda) y marca como «Reservado» los días que ya están ocupados. Al elegir las fechas, te avisa si otras solicitudes coinciden con las tuyas: así sabes si es posible que no te acepten.',
+      'Pulsa «Solicitar alquiler» y elige cómo te llega el objeto: «Recoger en casa del propietario», «Entrega por rider» o «Punto de recogida». Solo salen los que ofrece ese objeto.',
+      'Con rider, elige la hora («Lo antes posible» o una franja de dos horas), la dirección y el barrio de entrega: la tarifa del rider se suma al total. Con punto de recogida, elige uno de los puntos cercanos. Después pulsa «Continuar».',
+      'En «Confirmar y pagar», revisa «Tu solicitud» (fechas, entrega e importe), escribe los datos de la tarjeta y pulsa «Confirmar y enviar solicitud».',
       'Irás a «Mis solicitudes», donde verás tu solicitud como «Pendiente» hasta que responda el propietario.',
     ],
-    note: 'Con «Volver» puedes cambiar las fechas antes de confirmar. No puedes alquilar un objeto que has publicado tú.',
+    note: 'El importe se bloquea en tu tarjeta, pero solo se cobra si el propietario acepta; si la rechaza o no responde en 48 horas, se libera. La fianza se bloquea el día antes de empezar y se libera al terminar; si el alquiler dura más de 6 días, se cobra el día antes y se devuelve al terminar. Es un pago de prueba: usa la tarjeta 4242 4242 4242 4242 (se acepta) o 4000 0000 0000 0002 (se rechaza). Con «Volver» puedes cambiar la entrega o las fechas antes de pagar. No puedes alquilar un objeto que has publicado tú.',
   },
   {
     id: 'mis-solicitudes',
@@ -112,7 +144,7 @@ const SECTIONS: HelpSection[] = [
         menú.
       </>,
       'En «Enviadas» están las que has pedido tú, y en «Recibidas», las que te han pedido por tus objetos.',
-      'Pulsa una solicitud para ver el detalle. Su estado puede ser «Pendiente», «Aceptada» o «Rechazada».',
+      'Pulsa una solicitud para ver el detalle: las fechas, cómo es la entrega y el desglose del importe (alquiler, entrega y total). Su estado puede ser «Pendiente», «Aceptada», «Pagada», «En curso», «Finalizada», «Rechazada», «Cancelada» o «Caducada».',
     ],
   },
   {
@@ -120,10 +152,82 @@ const SECTIONS: HelpSection[] = [
     title: 'Aceptar o rechazar una solicitud',
     steps: [
       'En «Mis solicitudes», abre en «Recibidas» una solicitud «Pendiente».',
-      'Revisa quién lo pide y las fechas.',
-      'Pulsa «Aceptar» o «Rechazar». La solicitud cambia de estado y ya no se puede volver a responder.',
+      'Revisa quién lo pide, las fechas y cómo será la entrega.',
+      'Pulsa «Aceptar» o «Rechazar». Si aceptas, se cobra lo que tenía bloqueado y la solicitud pasa a «Pagada»; si la rechazas, se le libera. Ya no se puede volver a responder.',
     ],
-    note: 'Las fechas quedan ocupadas cuando aceptas. Si otra reserva ya ocupa esas fechas, no se podrá aceptar y verás un aviso.',
+    note: 'Tienes 48 horas para responder: si no, la solicitud caduca y se libera el importe. Las fechas quedan ocupadas cuando aceptas. Si otra reserva ya ocupa esas fechas, no se podrá aceptar y verás un aviso.',
+  },
+  // Seguimiento de la entrega (US-05.02, #290): generado con asistencia de IA (Claude) – revisado por
+  // Marc Sanz, 20/11/2026
+  {
+    id: 'seguir-entrega',
+    title: 'Seguir la entrega',
+    steps: [
+      'En «Mis solicitudes», abre una reserva pagada y pulsa «Ver entrega». La ven el arrendatario, el propietario y el rider.',
+      'Verás los pasos de la entrega con su fecha y hora. Con rider: «Asignada», «Recogida», «En camino» y «Entregada». Sin rider: «Pendiente de entrega» y «Entregada». Después siguen «En curso» y «Finalizada». La pantalla se actualiza sola cuando cambia algo.',
+      'Con rider, si eres quien alquila, verás «Tu código de entrega». Enséñaselo al rider cuando te dé el objeto: lo necesita para marcar «Entregada».',
+      'Sin rider, cuando tengas el objeto pulsa «Ya tengo el objeto».',
+      'Cuando lo devuelvas, pulsa «He devuelto el objeto»: el alquiler pasa a «Finalizada».',
+    ],
+    note: 'El rider marca cada paso en orden con «Marcar como…»; no se puede saltar ninguno ni volver atrás. Si el rider escribe mal el código 5 veces, se bloquea: quien alquila pulsa «Generar un código nuevo» y el anterior deja de valer.',
+  },
+  // Valorar un alquiler (US-08.01, #296): generado con asistencia de IA (Claude)
+  {
+    id: 'valorar',
+    title: 'Valorar un alquiler',
+    steps: [
+      'En «Mis solicitudes», abre en «Enviadas» un alquiler en estado «Finalizada» y pulsa «Valorar».',
+      'Elige de 1 a 5 estrellas. Si quieres, escribe un comentario de hasta 1000 caracteres.',
+      'Pulsa «Publicar». Volverás a «Mis solicitudes» y en ese alquiler verás tu valoración.',
+    ],
+    note: 'Solo se puede valorar un alquiler finalizado, una sola vez. La puntuación es obligatoria y el comentario lo verán otras personas en el perfil del propietario.',
+  },
+  // Valorar al inquilino (US-08.02, #299): generado con asistencia de IA (Claude)
+  {
+    id: 'valorar-inquilino',
+    title: 'Valorar a quien te ha alquilado un objeto',
+    steps: [
+      'En «Mis solicitudes», abre en «Recibidas» un alquiler «Finalizado» y pulsa «Valorar a…».',
+      'Elige de 1 a 5 estrellas. Si quieres, cuenta cómo te ha devuelto el objeto, en hasta 1000 caracteres.',
+      'Pulsa «Publicar». Volverás a «Mis solicitudes» y en ese alquiler verás tu valoración.',
+    ],
+    note: 'Solo se puede valorar un alquiler finalizado, una sola vez. La puntuación es obligatoria. La valoración la verá esa persona en sus solicitudes, y otras personas en su perfil.',
+  },
+  {
+    id: 'cancelar',
+    title: 'Cancelar una reserva',
+    steps: [
+      'En «Mis solicitudes», abre la reserva: en «Enviadas» si la pediste tú, o en «Recibidas» si es de tu objeto.',
+      'Pulsa «Cancelar reserva» (o «Cancelar solicitud» si todavía está pendiente). Si la reserva ya está pagada, verás la compensación que te tocaría pagar hoy.',
+      'Pulsa «Cancelar reserva» para confirmarlo o «Volver» para dejarla como está.',
+      <>
+        Si la reserva ya está pagada, quien cancela compensa a la otra persona por las molestias con
+        una parte del alquiler, según los días que faltan para el inicio:
+        <table className="help-table">
+          <thead>
+            <tr>
+              <th scope="col">Días que faltan para el inicio</th>
+              <th scope="col">Compensación por las molestias</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Menos de 3</td>
+              <td>100 % del alquiler</td>
+            </tr>
+            <tr>
+              <td>De 3 a 7</td>
+              <td>35 % del alquiler</td>
+            </tr>
+            <tr>
+              <td>8 o más</td>
+              <td>Nada</td>
+            </tr>
+          </tbody>
+        </table>
+      </>,
+    ],
+    note: 'Una solicitud pendiente se cancela gratis. La fianza y la entrega no cuentan para la compensación: se recuperan enteras. Si cancela el propietario, la compensación queda registrada a su cargo; de momento no se cobra. Una reserva que ya ha empezado no se puede cancelar.',
   },
   {
     id: 'publicar',
@@ -148,10 +252,10 @@ const SECTIONS: HelpSection[] = [
         Con la sesión iniciada, pulsa «<Link to="/mis-objetos">Mis objetos</Link>» en el menú.
       </>,
       'Pulsa «Editar» en el objeto que quieras cambiar.',
-      'Cambia el nombre, la descripción, el precio o la fianza, o añade fotos.',
+      'Cambia el nombre, la descripción, el precio, la fianza, el barrio, las formas de entrega o la dirección, o añade fotos.',
       'Pulsa «Guardar». Verás «Los cambios se han guardado.».',
     ],
-    note: 'Por ahora las fotos se pueden añadir, hasta 5 en total, pero no borrar. La categoría, el barrio y las formas de entrega no se pueden cambiar.',
+    note: 'Por ahora las fotos se pueden añadir, hasta 5 en total, pero no borrar. La categoría no se puede cambiar.',
   },
   {
     id: 'pausar',
