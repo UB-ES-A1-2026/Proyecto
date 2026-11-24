@@ -10,6 +10,8 @@ type HelpSection = {
   note?: string;
 };
 
+// Textos de «Consultar tus solicitudes» y «Editar un objeto» corregidos (bug #425): generado con
+// asistencia de IA (Claude), pendiente de revisión.
 // Página de ayuda (TR-08, #89). Una sección por flujo ya entregado en develop;
 // se amplía en cada sprint antes de la demo (Definition of Done).
 const SECTIONS: HelpSection[] = [
@@ -142,7 +144,7 @@ const SECTIONS: HelpSection[] = [
         menú.
       </>,
       'En «Enviadas» están las que has pedido tú, y en «Recibidas», las que te han pedido por tus objetos.',
-      'Pulsa una solicitud para ver el detalle: las fechas, cómo es la entrega y el desglose del importe (alquiler, entrega y total). Su estado puede ser «Pendiente», «Pagada», «Rechazada» o «Caducada».',
+      'Pulsa una solicitud para ver el detalle: las fechas, cómo es la entrega y el desglose del importe (alquiler, entrega y total). Su estado puede ser «Pendiente», «Aceptada», «Pagada», «En curso», «Finalizada», «Rechazada», «Cancelada» o «Caducada».',
     ],
   },
   {
@@ -250,10 +252,10 @@ const SECTIONS: HelpSection[] = [
         Con la sesión iniciada, pulsa «<Link to="/mis-objetos">Mis objetos</Link>» en el menú.
       </>,
       'Pulsa «Editar» en el objeto que quieras cambiar.',
-      'Cambia el nombre, la descripción, el precio o la fianza, o añade fotos.',
+      'Cambia el nombre, la descripción, el precio, la fianza, el barrio, las formas de entrega o la dirección, o añade fotos.',
       'Pulsa «Guardar». Verás «Los cambios se han guardado.».',
     ],
-    note: 'Por ahora las fotos se pueden añadir, hasta 5 en total, pero no borrar. La categoría, el barrio y las formas de entrega no se pueden cambiar.',
+    note: 'Por ahora las fotos se pueden añadir, hasta 5 en total, pero no borrar. La categoría no se puede cambiar.',
   },
   {
     id: 'pausar',
