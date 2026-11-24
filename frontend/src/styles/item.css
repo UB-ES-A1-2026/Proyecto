@@ -204,18 +204,10 @@
   font-weight: var(--font-weight-medium);
 }
 
-.item-owner-avatar {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  font-size: var(--font-size-section);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-on-primary);
-  background-color: var(--color-primary);
-  border-radius: var(--radius-small);
+/* Foto de quien publica (UserAvatar), redonda como el icono de «Mi perfil» de la cabecera
+   (US-01.4, wireframe pantalla 10). */
+.item-owner .user-avatar {
+  border-radius: 50%;
 }
 
 /* Panel de alquiler. .card se define después de este archivo: por eso el selector doble. */

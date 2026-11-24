@@ -26,7 +26,7 @@ const ITEM = {
   homeDelivery: true,
   riderDelivery: true,
   pickupPointDelivery: true,
-  owner: { id: 'user-ana', username: 'ana', email: 'ana@rentit.test' },
+  owner: { id: 'user-ana', username: 'ana', photo: null, email: 'ana@rentit.test' },
   createdAt: '2026-10-30T12:00:00.000Z',
 };
 
@@ -80,6 +80,39 @@ describe('pantalla de detalle del objeto (US-03.03, #58)', () => {
     );
     expect(screen.queryByText('ana@rentit.test')).not.toBeInTheDocument();
     expect(container).not.toHaveTextContent('ana@rentit.test');
+  });
+
+  // La foto de perfil de quien publica, junto a su nombre (US-01.4, wireframe pantalla 10).
+  // Generado con asistencia de IA (Claude), pendiente de revisión.
+  it('enseña la foto de perfil de quien publica en lugar de su inicial', async () => {
+    mockFetch(() =>
+      Response.json({ ...ITEM, owner: { ...ITEM.owner, photo: 'https://ejemplo.test/ana.jpg' } }),
+    );
+
+    const { container } = renderRoute('/objetos/taladro-1');
+
+    const owner = await screen.findByRole('region', { name: 'Propietario' });
+    // Es decorativa: el nombre, que enlaza a su perfil, ya dice quién es.
+    expect(container.querySelector('.item-owner .user-avatar img')).toHaveAttribute(
+      'src',
+      'https://ejemplo.test/ana.jpg',
+    );
+    expect(container.querySelector('.item-owner .user-avatar img')).toHaveAttribute('alt', '');
+    expect(owner).toHaveTextContent(/^Publicado por ana$/);
+    expect(within(owner).getByRole('link', { name: 'ana' })).toHaveAttribute(
+      'href',
+      '/usuarios/user-ana',
+    );
+  });
+
+  it('sin foto de perfil, enseña la inicial de quien publica', async () => {
+    mockFetch(() => Response.json(ITEM));
+
+    const { container } = renderRoute('/objetos/taladro-1');
+
+    const owner = await screen.findByRole('region', { name: 'Propietario' });
+    expect(owner).toHaveTextContent(/^APublicado por ana$/);
+    expect(container.querySelector('.item-owner img')).not.toBeInTheDocument();
   });
 
   it('las miniaturas cambian la foto principal', async () => {
