@@ -139,3 +139,36 @@ test.describe('US-04.02 Consultar mis solicitudes', () => {
     await expect(page).toHaveURL('/login');
   });
 });
+
+// Lista y detalle en pantallas grandes (#390, decisión de Kai del 20/11): desde 1360 px, la lista a
+// la izquierda y la solicitud elegida, entera, a la derecha. Por debajo, el detalle desplegable de
+// los tests de arriba (el navegador de los e2e mide 1280 px).
+test.describe('US-04.02 Mis solicitudes con lista y detalle (pantallas grandes)', () => {
+  test.use({ viewport: { width: 1600, height: 900 } });
+
+  test('elige la primera, enseña su detalle a la derecha y cambia al pulsar otra', async ({
+    page,
+  }) => {
+    await login(page, ANA);
+    await openMyReservations(page);
+
+    const detail = page.getByRole('region', { name: 'Solicitud elegida' });
+    await expect(detail).toBeVisible();
+
+    const proyector = reservation(page, 'Enviadas', 'Proyector Full HD');
+    await proyector.click();
+    await expect(proyector).toHaveAttribute('aria-pressed', 'true');
+    await expect(detail.getByText('Propietario: bruno')).toBeVisible();
+    await expect(detail.getByText('Estado: Pendiente')).toBeVisible();
+    await expect(detail.getByRole('link', { name: 'Proyector Full HD' })).toHaveAttribute(
+      'href',
+      /^\/objetos\/[0-9a-f-]{36}$/,
+    );
+
+    const escalera = reservation(page, 'Recibidas', 'Escalera de aluminio de 3 peldaños');
+    await escalera.click();
+    await expect(escalera).toHaveAttribute('aria-pressed', 'true');
+    await expect(proyector).toHaveAttribute('aria-pressed', 'false');
+    await expect(detail.getByText('Solicitada por: bruno')).toBeVisible();
+  });
+});

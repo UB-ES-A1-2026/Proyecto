@@ -548,6 +548,41 @@
   align-items: start;
 }
 
+/* Lista y detalle en pantallas anchas (decisión de Kai, 20/11) */
+.reservation-master-detail {
+  display: grid;
+  grid-template-columns: minmax(20rem, 2fr) minmax(0, 3fr);
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+.reservation-master-list {
+  display: grid;
+  gap: var(--space-xl);
+}
+
+.reservation-detail-pane {
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-md));
+}
+
+.reservation-card.is-selected {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+/* En la fila de la lista, la flecha apunta al detalle de la derecha. */
+.reservation-card-toggle[aria-pressed] .reservation-card-chevron {
+  transform: rotate(-90deg);
+}
+
+/* Cabecera del detalle: la misma que la de la tarjeta, sin ser un botón. */
+.reservation-card-heading,
+.reservation-card-heading:hover {
+  background: var(--color-page);
+  cursor: default;
+}
+
 .reservation-section-header {
   display: flex;
   gap: var(--space-sm);
