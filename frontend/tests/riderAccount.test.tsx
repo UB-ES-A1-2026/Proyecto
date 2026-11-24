@@ -93,7 +93,10 @@ describe('rider pendiente (US-10.03)', () => {
     const { router } = renderRoute('/');
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/trabajos'));
-    expect(screen.getByRole('heading', { level: 1, name: 'Trabajos' })).toBeInTheDocument();
+    // El router cambia la URL antes de que React pinte la página nueva: hay que esperar al título,
+    // no buscarlo justo después. Si no, falla cuando el CI va lento (bug #428). Generado con
+    // asistencia de IA (Claude), pendiente de revisión.
+    expect(await screen.findByRole('heading', { level: 1, name: 'Trabajos' })).toBeInTheDocument();
     const stored = JSON.parse(localStorage.getItem('rentit.session') ?? '{}');
     expect(stored.user.riderStatus).toBe('approved');
   });
