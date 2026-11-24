@@ -7,6 +7,7 @@ Estrategia de pruebas, convenciones de los tests end-to-end y casos de prueba de
 - **Relacionado:** [README · Tests](../README.md#tests) (cómo ejecutarlos), [CONTRIBUTING.md](../CONTRIBUTING.md) (Definition of Done)
 
 > Generado con asistencia de IA (Claude) – revisado por Francesc Curto, 20/10/2026.
+> Casos de prueba puestos al día con el flujo del Sprint 2 y casos de US-08.02 (#426): generado con asistencia de IA (Claude) – revisado por Alex Matos, 24/11/2026.
 
 ## 1. Estrategia
 
@@ -181,7 +182,7 @@ Solicitudes del seed (`DEMO_RESERVATIONS` en `backend/prisma/demoData.ts`, #210)
 |---|---|---|---|---|---|
 | CP-MSO-01 | 1. La lista muestra objeto, fechas y estado | Sesión de bruno | 1. Pulsar «Mis solicitudes» en la cabecera | En «Enviadas» sale la escalera, con sus fechas y «Aceptada» | `mis-solicitudes.spec.ts` · criterio 1 |
 | CP-MSO-02 | 2. Estados «Pendiente», «Aceptada» y «Rechazada» | Sesión de ana | 1. Ir a «Mis solicitudes» | Proyector «Pendiente» y altavoz «Rechazada» en «Enviadas», y escalera «Aceptada» en «Recibidas» | `mis-solicitudes.spec.ts` · criterio 2 |
-| CP-MSO-03 | 3. Abrir el detalle | Sesión de ana | 1. Pulsar la solicitud del proyector | Se despliega con el enlace al objeto, «Fecha: …» (es de un solo día), «Importe total: 12,00 €», «Estado: Pendiente» y «Propietario: bruno» | `mis-solicitudes.spec.ts` · criterio 3 |
+| CP-MSO-03 | 3. Abrir el detalle | Sesión de ana | 1. Pulsar la solicitud del proyector | Se despliega con el enlace al objeto, «Fecha: …» (es de un solo día), «Alquiler: 12,00 € · Entrega: … · Total: …», «Entrega por rider · …», «Estado: Pendiente» y «Propietario: bruno» | `mis-solicitudes.spec.ts` · criterio 3 |
 | CP-MSO-04 | 4. Sin solicitudes | Usuario recién registrado | 1. Ir a «Mis solicitudes» | «No tienes solicitudes abiertas» en «Enviadas» y «Todavía no has recibido solicitudes.» en «Recibidas» | `mis-solicitudes.spec.ts` · criterio 4 |
 | CP-MSO-05 | (Recibidas) El propietario ve las que le llegan | Sesión de ana | 1. Abrir la solicitud de la escalera en «Recibidas» | Sale «Solicitada por: bruno», y la escalera no aparece en «Enviadas» | `mis-solicitudes.spec.ts` · recibidas |
 | CP-MSO-06 | (Acceso) Sin sesión | Sin sesión | 1. Ir a `/mis-solicitudes` | Se redirige a `/login` | `mis-solicitudes.spec.ts` · acceso |
@@ -198,8 +199,8 @@ bruno solicita el «Cortacésped eléctrico» de ana (9 €/día). Las fechas so
 | CP-SOL-02 | 1. El fin no puede ser anterior al inicio | Como CP-SOL-01 | 1. Escribir un fin anterior al inicio (en el calendario no se puede) | «La fecha de fin no puede ser anterior a la fecha de inicio.» y «Solicitar alquiler» desactivado | `solicitar-alquiler.spec.ts` · criterio 1 |
 | CP-SOL-03 | 2. Se muestra el precio del periodo | Como CP-SOL-01 | 1. Elegir 3 días | «3 días × 9,00 € = 27,00 €» (las dos fechas cuentan) | `solicitar-alquiler.spec.ts` · criterio 2 |
 | CP-SOL-04 | 3. Con fechas disponibles se puede solicitar | Como CP-SOL-01 | 1. Fechas libres del cortacésped 2. Fechas de la escalera dentro de 13 y 14 días | En el paso 1, «Solicitar alquiler» está activo. En el 2 sale «El objeto no está disponible en esas fechas.» y el botón está desactivado | `solicitar-alquiler.spec.ts` · criterio 3 |
-| CP-SOL-05 | 4. Resumen antes de enviar | Fechas libres | 1. «Solicitar alquiler» | En el mismo panel y la misma URL, «Revisa tu solicitud» con el objeto, «Desde», «Hasta», «Importe del alquiler (3 días)», 27,00 €, «Volver» y «Confirmar». Todavía no se ha creado ninguna solicitud | `solicitar-alquiler.spec.ts` · criterio 4 |
-| CP-SOL-06 | 5. Confirmar crea la solicitud «Pendiente» | CP-SOL-05 | 1. «Confirmar» | Se va a «Mis solicitudes» y en «Enviadas» sale el cortacésped «Pendiente». bruno tiene una solicitud enviada más | `solicitar-alquiler.spec.ts` · criterio 5 |
+| CP-SOL-05 | 4. Resumen antes de enviar | Fechas libres | 1. «Solicitar alquiler» 2. Elegir «Recoger en casa del propietario» › «Continuar» | Se abre la página «Confirmar y pagar» (`/objetos/<id>/solicitar?inicio=…&fin=…`, US-07.01). En «Tu solicitud»: el objeto, «Desde», «Hasta», «Importe del alquiler (3 días)», 27,00 € como total y «Total con fianza 87,00 €» aparte. Sale «Bloquearemos 27,00 € en tu tarjeta…», el formulario de tarjeta, «Volver a Cortacésped eléctrico» y «Confirmar y enviar solicitud». Todavía no se ha creado ninguna solicitud | `solicitar-alquiler.spec.ts` · criterio 4 |
+| CP-SOL-06 | 5. Confirmar crea la solicitud «Pendiente» | CP-SOL-05 | 1. Tarjeta `4242 4242 4242 4242`, caducidad `12/30`, CVC `123` 2. «Confirmar y enviar solicitud» | Se va a «Mis solicitudes» y en «Enviadas» sale el cortacésped «Pendiente». bruno tiene una solicitud enviada más | `solicitar-alquiler.spec.ts` · criterio 5 |
 | CP-SOL-07 | (Permisos) No se puede alquilar un objeto propio | Sesión de ana | 1. Abrir la ficha del cortacésped 2. `POST /api/reservas` con el token de ana | «Este anuncio es tuyo.», sin botón «Alquilar» ni fechas, y la API responde `403` | `solicitar-alquiler.spec.ts` · permisos |
 
 ### US-02.04 Pausar un objeto (#53) · S1-T35 (#173)
@@ -232,7 +233,7 @@ Solicitudes del seed (#210). bruno ha pedido a ana el taladro (pendiente: se ace
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
 | CP-ACE-01 | 1. El propietario ve objeto, quién lo pide, fechas y estado | Sesión de bruno | 1. «Mis solicitudes» 2. Abrir el proyector en «Recibidas» | Se ven el enlace al objeto, «Solicitada por: ana», las fechas, «Estado: Pendiente» y el botón «Aceptar» | `aceptar-solicitud.spec.ts` · criterio 1 |
-| CP-ACE-02 | 2. Aceptar una solicitud «Pendiente» | Sesión de ana | 1. Abrir el taladro en «Recibidas» 2. Pulsar «Aceptar» | Sale «Has aceptado la solicitud.» y pasa a «Aceptada». bruno la ve «Aceptada» en «Enviadas» | `aceptar-solicitud.spec.ts` · criterio 2 |
+| CP-ACE-02 | 2. Aceptar una solicitud «Pendiente» | Sesión de ana | 1. Abrir el taladro en «Recibidas» 2. Pulsar «Aceptar» | Sale «Has aceptado la solicitud. Se ha cobrado el alquiler.» y pasa a «Pagada» (US-07.01: al aceptar se cobra lo bloqueado). bruno la ve «Pagada» en «Enviadas» | `aceptar-solicitud.spec.ts` · criterio 2 |
 | CP-ACE-03 | 3. Una aceptada no se puede volver a aceptar ni rechazar | Sesión de ana | 1. Abrir la escalera (aceptada) 2. Llamar a `POST /api/reservas/:id/aceptar` y `/rechazar` | No hay botones. La API responde `409` y sigue «Aceptada» | `aceptar-solicitud.spec.ts` · criterio 3 |
 | CP-ACE-04 | (Permisos) Solo el propietario acepta | — | 1. `POST /api/reservas/<id del carro>/aceptar` con el token de bruno | `403`, y la solicitud sigue «Pendiente» | `aceptar-solicitud.spec.ts` · permisos |
 
@@ -361,7 +362,7 @@ Antes de cada ejecución, vuelve a ejecutar `npm run db:seed` en `backend/`: los
 | CP-ENT-09 | 4. La dirección del propietario depende del estado | Sesión de bruno | 1. Solicitar el Cortacésped con fechas únicas 2. Abrir la solicitud pendiente 3. Abrir la Escalera aceptada del seed 4. Consultar el objeto del Cortacésped por API | La pendiente solo muestra el aviso de dirección; la aceptada muestra la dirección de ana; la API del Cortacésped no expone la dirección | `modo-entrega.spec.ts` · criterio 4 |
 | CP-ENT-10 | 5. Elegir punto de recogida | Sesión de bruno; Silla | 1. Elegir «Punto de recogida» 2. Continuar sin elegir punto 3. Elegir uno, continuar y pagar con `4242 4242 4242 4242` en «Confirmar y pagar» | Se muestran varios puntos; sin elección sale «Elige un punto de recogida.»; el seleccionado aparece en el resumen y en la tarjeta | `modo-entrega.spec.ts` · criterio 5 |
 | CP-ENT-11 | 6. El propietario ve la solicitud rider sin la dirección de entrega | Sesión de ana; Taladro del seed | 1. Abrir la solicitud recibida | Se ven «Entrega por rider», la hora, el coste y el barrio Poblenou; no se ve la dirección de entrega | `modo-entrega.spec.ts` · criterio 6 |
-| — | Lo ve el rider (US-10.01) | Sesión del rider | Pendiente de la historia US-10.01 | **Pendiente** | Fuera del alcance de US-05.01 |
+| — | Lo ve el rider (US-10.01) | Sesión del rider | Ver CP-TRA-02 | El rider ve el modo, la franja y los barrios en «Trabajos» | `trabajos-rider.spec.ts` |
 
 ### US-08.01 Valorar un alquiler (#74) · S2-T22 (#297)
 
@@ -372,13 +373,22 @@ Datos del seed: ana tiene una solicitud finalizada y sin valorar de la «Máquin
 | CP-VAL-01 | 1, 2 y 3. Abrir el formulario, elegir estrellas y cancelar | Sesión de ana; seed cargado | 1. Abrir la tarjeta de la «Máquina de palomitas» en «Enviadas» 2. Pulsar «Valorar» 3. Elegir 4 estrellas 4. Pulsar «Cancelar» | Se muestra «Valorar el alquiler», las 5 puntuaciones y el comentario; queda marcada «4 estrellas: Bien». Se vuelve a `/mis-solicitudes` y la solicitud sigue sin `myRating` | `valorar-alquiler.spec.ts` · criterios 1–3 |
 | CP-VAL-02 | 4 y 5. Publicar sin puntuación | Sesión de ana; valoración sin publicar | 1. Abrir la valoración de la palomitas 2. Escribir un comentario 3. Pulsar «Publicar» sin estrellas | No se publica; se muestra «Elige una puntuación de 1 a 5 estrellas.», el grupo tiene `aria-invalid="true"`, el foco queda en la primera estrella y la API sigue sin `myRating` | `valorar-alquiler.spec.ts` · criterios 4–5 |
 | CP-VAL-03 | 5. La API valida puntuación y comentario | Solicitud finalizada de ana, sin valorar | 1. Enviar `POST /api/reservas/<id>/valoracion` sin `score` 2. Enviar un comentario de 1001 caracteres | Ambas peticiones responden `400`, con `field: "score"` y `field: "comment"` respectivamente; no se crea `myRating` | `valorar-alquiler.spec.ts` · criterio 5 (API) |
-| CP-VAL-04 | 7. Solo quien pidió el alquiler puede valorar | Sesión de bruno; solicitud finalizada que pidió ana | 1. Abrir la palomitas en «Recibidas» 2. Intentar valorar por la API con el token de bruno | No aparece el enlace «Valorar»; la API responde `403` con «Solo quien ha alquilado el objeto puede valorar este alquiler.» | `valorar-alquiler.spec.ts` · criterio 7 |
+| CP-VAL-04 | 7. Solo las dos personas del alquiler pueden valorar | Sesión de bruno; solicitud finalizada que pidió ana | 1. Abrir la palomitas en «Recibidas» 2. Valorar por la API con el token de dani, que no participa | bruno (propietario) ve «Valorar a ana» (US-08.02); la API responde a dani `403` con «Solo quien ha participado en este alquiler puede valorarlo.» | `valorar-alquiler.spec.ts` · criterio 7 |
 | CP-VAL-05 | Solo se puede valorar un alquiler finalizado | Sesión de ana; solicitud pendiente del proyector | 1. Abrir el proyector en «Enviadas» 2. Ir a su ruta de valoración 3. Enviar la valoración por la API | No aparece el enlace «Valorar» y se muestra «Solo se puede valorar un alquiler finalizado.»; la API responde `409` con ese mismo error | `valorar-alquiler.spec.ts` · estado no finalizado |
 | CP-VAL-06 | 6 y 8. Publicar y evitar una valoración duplicada | Sesión de ana; solicitud finalizada de la palomitas, sin valorar | 1. Elegir 4 estrellas, escribir un comentario único y publicar 2. Reabrir la ruta y enviar otro `POST` | Se muestra «Valoración publicada.» y la tarjeta muestra «Tu valoración», «4 de 5 estrellas» y el comentario entre «»; `myRating` contiene la puntuación y el comentario. Ya no hay enlace ni botón «Publicar»; el acceso directo avisa «Ya has valorado este alquiler.» y el segundo `POST` responde `409` con ese error. **Cambia la BD** | `valorar-alquiler.spec.ts` · criterios 6 y 8 |
 
+### US-08.02 Valorar un usuario (#75) · S2-T24 (#299)
+
+Datos del seed: los mismos que en US-08.01. bruno es el propietario de la «Máquina de palomitas», alquilada por ana y «Finalizada». CP-VUS-01 publica una valoración y cambia la BD; en local, ejecuta `npm run db:seed` en `backend/` antes de repetirlo.
+
+| ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
+|---|---|---|---|---|---|
+| CP-VUS-01 | 1 a 7. El propietario valora al inquilino | Sesión de bruno; palomitas «Finalizada» y sin valorar por bruno | 1. «Mis solicitudes» › abrir la palomitas en «Recibidas» › «Valorar a ana» 2. Escribir en «¿Cómo ha dejado el objeto?» y pulsar «Publicar» sin estrellas 3. Elegir 5 estrellas y «Publicar» 4. Entrar como ana y abrir la palomitas en «Enviadas» 5. bruno vuelve a enviar `POST /api/reservas/<id>/valoracion` | 1: se va a `/mis-solicitudes/<id>/valorar` con «Valorar a ana». 2: «Elige una puntuación de 1 a 5 estrellas.» y no se publica. 3: vuelve a `/mis-solicitudes` con «Valoración publicada.»; la tarjeta muestra «Tu valoración» y el comentario entre «», y ya no sale «Valorar a ana». 4: ana ve «Valoración recibida» con «5 de 5 estrellas» y el comentario. 5: `409` «Ya has valorado este alquiler.». **Cambia la BD** | `valorar-alquiler.spec.ts` · US-08.02 |
+| CP-VUS-02 | (Error) Nadie de fuera puede valorar | Alquiler finalizado de la palomitas | Ver CP-VAL-04 | `403` «Solo quien ha participado en este alquiler puede valorarlo.» | `valorar-alquiler.spec.ts` · criterio 7 |
+
 ### US-05.02 Seguimiento del estado de la entrega (#67) · S2-T16 (#291)
 
-Datos del seed: la «Hidrolimpiadora Kärcher» de ana, alquilada por bruno, va con rider y dani ya asignado; el «Cortacésped eléctrico» de ana, alquilado por bruno, se recoge en el domicilio del propietario; la «Bicicleta de montaña talla M» de bruno, alquilada por ana, se recoge en un punto de recogida. CP-SEG-04 a 08 avanzan esas entregas: van en orden, sin reintentos, y antes de repetirlos hay que volver a ejecutar `npm run db:seed`. El botón «Valorar» del alquiler finalizado se probará cuando US-08.01 y US-08.02 estén en develop (decisión de Marc).
+Datos del seed: la «Hidrolimpiadora Kärcher» de ana, alquilada por bruno, va con rider y dani ya asignado; el «Cortacésped eléctrico» de ana, alquilado por bruno, se recoge en el domicilio del propietario; la «Bicicleta de montaña talla M» de bruno, alquilada por ana, se recoge en un punto de recogida. CP-SEG-04 a 08 avanzan esas entregas: van en orden, sin reintentos, y antes de repetirlos hay que volver a ejecutar `npm run db:seed`. El enlace para valorar el alquiler finalizado lo prueban los e2e de US-08.01 y US-08.02 (`valorar-alquiler.spec.ts`).
 
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
@@ -390,7 +400,7 @@ Datos del seed: la «Hidrolimpiadora Kärcher» de ana, alquilada por bruno, va 
 | CP-SEG-06 | 5. Devolver el objeto | Hidrolimpiadora «En curso»; sesión de bruno | 1. «He devuelto el objeto» › «Sí, lo he devuelto» | Sale «Alquiler finalizado.», «Finalizada» con su hora y la tarjeta de «Mis solicitudes» en «Finalizada» | `seguimiento-entrega.spec.ts` · devolución |
 | CP-SEG-07 | 4. Sin rider: «Ya tengo el objeto» | Cortacésped (domicilio); sesión de bruno | 1. «Ya tengo el objeto» › «Cancelar» 2. Otra vez › «Sí, ya lo tengo» 3. «He devuelto el objeto» › «Sí, lo he devuelto» | «He devuelto el objeto» no sale antes de tiempo. 1: no cambia nada. 2: pasa a «En curso». 3: «Alquiler finalizado.» | `seguimiento-entrega.spec.ts` · domicilio |
 | CP-SEG-08 | 4 y 2. Punto de recogida | Bicicleta; bruno (propietario) con el seguimiento abierto; sesión de ana | 1. ana pulsa «Ya tengo el objeto» › «Sí, ya lo tengo» | bruno no tiene ese botón; pasa a «En curso» y bruno lo ve sin recargar | `seguimiento-entrega.spec.ts` · punto de recogida |
-| — | 5. «Valorar» al finalizar | US-08.01 y US-08.02 en develop | Pendiente: el botón está oculto hasta entonces | **Pendiente** | Cuando entren US-08.01 y US-08.02 |
+| — | 5. Valorar al finalizar | Alquiler «Finalizada» (la palomitas del seed) | Ver CP-VAL-01 (arrendatario, «Valorar») y CP-VUS-01 (propietario, «Valorar a <usuario>») | Sale el enlace para valorar | `valorar-alquiler.spec.ts` |
 
 ### US-11.03 Aceptar o rechazar solicitudes de rider (#305) · S2-T39 (#319)
 
@@ -486,5 +496,6 @@ En local: `node .github/scripts/bugs.mjs informe` (con `gh` autenticado).
 
 ## 6. Pendiente
 
-- **Smoke test en el CI:** el workflow de GitHub Actions que arranca PostgreSQL, el backend y el frontend y ejecuta `npm run test:smoke`. Se coordina con el CI general (#19, Kai). En el CI conviene servir el frontend compilado (`npm run build` + `npm run preview`) en lugar de `npm run dev`, para evitar la espera de la primera carga de Vite.
-- **E2E del perfil:** «Mi perfil» es el perfil público propio (US-01.4, `/usuarios/:id`; `/perfil` redirige a él). Tiene tests unitarios, pero aún no un test e2e propio de editar la foto y la bio (el perfil está cubierto indirectamente por el criterio 2 del login y el 5 del logout).
+Nada por ahora (24/11/2026):
+- **Smoke test en el CI:** ya se ejecuta. El job «Smoke test (preproducción)» de `.github/workflows/deploy-backend.yml` lanza `npm run test:smoke` contra preproducción después de cada despliegue de `staging` (US-12.03, T5 #280).
+- **E2E del perfil:** ya existe. `perfil-publico.spec.ts` prueba editar la bio y la foto (CP-PER-06 a CP-PER-09).
