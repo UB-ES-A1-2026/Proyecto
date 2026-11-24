@@ -189,12 +189,12 @@ Solicitudes del seed (`DEMO_RESERVATIONS` en `backend/prisma/demoData.ts`, #210)
 
 ### US-04.01 Solicitar un alquiler (#60) · S1-T21 (#122)
 
-bruno solicita el «Cortacésped eléctrico» de ana (9 €/día). Las fechas son aleatorias, dentro de 1 a 2 años, para poder repetir los tests. La «Escalera de aluminio» de ana tiene en el seed (#210) una solicitud aceptada para dentro de 14 y 15 días, así que esas fechas están ocupadas. Todo el flujo ocurre en el panel lateral de la ficha, sin cambiar de pantalla.
+bruno solicita el «Cortacésped eléctrico» de ana (9 €/día). Las fechas son aleatorias, dentro de 1 a 2 años, para poder repetir los tests. La «Escalera de aluminio» de ana tiene en el seed (#210) una solicitud aceptada para dentro de 14 y 15 días, así que esas fechas están ocupadas. Las fechas se eligen en el panel lateral de la ficha; el resumen y el pago están en la página «Confirmar y pagar» (US-07.01).
 
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
 | CP-SOL-01 | 1. Elegir fechas de inicio y fin | Sesión de bruno | 1. Buscar `cortacésped` y abrir la ficha 2. Escribir inicio y fin en el panel, con formato `dd/mm/aaaa` | Quedan las dos fechas elegidas, sin error | `solicitar-alquiler.spec.ts` · criterio 1 |
-| CP-SOL-01b | 1. Elegir fechas en el calendario | Como CP-SOL-01 | 1. Avanzar con «Mes siguiente» 2. Pulsar el día 10 3. Pulsar el día 12 4. «Solicitar alquiler» 5. «Volver» | Los campos muestran las fechas pulsadas y el 11 queda dentro del rango, con el precio de 3 días. El resumen las enseña y «Volver» las conserva | `solicitar-alquiler.spec.ts` · criterio 1 |
+| CP-SOL-01b | 1. Elegir fechas en el calendario | Como CP-SOL-01 | 1. Avanzar con «Mes siguiente» 2. Pulsar el día 10 3. Pulsar el día 12 4. «Solicitar alquiler» › «Recoger en casa del propietario» › «Continuar» 5. Volver con «Atrás» del navegador | Los campos muestran las fechas pulsadas y el 11 queda dentro del rango, con el precio de 3 días. «Tu solicitud» en «Confirmar y pagar» las enseña y al volver con «Atrás» se conservan | `solicitar-alquiler.spec.ts` · criterio 1 |
 | CP-SOL-01c | 1. Los días pasados no se pueden elegir | Como CP-SOL-01 | 1. Mirar el mes actual en el calendario | Hoy se puede pulsar; ayer (si es del mismo mes) está desactivado, y «Mes anterior» también | `solicitar-alquiler.spec.ts` · criterio 1 |
 | CP-SOL-02 | 1. El fin no puede ser anterior al inicio | Como CP-SOL-01 | 1. Escribir un fin anterior al inicio (en el calendario no se puede) | «La fecha de fin no puede ser anterior a la fecha de inicio.» y «Solicitar alquiler» desactivado | `solicitar-alquiler.spec.ts` · criterio 1 |
 | CP-SOL-03 | 2. Se muestra el precio del periodo | Como CP-SOL-01 | 1. Elegir 3 días | «3 días × 9,00 € = 27,00 €» (las dos fechas cuentan) | `solicitar-alquiler.spec.ts` · criterio 2 |
@@ -362,11 +362,11 @@ Antes de cada ejecución, vuelve a ejecutar `npm run db:seed` en `backend/`: los
 | CP-ENT-09 | 4. La dirección del propietario depende del estado | Sesión de bruno | 1. Solicitar el Cortacésped con fechas únicas 2. Abrir la solicitud pendiente 3. Abrir la Escalera aceptada del seed 4. Consultar el objeto del Cortacésped por API | La pendiente solo muestra el aviso de dirección; la aceptada muestra la dirección de ana; la API del Cortacésped no expone la dirección | `modo-entrega.spec.ts` · criterio 4 |
 | CP-ENT-10 | 5. Elegir punto de recogida | Sesión de bruno; Silla | 1. Elegir «Punto de recogida» 2. Continuar sin elegir punto 3. Elegir uno, continuar y pagar con `4242 4242 4242 4242` en «Confirmar y pagar» | Se muestran varios puntos; sin elección sale «Elige un punto de recogida.»; el seleccionado aparece en el resumen y en la tarjeta | `modo-entrega.spec.ts` · criterio 5 |
 | CP-ENT-11 | 6. El propietario ve la solicitud rider sin la dirección de entrega | Sesión de ana; Taladro del seed | 1. Abrir la solicitud recibida | Se ven «Entrega por rider», la hora, el coste y el barrio Poblenou; no se ve la dirección de entrega | `modo-entrega.spec.ts` · criterio 6 |
-| — | Lo ve el rider (US-10.01) | Sesión del rider | Ver CP-TRA-02 | El rider ve el modo, la franja y los barrios en «Trabajos» | `trabajos-rider.spec.ts` |
+| — | Lo ve el rider (US-10.01) | Sesión del rider | Ver CP-TRA-02 | El rider ve en «Trabajos» el objeto, los barrios de recogida y entrega, la franja y la tarifa, sin direcciones | `trabajos-rider.spec.ts` |
 
 ### US-08.01 Valorar un alquiler (#74) · S2-T22 (#297)
 
-Datos del seed: ana tiene una solicitud finalizada y sin valorar de la «Máquina de palomitas», alquilada a bruno, y una solicitud pendiente del «Proyector Full HD» de bruno. El último test cambia la BD al publicar una valoración; en local, ejecuta `npm run db:seed` en `backend/` antes de repetirlo.
+Datos del seed: ana tiene una solicitud finalizada y sin valorar de la «Máquina de palomitas» de bruno, y una solicitud pendiente del «Proyector Full HD» de bruno. Los tests que publican una valoración (CP-VAL-06 y CP-VUS-01) cambian la BD; en local, ejecuta `npm run db:seed` en `backend/` antes de repetirlo.
 
 | ID | Criterio | Precondición | Pasos | Resultado esperado | Test e2e |
 |---|---|---|---|---|---|
