@@ -145,3 +145,32 @@ test.describe('US-02.04 Pausar un objeto', () => {
     expect((await findItem(request, await apiToken(request, ANA))).status).toBe('published');
   });
 });
+
+// Lista y detalle en pantallas grandes (#391, decisión de Kai del 20/11): desde 1360 px, cada objeto
+// en una fila a la izquierda y el elegido, con sus acciones, a la derecha. Por debajo, las filas con
+// las acciones de los tests de arriba (el navegador de los e2e mide 1280 px). No cambia nada.
+test.describe('US-02.04 «Mis objetos» con lista y detalle (pantallas grandes)', () => {
+  test.use({ viewport: { width: 1600, height: 900 } });
+
+  test('al elegir un objeto, el detalle de la derecha tiene sus acciones y su anuncio', async ({
+    page,
+  }) => {
+    await login(page, ANA);
+    await openMyItems(page);
+
+    const detail = page.getByRole('region', { name: 'Objeto elegido' });
+    await expect(detail).toBeVisible();
+
+    const row = page.getByRole('button', { name: ITEM, exact: true });
+    await row.click();
+    await expect(row).toHaveAttribute('aria-pressed', 'true');
+    await expect(detail.getByRole('heading', { level: 2, name: ITEM })).toBeVisible();
+    await expect(detail.getByRole('button', { name: `Editar ${ITEM}` })).toBeVisible();
+    await expect(detail.getByRole('button', { name: new RegExp(`^(Pausar|Reanudar) ${ITEM}$`) })).toBeVisible();
+    await expect(detail.getByRole('button', { name: `Retirar anuncio ${ITEM}` })).toBeVisible();
+    await expect(detail.getByRole('link', { name: 'Ver el anuncio' })).toHaveAttribute(
+      'href',
+      /^\/objetos\/[0-9a-f-]{36}$/,
+    );
+  });
+});
