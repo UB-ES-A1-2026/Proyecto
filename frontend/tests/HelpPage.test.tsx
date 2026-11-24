@@ -69,6 +69,36 @@ describe('página de ayuda (#89)', () => {
     ]);
   });
 
+  // Bug #425: la ayuda tiene que cuadrar con lo que deja hacer la app.
+  it('«Editar un objeto» dice que se pueden cambiar el barrio, la entrega y la dirección', () => {
+    renderRoute('/ayuda');
+
+    const section = screen.getByRole('region', { name: 'Editar un objeto' });
+    expect(section).toHaveTextContent(
+      'el barrio, las formas de entrega o la dirección, o añade fotos.',
+    );
+    expect(section).toHaveTextContent('La categoría no se puede cambiar.');
+    expect(section).not.toHaveTextContent('no se pueden cambiar');
+  });
+
+  it('«Consultar tus solicitudes» nombra todos los estados de «Mis solicitudes»', () => {
+    renderRoute('/ayuda');
+
+    const section = screen.getByRole('region', { name: 'Consultar tus solicitudes' });
+    for (const status of [
+      'Pendiente',
+      'Aceptada',
+      'Pagada',
+      'En curso',
+      'Finalizada',
+      'Rechazada',
+      'Cancelada',
+      'Caducada',
+    ]) {
+      expect(section).toHaveTextContent(`«${status}»`);
+    }
+  });
+
   it('el índice enlaza a cada sección', () => {
     renderRoute('/ayuda');
 
