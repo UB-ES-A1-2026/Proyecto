@@ -3,8 +3,19 @@
 import type { Prisma, RiderApplicationStatus } from '@prisma/client';
 import { prisma } from './prisma.js';
 
+// Entregas hechas por el rider: las que ha dejado en «Entregada» (bug #430). Generado con
+// asistencia de IA (Claude), pendiente de revisión.
 const reviewInclude = {
-  user: { select: { id: true, username: true, email: true } },
+  user: {
+    select: {
+      id: true,
+      username: true,
+      email: true,
+      _count: {
+        select: { deliveries: { where: { status: 'delivered' } } },
+      },
+    },
+  },
   reviewedBy: { select: { id: true, username: true } },
 } as const;
 

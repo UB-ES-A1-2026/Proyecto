@@ -18,6 +18,8 @@ import {
   createTestUser,
   TEST_PASSWORD,
 } from '../helpers/users.js';
+import { createTestItem } from '../helpers/items.js';
+import { createTestReservation } from '../helpers/reservations.js';
 
 // Revisión de las solicitudes de rider por un admin (US-11.03, #317).
 
@@ -158,7 +160,7 @@ describe('GET /api/admin/riders', () => {
       reviewedAt: null,
       reviewedBy: null,
       rejectionReason: null,
-      // El recuento real llega con los trabajos del rider (T17).
+      // Sin entregas hechas (bug #430).
       deliveriesCount: 0,
     });
     expect(response.body[1].id).toBe((await applicationOf(newer.id)).id);
@@ -173,6 +175,57 @@ describe('GET /api/admin/riders', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual([]);
+  });
+
+  // Bug #430: «Entregas» del panel de admin valía siempre 0.
+  it('deliveriesCount cuenta las entregas que el rider ha dejado en «Entregada»', async () => {
+    const { token } = await adminToken();
+    const owner = await createTestUser();
+    const item = await createTestItem(owner.id, { riderDelivery: true });
+    const rider = await createTestRider('approved');
+    const other = await createTestRider('approved', {
+      username: 'otra',
+      email: 'otra@rentit.test',
+    });
+    const deliveries: { riderId: string; delivered: boolean }[] = [
+      { riderId: rider.id, delivered: true },
+      { riderId: rider.id, delivered: true },
+      // Asignada pero aún sin entregar: no cuenta.
+      { riderId: rider.id, delivered: false },
+      // De otro rider: no cuenta para este.
+      { riderId: other.id, delivered: true },
+    ];
+    for (const [index, { riderId, delivered }] of deliveries.entries()) {
+      const reservation = await createTestReservation(item.id, owner.id, {
+        startDate: `2026-12-${10 + index * 3}`,
+        endDate: `2026-12-${11 + index * 3}`,
+        status: 'paid',
+      });
+      await prisma.delivery.create({
+        data: {
+          reservationId: reservation.id,
+          riderId,
+          status: delivered ? 'delivered' : 'assigned',
+          assignedAt: new Date(),
+          deliveredAt: delivered ? new Date() : null,
+        },
+      });
+    }
+
+    const response = await list(token);
+
+    expect(response.status).toBe(200);
+    expect(
+      response.body.map(
+        ({
+          user,
+          deliveriesCount,
+        }: {
+          user: { username: string };
+          deliveriesCount: number;
+        }) => `${user.username}:${deliveriesCount}`,
+      ),
+    ).toEqual(['rider:2', 'otra:1']);
   });
 
   it('filtra por estado y ordena las resueltas por fecha de revisión descendente', async () => {

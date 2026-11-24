@@ -19,7 +19,7 @@ export interface RiderApplicationReview {
   reviewedAt: Date | null;
   reviewedBy: { id: string; username: string } | null;
   rejectionReason: string | null;
-  // Entregas hechas por el rider. Por ahora siempre 0: el recuento real llega con las entregas (T17).
+  // Entregas hechas por el rider: las que ha dejado en «Entregada» (bug #430).
   deliveriesCount: number;
 }
 
@@ -28,7 +28,11 @@ export function toRiderApplicationReview(
 ): RiderApplicationReview {
   return {
     id: row.id,
-    user: row.user,
+    user: {
+      id: row.user.id,
+      username: row.user.username,
+      email: row.user.email,
+    },
     phone: row.phone,
     zone: row.zone,
     vehicle: row.vehicle,
@@ -40,6 +44,6 @@ export function toRiderApplicationReview(
     reviewedAt: row.reviewedAt,
     reviewedBy: row.reviewedBy,
     rejectionReason: row.rejectionReason,
-    deliveriesCount: 0,
+    deliveriesCount: row.user._count.deliveries,
   };
 }

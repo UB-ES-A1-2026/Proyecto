@@ -452,5 +452,47 @@ test.describe('US-04.05 Cancelar una reserva con penalización', () => {
         /^La canceló ana el .+\. Te hemos devuelto todo lo que pagaste \(15,00\s€\)\. La compensación por las molestias, 15,00\s€ \(100\s%\), queda registrada a cargo de ana; de momento no se cobra\.$/,
       );
     });
+
+    // Desde 1360 px, «Mis solicitudes» es lista y detalle (US-04.02): se cancela desde el detalle
+    // de la elegida (S2-T50).
+    test.describe('en pantallas grandes', () => {
+      test.use({ viewport: { width: 1600, height: 900 } });
+
+      test('bruno cancela desde el detalle: la fila pasa a «Cancelada» y el detalle dice cuánto', async ({
+        page,
+        request,
+      }) => {
+        const { id } = await paidPaddleTomorrow(request);
+
+        await login(page, BRUNO);
+        await page.goto('/mis-solicitudes');
+        const detail = page.getByRole('region', { name: 'Solicitud elegida' });
+        const deliveryLink = detail.locator(`a[href="/entregas/${id}"]`);
+        const row = cards(page, 'Enviadas', PADDLE, 'Pagada');
+        await expect(row.first()).toBeVisible();
+        // Puede haber otra tabla de paddle pagada: se elige la de mañana por su enlace a la entrega.
+        for (const candidate of await row.all()) {
+          await candidate.locator('.reservation-card-toggle').click();
+          if ((await deliveryLink.count()) > 0) break;
+        }
+        await expect(deliveryLink).toBeVisible();
+
+        const dialog = await openCancelDialog(detail, 'Cancelar reserva');
+        await expect(dialog.locator('.cancel-summary')).toContainText('100');
+        await dialog.getByRole('button', { name: 'Cancelar reserva' }).click();
+        await expect(dialog).toBeHidden();
+
+        // La fila elegida es la cancelada: puede haber otras canceladas con las mismas fechas.
+        await expect(
+          page
+            .getByRole('region', { name: 'Enviadas' })
+            .locator('.reservation-card.is-selected .reservation-card-status'),
+        ).toHaveText('Cancelada');
+        await expect(justCancelledLine(page)).toHaveText(/^La cancelaste tú el .+\./);
+        await expect(detail.getByRole('button', { name: 'Cancelar reserva' })).toHaveCount(0);
+        const { sent } = await myReservations(request, BRUNO);
+        expect(sent.find((candidate) => candidate.id === id)?.status).toBe('cancelled');
+      });
+    });
   });
 });
