@@ -63,7 +63,7 @@ describe('POST /api/objetos (US-02.01, #14)', () => {
       homeDelivery: true,
       riderDelivery: false,
       pickupPointDelivery: true,
-      owner: { id: ana.id, username: 'ana' },
+      owner: { id: ana.id, username: 'ana', photo: null },
       createdAt: expect.any(String),
     });
     expect(JSON.stringify(response.body)).not.toContain('ana@rentit.test');

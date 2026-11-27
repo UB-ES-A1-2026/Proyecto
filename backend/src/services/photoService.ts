@@ -241,6 +241,13 @@ export async function listItemPhotos(itemId: string): Promise<ItemPhotoView[]> {
   );
 }
 
+// URL de lectura de una foto de perfil (US-01.4), o null si no tiene o no hay almacenamiento. La
+// usan el perfil público y la ficha de un objeto (US-03.05). Generado con asistencia de IA
+// (Claude), pendiente de revisión.
+export async function userPhotoUrl(key: string | null): Promise<string | null> {
+  return key && isStorageConfigured() ? createViewUrl(key) : null;
+}
+
 // URL de la primera foto de cada objeto, para la búsqueda. Sin almacenamiento configurado, vacío.
 export async function listFirstPhotoUrls(
   itemIds: string[],

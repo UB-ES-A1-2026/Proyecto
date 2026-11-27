@@ -5,7 +5,8 @@ import type { Prisma } from '@prisma/client';
 
 export const itemDetailInclude = {
   category: { select: { id: true, name: true } },
-  owner: { select: { id: true, username: true } },
+  // photoUrl es la clave de su foto de perfil: la ficha la enseña junto a su nombre (US-03.05).
+  owner: { select: { id: true, username: true, photoUrl: true } },
 } satisfies Prisma.ItemInclude;
 
 export type ItemWithDetail = Prisma.ItemGetPayload<{

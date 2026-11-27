@@ -4,11 +4,7 @@ import {
   findPublicProfile,
   updateBio,
 } from '../repositories/profileRepository.js';
-import {
-  createViewUrl,
-  isStorageConfigured,
-} from '../repositories/photoStorage.js';
-import { listFirstPhotoUrls } from './photoService.js';
+import { listFirstPhotoUrls, userPhotoUrl } from './photoService.js';
 import { getUserRating } from './ratingService.js';
 
 const USER_NOT_FOUND = 'No hemos encontrado este usuario.';
@@ -37,10 +33,6 @@ export interface PublicProfile {
   isOwnProfile: boolean;
 }
 
-async function photoUrl(key: string | null): Promise<string | null> {
-  return key && isStorageConfigured() ? createViewUrl(key) : null;
-}
-
 // Perfil público de un usuario. `viewerId` es quien lo mira (undefined si no tiene sesión).
 export async function getPublicProfile(
   userId: string,
@@ -61,7 +53,7 @@ export async function getPublicProfile(
     id: user.id,
     username: user.username,
     bio: user.bio,
-    photo: await photoUrl(user.photoUrl),
+    photo: await userPhotoUrl(user.photoUrl),
     memberSince: user.createdAt.toISOString(),
     // Media de las valoraciones que ha recibido (US-08.02, #298).
     rating: await getUserRating(user.id),

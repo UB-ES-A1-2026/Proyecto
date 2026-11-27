@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>US-03.05 Ver la foto de quien publica en la ficha de un objeto · wireframe</title>
+    <link rel="stylesheet" href="../wireframe.css" />
+  </head>
+  <body>
+    <header class="wf-doc">
+      <h1>US-03.05 Ver la foto de quien publica en la ficha de un objeto</h1>
+      <p class="wf-historia">
+        Como <strong>persona que mira un objeto</strong>, quiero <strong>ver la foto de quien lo publica junto a su nombre</strong>
+        para <strong>saber con quién voy a tratar sin entrar en su perfil</strong>.
+      </p>
+      <p class="wf-meta">
+        Issue #453 · Tarea S3-T1 #440 · Wireframe de baja fidelidad · Generado con asistencia de IA (Claude), validado por Kai
+        el 24/11 (era la pantalla 10 del wireframe de US-01.4; pasa aquí al crearse esta historia, 27/11)
+      </p>
+      <p class="wf-meta">
+        Dónde ocurre: en la ficha de un objeto (<code>/objetos/:id</code>, «Ver un objeto», US-03.03), en la caja
+        «Publicado por». El nombre lleva al perfil público (US-01.4), donde ya se veía la foto.
+      </p>
+    </header>
+
+    <section class="wf-pantalla" data-captura="1-entrada-busqueda">
+      <h2><span class="wf-paso">1</span>Punto de entrada: un objeto en la portada o en la búsqueda <code>/</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <h4>Novedades</h4>
+            <div class="wf-rejilla">
+              <div class="wf-tarjeta">
+                <div class="wf-imagen"></div>
+                <p class="wf-texto"><strong>Carro de la compra plegable</strong> <span class="wf-marca">1</span></p>
+                <p class="wf-texto">2,00 € / día</p>
+                <p class="wf-texto">Gràcia · Otros</p>
+              </div>
+              <div class="wf-tarjeta">
+                <div class="wf-imagen"></div>
+                <p class="wf-texto"><strong>Tabla de paddle surf hinchable</strong></p>
+                <p class="wf-texto">15,00 € / día</p>
+                <p class="wf-texto">Sant Andreu · Deporte</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>Con sesión o sin ella, se abre la ficha de un objeto desde la portada, la búsqueda o un enlace. No cambia nada aquí.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en un objeto</p>
+
+    <section class="wf-pantalla" data-captura="2-ficha-con-foto">
+      <h2><span class="wf-paso">2</span>Ficha de un objeto: la foto de quien publica junto a su nombre <code>/objetos/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/objetos/3f2a…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-columnas">
+              <div>
+                <div class="wf-imagen"></div>
+                <p class="wf-texto"></p>
+                <h3 class="wf-h1">Carro de la compra plegable</h3>
+                <p class="wf-texto">Gràcia · Otros</p>
+                <p class="wf-texto"><strong>Descripción</strong><br />Carro de 6 ruedas para subir escaleras, con bolsa isotérmica de 40 litros.</p>
+                <p class="wf-texto"><strong>Formas de entrega</strong><br />Punto de recogida</p>
+                <div class="wf-tarjeta"><span class="wf-imagen" style="display:inline-block;min-height:0;width:44px;height:44px;border-radius:50%;vertical-align:middle"></span> Publicado por <u>ana</u><span class="wf-marca">1</span></div>
+                <p class="wf-ayuda">Sin foto de perfil:</p>
+                <div class="wf-tarjeta"><span class="wf-icono-ayuda" style="width:44px;height:44px;font-size:18px;vertical-align:middle">M</span> Publicado por <u>marta</u><span class="wf-marca">2</span></div>
+              </div>
+              <div class="wf-tarjeta">
+                <p class="wf-texto"><strong>2,00 € / día</strong> · Disponible<br />Sin fianza</p>
+                <span class="wf-boton wf-ancho">Alquilar</span>
+                <p class="wf-ayuda">Inicia sesión para elegir las fechas.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-movil">
+          <nav class="wf-nav"><span class="wf-logo">Rentit</span><span class="wf-icono-ayuda" title="Ayuda">?</span></nav>
+          <div class="wf-contenido">
+            <div class="wf-imagen"></div>
+            <h3 class="wf-h1">Carro de la compra plegable</h3>
+            <p class="wf-texto">Gràcia · Otros</p>
+            <div class="wf-tarjeta"><span class="wf-imagen" style="display:inline-block;min-height:0;width:44px;height:44px;border-radius:50%;vertical-align:middle"></span> Publicado por <u>ana</u></div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>
+          La caja «Publicado por» enseña la foto de perfil de quien publica, redonda como el icono de «Mi perfil» de la cabecera, y
+          del mismo tamaño que ahora (3rem). El nombre sigue siendo el enlace a su perfil; la foto es decorativa (sin texto
+          alternativo), porque el nombre ya está al lado.
+        </li>
+        <li>
+          Sin foto de perfil, la inicial del nombre, como ahora, pero en el mismo círculo. Es el mismo componente que el
+          perfil público: la foto o la inicial. Si la foto no carga (por ejemplo, porque su URL ha caducado), también
+          sale la inicial, nunca una imagen rota.
+        </li>
+        <li>El correo de quien publica nunca sale, ni en la página ni en la respuesta de la API.</li>
+      </ol>
+    </section>
+
+    <p class="wf-flecha">Clic en el nombre de quien publica</p>
+
+    <section class="wf-pantalla" data-captura="3-destino-perfil">
+      <h2><span class="wf-paso">3</span>Destino: su perfil público, como antes (US-01.4) <code>/usuarios/:id</code></h2>
+      <div class="wf-dispositivos">
+        <div class="wf-escritorio" data-url="rentit.app/usuarios/8c1d…">
+          <nav class="wf-nav">
+            <span class="wf-logo">Rentit</span>
+            <span class="wf-enlaces"><span class="wf-enlace">Iniciar sesión</span><span class="wf-enlace">Crear cuenta</span><span class="wf-icono-ayuda" title="Ayuda">?</span></span>
+          </nav>
+          <div class="wf-contenido">
+            <div class="wf-tarjeta">
+              <div class="wf-columnas wf-panel-izquierda">
+                <div class="wf-imagen"></div>
+                <div>
+                  <h3 class="wf-h1">ana</h3>
+                  <p class="wf-ayuda">Miembro desde 12 de octubre de 2026</p>
+                  <p class="wf-texto">★ Valoración media: 4,5 de 5 · 8 valoraciones</p>
+                </div>
+              </div>
+            </div>
+            <div class="wf-lineas"><span></span><span></span></div>
+          </div>
+        </div>
+      </div>
+      <ol class="wf-notas">
+        <li>El perfil no cambia con esta historia: es el de US-01.4, con la misma foto que ahora sale en la ficha.</li>
+      </ol>
+    </section>
+  </body>
+</html>
