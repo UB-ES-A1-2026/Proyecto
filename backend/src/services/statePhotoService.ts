@@ -19,6 +19,7 @@ import {
   findAllStatePhotos,
   findStatePhotoByKey,
   findStatePhotos,
+  phaseConfirmedWithout,
 } from '../repositories/statePhotoRepository.js';
 import { loadTracking } from './deliveryTrackingService.js';
 import {
@@ -221,6 +222,13 @@ export async function confirmStatePhotoUpload(
       key,
       order,
     });
+    // Si mientras tanto se han confirmado las fotos de la fase, esta llegaría tarde: se quedaría
+    // sin confirmar y ya no se podría quitar. Se deshace y se avisa (revisión de Kai en #459).
+    if (await phaseConfirmedWithout(reservationId, phase, photo.id)) {
+      await deleteUnconfirmedStatePhoto(photo.id, reservationId, phase);
+      await deleteStoredPhoto(key).catch(() => undefined);
+      throw new AppError(409, ALREADY_CONFIRMED_MESSAGE);
+    }
     return toView(photo);
   } catch (error) {
     // Dos confirmaciones a la vez: el índice único (reserva, fase, orden) para a la segunda.

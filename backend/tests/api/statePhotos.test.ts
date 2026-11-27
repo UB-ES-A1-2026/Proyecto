@@ -16,6 +16,8 @@ const bucket = vi.hoisted(() => ({
   configured: true,
   files: new Map<string, { contentType: string; bytes: Uint8Array }>(),
   deleted: [] as string[],
+  // Se ejecuta al comprobar los bytes de una foto: sirve para simular algo que pasa a la vez.
+  onRead: null as null | (() => Promise<unknown>),
 }));
 
 vi.mock('../../src/repositories/photoStorage.js', async () => {
@@ -46,8 +48,10 @@ vi.mock('../../src/repositories/photoStorage.js', async () => {
         ? { size: file.bytes.length, contentType: file.contentType }
         : null;
     },
-    readFirstBytes: async (key: string, count: number) =>
-      bucket.files.get(key)?.bytes.slice(0, count) ?? new Uint8Array(),
+    readFirstBytes: async (key: string, count: number) => {
+      await bucket.onRead?.();
+      return bucket.files.get(key)?.bytes.slice(0, count) ?? new Uint8Array();
+    },
     deleteStoredPhoto: async (key: string) => {
       bucket.files.delete(key);
       bucket.deleted.push(key);
@@ -64,6 +68,7 @@ beforeEach(async () => {
   bucket.configured = true;
   bucket.files.clear();
   bucket.deleted.length = 0;
+  bucket.onRead = null;
 });
 
 async function loginAs(email: string): Promise<string> {
@@ -347,6 +352,30 @@ describe('POST /api/entregas/:id/fotos/entrega', () => {
       error: 'La clave de la foto no es válida.',
       field: 'key',
     });
+  });
+
+  it('returns 409 and removes the photo if «Confirmar fotos» happens while it is being saved', async () => {
+    const { id, ownerToken } = await setUp();
+    await uploadPhoto(id, ownerToken);
+    // Mientras se comprueba la segunda foto, otra pestaña pulsa «Confirmar fotos».
+    bucket.onRead = () =>
+      prisma.statePhoto.updateMany({
+        where: { reservationId: id },
+        data: { confirmedAt: new Date() },
+      });
+
+    const response = await uploadPhoto(id, ownerToken);
+
+    expect(response.status).toBe(409);
+    expect(response.body).toEqual({
+      error: 'Las fotos ya están confirmadas y no se pueden cambiar.',
+    });
+    const saved = await prisma.statePhoto.findMany({
+      where: { reservationId: id },
+    });
+    expect(saved).toHaveLength(1);
+    expect(saved[0]!.confirmedAt).not.toBeNull();
+    expect(bucket.deleted).toHaveLength(1);
   });
 
   it('rejects and deletes a file that is not really an image', async () => {

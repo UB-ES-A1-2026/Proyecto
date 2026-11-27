@@ -75,3 +75,27 @@ export async function hasConfirmedStatePhotos(
   });
   return confirmed > 0;
 }
+
+// Si la fase tiene fotos confirmadas aparte de `photoId` y `photoId` sigue sin confirmar: la foto
+// se ha guardado justo después de «Confirmar fotos».
+export async function phaseConfirmedWithout(
+  reservationId: string,
+  phase: StatePhotoPhase,
+  photoId: string,
+): Promise<boolean> {
+  const [confirmed, self] = await Promise.all([
+    prisma.statePhoto.count({
+      where: {
+        reservationId,
+        phase,
+        id: { not: photoId },
+        confirmedAt: { not: null },
+      },
+    }),
+    prisma.statePhoto.findUnique({
+      where: { id: photoId },
+      select: { confirmedAt: true },
+    }),
+  ]);
+  return confirmed > 0 && self?.confirmedAt === null;
+}
