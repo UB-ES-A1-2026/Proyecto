@@ -280,7 +280,13 @@ async function upsertDemoReservation(
   renterId: string,
   reservation: Pick<
     DemoReservation,
-    'item' | 'delivery' | 'startInDays' | 'days' | 'status' | 'cancellation'
+    | 'item'
+    | 'delivery'
+    | 'startInDays'
+    | 'days'
+    | 'status'
+    | 'cancellation'
+    | 'deliveryPhotos'
   >,
   today: Date,
   cancelledById?: string,
@@ -331,6 +337,36 @@ async function upsertDemoReservation(
     update: delivery,
     create: { reservationId: id, ...delivery },
   });
+
+  // Fotos del estado antes de entregar (US-09.02, #454). Se rehacen en cada ejecución: las subidas
+  // al probar desaparecen y las del catálogo vuelven a estar confirmadas. Se usan las fotos del
+  // propio objeto (las sube el script de fotos de la demo al bucket), para que en la demo se vean imágenes
+  // reales; sin fotos del objeto (en local), una clave de ejemplo que sale sin imagen.
+  // Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 27/11/2026
+  await prisma.statePhoto.deleteMany({ where: { reservationId: id } });
+  if (reservation.deliveryPhotos) {
+    const itemPhotos = await prisma.itemPhoto.findMany({
+      where: { itemId: item.id },
+      orderBy: { order: 'asc' },
+      take: 2,
+      select: { key: true },
+    });
+    const keys = itemPhotos.length
+      ? itemPhotos.map(({ key }) => key)
+      : [`reservas/${id}/entrega/demo.jpg`];
+    await prisma.statePhoto.createMany({
+      data: keys.map((key, index) => ({
+        reservationId: id,
+        uploadedById: ownerId,
+        phase: 'delivery' as const,
+        key,
+        order: index + 1,
+        // Las subió el día antes de cargar el seed.
+        createdAt: new Date(today.getTime() - DAY_MS),
+        confirmedAt: new Date(today.getTime() - DAY_MS),
+      })),
+    });
+  }
 
   // Pagos (US-07.01, #72): la pendiente tiene el importe bloqueado («autorizado») y la pagada,
   // cobrado. Al repetir el seed se rehace el pago, por si se ha cambiado al probar. Las aceptadas

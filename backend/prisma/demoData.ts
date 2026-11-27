@@ -297,6 +297,10 @@ export interface DemoReservation {
   // Solo en las canceladas (US-04.05, #308): quién la canceló (índice de usuario) y la penalización
   // que se aplicó. Se guarda como una cancelación hecha por la API: con el pago reembolsado.
   cancellation?: { by: number; penaltyPercent: 0 | 35 | 100 };
+  // El propietario ya ha subido y confirmado las fotos del estado antes de entregar (US-09.02,
+  // #454): sin ellas, ni «Ya tengo el objeto» ni la recogida del rider funcionan. Las pagadas sin
+  // esta marca sirven para enseñar cómo se suben.
+  deliveryPhotos?: true;
 }
 
 export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
@@ -363,6 +367,7 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
     startInDays: 4,
     days: 2,
     status: 'paid',
+    deliveryPhotos: true,
   },
   // Finalizada y sin valorar (US-08.01, #295): ana puede valorarla en la demo.
   {
@@ -382,6 +387,7 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
     startInDays: 3,
     days: 2,
     status: 'paid',
+    deliveryPhotos: true,
   },
   // Pagada con rider y el rider de la demo ya asignado (US-05.02, #288): el rider avanza los pasos
   // y el arrendatario le enseña el código.
@@ -397,8 +403,11 @@ export const DEMO_RESERVATIONS: readonly DemoReservation[] = [
     startInDays: 2,
     days: 2,
     status: 'paid',
+    deliveryPhotos: true,
     riderAssigned: true,
   },
+  // Fotos del estado (US-09.02, #454): la tabla de paddle no tiene las fotos de la entrega, así que
+  // marta puede enseñar cómo se suben y se confirman antes de que se cancele en la demo de cancelar.
   // Cancelación (US-04.05, #308). Dos pagadas de jordi a marta (en local, de bruno a ana) que solo
   // usa cancelar, para no pisarse con los e2e del seguimiento (US-05.02), que hacen avanzar la bici
   // y la hidrolimpiadora, ni con el de retirar, que retira la «Máquina de palomitas». La tabla de
