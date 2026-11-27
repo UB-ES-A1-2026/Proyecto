@@ -131,6 +131,7 @@ describe('GET /api/entregas/:id', () => {
       returnedAt: null,
       rider: { id: rider.id, username: 'rita' },
       deliveryCode: CODE,
+      deliveryPhotosConfirmed: true,
     });
   });
 
@@ -393,6 +394,19 @@ function deliver(id: string, code: unknown, token: string) {
 }
 
 describe('fotos del estado obligatorias antes de entregar (US-09.02, #454)', () => {
+  it('tells the three of them whether the delivery photos are confirmed', async () => {
+    const { reservation, renterToken, ownerToken, riderToken } = await setUp(
+      'rider',
+      { photos: false },
+    );
+
+    for (const token of [renterToken, ownerToken, riderToken]) {
+      const response = await track(reservation.id, token);
+      expect(response.status).toBe(200);
+      expect(response.body.deliveryPhotosConfirmed).toBe(false);
+    }
+  });
+
   it('returns 409 when the rider picks it up before the owner confirms the photos', async () => {
     const { reservation, riderToken } = await setUp('rider', { photos: false });
 

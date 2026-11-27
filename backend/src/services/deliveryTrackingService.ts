@@ -95,6 +95,9 @@ export type DeliveryTracking = {
   returnedAt: Date | null;
   rider: { id: string; username: string } | null;
   deliveryCode: string | null;
+  // Si el propietario ya ha confirmado las fotos de la entrega (US-09.02, #454). Lo ven las tres
+  // personas: sin ellas, ni «Ya tengo el objeto» ni la recogida del rider funcionan.
+  deliveryPhotosConfirmed: boolean;
 };
 
 type TrackedReservation = NonNullable<
@@ -139,12 +142,15 @@ function toIsoDate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-function toTracking({
-  reservation,
-  delivery,
-  mode,
-  viewer,
-}: Awaited<ReturnType<typeof loadTracking>>): DeliveryTracking {
+function toTracking(
+  {
+    reservation,
+    delivery,
+    mode,
+    viewer,
+  }: Awaited<ReturnType<typeof loadTracking>>,
+  deliveryPhotosConfirmed: boolean,
+): DeliveryTracking {
   const steps = mode === 'rider' ? RIDER_STEPS : DIRECT_STEPS;
   const isRenter = viewer === 'renter';
   // El código solo lo ve el arrendatario, con rider y mientras no se haya usado.
@@ -175,6 +181,7 @@ function toTracking({
     returnedAt: delivery.returnedAt,
     rider: delivery.rider,
     deliveryCode: showsCode ? delivery.deliveryCode : null,
+    deliveryPhotosConfirmed,
   };
 }
 
@@ -183,7 +190,11 @@ export async function getDeliveryTracking(
   userId: string,
   reservationId: string,
 ): Promise<DeliveryTracking> {
-  return toTracking(await loadTracking(userId, reservationId));
+  const loaded = await loadTracking(userId, reservationId);
+  return toTracking(
+    loaded,
+    await hasConfirmedStatePhotos(reservationId, 'delivery'),
+  );
 }
 
 // El estado siguiente de cada uno con rider (#67): no se puede saltar ni volver atrás.
