@@ -105,6 +105,27 @@ describe('pantalla de detalle del objeto (US-03.03, #58)', () => {
     );
   });
 
+  // Criterio de US-03.05: si la foto no carga (por ejemplo, porque su URL ha caducado), sale la
+  // inicial y nunca una imagen rota. Generado con asistencia de IA (Claude), pendiente de revisión.
+  it('si la foto de quien publica no carga, enseña su inicial', async () => {
+    mockFetch(() =>
+      Response.json({
+        ...ITEM,
+        owner: { ...ITEM.owner, photo: 'https://ejemplo.test/caducada.jpg' },
+      }),
+    );
+
+    const { container } = renderRoute('/objetos/taladro-1');
+
+    const owner = await screen.findByRole('region', { name: 'Propietario' });
+    const photo = container.querySelector('.item-owner .user-avatar img');
+    expect(photo).toBeInTheDocument();
+    fireEvent.error(photo as Element);
+
+    expect(container.querySelector('.item-owner img')).not.toBeInTheDocument();
+    expect(owner).toHaveTextContent(/^APublicado por ana$/);
+  });
+
   it('sin foto de perfil, enseña la inicial de quien publica', async () => {
     mockFetch(() => Response.json(ITEM));
 
