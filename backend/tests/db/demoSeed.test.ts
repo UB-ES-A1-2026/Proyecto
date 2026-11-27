@@ -335,6 +335,51 @@ describe('solicitudes de la demo', () => {
     });
   });
 
+  it('las tres pagadas del seguimiento tienen confirmadas las fotos de la entrega y la tabla de paddle no (US-09.02)', async () => {
+    const userIds = await seedWithReservations();
+    const photosOf = async (title: string) => {
+      const reservation = await prisma.reservation.findFirstOrThrow({
+        where: { status: 'paid', item: { title } },
+        include: { statePhotos: true },
+      });
+      return { id: reservation.id, photos: reservation.statePhotos };
+    };
+
+    for (const title of [
+      'Bicicleta de montaña talla M',
+      'Cortacésped eléctrico',
+      'Hidrolimpiadora Kärcher',
+    ]) {
+      const { photos } = await photosOf(title);
+      expect(photos.length, title).toBeGreaterThan(0);
+      for (const photo of photos) {
+        expect(photo.phase).toBe('delivery');
+        expect(photo.confirmedAt).not.toBeNull();
+      }
+    }
+    const paddle = await photosOf('Tabla de paddle surf hinchable');
+    expect(paddle.photos).toEqual([]);
+
+    // Marta sube una foto a la tabla de paddle al probar la demo…
+    await prisma.statePhoto.create({
+      data: {
+        reservationId: paddle.id,
+        uploadedById: userIds[2]!,
+        phase: 'delivery',
+        key: `reservas/${paddle.id}/entrega/probando.jpg`,
+        order: 1,
+      },
+    });
+    // …y repetir el seed la quita y deja igual las demás.
+    await upsertDemoReservations(prisma, userIds, TODAY);
+    expect((await photosOf('Tabla de paddle surf hinchable')).photos).toEqual(
+      [],
+    );
+    expect(
+      (await photosOf('Cortacésped eléctrico')).photos.length,
+    ).toBeGreaterThan(0);
+  });
+
   it('las entregas con rider tienen su código de 6 cifras', async () => {
     await seedWithReservations();
 

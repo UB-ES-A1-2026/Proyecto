@@ -6,6 +6,7 @@ import { refund, release } from '../../src/services/paymentGateway.js';
 import { resetDb } from '../helpers/db.js';
 import { createTestItem } from '../helpers/items.js';
 import { createTestReservation } from '../helpers/reservations.js';
+import { confirmDeliveryPhotos } from '../helpers/statePhotos.js';
 import { createTestUser, TEST_PASSWORD } from '../helpers/users.js';
 
 // Al marcar «He devuelto el objeto», la fianza se libera o se devuelve (#402, último criterio de
@@ -70,6 +71,7 @@ async function inProgress(deposit: Deposit) {
       },
     },
   });
+  await confirmDeliveryPhotos(reservation.id, owner.id);
   const token = await loginAs('bruno@rentit.test');
   const received = await request(app)
     .post(`/api/entregas/${reservation.id}/recibida`)

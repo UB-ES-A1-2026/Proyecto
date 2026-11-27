@@ -15,6 +15,7 @@ import {
   renewDeliveryCode,
   type DepositToSettle,
 } from '../repositories/deliveryTrackingRepository.js';
+import { hasConfirmedStatePhotos } from '../repositories/statePhotoRepository.js';
 import { generateDeliveryCode, MAX_CODE_ATTEMPTS } from './deliveryCode.js';
 import { refund, release } from './paymentGateway.js';
 import { publish } from './realtimeService.js';
@@ -40,6 +41,17 @@ export const NOT_IN_PROGRESS_MESSAGE =
 export const NO_CODE_MESSAGE = 'Solo hay código de entrega con rider.';
 export const ALREADY_DELIVERED_MESSAGE =
   'La entrega ya está hecha: el código ya no hace falta.';
+// US-09.02 (#454): el objeto no sale de manos del propietario sin las fotos de su estado.
+export const NO_STATE_PHOTOS_MESSAGE =
+  'El propietario todavía no ha subido las fotos del estado.';
+
+async function assertStatePhotosConfirmed(
+  reservationId: string,
+): Promise<void> {
+  if (!(await hasConfirmedStatePhotos(reservationId, 'delivery'))) {
+    throw new AppError(409, NO_STATE_PHOTOS_MESSAGE);
+  }
+}
 
 // «El código no es correcto. Te quedan 3 intentos.»
 export function wrongCodeMessage(attemptsLeft: number): string {
@@ -83,6 +95,9 @@ export type DeliveryTracking = {
   returnedAt: Date | null;
   rider: { id: string; username: string } | null;
   deliveryCode: string | null;
+  // Si el propietario ya ha confirmado las fotos de la entrega (US-09.02, #454). Lo ven las tres
+  // personas: sin ellas, ni «Ya tengo el objeto» ni la recogida del rider funcionan.
+  deliveryPhotosConfirmed: boolean;
 };
 
 type TrackedReservation = NonNullable<
@@ -127,12 +142,15 @@ function toIsoDate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-function toTracking({
-  reservation,
-  delivery,
-  mode,
-  viewer,
-}: Awaited<ReturnType<typeof loadTracking>>): DeliveryTracking {
+function toTracking(
+  {
+    reservation,
+    delivery,
+    mode,
+    viewer,
+  }: Awaited<ReturnType<typeof loadTracking>>,
+  deliveryPhotosConfirmed: boolean,
+): DeliveryTracking {
   const steps = mode === 'rider' ? RIDER_STEPS : DIRECT_STEPS;
   const isRenter = viewer === 'renter';
   // El código solo lo ve el arrendatario, con rider y mientras no se haya usado.
@@ -163,6 +181,7 @@ function toTracking({
     returnedAt: delivery.returnedAt,
     rider: delivery.rider,
     deliveryCode: showsCode ? delivery.deliveryCode : null,
+    deliveryPhotosConfirmed,
   };
 }
 
@@ -171,7 +190,11 @@ export async function getDeliveryTracking(
   userId: string,
   reservationId: string,
 ): Promise<DeliveryTracking> {
-  return toTracking(await loadTracking(userId, reservationId));
+  const loaded = await loadTracking(userId, reservationId);
+  return toTracking(
+    loaded,
+    await hasConfirmedStatePhotos(reservationId, 'delivery'),
+  );
 }
 
 // El estado siguiente de cada uno con rider (#67): no se puede saltar ni volver atrás.
@@ -221,6 +244,11 @@ export async function advanceDelivery(
     throw new AppError(409, NOT_NEXT_STEP_MESSAGE);
   }
 
+  // El rider recoge el objeto del propietario: antes tienen que estar sus fotos (US-09.02).
+  if (status === 'picked_up') {
+    await assertStatePhotosConfirmed(reservationId);
+  }
+
   let changed: boolean;
   if (status === 'delivered') {
     if (delivery.codeAttempts >= MAX_CODE_ATTEMPTS) {
@@ -266,6 +294,9 @@ export async function confirmReceived(
   }
   if (reservation.status !== 'paid') {
     throw new AppError(409, NOT_PAID_MESSAGE);
+  }
+  if (delivery.status === 'pending') {
+    await assertStatePhotosConfirmed(reservationId);
   }
   if (
     delivery.status !== 'pending' ||

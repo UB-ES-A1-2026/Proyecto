@@ -177,10 +177,11 @@ erDiagram
     id id PK
     id reserva_id FK
     id subida_por FK
-    enum fase "check_in | check_out"
-    texto clave "clave del fichero en el bucket (ADR 0002)"
-    booleano bloqueada
+    enum fase "entrega | devolucion"
+    texto clave UK "clave del fichero en el bucket (ADR 0002)"
+    entero orden "1 a 5 por fase (CHECK)"
     fecha_hora creada_en
+    fecha_hora confirmada_en "null hasta «Confirmar fotos»"
   }
   VALORACION {
     id id PK
@@ -546,6 +547,42 @@ Errores: **401** sin sesión; **403** «Solo los riders aceptados pueden ver los
 
 **Datos de demo:** dos trabajos disponibles (`DEMO_RIDER_JOBS`) sobre objetos que no usa ningún otro e2e: la «Máquina de coser Singer» (Sants → Gràcia, «Lo antes posible», mañana) y la «Barbacoa de carbón portátil» (Les Corts → Poblenou, 17:00-19:00, pasado mañana), de ana en local (marta en producción), solicitadas por vecino5 y vecino6. Hay un segundo rider aceptado para el caso de dos riders con el mismo trabajo: oscar en local (con dani) y ona en producción (con pau). Repetir el seed los deja otra vez sin rider.
 
+## Tabla `foto_estado` (Sprint 3 · US-09.02 · #454)
+
+Fotos del estado del objeto, en la migración `fotos_estado`. El propietario las sube en «Entrega de {objeto}» (el seguimiento de US-05.02) antes de que el objeto salga de sus manos, para tener pruebas si vuelve dañado (US-09.01). La fase `devolucion` es de US-09.03 (#448).
+
+| Columna | Qué guarda |
+|---|---|
+| `reserva_id` | La reserva (`ON DELETE RESTRICT`: son pruebas de una posible incidencia). |
+| `subida_por` | Quién la subió: siempre el propietario del objeto. |
+| `fase` | `entrega` (antes de entregar) o `devolucion` (al recibirlo de vuelta). |
+| `clave` | Clave del fichero en el bucket, única, como `foto_objeto.clave` (ADR 0002). Las subidas van a `reservas/<id>/<fase>/<uuid>.<ext>`. |
+| `orden` | De 1 a 5 (`CHECK`), único por reserva y fase: como mucho 5 fotos por fase. |
+| `confirmada_en` | `null` mientras se pueden quitar fotos. Al pulsar «Confirmar fotos» se rellena en todas las de la fase a la vez, y desde entonces no se pueden cambiar. |
+
+En Prisma es `StatePhoto` (`reservationId`, `uploadedById`, `phase`, `key`, `order`, `createdAt`, `confirmedAt`) con el enum `StatePhotoPhase` (`delivery`, `return`).
+
+**API** (con sesión; `:id` es el de la reserva, como en `/entregas/:id`; `:fase` es `entrega`):
+- `GET /api/entregas/:id/fotos`: `{ delivery: { photos: [{ id, order, url, createdAt }], confirmedAt, canEdit } }`. La ven el propietario y el arrendatario, no el rider. `url` es la URL de lectura (1 h) o `null` sin almacenamiento. `canEdit` dice si quien mira puede subir, quitar o confirmar ahora.
+- `POST /api/entregas/:id/fotos/:fase/subida` con `{ contentType, size }`: `{ key, uploadUrl, expiresIn }`, como la subida de las fotos de un objeto.
+- `POST /api/entregas/:id/fotos/:fase` con `{ key }`: comprueba el fichero subido (tipo real, tamaño) y guarda la foto con el siguiente orden libre.
+- `DELETE /api/entregas/:id/fotos/:fase/:fotoId`: quita una foto sin confirmar (también del bucket).
+- `POST /api/entregas/:id/fotos/:fase/confirmar`: «Confirmar fotos». Devuelve lo mismo que el `GET`.
+
+Solo el propietario cambia las fotos, y solo con la reserva `aceptada` o `pagada` y la entrega `pendiente` o `asignada` (antes de que el rider la recoja o de «Ya tengo el objeto»). Errores: **400** sin fotos al confirmar («Sube al menos una foto.»), tipo o tamaño no válidos, o clave de otra carpeta; **403** a quien no es el propietario («Solo el propietario puede subir las fotos del estado.») o, en el `GET`, al rider y a cualquier otra persona; **404** reserva, fase o foto que no existe; **409** fotos ya confirmadas, el objeto ya ha salido («Las fotos de la entrega se suben antes de entregar el objeto.») o ya hay 5.
+
+**Obligatorias (decisión del 27/11, aceptada por Kai en la revisión de #459):** sin las fotos de la entrega confirmadas, «Ya tengo el objeto» (`POST /api/entregas/:id/recibida`) y el paso del rider a `picked_up` responden **409** «El propietario todavía no ha subido las fotos del estado.». Para avisarlo antes de pulsar, `GET /api/entregas/:id` devuelve `deliveryPhotosConfirmed` a las tres personas (también al rider, que no ve las fotos). Si una foto se guarda justo después de «Confirmar fotos», se deshace (también del bucket) con **409**: si no, quedaría sin confirmar y ya no se podría quitar.
+
+Al desplegarlo, las reservas pagadas que ya existan con la entrega pendiente necesitan que su propietario suba las fotos antes de entregar: hay que decirlo en la release.
+
+| Decisión | Por qué |
+|---|---|
+| Una fila por foto, con `confirmada_en` en cada una | Las fotos de una fase se confirman juntas con un solo `UPDATE … WHERE confirmada_en IS NULL`: con un doble clic, el segundo no cambia nada. |
+| La clave la decide el backend | Como en las fotos de los objetos (ADR 0002): el cliente no puede escribir en otra carpeta. |
+| `orden` único por reserva y fase | Si se guardan dos fotos a la vez, el índice para a la segunda (409) en lugar de pasar de 5. |
+
+**Datos de demo:** la bici, el cortacésped y la hidrolimpiadora pagadas (las del seguimiento) tienen las fotos de la entrega confirmadas desde el día antes, con las claves de las fotos del propio objeto para que se vean imágenes reales (en local, una clave de ejemplo sin imagen). La «Tabla de paddle surf hinchable» de marta (ana en local), pagada por jordi, no tiene fotos: sirve para enseñar cómo se suben. Repetir el seed vuelve a dejarlas así.
+
 ## Qué tablas entran en cada sprint
 
 | Sprint | Tablas nuevas | Historias |
@@ -553,4 +590,4 @@ Errores: **401** sin sesión; **403** «Solo los riders aceptados pueden ver los
 | S0 | `usuario`, `sesion` | US-01.1, US-01.2, US-01.3 |
 | S1 | `categoria`, `objeto`, `foto_objeto`, `reserva` | US-02.x, US-03.x, US-04.01–04.04 |
 | S2 | `solicitud_rider` (US-10.03), `retirada_objeto` (US-11.03), `pago`, `cancelacion`, `punto_recogida`, `entrega`, `valoracion` (+ campos de perfil y rider en `usuario`) | US-07.01, US-04.05, US-05.01–05.02, US-10.01, US-10.03, US-11.03, US-08.x, US-01.4 |
-| S3 | `conversacion`, `mensaje`, `notificacion`, `incidencia`, `foto_estado` | US-06.x, US-09.x, US-11.01 |
+| S3 | `foto_estado` (US-09.02); previstas: `conversacion`, `mensaje`, `notificacion`, `incidencia` | US-06.x, US-09.x, US-11.04 |

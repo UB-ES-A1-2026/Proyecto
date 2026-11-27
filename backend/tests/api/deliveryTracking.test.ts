@@ -6,6 +6,7 @@ import { prisma } from '../../src/repositories/prisma.js';
 import { resetDb } from '../helpers/db.js';
 import { createTestItem } from '../helpers/items.js';
 import { createTestReservation } from '../helpers/reservations.js';
+import { confirmDeliveryPhotos } from '../helpers/statePhotos.js';
 import { createTestUser, TEST_PASSWORD } from '../helpers/users.js';
 import { publish } from '../../src/services/realtimeService.js';
 
@@ -36,7 +37,11 @@ async function loginAs(email: string): Promise<string> {
 
 // ana es la propietaria, bruno el arrendatario y rita la rider. La reserva está pagada y, con
 // rider, rita ya ha aceptado el trabajo (eso lo hará US-10.01).
-async function setUp(mode: DeliveryMode = 'rider') {
+// Con `photos: false`, el propietario aún no ha confirmado las fotos de la entrega (US-09.02).
+async function setUp(
+  mode: DeliveryMode = 'rider',
+  { photos = true }: { photos?: boolean } = {},
+) {
   const owner = await createTestUser();
   const renter = await createTestUser({
     username: 'bruno',
@@ -75,6 +80,8 @@ async function setUp(mode: DeliveryMode = 'rider') {
       },
     },
   });
+
+  if (photos) await confirmDeliveryPhotos(reservation.id, owner.id);
 
   return {
     reservation,
@@ -124,6 +131,7 @@ describe('GET /api/entregas/:id', () => {
       returnedAt: null,
       rider: { id: rider.id, username: 'rita' },
       deliveryCode: CODE,
+      deliveryPhotosConfirmed: true,
     });
   });
 
@@ -384,6 +392,72 @@ async function onTheWay(id: string, riderToken: string) {
 function deliver(id: string, code: unknown, token: string) {
   return advance(id, { status: 'delivered', code }, token);
 }
+
+describe('fotos del estado obligatorias antes de entregar (US-09.02, #454)', () => {
+  it('tells the three of them whether the delivery photos are confirmed', async () => {
+    const { reservation, renterToken, ownerToken, riderToken } = await setUp(
+      'rider',
+      { photos: false },
+    );
+
+    for (const token of [renterToken, ownerToken, riderToken]) {
+      const response = await track(reservation.id, token);
+      expect(response.status).toBe(200);
+      expect(response.body.deliveryPhotosConfirmed).toBe(false);
+    }
+  });
+
+  it('returns 409 when the rider picks it up before the owner confirms the photos', async () => {
+    const { reservation, riderToken } = await setUp('rider', { photos: false });
+
+    const response = await advance(
+      reservation.id,
+      { status: 'picked_up' },
+      riderToken,
+    );
+
+    expect(response.status).toBe(409);
+    expect(response.body).toEqual({
+      error: 'El propietario todavía no ha subido las fotos del estado.',
+    });
+    const delivery = await prisma.delivery.findUniqueOrThrow({
+      where: { reservationId: reservation.id },
+    });
+    expect(delivery.status).toBe('assigned');
+  });
+
+  it.each(['home', 'pickup_point'] as const)(
+    'with %s delivery, «Ya tengo el objeto» returns 409 until the photos are confirmed',
+    async (mode) => {
+      const { reservation, renterToken, owner } = await setUp(mode, {
+        photos: false,
+      });
+      // Una foto subida pero sin confirmar no basta.
+      await prisma.statePhoto.create({
+        data: {
+          reservationId: reservation.id,
+          uploadedById: owner.id,
+          phase: 'delivery',
+          key: `reservas/${reservation.id}/entrega/sin-confirmar.jpg`,
+          order: 1,
+        },
+      });
+
+      const response = await request(app)
+        .post(`/api/entregas/${reservation.id}/recibida`)
+        .set('Authorization', `Bearer ${renterToken}`);
+
+      expect(response.status).toBe(409);
+      expect(response.body).toEqual({
+        error: 'El propietario todavía no ha subido las fotos del estado.',
+      });
+      const saved = await prisma.reservation.findUniqueOrThrow({
+        where: { id: reservation.id },
+      });
+      expect(saved.status).toBe('paid');
+    },
+  );
+});
 
 describe('POST /api/entregas/:id/estado con el código de entrega', () => {
   it('with the right code marks it delivered and the reservation in progress', async () => {
