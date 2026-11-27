@@ -1,13 +1,15 @@
-// Check «Metodología» (US-12.02, #277): comprueba que la rama y los commits de un PR dicen a qué historia
-// pertenecen, para que el network graph se pueda leer punto a punto. Reglas en CONTRIBUTING.md.
+// Check «Metodología» (US-12.02, #277): comprueba que la rama y los commits de un PR dicen a qué historia,
+// spike o requisito técnico pertenecen, para que el network graph se pueda leer punto a punto. Reglas en
+// CONTRIBUTING.md. Desde TR-10 (#451) acepta también `TR-NN`: lo técnico ya no se escribe como historia.
 //   node .github/scripts/metodologia.mjs <nº PR>
 //   node .github/scripts/metodologia.mjs --rama <rama> --destino <rama destino> [--commit "<mensaje>"]...  (sin GitHub)
 // Necesita GH_TOKEN y GITHUB_REPOSITORY en el primer modo (los pone GitHub Actions).
-// Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 11/11/2026
+// Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 11/11/2026 (TR-10: 26/11/2026)
 import { execFileSync } from 'node:child_process';
 
 const REPO = process.env.GITHUB_REPOSITORY ?? 'UB-ES-A1-2026/Proyecto';
-const CODIGO = String.raw`(?:US-\d{2}\.\d{1,2}|SP-\d{2})`;
+// Una historia (US-04.01), un spike (SP-05) o un requisito técnico (TR-10).
+const CODIGO = String.raw`(?:US-\d{2}\.\d{1,2}|SP-\d{2}|TR-\d{2})`;
 const DESC = String.raw`[a-z0-9]+(?:-[a-z0-9]+)*`;
 const TIPOS = 'feat|fix|docs|test|refactor|chore|style|perf|build|ci';
 
@@ -23,7 +25,7 @@ function reglas(destino) {
       // `staging` nunca vuelve a `develop`: un bugfix de preproducción entra por su propia rama.
       admite: [FEATURE, BUGFIX, HOTFIX],
       texto:
-        '`feature/US-XX.YY-<desc>`, `bugfix/US-XX.YY-<nº>-<desc>` o `hotfix/US-XX.YY-<nº>-<desc>`',
+        '`feature/US-XX.YY-<desc>` (o `SP-NN`, `TR-NN`), `bugfix/US-XX.YY-<nº>-<desc>` o `hotfix/US-XX.YY-<nº>-<desc>`',
     };
   if (destino === 'staging')
     return {
@@ -51,13 +53,13 @@ export function comprobar(rama, destino, commits) {
   const r = reglas(destino);
   if (!r) {
     errores.push(
-      `No se puede abrir un PR hacia \`${destino}\`. Los destinos válidos son \`develop\`, \`staging\`, \`main\` o la rama \`feature/\` de una historia.`,
+      `No se puede abrir un PR hacia \`${destino}\`. Los destinos válidos son \`develop\`, \`staging\`, \`main\` o la rama \`feature/\` de una historia, un spike o un requisito técnico.`,
     );
     return errores;
   }
   if (!r.admite.some((re) => re.test(rama))) {
     errores.push(
-      `La rama \`${rama}\` no puede ir a \`${destino}\`. Hacia \`${destino}\` solo van: ${r.texto}. El código es el de la historia (\`US-04.01\`, \`SP-05\`); el resto, en minúsculas, con guiones y sin tildes.`,
+      `La rama \`${rama}\` no puede ir a \`${destino}\`. Hacia \`${destino}\` solo van: ${r.texto}. El código es el de la historia, el spike o el requisito técnico (\`US-04.01\`, \`SP-05\`, \`TR-10\`); el resto, en minúsculas, con guiones y sin tildes.`,
     );
   }
   // Los PR de integración (develop → staging, staging → main) traen commits ya comprobados.
@@ -127,5 +129,5 @@ if (errores.length) {
   process.exit(1);
 }
 console.log(
-  `Bien: \`${datos.rama}\` → \`${datos.destino}\` y ${datos.commits.length} commits con el código de su historia.`,
+  `Bien: \`${datos.rama}\` → \`${datos.destino}\` y ${datos.commits.length} commits con el código de su historia, spike o requisito técnico.`,
 );

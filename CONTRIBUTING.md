@@ -6,12 +6,13 @@ Usamos **GitFlow**, con tres ramas permanentes:
 - **`develop`**: la rama de integración. Aquí solo entran **historias de usuario completas** y probadas, así que siempre compila y pasa los tests.
 - **`staging`**: preproducción (US-12.03). Recibe `develop` al final de cada sprint, se despliega sola en un entorno igual que producción y allí se prueba antes de pasar a `main`.
 
-Cada historia de usuario (de producto o técnica, como las US-12.xx de EP-12) o spike se desarrolla en su propia rama `feature/`, que sale de `develop`. Cada tarea de esa historia se hace en una rama corta `task/` que sale de la rama de la historia y vuelve a ella mediante un Pull Request revisado. Cuando la historia está completa, se hace *rebase* sobre `develop`, se vuelve a probar y entra en `develop` con un *merge commit*. **Nunca se hace *squash***, para no perder el historial de las ramas. Al final del sprint, `develop` pasa a `staging`, se prueba en preproducción y solo entonces `staging` pasa a `main`.
+Cada historia de usuario, spike o requisito técnico (`TR-NN`, ver la regla 11) se desarrolla en su propia rama `feature/`, que sale de `develop`. Cada tarea de esa historia se hace en una rama corta `task/` que sale de la rama de la historia y vuelve a ella mediante un Pull Request revisado. Cuando la historia está completa, se hace *rebase* sobre `develop`, se vuelve a probar y entra en `develop` con un *merge commit*. **Nunca se hace *squash***, para no perder el historial de las ramas. Al final del sprint, `develop` pasa a `staging`, se prueba en preproducción y solo entonces `staging` pasa a `main`.
 
 > **Cambios respecto a versiones anteriores**
+> - Sprint 3 (TR-10, #451), tras la corrección del profesor en la demo del Sprint 2: **lo técnico ya no es una historia de usuario.** Las US-12.01, US-12.02 y US-12.03 no debían serlo, porque no aportan nada a ningún usuario. Ahora lo técnico es una tarea de la historia que lo necesita y, si no lo necesita ninguna, un requisito técnico (`TR-NN`) de EP-12, sin «Como… quiero…». Además, cada historia es de **una sola persona** y empieza diciendo **dónde ocurre** (la pantalla y la historia de la que forma parte). El check «Metodología» acepta `TR-NN`.
 > - Sprint 2 (US-12.03, #276): la rama `release/sprint-<N>` desaparece y la sustituye la rama fija `staging`. `develop` pasa a `staging` por PR, un push a `staging` despliega un entorno de preproducción (con su propia base de datos, en otra cuenta) y, con todo probado, `staging` pasa a `main`. Así producción recibe exactamente lo que se probó.
 > - Sprint 0 (#20): pasamos de GitHub Flow a GitFlow para separar la integración diaria (`develop`) de la versión que se entrega en cada demo (`main`).
-> - Sprint 2 (US-12.02, #275), tras la corrección del profesor en la demo del Sprint 1: solo se crean ramas para historias (o spikes). El trabajo técnico sin pantalla también es una historia (US-12.xx), y una pieza suelta (una tabla, una migración, estilos) es una tarea de la primera historia que la usa. Las ramas y los commits llevan el código de su historia (`US-04.01`), para que cada punto del network graph diga a qué historia pertenece, y el check «Metodología» del CI lo comprueba en cada PR.
+> - Sprint 2 (US-12.02, #275), tras la corrección del profesor en la demo del Sprint 1: solo se crean ramas para historias (o spikes). El trabajo técnico sin pantalla también era una historia (US-12.xx; se corrigió en el Sprint 3, ver arriba), y una pieza suelta (una tabla, una migración, estilos) es una tarea de la primera historia que la usa. Las ramas y los commits llevan el código de su historia (`US-04.01`), para que cada punto del network graph diga a qué historia pertenece, y el check «Metodología» del CI lo comprueba en cada PR.
 > - Sprint 1 (#160), tras la corrección del profesor en la demo del Sprint 0: antes usábamos una rama por tarea que entraba en `develop` con *squash*. Eso dejaba en `develop` funcionalidades a medias (por ejemplo, el formulario de registro llegó antes que su endpoint) y borraba el historial de cada rama. Ahora la rama es por historia, las tareas se integran dentro de ella y todo se fusiona sin *squash*.
 
 ## Diagrama
@@ -57,14 +58,14 @@ gitGraph
 |---|---|---|---|---|---|
 | `main` | Versión entregada en cada demo | — | — | — | — |
 | `develop` | Integración: solo historias completas | `main` (una sola vez) | — | — | — |
-| `feature/<código>-<desc>` | Una historia (de producto o técnica) o un spike. `<código>` = `US-XX.YY` o `SP-NN` | `develop` | `develop` | Merge commit, tras *rebase* | `feature/US-02.01-publicar-objeto` |
-| `task/<código>-<nº>-<desc>` | Una tarea de esa historia. `<código>` = el de la historia, `<nº>` = issue de la tarea | su `feature/` | su `feature/` | Merge commit | `task/US-02.01-14-endpoint-publicar` |
+| `feature/<código>-<desc>` | Una historia, un spike o un requisito técnico. `<código>` = `US-XX.YY`, `SP-NN` o `TR-NN` | `develop` | `develop` | Merge commit, tras *rebase* | `feature/US-02.01-publicar-objeto` |
+| `task/<código>-<nº>-<desc>` | Una tarea de esa historia (o de ese spike o TR). `<código>` = el de la historia, `<nº>` = issue de la tarea | su `feature/` | su `feature/` | Merge commit | `task/US-02.01-14-endpoint-publicar` |
 | `staging` | Preproducción: lo que se prueba antes de entregar. Se despliega sola en cada push | `develop` (una vez) | `main` | Merge commit | — |
 | `bugfix/<código>-<nº>-<desc>` | Bug encontrado en `develop` (aún no entregado) o en preproducción. `<código>` = historia afectada, `<nº>` = issue del bug | `develop` (o `staging`, si se encontró en preproducción) | `develop`, o `staging` y después `develop` (regla 7) | Merge commit, tras *rebase* | `bugfix/US-01.1-120-validacion-email` |
 | `release/sprint-<N>` | **Obsoleta desde US-12.03:** la sustituye `staging`. Ya no se crean | — | — | — | — |
 | `hotfix/<código>-<nº>-<desc>` | Bug urgente en lo que ya está en `main` | `main` | `main` **y** `develop` | Merge commit | `hotfix/US-01.2-140-error-login` |
 
-El código de la historia va tal cual (`US-04.01`, `SP-05`); el resto, en minúsculas, con guiones y sin tildes. El `<nº>` es el del issue de GitHub. El check «Metodología» lo comprueba en cada PR (regla 11).
+El código va tal cual (`US-04.01`, `SP-05`, `TR-10`); el resto, en minúsculas, con guiones y sin tildes. El `<nº>` es el del issue de GitHub. El check «Metodología» lo comprueba en cada PR (regla 11).
 
 ## Reglas
 
@@ -83,7 +84,7 @@ El código de la historia va tal cual (`US-04.01`, `SP-05`); el resto, en minús
 - Las ramas `feature/` no están protegidas por GitHub (hace falta poder hacer `--force-with-lease` después del *rebase*), pero se trabajan igual: nadie hace commits directos en ellas, todo entra desde ramas `task/` por PR.
 
 ### 2. Una rama `feature/` por historia
-- La crea el responsable de la historia (o la primera persona que empieza una de sus tareas) desde `develop` actualizado, con el **código de la historia** (`US-XX.YY` o `SP-NN`), no el de una tarea. Antes de crearla, comprueba que no existe ya (`git ls-remote --heads origin "feature/US-XX.YY-*"`): **una sola rama por historia**, también si ya entró en `develop` y falta algo (eso es un bug o una historia nueva).
+- La crea el responsable de la historia (o la primera persona que empieza una de sus tareas) desde `develop` actualizado, con el **código de la historia** (`US-XX.YY`, `SP-NN` o `TR-NN`), no el de una tarea. Antes de crearla, comprueba que no existe ya (`git ls-remote --heads origin "feature/US-XX.YY-*"`): **una sola rama por historia**, también si ya entró en `develop` y falta algo (eso es un bug o una historia nueva).
 - Vive mientras dure la historia. Si una historia no cabe en el sprint, se parte en historias más pequeñas en la planning.
 - Si la historia solo tiene una tarea, se puede trabajar directamente en la rama `feature/`, sin rama `task/`.
 
@@ -180,9 +181,13 @@ Si una parte del código la ha generado una IA, indícalo en el PR (casilla de l
 
 La revisión humana en el PR es obligatoria igualmente.
 
-### 11. Todo va dentro de una historia, y el CI lo comprueba
-- **Solo se crean ramas para historias o spikes** (corrección del profesor en la demo del Sprint 1). Una tabla, una migración, unos estilos o unos datos de ejemplo no tienen rama propia: son una tarea de la primera historia que los usa. El trabajo técnico sin pantalla se escribe como historia de EP-12 (US-12.xx), con sus criterios y su tarjeta.
-- El job **«Metodología»** del CI (`.github/scripts/metodologia.mjs`) comprueba en cada PR que la rama corresponde a su destino y que cada commit lleva el código de su historia. Si falla, dice qué cambiar:
+### 11. Todo va dentro de una historia, un spike o un requisito técnico, y el CI lo comprueba
+- **Solo se crean ramas para historias, spikes o requisitos técnicos** (correcciones del profesor en las demos de los Sprints 1 y 2). Una tabla, una migración, unos estilos o unos datos de ejemplo no tienen rama propia: son una tarea de la primera historia que los usa.
+- **Lo técnico nunca es una historia de usuario** (demo del Sprint 2). Una historia aporta algo a una persona que usa Rentit; crear `staging`, medir los tests o comprobar las ramas, no. Para decidir qué es:
+  1. Si una historia lo necesita (el servicio de correo de los avisos, una tarea programada, una tabla), es una **tarea de esa historia**.
+  2. Si no lo necesita ninguna (el CI, un entorno, una métrica), es un **requisito técnico** `TR-NN` de EP-12, con la plantilla «Requisito técnico»: qué hay que hacer, por qué ahora y criterios de aceptación, sin «Como… quiero…». Lleva su rama `feature/TR-NN-<desc>`.
+- **Cada historia es de una sola persona y hace una sola cosa** (demo del Sprint 2). Empieza por «Dónde ocurre»: la pantalla y la historia de la que forma parte (por ejemplo, «en el paso "Entrega" de "Publicar un objeto", US-02.01»). Si la hacen dos personas (el propietario al publicar y el arrendatario al alquilar) o tiene dos partes (la campana y los correos), son dos historias. Se parten en la planning, antes de crear las tareas.
+- El job **«Metodología»** del CI (`.github/scripts/metodologia.mjs`) comprueba en cada PR que la rama corresponde a su destino y que cada commit lleva el código de su historia, spike o requisito técnico. Si falla, dice qué cambiar:
   - **Rama mal nombrada:** renómbrala antes de abrir el PR (`git branch -m` y sube la nueva). Si el PR ya existe, GitHub lo cierra al renombrar la rama: abre otro y enlaza el viejo.
   - **Commits sin código:** reescríbelos en tu rama (`git rebase -i` y *reword*) y súbela con `git push --force-with-lease`.
 - En local, antes de abrir el PR: `node .github/scripts/metodologia.mjs --rama <tu rama> --destino <destino> --commit "<mensaje>"`.

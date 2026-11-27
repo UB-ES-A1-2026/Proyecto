@@ -7,6 +7,16 @@ labels: ["User-story"]
 
 > **Sprint:** Sprint N · **Épica:** #NN EP-XX. <Nombre> · **Trello:** <enlace a la tarjeta>
 
+<!-- Antes de escribirla (corrección del profesor en la demo del Sprint 2, CONTRIBUTING regla 11):
+  - Una historia es de UNA sola persona y hace UNA sola cosa. Si intervienen dos (el propietario al publicar y el
+    arrendatario al alquilar) o tiene dos partes (la campana y los correos), son dos historias.
+  - Lo técnico (CI, entornos, métricas, servicios externos) NO es una historia: es una tarea de la historia que lo
+    necesita o un requisito técnico (plantilla «Requisito técnico»). -->
+
+### Dónde ocurre
+<!-- La pantalla y la historia de la que forma parte, para que se entienda sin leer nada más.
+     Ej.: «En el paso "Entrega" de "Publicar un objeto" (US-02.01), que el propietario abre desde "Publicar"». -->
+
 Como **<tipo de usuario>**, quiero **<qué>** para **<para qué>**.
 
 ### Cómo llega el usuario
