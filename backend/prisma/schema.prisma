@@ -50,6 +50,8 @@ model User {
   reviewedRiderApplications RiderApplication[] @relation("RiderReviewer")
   // Objetos que ha retirado este usuario (si es admin, US-11.03).
   moderatedItems            ItemModeration[]   @relation("ItemModerator")
+  // Fotos del estado de un objeto que ha subido este usuario (US-09.02).
+  statePhotos               StatePhoto[]
 
   @@map("usuario")
 }
@@ -206,6 +208,7 @@ model Reservation {
   payment            Payment?
   ratings            Rating[]
   cancellation       Cancellation?
+  statePhotos        StatePhoto[]
 
   @@index([itemId, status])
   @@index([renterId])
@@ -454,4 +457,36 @@ model Cancellation {
 
   @@index([cancelledById])
   @@map("cancelacion")
+}
+
+// Fotos del estado del objeto (US-09.02, #77; US-09.03, #448). Las sube el propietario antes de
+// entregar el objeto (fase «entrega») y cuando se lo devuelven (fase «devolucion»), para tener
+// pruebas si vuelve dañado (US-09.01). Se guarda la clave del fichero, no la URL (ADR 0002).
+// Mientras confirmada_en es null se pueden quitar; al pulsar «Confirmar fotos» se rellena en todas
+// las de la fase y ya no se pueden cambiar.
+// orden entre 1 y 5 (máximo 5 fotos por fase): CHECK en la migración.
+// Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 27/11/2026
+enum StatePhotoPhase {
+  delivery @map("entrega")
+  return   @map("devolucion")
+
+  @@map("fase_foto_estado")
+}
+
+model StatePhoto {
+  id            String          @id @default(uuid()) @db.Uuid
+  reservationId String          @map("reserva_id") @db.Uuid
+  uploadedById  String          @map("subida_por") @db.Uuid
+  phase         StatePhotoPhase @map("fase")
+  key           String          @unique @map("clave")
+  order         Int             @map("orden")
+  createdAt     DateTime        @default(now()) @map("creada_en")
+  confirmedAt   DateTime?       @map("confirmada_en")
+  // Restrict: son las pruebas de una incidencia; no se borran con la reserva ni con el usuario.
+  reservation   Reservation     @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  uploadedBy    User            @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+
+  @@unique([reservationId, phase, order])
+  @@index([uploadedById])
+  @@map("foto_estado")
 }
