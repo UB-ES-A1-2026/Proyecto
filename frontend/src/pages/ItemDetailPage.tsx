@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import { Icon, type IconName } from '../components/Icon';
 import { RentalRequest } from '../components/RentalRequest';
+import { UserAvatar } from '../components/UserAvatar';
 import { useAuth } from '../context/useAuth';
 import { ApiError } from '../services/apiClient';
 import { getItemDetail, type ItemDetail } from '../services/itemService';
@@ -311,9 +312,9 @@ export function ItemDetailPage() {
         </section>
 
         <section className="card item-owner" aria-label="Propietario">
-          <span className="item-owner-avatar" aria-hidden="true">
-            {item.owner.username.charAt(0).toUpperCase()}
-          </span>
+          {/* Su foto de perfil, o su inicial si no tiene (US-03.05, wireframe pantalla 2). Generado
+              con asistencia de IA (Claude), pendiente de revisión. */}
+          <UserAvatar username={item.owner.username} photo={item.owner.photo} size={3} />
           <p>
             Publicado por{' '}
             <Link to={`/usuarios/${encodeURIComponent(item.owner.id)}`} className="item-owner-link">

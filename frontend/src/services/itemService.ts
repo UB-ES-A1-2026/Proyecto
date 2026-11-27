@@ -29,6 +29,8 @@ export type ItemDetail = {
   owner: {
     id: string;
     username: string;
+    // URL de su foto de perfil, o null si no tiene (US-03.05): sale junto a su nombre.
+    photo: string | null;
   };
   createdAt: string;
 };
