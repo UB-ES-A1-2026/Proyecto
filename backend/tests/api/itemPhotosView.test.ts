@@ -54,6 +54,52 @@ describe('GET /api/objetos/:id', () => {
   });
 });
 
+// La foto de perfil de quien publica sale en la ficha, junto a su nombre (US-03.05). Generado con
+// asistencia de IA (Claude), pendiente de revisión.
+describe('GET /api/objetos/:id: foto de quien publica', () => {
+  it('devuelve la URL de la foto de perfil del propietario', async () => {
+    const ana = await createTestUser();
+    await prisma.user.update({
+      where: { id: ana.id },
+      data: { photoUrl: 'usuarios/ana.webp' },
+    });
+    const item = await createTestItem(ana.id);
+
+    const response = await request(app).get(`/api/objetos/${item.id}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.owner).toEqual({
+      id: ana.id,
+      username: 'ana',
+      photo: 'https://s3.test/ver/usuarios/ana.webp',
+    });
+  });
+
+  it('sin foto de perfil, photo es null', async () => {
+    const ana = await createTestUser();
+    const item = await createTestItem(ana.id);
+
+    const response = await request(app).get(`/api/objetos/${item.id}`);
+
+    expect(response.body.owner.photo).toBeNull();
+  });
+
+  it('sin almacenamiento configurado, photo es null', async () => {
+    const ana = await createTestUser();
+    await prisma.user.update({
+      where: { id: ana.id },
+      data: { photoUrl: 'usuarios/ana.webp' },
+    });
+    const item = await createTestItem(ana.id);
+    storage.configured = false;
+
+    const response = await request(app).get(`/api/objetos/${item.id}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.owner.photo).toBeNull();
+  });
+});
+
 describe('PATCH /api/objetos/:id', () => {
   it('devuelve las fotos que ya tiene el objeto', async () => {
     const ana = await createTestUser();

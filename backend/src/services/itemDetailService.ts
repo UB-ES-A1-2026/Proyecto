@@ -2,7 +2,7 @@
 import { AppError } from '../errors/appError.js';
 import { findItemDetailById } from '../repositories/itemDetailRepository.js';
 import { toItemDetail, type ItemDetail } from './itemDetail.js';
-import { listItemPhotos } from './photoService.js';
+import { listItemPhotos, userPhotoUrl } from './photoService.js';
 
 export const ITEM_NOT_FOUND_MESSAGE = 'No hemos encontrado este objeto.';
 
@@ -26,5 +26,6 @@ export async function getItemDetail(
     photos.map(({ id, url }) => ({ id, url })),
     // La dirección exacta solo la ve el propietario (US-05.01, #281).
     item.ownerId === viewerId,
+    await userPhotoUrl(item.owner.photoUrl),
   );
 }

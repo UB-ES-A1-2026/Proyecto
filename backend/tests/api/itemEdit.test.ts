@@ -457,7 +457,7 @@ describe('PATCH /api/objetos/:id', () => {
       deposit: '40.00',
       neighborhood: item.neighborhood,
       status: 'published',
-      owner: { id: ana.id, username: 'ana' },
+      owner: { id: ana.id, username: 'ana', photo: null },
       photos: [],
     });
     expect(response.body.category).toEqual({

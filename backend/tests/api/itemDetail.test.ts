@@ -60,7 +60,7 @@ describe('GET /api/objetos/:id (US-03.03, #119)', () => {
       homeDelivery: false,
       riderDelivery: false,
       pickupPointDelivery: false,
-      owner: { id: ana.id, username: 'ana' },
+      owner: { id: ana.id, username: 'ana', photo: null },
       createdAt: item.createdAt.toISOString(),
     });
   });
@@ -72,7 +72,12 @@ describe('GET /api/objetos/:id (US-03.03, #119)', () => {
     const response = await getDetail(item.id);
 
     expect(JSON.stringify(response.body)).not.toContain('ana@rentit.test');
-    expect(response.body.owner).toEqual({ id: ana.id, username: 'ana' });
+    // La foto de perfil es pública (sale en su perfil sin sesión); la clave del bucket, no (US-03.05).
+    expect(response.body.owner).toEqual({
+      id: ana.id,
+      username: 'ana',
+      photo: null,
+    });
     expect(response.body).not.toHaveProperty('ownerId');
     expect(response.body).not.toHaveProperty('latitude');
   });

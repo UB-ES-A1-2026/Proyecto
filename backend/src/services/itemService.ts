@@ -7,6 +7,7 @@ import {
 import { assertNotRiderAccount } from './riderService.js';
 import { toItemDetail, type ItemDetail } from './itemDetail.js';
 import { assertValidDeliverySettings } from './itemDelivery.js';
+import { userPhotoUrl } from './photoService.js';
 
 // Mensaje del criterio 5 de US-02.01: «El campo "X" no es correcto, revísalo.»
 export function invalidFieldMessage(label: string): string {
@@ -44,5 +45,5 @@ export async function publishItem(
   }
 
   const item = await createItem({ ownerId, ...input });
-  return toItemDetail(item, [], true);
+  return toItemDetail(item, [], true, await userPhotoUrl(item.owner.photoUrl));
 }
