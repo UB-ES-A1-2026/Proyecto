@@ -571,7 +571,9 @@ En Prisma es `StatePhoto` (`reservationId`, `uploadedById`, `phase`, `key`, `ord
 
 Solo el propietario cambia las fotos, y solo con la reserva `aceptada` o `pagada` y la entrega `pendiente` o `asignada` (antes de que el rider la recoja o de «Ya tengo el objeto»). Errores: **400** sin fotos al confirmar («Sube al menos una foto.»), tipo o tamaño no válidos, o clave de otra carpeta; **403** a quien no es el propietario («Solo el propietario puede subir las fotos del estado.») o, en el `GET`, al rider y a cualquier otra persona; **404** reserva, fase o foto que no existe; **409** fotos ya confirmadas, el objeto ya ha salido («Las fotos de la entrega se suben antes de entregar el objeto.») o ya hay 5.
 
-**Obligatorias (decisión del 27/11, pendiente de confirmar con el equipo):** sin las fotos de la entrega confirmadas, «Ya tengo el objeto» (`POST /api/entregas/:id/recibida`) y el paso del rider a `picked_up` responden **409** «El propietario todavía no ha subido las fotos del estado.».
+**Obligatorias (decisión del 27/11, aceptada por Kai en la revisión de #459):** sin las fotos de la entrega confirmadas, «Ya tengo el objeto» (`POST /api/entregas/:id/recibida`) y el paso del rider a `picked_up` responden **409** «El propietario todavía no ha subido las fotos del estado.». Para avisarlo antes de pulsar, `GET /api/entregas/:id` devuelve `deliveryPhotosConfirmed` a las tres personas (también al rider, que no ve las fotos). Si una foto se guarda justo después de «Confirmar fotos», se deshace (también del bucket) con **409**: si no, quedaría sin confirmar y ya no se podría quitar.
+
+Al desplegarlo, las reservas pagadas que ya existan con la entrega pendiente necesitan que su propietario suba las fotos antes de entregar: hay que decirlo en la release.
 
 | Decisión | Por qué |
 |---|---|
