@@ -8,9 +8,12 @@ import { createTestItem } from '../helpers/items.js';
 import { createTestReservation } from '../helpers/reservations.js';
 import { createTestUser, TEST_PASSWORD } from '../helpers/users.js';
 
-// Al marcar «He devuelto el objeto», la fianza se libera o se devuelve (#402, último criterio de
-// US-07.01 con el seguimiento de US-05.02). La pasarela simulada de verdad, pero espiada.
-// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 22/11/2026
+// Fianza al devolver (#402, US-07.01 con el seguimiento de US-05.02). Desde US-09.01 (#456) no se
+// libera al marcar «He devuelto el objeto»: se queda 48 h por si el propietario abre una incidencia,
+// y después se libera o se devuelve al leer «Mis solicitudes». La pasarela simulada de verdad, pero
+// espiada.
+// Generado con asistencia de IA (Claude) – revisado por Alex Matos, 22/11/2026; cambiado por Marc
+// Sanz (US-09.01), 28/11/2026
 vi.mock('../../src/services/paymentGateway.js', async (importOriginal) => {
   const actual =
     await importOriginal<
@@ -95,14 +98,51 @@ async function state(reservationId: string) {
   };
 }
 
-describe('POST /api/entregas/:id/devuelta con fianza (#402)', () => {
-  it('libera en Stripe la fianza retenida y la marca «liberada»', async () => {
+// Lleva la devolución `hours` horas atrás, como si hubiera pasado ese tiempo.
+async function returnedHoursAgo(reservationId: string, hours: number) {
+  await prisma.delivery.update({
+    where: { reservationId },
+    data: { returnedAt: new Date(Date.now() - hours * 60 * 60 * 1000) },
+  });
+}
+
+// Lo que hace la app al abrir «Mis solicitudes»: ahí se liberan las fianzas que toca.
+async function readMyReservations(token: string) {
+  const response = await request(app)
+    .get('/api/usuarios/me/reservas')
+    .set('Authorization', `Bearer ${token}`);
+  expect(response.status).toBe(200);
+  return response;
+}
+
+describe('POST /api/entregas/:id/devuelta con fianza (#402, US-09.01)', () => {
+  it('al devolver, la reserva se finaliza pero la fianza sigue retenida, sin llamar a Stripe', async () => {
     const { reservation, token } = await inProgress({
       depositStatus: 'held',
       depositReference: 'pi_fianza',
     });
 
     expect((await returned(reservation.id, token)).status).toBe(200);
+    await readMyReservations(token);
+
+    expect(await state(reservation.id)).toEqual({
+      status: 'finished',
+      deposit: 'held',
+    });
+    expect(release).not.toHaveBeenCalled();
+  });
+});
+
+describe('fianza 48 h después de la devolución (US-09.01, #456)', () => {
+  it('libera en Stripe la fianza retenida y la marca «liberada»', async () => {
+    const { reservation, token } = await inProgress({
+      depositStatus: 'held',
+      depositReference: 'pi_fianza',
+    });
+    await returned(reservation.id, token);
+    await returnedHoursAgo(reservation.id, 49);
+
+    await readMyReservations(token);
 
     expect(await state(reservation.id)).toEqual({
       status: 'finished',
@@ -112,18 +152,31 @@ describe('POST /api/entregas/:id/devuelta con fianza (#402)', () => {
     expect(refund).not.toHaveBeenCalled();
   });
 
+  it('todavía no la libera a las 47 h', async () => {
+    const { reservation, token } = await inProgress({
+      depositStatus: 'held',
+      depositReference: 'pi_fianza',
+    });
+    await returned(reservation.id, token);
+    await returnedHoursAgo(reservation.id, 47);
+
+    await readMyReservations(token);
+
+    expect((await state(reservation.id)).deposit).toBe('held');
+    expect(release).not.toHaveBeenCalled();
+  });
+
   it('devuelve la fianza cobrada (más de 6 días) y la marca «devuelta»', async () => {
     const { reservation, token } = await inProgress({
       depositStatus: 'collected',
       depositReference: 'pi_fianza',
     });
+    await returned(reservation.id, token);
+    await returnedHoursAgo(reservation.id, 49);
 
-    expect((await returned(reservation.id, token)).status).toBe(200);
+    await readMyReservations(token);
 
-    expect(await state(reservation.id)).toEqual({
-      status: 'finished',
-      deposit: 'returned',
-    });
+    expect((await state(reservation.id)).deposit).toBe('returned');
     expect(refund).toHaveBeenCalledWith('pi_fianza');
     expect(release).not.toHaveBeenCalled();
   });
@@ -133,8 +186,10 @@ describe('POST /api/entregas/:id/devuelta con fianza (#402)', () => {
       depositStatus: 'pending',
       depositReference: null,
     });
+    await returned(reservation.id, token);
+    await returnedHoursAgo(reservation.id, 49);
 
-    expect((await returned(reservation.id, token)).status).toBe(200);
+    await readMyReservations(token);
 
     expect((await state(reservation.id)).deposit).toBe('released');
     expect(release).not.toHaveBeenCalled();
@@ -146,8 +201,10 @@ describe('POST /api/entregas/:id/devuelta con fianza (#402)', () => {
       depositStatus: 'held',
       depositReference: null,
     });
+    await returned(reservation.id, token);
+    await returnedHoursAgo(reservation.id, 49);
 
-    expect((await returned(reservation.id, token)).status).toBe(200);
+    await readMyReservations(token);
 
     expect((await state(reservation.id)).deposit).toBe('released');
     expect(release).not.toHaveBeenCalled();
@@ -158,36 +215,53 @@ describe('POST /api/entregas/:id/devuelta con fianza (#402)', () => {
       depositStatus: 'charged',
       depositReference: 'pi_fianza',
     });
+    await returned(reservation.id, token);
+    await returnedHoursAgo(reservation.id, 49);
 
-    expect((await returned(reservation.id, token)).status).toBe(200);
+    await readMyReservations(token);
 
     expect((await state(reservation.id)).deposit).toBe('charged');
     expect(release).not.toHaveBeenCalled();
     expect(refund).not.toHaveBeenCalled();
   });
 
-  it('si Stripe falla, no se finaliza nada y se puede reintentar', async () => {
+  it('con una incidencia abierta no la libera aunque pasen las 48 h', async () => {
     const { reservation, token } = await inProgress({
       depositStatus: 'held',
       depositReference: 'pi_fianza',
     });
+    await returned(reservation.id, token);
+    const item = await prisma.item.findFirstOrThrow();
+    await prisma.incident.create({
+      data: {
+        reservationId: reservation.id,
+        openedById: item.ownerId,
+        type: 'damage',
+        description: 'Ha vuelto con una rueda pinchada.',
+      },
+    });
+    await returnedHoursAgo(reservation.id, 72);
+
+    await readMyReservations(token);
+
+    expect((await state(reservation.id)).deposit).toBe('held');
+    expect(release).not.toHaveBeenCalled();
+  });
+
+  it('si Stripe falla, la fianza sigue retenida y se reintenta en la siguiente lectura', async () => {
+    const { reservation, token } = await inProgress({
+      depositStatus: 'held',
+      depositReference: 'pi_fianza',
+    });
+    await returned(reservation.id, token);
+    await returnedHoursAgo(reservation.id, 49);
     vi.mocked(release).mockRejectedValueOnce(new Error('Stripe caído'));
 
-    const response = await returned(reservation.id, token);
+    await readMyReservations(token);
+    expect((await state(reservation.id)).deposit).toBe('held');
 
-    expect(response.status).toBe(502);
-    expect(response.body.error).toBe(
-      'No se ha podido liberar la fianza. Inténtalo de nuevo.',
-    );
-    expect(await state(reservation.id)).toEqual({
-      status: 'in_progress',
-      deposit: 'held',
-    });
-
-    expect((await returned(reservation.id, token)).status).toBe(200);
-    expect(await state(reservation.id)).toEqual({
-      status: 'finished',
-      deposit: 'released',
-    });
+    await readMyReservations(token);
+    expect((await state(reservation.id)).deposit).toBe('released');
+    expect(release).toHaveBeenCalledTimes(2);
   });
 });

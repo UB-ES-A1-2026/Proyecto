@@ -1,13 +1,19 @@
 // Fianza (US-07.01, T10 #285): sin tarea programada, se retiene o se cobra al leer las
 // reservas a partir del día antes del inicio. Hasta 6 días de alquiler se bloquea (retenida);
-// más de 6 se cobra (cobrada). Al finalizar («He devuelto el objeto», US-05.02) se libera o se
-// devuelve en markReturned (#402).
+// más de 6 se cobra (cobrada). Al finalizar («He devuelto el objeto», US-05.02) se queda 48 h por si
+// el propietario abre una incidencia (US-09.01, #456) y después se libera o se devuelve
+// (releaseReturnedDeposits), también al leer las reservas.
 // Generado con asistencia de IA (Claude) – revisado por Maxim Jaume, 17/11/2026
 import {
   findDepositReference,
   findPendingDeposits,
+  findReturnedDepositsToRelease,
   saveDeposit,
 } from '../repositories/depositRepository.js';
+import {
+  releaseDeposit,
+  type DepositToSettle,
+} from '../repositories/deliveryTrackingRepository.js';
 import {
   authorizeDeposit,
   refund,
@@ -89,6 +95,61 @@ export async function settleDueDeposits(
   } catch (error) {
     console.error(
       'No se han podido comprobar las fianzas:',
+      error instanceof Error ? error.message : 'error desconocido',
+    );
+  }
+}
+
+// Horas que la fianza sigue retenida después de «He devuelto el objeto» (US-09.01, #456): el plazo
+// del propietario para abrir una incidencia.
+export const RETURN_REVIEW_HOURS = 48;
+const MS_PER_HOUR = 60 * 60 * 1000;
+
+// Suelta o devuelve la fianza en Stripe. Si falla, lanza: releaseDeposit deshace el cambio.
+function settleInGateway({
+  reference,
+  action,
+}: DepositToSettle): Promise<unknown> {
+  return action === 'refund' ? refund(reference) : release(reference);
+}
+
+// Libera la fianza de una reserva finalizada sin incidencia abierta. Devuelve si la ha liberado.
+// La usa también «Ha vuelto en buen estado» (US-09.05). Si Stripe falla, lanza.
+export function releaseFinishedDeposit(
+  reservationId: string,
+): Promise<boolean> {
+  return releaseDeposit(reservationId, async (deposit) => {
+    await settleInGateway(deposit);
+  });
+}
+
+// Libera las fianzas de las reservas del usuario devueltas hace más de 48 h sin incidencia abierta.
+// Como settleDueDeposits, es de mejor esfuerzo: si Stripe falla, se reintenta en la siguiente
+// lectura. Nunca lanza.
+export async function releaseReturnedDeposits(
+  userId: string,
+  now: Date = new Date(),
+): Promise<void> {
+  try {
+    const returnedBefore = new Date(
+      now.getTime() - RETURN_REVIEW_HOURS * MS_PER_HOUR,
+    );
+    for (const reservationId of await findReturnedDepositsToRelease(
+      userId,
+      returnedBefore,
+    )) {
+      try {
+        await releaseFinishedDeposit(reservationId);
+      } catch (error) {
+        console.error(
+          'No se ha podido liberar la fianza:',
+          error instanceof Error ? error.message : 'error desconocido',
+        );
+      }
+    }
+  } catch (error) {
+    console.error(
+      'No se han podido comprobar las fianzas devueltas:',
       error instanceof Error ? error.message : 'error desconocido',
     );
   }

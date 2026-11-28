@@ -11,12 +11,26 @@ const RATINGS = {
   select: { authorId: true, score: true, comment: true, createdAt: true },
 } as const;
 
+// La incidencia del alquiler (US-09.01, #456) y el estado de la fianza, que se queda retenida
+// mientras la incidencia está abierta.
+const INCIDENT = {
+  select: { id: true, type: true, status: true, createdAt: true },
+} as const;
+const PAYMENT = {
+  select: { deliveryAmount: true, depositStatus: true },
+} as const;
+
 // Las solicitudes que ha hecho el usuario como arrendatario.
 export function findReservationsByRenter(renterId: string) {
   return prisma.reservation.findMany({
     where: { renterId },
     orderBy: [...NEWEST_FIRST],
-    include: { ...reservationDetailInclude, ratings: RATINGS },
+    include: {
+      ...reservationDetailInclude,
+      ratings: RATINGS,
+      incident: INCIDENT,
+      payment: PAYMENT,
+    },
   });
 }
 
@@ -25,6 +39,11 @@ export function findReservationsByItemOwner(ownerId: string) {
   return prisma.reservation.findMany({
     where: { item: { ownerId } },
     orderBy: [...NEWEST_FIRST],
-    include: { ...reservationDetailInclude, ratings: RATINGS },
+    include: {
+      ...reservationDetailInclude,
+      ratings: RATINGS,
+      incident: INCIDENT,
+      payment: PAYMENT,
+    },
   });
 }

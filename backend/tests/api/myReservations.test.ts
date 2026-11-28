@@ -92,6 +92,11 @@ describe('GET /api/usuarios/me/reservas', () => {
           myRating: null,
           receivedRating: null,
           cancellation: null,
+          // US-09.01 (#456): sin incidencia, el arrendatario no la puede abrir y sin pago no hay
+          // fianza.
+          incident: null,
+          canOpenIncident: false,
+          depositStatus: null,
         },
       ],
       received: [],
