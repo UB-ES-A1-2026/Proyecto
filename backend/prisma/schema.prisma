@@ -50,6 +50,8 @@ model User {
   reviewedRiderApplications RiderApplication[] @relation("RiderReviewer")
   // Objetos que ha retirado este usuario (si es admin, US-11.03).
   moderatedItems            ItemModeration[]   @relation("ItemModerator")
+  // Incidencias que ha abierto este usuario (US-09.01).
+  openedIncidents           Incident[]
 
   @@map("usuario")
 }
@@ -206,6 +208,7 @@ model Reservation {
   payment            Payment?
   ratings            Rating[]
   cancellation       Cancellation?
+  incident           Incident?
 
   @@index([itemId, status])
   @@index([renterId])
@@ -454,4 +457,41 @@ model Cancellation {
 
   @@index([cancelledById])
   @@map("cancelacion")
+}
+
+// Incidencias de un alquiler (US-09.01, #76, tarea #456). El propietario la abre con el alquiler en
+// curso o en las 48 h siguientes a la devolución; mientras está abierta, la fianza no se libera.
+// Una por reserva (reserva_id único). La resolución del admin es de US-11.04.
+// descripcion no vacía: CHECK en la migración.
+// Generado con asistencia de IA (Claude) – revisado por Marc Sanz, 28/11/2026
+enum IncidentType {
+  damage      @map("danio")
+  late_return @map("retraso_devolucion")
+  no_return   @map("no_devolucion")
+
+  @@map("tipo_incidencia")
+}
+
+enum IncidentStatus {
+  open     @map("abierta")
+  resolved @map("resuelta")
+
+  @@map("estado_incidencia")
+}
+
+model Incident {
+  id            String         @id @default(uuid()) @db.Uuid
+  reservationId String         @unique @map("reserva_id") @db.Uuid
+  openedById    String         @map("abierta_por") @db.Uuid
+  type          IncidentType   @map("tipo")
+  description   String         @map("descripcion") @db.VarChar(2000)
+  status        IncidentStatus @default(open) @map("estado")
+  createdAt     DateTime       @default(now()) @map("creada_en")
+  // Restrict: es el historial del conflicto; no se borra con la reserva ni con el usuario.
+  reservation   Reservation    @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  openedBy      User           @relation(fields: [openedById], references: [id], onDelete: Restrict)
+
+  @@index([openedById])
+  @@index([status])
+  @@map("incidencia")
 }
