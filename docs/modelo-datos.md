@@ -196,10 +196,9 @@ erDiagram
     id id PK
     id reserva_id FK,UK
     id abierta_por FK
-    enum tipo "danio | retraso | no_devolucion"
-    texto descripcion
+    enum tipo "danio | retraso_devolucion | no_devolucion"
+    texto descripcion "1 a 2000, no vacía (CHECK)"
     enum estado "abierta | resuelta"
-    texto resolucion
     fecha_hora creada_en
   }
   CONVERSACION {
@@ -545,6 +544,35 @@ Errores: **401** sin sesión; **403** «Solo los riders aceptados pueden ver los
 | Sin direcciones hasta aceptar | Lo dice la historia (#78): hasta entonces, solo los barrios. |
 
 **Datos de demo:** dos trabajos disponibles (`DEMO_RIDER_JOBS`) sobre objetos que no usa ningún otro e2e: la «Máquina de coser Singer» (Sants → Gràcia, «Lo antes posible», mañana) y la «Barbacoa de carbón portátil» (Les Corts → Poblenou, 17:00-19:00, pasado mañana), de ana en local (marta en producción), solicitadas por vecino5 y vecino6. Hay un segundo rider aceptado para el caso de dos riders con el mismo trabajo: oscar en local (con dani) y ona en producción (con pau). Repetir el seed los deja otra vez sin rider.
+
+## Tabla `incidencia` y fianza retenida 48 h (Sprint 3 · US-09.01 · #456)
+
+Migración `incidencias`. El propietario abre una incidencia desde «Mis solicitudes» → «Recibidas» con el alquiler `en_curso` o `finalizada` hace menos de 48 h.
+
+| Columna | Qué guarda |
+|---|---|
+| `reserva_id` | La reserva, **única**: una incidencia por alquiler, como prevé el diagrama. `ON DELETE RESTRICT`. |
+| `abierta_por` | Quién la abrió: el propietario (la del arrendatario es US-09.04). |
+| `tipo` | `danio`, `retraso_devolucion` o `no_devolucion` («Daño», «Retraso en la devolución», «No devolución»). |
+| `descripcion` | De 1 a 2000 caracteres, sin espacios en los extremos; `CHECK` de que no está en blanco. |
+| `estado` | `abierta` al crearla; `resuelta` la pone el admin (US-11.04, que añadirá la resolución). |
+
+En Prisma es `Incident` (`reservationId`, `openedById`, `type`, `description`, `status`, `createdAt`) con los enums `IncidentType` (`damage`, `late_return`, `no_return`) e `IncidentStatus` (`open`, `resolved`).
+
+**Fianza (cambio del 28/11, decidido por Marc):** «He devuelto el objeto» ya no libera la fianza. Se queda como esté (`retenida`, `cobrada` o `pendiente`) 48 h, el plazo para abrir una incidencia. Pasadas las 48 h sin incidencia abierta, al leer «Mis solicitudes» se libera o se devuelve (`releaseReturnedDeposits`), como la retención del día antes. Con una incidencia abierta no se libera. US-09.05 añadirá «Ha vuelto en buen estado» para liberarla antes. Ver el ADR 0003.
+
+**API** (con sesión; `:id` es el de la reserva):
+- `POST /api/reservas/:id/incidencia` con `{ type: "damage" | "late_return" | "no_return", description }`: `201` con `{ id, type, description, status, createdAt }`.
+- `GET /api/usuarios/me/reservas`: cada solicitud lleva `incident` (`{ id, type, status, createdAt }` o `null`), `canOpenIncident` (solo el propietario, sin incidencia y en plazo) y `depositStatus` (`held` es «Retenida»).
+
+Errores: **400** sin tipo o con uno desconocido («Elige el tipo de incidencia.», `field: "type"`) o descripción vacía o de más de 2000 («El campo "descripción" no es correcto, revísalo.», `field: "description"`); **401** sin sesión; **403** a quien no es el propietario; **404** si el alquiler no existe; **409** si ya tiene incidencia o está fuera de plazo (antes de empezar, más de 48 h después de devolverlo o con la fianza ya liberada).
+
+| Decisión | Por qué |
+|---|---|
+| Liberar la fianza y abrir una incidencia bloquean la misma fila de `pago` (`SELECT … FOR UPDATE`) | Si las dos cosas pasan a la vez, una espera a la otra: nunca se libera una fianza con una incidencia recién abierta, ni se abre una incidencia sobre una fianza ya liberada. |
+| Sin tarea programada | Como la retención del día antes: se comprueba al leer «Mis solicitudes» (de cualquiera de las dos personas). |
+
+**Pendiente:** avisar al arrendatario con una notificación cuando exista la campana (US-06.03). **Datos de demo:** no hacen falta datos nuevos: en la demo, jordi marca «Ya tengo el objeto» del cortacésped (queda «En curso») y marta abre la incidencia desde «Recibidas».
 
 ## Qué tablas entran en cada sprint
 
