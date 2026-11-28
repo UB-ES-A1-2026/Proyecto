@@ -48,3 +48,22 @@ export async function findDepositReference(
   });
   return payment?.depositReference ?? null;
 }
+
+// Reservas del usuario (como arrendatario o propietario) devueltas antes de `returnedBefore` cuya
+// fianza sigue sin liberar y sin incidencia abierta (US-09.01, #456).
+export async function findReturnedDepositsToRelease(
+  userId: string,
+  returnedBefore: Date,
+): Promise<string[]> {
+  const reservations = await prisma.reservation.findMany({
+    where: {
+      status: 'finished',
+      OR: [{ renterId: userId }, { item: { ownerId: userId } }],
+      delivery: { returnedAt: { not: null, lte: returnedBefore } },
+      payment: { depositStatus: { in: ['pending', 'held', 'collected'] } },
+      NOT: { incident: { status: 'open' } },
+    },
+    select: { id: true },
+  });
+  return reservations.map(({ id }) => id);
+}

@@ -25,6 +25,7 @@ import { itemDemandRoutes } from './itemDemandRoutes.js';
 import { profileRoutes } from './profileRoutes.js';
 import { deliveryTrackingRoutes } from './deliveryTrackingRoutes.js';
 import { riderJobRoutes } from './riderJobRoutes.js';
+import { incidentRoutes } from './incidentRoutes.js';
 
 export const apiRoutes = Router();
 
@@ -55,3 +56,4 @@ apiRoutes.use(photoRoutes);
 apiRoutes.use(ratingRoutes);
 apiRoutes.use(deliveryTrackingRoutes);
 apiRoutes.use(riderJobRoutes);
+apiRoutes.use(incidentRoutes);

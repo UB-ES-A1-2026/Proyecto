@@ -1,10 +1,19 @@
 // Generado con asistencia de IA (Claude) – revisado por Kai Oliveros, 02/11/2026
+import type {
+  DepositStatus,
+  IncidentStatus,
+  IncidentType,
+} from '@prisma/client';
 import type { ReservationWithDetail } from '../repositories/detailIncludes.js';
 import {
   findReservationsByItemOwner,
   findReservationsByRenter,
 } from '../repositories/myReservationsRepository.js';
-import { settleDueDeposits } from './depositService.js';
+import {
+  releaseReturnedDeposits,
+  settleDueDeposits,
+} from './depositService.js';
+import { isWithinIncidentWindow } from './incidentService.js';
 import { expireOverdueReservations } from './reservationExpiry.js';
 import type { DeliveryViewer } from './deliveryView.js';
 import { toReservationDetail, type ReservationDetail } from './reservation.js';
@@ -21,6 +30,18 @@ export interface RatingSummary {
 export type MyReservation = ReservationDetail & {
   myRating: RatingSummary | null;
   receivedRating: RatingSummary | null;
+  // La incidencia del alquiler, o null (US-09.01, #456).
+  incident: {
+    id: string;
+    type: IncidentType;
+    status: IncidentStatus;
+    createdAt: Date;
+  } | null;
+  // Si quien mira puede pulsar «Abrir incidencia» ahora: el propietario, sin incidencia, con el
+  // alquiler en curso o devuelto hace menos de 48 h.
+  canOpenIncident: boolean;
+  // Estado de la fianza (null sin pago o sin fianza): «held» es «Retenida».
+  depositStatus: DepositStatus | null;
 };
 
 export interface MyReservations {
@@ -30,6 +51,8 @@ export interface MyReservations {
 
 type ReservationWithRatings = ReservationWithDetail & {
   ratings: (RatingSummary & { authorId: string })[];
+  incident: MyReservation['incident'];
+  payment: { depositStatus: DepositStatus | null } | null;
 };
 
 // Sin authorId: quién la ha escrito ya se sabe por si es la propia o la recibida.
@@ -46,14 +69,21 @@ function toMyReservation(
   userId: string,
   reservation: ReservationWithRatings,
   viewer: DeliveryViewer,
+  now: Date,
 ): MyReservation {
-  const { ratings } = reservation;
+  const { ratings, incident } = reservation;
   return {
     ...toReservationDetail(reservation, viewer),
     myRating: toSummary(ratings.find(({ authorId }) => authorId === userId)),
     receivedRating: toSummary(
       ratings.find(({ authorId }) => authorId !== userId),
     ),
+    incident,
+    canOpenIncident:
+      viewer === 'owner' &&
+      incident === null &&
+      isWithinIncidentWindow(reservation, now),
+    depositStatus: reservation.payment?.depositStatus ?? null,
   };
 }
 
@@ -66,6 +96,8 @@ export async function getMyReservations(
   await expireOverdueReservations(userId, now);
   // Fianza el día antes de empezar (T10, #285): de mejor esfuerzo, no hace fallar la lectura.
   await settleDueDeposits(userId);
+  // Y se libera la de las devueltas hace más de 48 h sin incidencia (US-09.01, #456).
+  await releaseReturnedDeposits(userId, now);
 
   const [sent, received] = await Promise.all([
     findReservationsByRenter(userId),
@@ -74,10 +106,10 @@ export async function getMyReservations(
 
   return {
     sent: sent.map((reservation) =>
-      toMyReservation(userId, reservation, 'renter'),
+      toMyReservation(userId, reservation, 'renter', now),
     ),
     received: received.map((reservation) =>
-      toMyReservation(userId, reservation, 'owner'),
+      toMyReservation(userId, reservation, 'owner', now),
     ),
   };
 }
